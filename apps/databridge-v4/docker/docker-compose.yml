@@ -1,0 +1,100 @@
+version: '3.8'
+
+# ============================================
+# DataBridge Analytics - Sample Data Environment
+# ============================================
+# This creates a self-contained financial data warehouse
+# for testing and development of V4 analytics capabilities.
+#
+# Start:  docker-compose up -d
+# Stop:   docker-compose down
+# Reset:  docker-compose down -v && docker-compose up -d
+# Logs:   docker-compose logs -f postgres
+# ============================================
+
+services:
+  # ============================================
+  # PostgreSQL - Sample Data Warehouse
+  # ============================================
+  postgres:
+    image: postgres:16
+    container_name: databridge-analytics-dw
+    environment:
+      POSTGRES_DB: financial_dw
+      POSTGRES_USER: dw_admin
+      POSTGRES_PASSWORD: dw_secure_pass_2024
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dw_admin -d financial_dw"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - databridge-network
+
+  # ============================================
+  # pgAdmin - Database Management UI
+  # ============================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: databridge-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@databridge.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - databridge-network
+
+  # ============================================
+  # ChromaDB - Vector Store for Semantic Search
+  # ============================================
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: databridge-chromadb
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - ANONYMIZED_TELEMETRY=False
+    networks:
+      - databridge-network
+
+  # ============================================
+  # Redis - Query Cache (Optional)
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: databridge-redis
+    ports:
+      - "6382:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - databridge-network
+
+volumes:
+  postgres_data:
+    name: databridge-analytics-postgres
+  pgadmin_data:
+    name: databridge-analytics-pgadmin
+  chroma_data:
+    name: databridge-analytics-chroma
+  redis_data:
+    name: databridge-analytics-redis
+
+networks:
+  databridge-network:
+    name: databridge-analytics-network
+    driver: bridge

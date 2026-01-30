@@ -1,0 +1,4 @@
+# This directory stores runtime data
+# - workflow.json: Current workflow state
+# - audit_trail.csv: Audit log
+# - databridge.db: SQLite database

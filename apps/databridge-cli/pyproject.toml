@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "databridge-cli"
+version = "1.0.0"
+description = "DataBridge AI Unified CLI - Single entry point for Hierarchy Builder and Analytics Engine"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "DataBridge AI Team"}
+]
+
+dependencies = [
+    "typer>=0.9",
+    "rich>=13.0",
+    "databridge-core",
+]
+
+[project.optional-dependencies]
+v3 = ["databridge-v3"]
+v4 = ["databridge-v4"]
+all = ["databridge-v3", "databridge-v4"]
+dev = [
+    "pytest>=7.0",
+]
+
+[project.scripts]
+databridge = "databridge_cli.main:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/databridge_cli"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+]

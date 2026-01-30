@@ -1,0 +1,72 @@
+{#
+Snowflake View Generation Template (VW_1 Tier)
+==============================================
+Generates a SELECT statement or CREATE VIEW DDL for Snowflake.
+
+Variables:
+- view_name: Name of the view to create
+- source_database: Source database name (optional)
+- source_schema: Source schema name (optional)
+- source_table: Source table name (required)
+- columns: List of column definitions with aliases
+- joins: List of join definitions
+- filters: List of filter conditions
+- group_by: List of columns to group by
+- order_by: List of columns to order by
+- create_or_replace: Boolean, whether to use CREATE OR REPLACE
+- comment: Optional comment for the view
+#}
+
+{% if create_or_replace | default(true) %}
+CREATE OR REPLACE VIEW {{ target_database | default('') }}{% if target_database | default('') %}.{% endif %}{{ target_schema | default('') }}{% if target_schema | default('') %}.{% endif %}{{ view_name }}
+{% if comment %}
+COMMENT = '{{ comment | replace("'", "''") }}'
+{% endif %}
+AS
+{% endif %}
+SELECT
+{% for col in columns %}
+    {% if col.expression %}
+    {{ col.expression }}{% if col.alias %} AS {{ col.alias }}{% endif %}{% if not loop.last %},{% endif %}
+
+    {% else %}
+    {% if col.table_alias %}{{ col.table_alias }}.{% endif %}{{ col.name }}{% if col.alias %} AS {{ col.alias }}{% endif %}{% if not loop.last %},{% endif %}
+
+    {% endif %}
+{% endfor %}
+FROM {{ source_database | default('') }}{% if source_database | default('') %}.{% endif %}{{ source_schema | default('') }}{% if source_schema | default('') %}.{% endif %}{{ source_table }}{% if source_alias %} AS {{ source_alias }}{% endif %}
+
+{% for join in joins | default([]) %}
+{{ join.type | default('LEFT') }} JOIN {{ join.database | default('') }}{% if join.database | default('') %}.{% endif %}{{ join.schema | default('') }}{% if join.schema | default('') %}.{% endif %}{{ join.table }}{% if join.alias %} AS {{ join.alias }}{% endif %}
+
+    ON {{ join.on }}
+{% endfor %}
+{% if filters | default([]) %}
+WHERE
+{% for filter in filters %}
+    {% if not loop.first %}AND {% endif %}{{ filter.column }} {{ filter.operator }} {% if filter.value is string %}'{{ filter.value }}'{% else %}{{ filter.value }}{% endif %}
+
+{% endfor %}
+{% endif %}
+{% if group_by | default([]) %}
+GROUP BY
+{% for col in group_by %}
+    {{ col }}{% if not loop.last %},{% endif %}
+
+{% endfor %}
+{% endif %}
+{% if having | default([]) %}
+HAVING
+{% for condition in having %}
+    {% if not loop.first %}AND {% endif %}{{ condition }}
+
+{% endfor %}
+{% endif %}
+{% if order_by | default([]) %}
+ORDER BY
+{% for col in order_by %}
+    {{ col.column }}{% if col.direction %} {{ col.direction }}{% endif %}{% if not loop.last %},{% endif %}
+
+{% endfor %}
+{% endif %}
+;

@@ -1,0 +1,39 @@
+# ============================================
+# DataBridge Analytics - Data Warehouse Connectors
+# ============================================
+# Install: pip install -r requirements-connectors.txt
+# ============================================
+
+# ----------------
+# Snowflake
+# ----------------
+snowflake-connector-python>=3.6.0
+snowflake-sqlalchemy>=1.5.0
+
+# ----------------
+# Databricks
+# ----------------
+databricks-sql-connector>=3.0.0
+# databricks-connect>=14.0.0    # For Spark connectivity
+
+# ----------------
+# SQL Server
+# ----------------
+pyodbc>=5.1.0                   # Primary driver
+pymssql>=2.2.0                  # Alternative driver
+
+# ----------------
+# MySQL
+# ----------------
+pymysql>=1.1.0
+
+# ----------------
+# Oracle (if needed)
+# ----------------
+# oracledb>=2.0.0
+
+# ----------------
+# Google BigQuery (if needed)
+# ----------------
+# google-cloud-bigquery>=3.17.0
+# google-cloud-bigquery-storage>=2.24.0

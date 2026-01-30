@@ -1,0 +1,72 @@
+{#
+Snowflake Dynamic Table Generation Template (DT_2/DT_3 Tier)
+============================================================
+Generates CREATE DYNAMIC TABLE DDL for Snowflake.
+
+Variables:
+- table_name: Name of the dynamic table to create
+- target_database: Target database name
+- target_schema: Target schema name
+- warehouse: Warehouse for refresh operations
+- target_lag: Target lag for freshness (e.g., '1 hour', '1 day', 'downstream')
+- source_view: Source view or table name
+- columns: List of column definitions
+- aggregations: List of aggregation definitions
+- filters: List of filter conditions
+- group_by: List of columns to group by
+- comment: Optional comment for the table
+#}
+
+CREATE OR REPLACE DYNAMIC TABLE {{ target_database | default('') }}{% if target_database | default('') %}.{% endif %}{{ target_schema | default('') }}{% if target_schema | default('') %}.{% endif %}{{ table_name }}
+{% if comment %}
+COMMENT = '{{ comment | replace("'", "''") }}'
+{% endif %}
+TARGET_LAG = '{{ target_lag | default('1 hour') }}'
+WAREHOUSE = {{ warehouse | default('COMPUTE_WH') }}
+AS
+SELECT
+{% for col in columns %}
+    {% if col.expression %}
+    {{ col.expression }} AS {{ col.alias | default(col.name) }}{% if not loop.last %},{% endif %}
+
+    {% elif col.aggregation %}
+    {{ col.aggregation }}({% if col.distinct %}DISTINCT {% endif %}{{ col.source_column }}) AS {{ col.alias | default(col.name) }}{% if not loop.last %},{% endif %}
+
+    {% else %}
+    {{ col.source_column | default(col.name) }}{% if col.alias %} AS {{ col.alias }}{% endif %}{% if not loop.last %},{% endif %}
+
+    {% endif %}
+{% endfor %}
+{% for agg in aggregations | default([]) %}
+    , {{ agg.function }}({% if agg.distinct %}DISTINCT {% endif %}{{ agg.column }}) AS {{ agg.alias }}
+{% endfor %}
+FROM {{ source_database | default('') }}{% if source_database | default('') %}.{% endif %}{{ source_schema | default('') }}{% if source_schema | default('') %}.{% endif %}{{ source_view }}{% if source_alias %} AS {{ source_alias }}{% endif %}
+
+{% for join in joins | default([]) %}
+{{ join.type | default('LEFT') }} JOIN {{ join.database | default('') }}{% if join.database | default('') %}.{% endif %}{{ join.schema | default('') }}{% if join.schema | default('') %}.{% endif %}{{ join.table }}{% if join.alias %} AS {{ join.alias }}{% endif %}
+
+    ON {{ join.on }}
+{% endfor %}
+{% if filters | default([]) %}
+WHERE
+{% for filter in filters %}
+    {% if not loop.first %}AND {% endif %}{% if filter.expression %}{{ filter.expression }}{% else %}{{ filter.column }} {{ filter.operator }} {% if filter.value is string %}'{{ filter.value }}'{% else %}{{ filter.value }}{% endif %}{% endif %}
+
+{% endfor %}
+{% endif %}
+{% if group_by | default([]) %}
+GROUP BY
+{% for col in group_by %}
+    {{ col }}{% if not loop.last %},{% endif %}
+
+{% endfor %}
+{% endif %}
+;
+
+{# Optional: Create stream on dynamic table for CDC #}
+{% if create_stream | default(false) %}
+
+CREATE OR REPLACE STREAM {{ target_database | default('') }}{% if target_database | default('') %}.{% endif %}{{ target_schema | default('') }}{% if target_schema | default('') %}.{% endif %}{{ table_name }}_STREAM
+ON DYNAMIC TABLE {{ target_database | default('') }}{% if target_database | default('') %}.{% endif %}{{ target_schema | default('') }}{% if target_schema | default('') %}.{% endif %}{{ table_name }}
+SHOW_INITIAL_ROWS = TRUE;
+{% endif %}

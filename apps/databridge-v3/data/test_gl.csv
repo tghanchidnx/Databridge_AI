@@ -1,0 +1,7 @@
+account_code,account_name,balance
+1000,Cash,50000
+1100,AR,125000
+2000,AP,-45000
+3000,Revenue,-500000
+4000,COGS,200000
+5000,SG&A,150000

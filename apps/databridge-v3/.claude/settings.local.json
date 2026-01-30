@@ -1,0 +1,50 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command \"Get-ChildItem -Recurse | Select-Object FullName | head -200\")",
+      "Bash(powershell -Command \"Get-ChildItem -Depth 2 -Directory | Select-Object FullName\")",
+      "Bash(wc:*)",
+      "WebSearch",
+      "Bash(tree:*)",
+      "Bash(dir:*)",
+      "Bash(pip install:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(python -m src.cli.app:*)",
+      "Bash(docker compose:*)",
+      "Bash(python:*)",
+      "Bash(databridge:*)",
+      "Bash(bandit:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git config:*)",
+      "Bash(gh auth:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(echo:*)",
+      "Bash(docker info:*)",
+      "Bash(docker-compose:*)",
+      "Bash(docker ps:*)",
+      "Bash(curl:*)",
+      "Bash(timeout 10 fastmcp dev:*)",
+      "Bash(timeout 15 fastmcp dev:*)",
+      "Bash(start /b fastmcp dev run_mcp.py)",
+      "Bash(timeout /t 10 /nobreak)",
+      "Bash(findstr:*)",
+      "Bash(fastmcp dev:*)",
+      "Bash(ping:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)",
+      "Bash(cmd //c \"taskkill /PID 88288 /F\")",
+      "Bash(cmd //c \"taskkill /PID 92900 /F\")",
+      "Bash(cmd //c \"taskkill /IM node.exe /F\")",
+      "Bash(cmd //c \"taskkill /IM python.exe /F\")",
+      "Bash(xcopy:*)",
+      "Bash(powershell -Command:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "DNX Hierarchy Manager"
+  ]
+}

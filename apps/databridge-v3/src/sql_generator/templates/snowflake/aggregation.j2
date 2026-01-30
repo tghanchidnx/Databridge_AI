@@ -1,0 +1,93 @@
+{#
+Snowflake Aggregation Template (DT_3A Tier)
+===========================================
+Generates aggregation SQL with precedence handling for hierarchy-based summaries.
+
+Variables:
+- table_name: Name of the aggregation table
+- source_table: Source table/view to aggregate
+- hierarchy_column: Column containing hierarchy IDs
+- hierarchy_mappings: Dict mapping hierarchy IDs to filter conditions
+- measures: List of measure columns with aggregation functions
+- dimensions: List of dimension columns to group by
+- precedence_group: Filter precedence group (1 = highest priority)
+#}
+
+{# Generate CTE for each precedence group if needed #}
+{% if precedence_groups | default([]) %}
+WITH
+{% for pg in precedence_groups %}
+precedence_{{ pg.group }}_data AS (
+    SELECT
+        {% for dim in dimensions | default([]) %}
+        {{ dim.column }}{% if dim.alias %} AS {{ dim.alias }}{% endif %},
+        {% endfor %}
+        {% for measure in measures %}
+        {{ measure.function | default('SUM') }}({{ measure.column }}) AS {{ measure.alias | default(measure.column) }}{% if not loop.last %},{% endif %}
+
+        {% endfor %}
+    FROM {{ source_database | default('') }}{% if source_database | default('') %}.{% endif %}{{ source_schema | default('') }}{% if source_schema | default('') %}.{% endif %}{{ source_table }}
+    WHERE {{ pg.filter_column }} IN (
+        {% for value in pg.filter_values %}
+        '{{ value }}'{% if not loop.last %},{% endif %}
+
+        {% endfor %}
+    )
+    {% if additional_filters | default([]) %}
+    {% for filter in additional_filters %}
+    AND {{ filter.expression }}
+    {% endfor %}
+    {% endif %}
+    GROUP BY
+        {% for dim in dimensions | default([]) %}
+        {{ dim.column }}{% if not loop.last %},{% endif %}
+
+        {% endfor %}
+){% if not loop.last %},{% endif %}
+
+{% endfor %}
+
+{# Final SELECT combining all precedence groups with COALESCE #}
+SELECT
+    {% for dim in dimensions | default([]) %}
+    COALESCE({% for pg in precedence_groups %}precedence_{{ pg.group }}_data.{{ dim.alias | default(dim.column) }}{% if not loop.last %}, {% endif %}{% endfor %}) AS {{ dim.alias | default(dim.column) }},
+    {% endfor %}
+    {% for measure in measures %}
+    COALESCE({% for pg in precedence_groups %}precedence_{{ pg.group }}_data.{{ measure.alias | default(measure.column) }}{% if not loop.last %}, {% endif %}{% endfor %}, 0) AS {{ measure.alias | default(measure.column) }}{% if not loop.last %},{% endif %}
+
+    {% endfor %}
+FROM precedence_1_data
+{% for pg in precedence_groups %}
+{% if pg.group != 1 %}
+FULL OUTER JOIN precedence_{{ pg.group }}_data
+    ON {% for dim in dimensions | default([]) %}
+    precedence_1_data.{{ dim.alias | default(dim.column) }} = precedence_{{ pg.group }}_data.{{ dim.alias | default(dim.column) }}{% if not loop.last %} AND {% endif %}
+
+    {% endfor %}
+{% endif %}
+{% endfor %}
+
+{% else %}
+{# Simple aggregation without precedence groups #}
+SELECT
+    {% for dim in dimensions | default([]) %}
+    {{ dim.column }}{% if dim.alias %} AS {{ dim.alias }}{% endif %},
+    {% endfor %}
+    {% for measure in measures %}
+    {{ measure.function | default('SUM') }}({{ measure.column }}) AS {{ measure.alias | default(measure.column) }}{% if not loop.last %},{% endif %}
+
+    {% endfor %}
+FROM {{ source_database | default('') }}{% if source_database | default('') %}.{% endif %}{{ source_schema | default('') }}{% if source_schema | default('') %}.{% endif %}{{ source_table }}
+{% if filters | default([]) %}
+WHERE
+{% for filter in filters %}
+    {% if not loop.first %}AND {% endif %}{{ filter.expression | default(filter.column ~ ' ' ~ filter.operator ~ ' ' ~ filter.value) }}
+{% endfor %}
+{% endif %}
+GROUP BY
+    {% for dim in dimensions | default([]) %}
+    {{ dim.column }}{% if not loop.last %},{% endif %}
+
+    {% endfor %}
+{% endif %}
+;

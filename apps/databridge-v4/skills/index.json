@@ -1,0 +1,199 @@
+{
+  "version": "4.0.0",
+  "description": "DataBridge Analytics V4 Skills Registry",
+  "skills": [
+    {
+      "id": "fpa-close-analyst",
+      "name": "FP&A Close Analyst",
+      "description": "Specializes in month-end close processes, subledger reconciliation, and close task automation",
+      "domain": "finance",
+      "industries": ["general", "manufacturing", "oil_gas", "retail"],
+      "capabilities": [
+        "Month-end close coordination",
+        "Subledger to GL reconciliation",
+        "Close task checklist management",
+        "Period lock and unlock",
+        "Accrual and adjustment entries",
+        "Close timeline optimization"
+      ],
+      "mcp_tools": [
+        "sync_period_data",
+        "validate_close_readiness",
+        "reconcile_subledger_to_gl",
+        "lock_period"
+      ],
+      "prompt_file": "fpa-close-analyst-prompt.txt"
+    },
+    {
+      "id": "variance-analyst",
+      "name": "Variance Analyst",
+      "description": "Expert in budget vs actual analysis, variance decomposition, and driver identification",
+      "domain": "finance",
+      "industries": ["general", "manufacturing", "oil_gas", "retail", "saas"],
+      "capabilities": [
+        "Budget vs Actual variance analysis",
+        "Prior year comparison",
+        "Price/Volume/Mix decomposition",
+        "Variance driver identification",
+        "Favorable/Unfavorable determination",
+        "Executive variance commentary"
+      ],
+      "mcp_tools": [
+        "analyze_budget_variance",
+        "analyze_prior_year_variance",
+        "identify_variance_drivers",
+        "generate_variance_commentary"
+      ],
+      "prompt_file": "variance-analyst-prompt.txt"
+    },
+    {
+      "id": "financial-forecaster",
+      "name": "Financial Forecaster",
+      "description": "Specializes in rolling forecasts, scenario modeling, and predictive financial analysis",
+      "domain": "finance",
+      "industries": ["general", "manufacturing", "oil_gas", "retail", "saas", "pe"],
+      "capabilities": [
+        "Rolling forecast management",
+        "Scenario modeling (best/base/worst)",
+        "YTD actuals + forecast combination",
+        "Trend-based projections",
+        "Driver-based forecasting",
+        "Forecast accuracy tracking"
+      ],
+      "mcp_tools": [
+        "get_current_forecast",
+        "update_rolling_forecast",
+        "model_scenario",
+        "compare_scenarios"
+      ],
+      "prompt_file": "financial-forecaster-prompt.txt"
+    },
+    {
+      "id": "operational-finance-analyst",
+      "name": "Operational Finance Analyst",
+      "description": "Bridges operational metrics with financial outcomes and cost analysis",
+      "domain": "operations",
+      "industries": ["manufacturing", "oil_gas", "transportation", "industrial_services"],
+      "capabilities": [
+        "Operational to financial bridge",
+        "Unit cost analysis",
+        "Efficiency metrics tracking",
+        "Production variance analysis",
+        "Capacity utilization analysis",
+        "Operational KPI dashboards"
+      ],
+      "mcp_tools": [
+        "execute_sql",
+        "detect_anomalies",
+        "analyze_trends",
+        "get_kpi_dashboard"
+      ],
+      "prompt_file": "operational-finance-analyst-prompt.txt"
+    },
+    {
+      "id": "management-reporter",
+      "name": "Management Reporter",
+      "description": "Creates executive-ready reports, dashboards, and financial presentations",
+      "domain": "reporting",
+      "industries": ["general", "pe", "saas", "manufacturing"],
+      "capabilities": [
+        "Executive summary generation",
+        "Board-ready financial reports",
+        "KPI dashboard creation",
+        "Trend visualization",
+        "Commentary and narrative",
+        "Ad-hoc analysis requests"
+      ],
+      "mcp_tools": [
+        "generate_summary",
+        "get_kpi_dashboard",
+        "generate_insight_report",
+        "compare_periods"
+      ],
+      "prompt_file": "management-reporter-prompt.txt"
+    },
+    {
+      "id": "data-integration-specialist",
+      "name": "Data Integration Specialist",
+      "description": "Expert in data warehouse connectivity, ETL, and data pipeline management",
+      "domain": "data",
+      "industries": ["general"],
+      "capabilities": [
+        "Multi-warehouse connectivity",
+        "Schema mapping and validation",
+        "Data quality assessment",
+        "ETL pipeline design",
+        "Metadata catalog management",
+        "Data lineage tracking"
+      ],
+      "mcp_tools": [
+        "list_connections",
+        "add_connection",
+        "test_connection",
+        "get_tables",
+        "get_columns",
+        "refresh_catalog"
+      ],
+      "prompt_file": "data-integration-specialist-prompt.txt"
+    },
+    {
+      "id": "nl-query-assistant",
+      "name": "Natural Language Query Assistant",
+      "description": "Translates natural language questions into SQL queries with explanations",
+      "domain": "analytics",
+      "industries": ["general"],
+      "capabilities": [
+        "Natural language to SQL translation",
+        "Query explanation and documentation",
+        "Suggested follow-up questions",
+        "Query optimization recommendations",
+        "Result interpretation",
+        "Self-service analytics enablement"
+      ],
+      "mcp_tools": [
+        "nl_to_sql",
+        "execute_nl_query",
+        "suggest_questions",
+        "explain_query"
+      ],
+      "prompt_file": "nl-query-assistant-prompt.txt"
+    }
+  ],
+  "domains": [
+    {
+      "id": "finance",
+      "name": "Finance & FP&A",
+      "description": "Financial planning, analysis, and reporting"
+    },
+    {
+      "id": "operations",
+      "name": "Operations",
+      "description": "Operational metrics and efficiency"
+    },
+    {
+      "id": "reporting",
+      "name": "Reporting",
+      "description": "Management and executive reporting"
+    },
+    {
+      "id": "data",
+      "name": "Data Engineering",
+      "description": "Data integration and pipeline management"
+    },
+    {
+      "id": "analytics",
+      "name": "Analytics",
+      "description": "Self-service analytics and insights"
+    }
+  ],
+  "industries": [
+    {"id": "general", "name": "General"},
+    {"id": "manufacturing", "name": "Manufacturing"},
+    {"id": "oil_gas", "name": "Oil & Gas"},
+    {"id": "retail", "name": "Retail"},
+    {"id": "saas", "name": "SaaS"},
+    {"id": "pe", "name": "Private Equity"},
+    {"id": "transportation", "name": "Transportation"},
+    {"id": "industrial_services", "name": "Industrial Services"}
+  ]
+}

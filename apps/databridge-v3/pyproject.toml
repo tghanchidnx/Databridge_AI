@@ -1,0 +1,176 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "databridge-v3"
+version = "3.0.0"
+description = "Headless DataBridge AI - Python CLI for Financial Hierarchy Building"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "DataBridge AI Team"}
+]
+keywords = ["fpa", "finance", "hierarchy", "reconciliation", "mcp", "ai"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial :: Accounting",
+]
+dependencies = [
+    # CLI Framework
+    "typer>=0.12.0",
+    "click>=8.1.0",
+    "rich>=13.7.0",
+    "prompt-toolkit>=3.0.0",
+
+    # Data Processing
+    "pandas>=2.2.0",
+    "numpy>=1.26.0",
+
+    # Database
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.13.0",
+
+    # Configuration
+    "pydantic>=2.6.0",
+    "pydantic-settings>=2.2.0",
+    "python-dotenv>=1.0.0",
+
+    # MCP Server
+    "fastmcp>=0.4.0",
+
+    # Vector Embeddings
+    "chromadb>=0.4.22",
+    "sentence-transformers>=2.5.0",
+
+    # Fuzzy Matching
+    "rapidfuzz>=3.6.0",
+
+    # Security
+    "cryptography>=42.0.0",
+
+    # HTTP Client (for backend sync)
+    "httpx>=0.27.0",
+
+    # Utilities
+    "python-slugify>=8.0.0",
+    "arrow>=1.3.0",
+    "tabulate>=0.9.0",
+    "tqdm>=4.66.0",
+
+    # SQL Generator
+    "networkx>=3.0",
+    "jinja2>=3.1.0",
+]
+
+[project.optional-dependencies]
+# Shared libraries from monorepo (for local development)
+monorepo = [
+    "databridge-core",
+    "databridge-models",
+]
+connectors = [
+    "snowflake-connector-python>=3.6.0",
+    "snowflake-sqlalchemy>=1.5.0",
+    "pymysql>=1.1.0",
+    "psycopg2-binary>=2.9.9",
+    "pyodbc>=5.1.0",
+]
+ocr = [
+    "pypdf>=3.0.0",
+    "pytesseract>=0.3.10",
+    "Pillow>=10.0.0",
+]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.2.0",
+    "black>=24.0.0",
+    "mypy>=1.8.0",
+    "pre-commit>=3.6.0",
+]
+all = [
+    "databridge-v3[connectors,ocr,dev]",
+]
+
+[project.scripts]
+databridge = "src.cli.app:app"
+
+[project.urls]
+Homepage = "https://github.com/databridge-ai/databridge-v3"
+Documentation = "https://databridge-ai.github.io/docs/v3"
+Repository = "https://github.com/databridge-ai/databridge-v3"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*", "templates*", "skills*", "knowledge_base*"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by black)
+    "B008",  # do not perform function calls in argument defaults
+]
+
+[tool.ruff.isort]
+known-first-party = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+markers = [
+    "phase1: Foundation tests",
+    "phase2: Hierarchy module tests",
+    "phase3: Reconciliation tests",
+    "phase4: Templates and skills tests",
+    "phase5: Connection tests",
+    "phase6: Schema matching tests",
+    "phase7: Deployment tests",
+    "phase8: MCP server tests",
+    "smoke: Quick smoke tests",
+    "slow: Long-running tests",
+]
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]
