@@ -1,0 +1,57 @@
+{
+  "version": "4.0.0",
+  "description": "DataBridge Analytics V4 Knowledge Base Index",
+  "collections": [
+    {
+      "id": "business_glossary",
+      "name": "Business Glossary",
+      "description": "Business terminology and definitions",
+      "embedding_model": "all-MiniLM-L6-v2",
+      "chunk_size": 512
+    },
+    {
+      "id": "metric_definitions",
+      "name": "Metric Definitions",
+      "description": "KPI and metric calculation definitions",
+      "embedding_model": "all-MiniLM-L6-v2",
+      "chunk_size": 256
+    },
+    {
+      "id": "query_patterns",
+      "name": "Query Patterns",
+      "description": "Common SQL query patterns and examples",
+      "embedding_model": "all-MiniLM-L6-v2",
+      "chunk_size": 1024
+    },
+    {
+      "id": "industry_terminology",
+      "name": "Industry Terminology",
+      "description": "Industry-specific terms and concepts",
+      "embedding_model": "all-MiniLM-L6-v2",
+      "chunk_size": 512
+    },
+    {
+      "id": "fpa_concepts",
+      "name": "FP&A Concepts",
+      "description": "Financial planning and analysis concepts",
+      "embedding_model": "all-MiniLM-L6-v2",
+      "chunk_size": 768
+    }
+  ],
+  "glossary_categories": [
+    "accounting",
+    "finance",
+    "operations",
+    "analytics",
+    "data_engineering"
+  ],
+  "metric_categories": [
+    "revenue",
+    "profitability",
+    "efficiency",
+    "liquidity",
+    "leverage",
+    "growth",
+    "valuation"
+  ]
+}

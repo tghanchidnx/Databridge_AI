@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command \"Get-ChildItem -Recurse | Select-Object FullName | head -200\")",
+      "Bash(powershell -Command \"Get-ChildItem -Depth 2 -Directory | Select-Object FullName\")",
+      "Bash(wc:*)",
+      "WebSearch",
+      "Bash(tree:*)",
+      "Bash(dir:*)",
+      "Bash(pip install:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(python -m src.cli.app:*)",
+      "Bash(docker compose:*)",
+      "Bash(python:*)",
+      "Bash(databridge:*)",
+      "Bash(bandit:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "DNX Hierarchy Manager"
+  ]
+}

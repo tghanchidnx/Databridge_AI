@@ -1,0 +1,57 @@
+# ============================================
+# Headless DataBridge AI - Optional Dependencies
+# ============================================
+# Install: pip install -r requirements-optional.txt
+# ============================================
+
+# ----------------
+# Database Connectors
+# ----------------
+# Snowflake
+snowflake-connector-python>=3.6.0
+snowflake-sqlalchemy>=1.5.0
+
+# MySQL
+pymysql>=1.1.0
+# mysqlclient>=2.2.0  # Alternative (requires C compiler)
+
+# PostgreSQL
+psycopg2-binary>=2.9.9
+
+# SQL Server
+pyodbc>=5.1.0
+
+# ----------------
+# OCR / PDF Processing
+# ----------------
+pypdf>=4.0.0                    # PDF text extraction
+pytesseract>=0.3.10             # Tesseract OCR wrapper
+pillow>=10.2.0                  # Image processing
+
+# ----------------
+# Cloud Embeddings (alternative to local)
+# ----------------
+openai>=1.12.0                  # OpenAI embeddings API
+cohere>=4.47                    # Cohere embeddings API
+
+# ----------------
+# Alternative Vector Stores
+# ----------------
+qdrant-client>=1.7.0            # Qdrant vector database
+faiss-cpu>=1.7.4                # Facebook AI Similarity Search
+
+# ----------------
+# Advanced Embeddings
+# ----------------
+instructor-embedding>=1.2.0     # Instruction-tuned embeddings
+
+# ----------------
+# Development Tools
+# ----------------
+pytest>=8.0.0                   # Testing framework
+pytest-cov>=4.1.0               # Coverage reporting
+pytest-asyncio>=0.23.0          # Async test support
+black>=24.1.0                   # Code formatter
+ruff>=0.2.0                     # Fast linter
+mypy>=1.8.0                     # Type checking
+pre-commit>=3.6.0               # Git hooks

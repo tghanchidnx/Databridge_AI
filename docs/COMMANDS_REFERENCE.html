@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataBridge AI - Commands Reference</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --secondary: #8b5cf6;
+            --success: #22c55e;
+            --warning: #eab308;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --light: #f1f5f9;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .header h1 { font-size: 2rem; margin-bottom: 10px; }
+        .header p { opacity: 0.9; }
+
+        .nav {
+            background: white;
+            padding: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            background: var(--light);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .section { display: none; }
+        .section.active { display: block; }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light);
+        }
+
+        .card h3 {
+            margin: 20px 0 10px 0;
+            color: var(--dark);
+        }
+
+        .command-block {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 12px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+        }
+
+        .command-block .comment { color: #64748b; }
+        .command-block .path { color: #fcd34d; }
+        .command-block .cmd { color: #22c55e; }
+        .command-block .flag { color: #f472b6; }
+
+        .command-title {
+            background: #334155;
+            color: #94a3b8;
+            padding: 8px 16px;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: -12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .alert {
+            padding: 14px 18px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .alert-info { background: #dbeafe; border-left: 4px solid var(--primary); }
+        .alert-success { background: #dcfce7; border-left: 4px solid var(--success); }
+        .alert-warning { background: #fef3c7; border-left: 4px solid var(--warning); }
+        .alert-danger { background: #fee2e2; border-left: 4px solid var(--danger); }
+
+        .table-container { overflow-x: auto; margin: 15px 0; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        tr:hover { background: #f8fafc; }
+
+        code {
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-blue { background: #dbeafe; color: #1e40af; }
+        .badge-green { background: #dcfce7; color: #166534; }
+        .badge-purple { background: #f3e8ff; color: #7c3aed; }
+        .badge-orange { background: #fed7aa; color: #c2410c; }
+
+        .copy-btn {
+            float: right;
+            background: #475569;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .copy-btn:hover { background: #64748b; }
+
+        ul { margin-left: 20px; margin-top: 10px; }
+        li { margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>DataBridge AI - Commands Reference</h1>
+        <p>Complete guide to starting services, running tests, and managing the application</p>
+    </header>
+
+    <nav class="nav">
+        <div class="nav-container">
+            <button class="nav-btn active" onclick="showSection('startup')">Startup Services</button>
+            <button class="nav-btn" onclick="showSection('auth')">Authentication</button>
+            <button class="nav-btn" onclick="showSection('backend')">Backend (NestJS)</button>
+            <button class="nav-btn" onclick="showSection('frontend')">Frontend (React)</button>
+            <button class="nav-btn" onclick="showSection('database')">Database</button>
+            <button class="nav-btn" onclick="showSection('mcp')">MCP Server</button>
+            <button class="nav-btn" onclick="showSection('tests')">Testing</button>
+        </div>
+    </nav>
+
+    <main class="container">
+        <!-- STARTUP SERVICES -->
+        <section id="startup" class="section active">
+            <div class="card">
+                <h2>Quick Start - All Services</h2>
+                <p>Start all services with Docker Compose (recommended for production-like environment):</p>
+
+                <div class="command-title">Start All Services (Docker)</div>
+                <div class="command-block">
+                    <span class="comment"># Navigate to the application folder</span><br>
+                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP</span><br><br>
+                    <span class="comment"># Start all services: MySQL, Backend, Frontend, Redis</span><br>
+                    <span class="cmd">docker-compose</span> <span class="flag">up -d</span><br><br>
+                    <span class="comment"># View logs for all services</span><br>
+                    <span class="cmd">docker-compose</span> <span class="flag">logs -f</span><br><br>
+                    <span class="comment"># Stop all services</span><br>
+                    <span class="cmd">docker-compose</span> <span class="flag">down</span>
+                </div>
+
+                <div class="alert alert-success">
+                    <strong>Services Started:</strong>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>MySQL</strong> - Port 3307</li>
+                        <li><strong>Backend (NestJS)</strong> - Port 3001</li>
+                        <li><strong>Frontend (React)</strong> - Ports 80, 443</li>
+                        <li><strong>Redis</strong> - Port 6380</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Start Services Individually (Development)</h2>
+
+                <h3>1. Start MySQL Database</h3>
+                <div class="command-block">
+                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP</span><br>
+                    <span class="cmd">docker-compose</span> <span class="flag">up -d</span> mysql
+                </div>
+
+                <h3>2. Start Backend (NestJS)</h3>
+                <div class="command-block">
+                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs</span><br><br>
+                    <span class="comment"># Install dependencies (first time only)</span><br>
+                    <span class="cmd">npm</span> <span class="flag">install</span><br><br>
+                    <span class="comment"># Run database migrations</span><br>
+                    <span class="cmd">npx</span> prisma migrate deploy<br><br>
+                    <span class="comment"># Start development server</span><br>
+                    <span class="cmd">npm</span> <span class="flag">run start:dev</span>
+                </div>
+
+                <h3>3. Start Frontend (React/Vite)</h3>
+                <div class="command-block">
+                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai</span><br><br>
+                    <span class="comment"># Install dependencies (first time only)</span><br>
+                    <span class="cmd">npm</span> <span class="flag">install</span><br><br>
+                    <span class="comment"># Start development server</span><br>
+                    <span class="cmd">npm</span> <span class="flag">run dev</span>
+                </div>
+
+                <h3>4. Start MCP Server (Python)</h3>
+                <div class="command-block">
+                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI</span><br><br>
+                    <span class="comment"># Start MCP server</span><br>
+                    <span class="cmd">python</span> run_server.py
+                </div>
+            </div>
+        </section>
+
+        <!-- AUTHENTICATION -->
+        <section id="auth" class="section">
+            <div class="card">
+                <h2>Authentication - Quick Diagnosis</h2>
+
+                <div class="alert alert-danger">
+                    <strong>"No response from server" Error</strong><br>
+                    This means the <strong>backend is NOT running</strong>. The frontend cannot reach the API at <code>http://localhost:3001</code>.
+                </div>
+
+                <h3>Fix: Start the Backend Server</h3>
+                <p>You need to start <strong>3 services in order</strong>: MySQL -> Backend -> Frontend</p>
+
+                <div class="command-title">Terminal 1: Start MySQL Database</div>
+                <div class="command-block">
+                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP"</span><br><br>
+                    <span class="comment"># Start MySQL container</span><br>
+                    <span class="cmd">docker compose</span> <span class="flag">up -d</span> mysql<br><br>
+                    <span class="comment"># Verify MySQL is running (wait 10 seconds first)</span><br>
+                    <span class="cmd">docker compose</span> <span class="flag">ps</span>
+                </div>
+
+                <div class="command-title">Terminal 2: Start Backend (NestJS)</div>
+                <div class="command-block">
+                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
+                    <span class="comment"># Install dependencies (first time only)</span><br>
+                    <span class="cmd">npm</span> <span class="flag">install</span><br><br>
+                    <span class="comment"># Apply database migrations</span><br>
+                    <span class="cmd">npx</span> prisma migrate deploy<br><br>
+                    <span class="comment"># Start the backend server</span><br>
+                    <span class="cmd">npm</span> <span class="flag">run start:dev</span>
+                </div>
+
+                <div class="alert alert-success">
+                    <strong>Backend Started Successfully:</strong> You should see <code>Nest application successfully started</code> in the terminal.
+                    The API is now available at <code>http://localhost:3001/api</code>
+                </div>
+
+                <div class="command-title">Terminal 3: Start Frontend (React/Vite)</div>
+                <div class="command-block">
+                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai"</span><br><br>
+                    <span class="comment"># Install dependencies (first time only)</span><br>
+                    <span class="cmd">npm</span> <span class="flag">install</span><br><br>
+                    <span class="comment"># Start the frontend</span><br>
+                    <span class="cmd">npm</span> <span class="flag">run dev</span>
+                </div>
+
+                <div class="command-title">Verify Backend is Running</div>
+                <div class="command-block">
+                    <span class="comment"># Test the health endpoint (should return JSON)</span><br>
+                    <span class="cmd">curl</span> http://localhost:3001/api/health<br><br>
+                    <span class="comment"># Or open in browser:</span><br>
+                    http://localhost:3001/api/health
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Authentication Methods Supported</h2>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Description</th>
+                                <th>API Endpoint</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge badge-green">Email/Password</span></td>
+                                <td>Traditional login with bcrypt hashed passwords</td>
+                                <td><code>POST /api/auth/login</code></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge badge-blue">Microsoft SSO</span></td>
+                                <td>Azure AD / Microsoft Account OAuth</td>
+                                <td><code>POST /api/auth/login</code> with accessToken</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge badge-orange">Snowflake SSO</span></td>
+                                <td>Snowflake OAuth 2.0 authentication</td>
+                                <td><code>POST /api/auth/snowflake/sso/callback</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Email/Password Login Flow</h3>
+                <div class="command-block">
+                    <span class="comment"># POST /api/auth/login</span><br>
+                    {<br>
+                    &nbsp;&nbsp;"email": "telha.ghanchi@datanexum.com",<br>
+                    &nbsp;&nbsp;"password": "your-password"<br>
+                    }<br><br>
+                    <span class="comment"># Returns JWT token on success</span>
+                </div>
+
+                <h3>Microsoft SSO Login Flow</h3>
+                <div class="command-block">
+                    <span class="comment"># POST /api/auth/login</span><br>
+                    {<br>
+                    &nbsp;&nbsp;"authType": "microsoft_sso",<br>
+                    &nbsp;&nbsp;"accessToken": "eyJ0eXAiOiJKV1..."  <span class="comment">// From MSAL</span><br>
+                    }<br><br>
+                    <span class="comment"># Backend validates token with Microsoft Graph API</span>
+                </div>
+
+                <h3>Snowflake SSO Login Flow</h3>
+                <div class="command-block">
+                    <span class="comment"># Step 1: Initialize SSO (get auth URL)</span><br>
+                    POST /api/auth/snowflake/sso/init<br>
+                    { "snowflakeAccount": "zf07542.south-central-us.azure" }<br><br>
+                    <span class="comment"># Step 2: User redirects to Snowflake, then callback</span><br>
+                    POST /api/auth/snowflake/sso/callback<br>
+                    { "code": "authorization_code_from_snowflake" }
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Environment Variables - Authentication</h2>
+
+                <h3>Backend .env (Required for Auth)</h3>
+                <p><strong>File:</strong> <code>C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs\.env</code></p>
+
+                <div class="command-block">
+                    <span class="comment"># JWT Configuration (REQUIRED)</span><br>
+                    JWT_SECRET=f90610efce4d10c0b694db0c69d5388c26164b34e516bc73d59ee5d1dc58c133<br>
+                    JWT_EXPIRATION=1d<br><br>
+                    <span class="comment"># Database (REQUIRED)</span><br>
+                    DATABASE_URL="mysql://root:admin@localhost:3306/dataamplifier"<br><br>
+                    <span class="comment"># Microsoft Azure AD (for "Continue with Microsoft")</span><br>
+                    AZURE_TENANT_ID=cf0b308b-29a5-4a8b-a88c-c4a72d818630<br>
+                    AZURE_CLIENT_ID=fca7f182-41a7-42f4-9d10-8101ddebe15c<br>
+                    AZURE_CLIENT_SECRET=your-azure-secret-from-portal<br><br>
+                    <span class="comment"># Snowflake OAuth (for "Continue with Snowflake")</span><br>
+                    SNOWFLAKE_ACCOUNT=zf07542.south-central-us.azure<br>
+                    SNOWFLAKE_CLIENT_ID=wegqeQUfoEnIMiLxo4G28Uz4nk8=<br>
+                    SNOWFLAKE_CLIENT_SECRET=WrdbuVT5iGtoMYXCc/5TRPaCNNqgI5+v+1bt5m/KVlQ=<br>
+                    SNOWFLAKE_REDIRECT_URI=http://localhost:5000/auth/snowflake-callback
+                </div>
+
+                <h3>Frontend .env (Required for Auth)</h3>
+                <p><strong>File:</strong> <code>C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai\.env</code></p>
+
+                <div class="command-block">
+                    <span class="comment"># API URL (must match running backend)</span><br>
+                    VITE_API_URL=http://localhost:3001/api<br>
+                    VITE_BACKEND_URL=http://localhost:3001/<br><br>
+                    <span class="comment"># Microsoft OAuth</span><br>
+                    VITE_MS_CLIENT_ID=fca7f182-41a7-42f4-9d10-8101ddebe15c<br>
+                    VITE_MS_TENANT_ID=cf0b308b-29a5-4a8b-a88c-c4a72d818630<br><br>
+                    <span class="comment"># Snowflake OAuth</span><br>
+                    VITE_SNOWFLAKE_CLIENT_ID=wegqeQUfoEnIMiLxo4G28Uz4nk8=<br>
+                    VITE_SNOWFLAKE_ACCOUNT=zf07542.south-central-us.azure
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Troubleshooting Login Issues</h2>
+
+                <h3>Error: "No response from server"</h3>
+                <div class="alert alert-danger">
+                    <strong>Cause:</strong> Backend is not running or not reachable at <code>http://localhost:3001</code>
+                </div>
+                <div class="command-block">
+                    <span class="comment"># Solution: Start the backend</span><br>
+                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br>
+                    <span class="cmd">npm</span> <span class="flag">run start:dev</span>
+                </div>
+
+                <h3>Error: "Invalid email or password"</h3>
+                <div class="alert alert-warning">
+                    <strong>Cause:</strong> User doesn't exist or password is wrong
+                </div>
+                <div class="command-block">
+                    <span class="comment"># Create a new user via signup</span><br>
+                    POST http://localhost:3001/api/auth/signup<br>
+                    {<br>
+                    &nbsp;&nbsp;"name": "Test User",<br>
+                    &nbsp;&nbsp;"email": "test@example.com",<br>
+                    &nbsp;&nbsp;"password": "YourPassword123!"<br>
+                    }
+                </div>
+
+                <h3>Error: "Password not set for this account"</h3>
+                <div class="alert alert-info">
+                    <strong>Cause:</strong> User was created via SSO (Microsoft/Snowflake) and doesn't have a password
+                </div>
+                <p><strong>Solution:</strong> Use the same SSO method (Microsoft or Snowflake button) to login</p>
+
+                <h3>Error: "CORS error" in browser console</h3>
+                <div class="alert alert-warning">
+                    <strong>Cause:</strong> Frontend URL not in allowed CORS origins
+                </div>
+                <div class="command-block">
+                    <span class="comment"># Check backend .env has your frontend URL</span><br>
+                    CORS_ORIGINS=http://localhost:3000,http://localhost:5173,http://localhost:5174
+                </div>
+
+                <h3>Error: "Cannot connect to database"</h3>
+                <div class="alert alert-danger">
+                    <strong>Cause:</strong> MySQL is not running or DATABASE_URL is wrong
+                </div>
+                <div class="command-block">
+                    <span class="comment"># Start MySQL</span><br>
+                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP"</span><br>
+                    <span class="cmd">docker compose</span> <span class="flag">up -d</span> mysql<br><br>
+                    <span class="comment"># Verify DATABASE_URL matches your MySQL setup</span><br>
+                    <span class="comment"># Docker MySQL: mysql://root:password@localhost:3307/hierarchy_builder</span><br>
+                    <span class="comment"># Local MySQL:  mysql://root:admin@localhost:3306/dataamplifier</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Create Test User via API</h2>
+                <p>Use this to create a user for testing without SSO:</p>
+
+                <div class="command-title">Option 1: Using curl</div>
+                <div class="command-block">
+                    <span class="cmd">curl</span> -X POST http://localhost:3001/api/auth/signup \<br>
+                    &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+                    &nbsp;&nbsp;-d '{<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;"name": "Test User",<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;"email": "test@datanexum.com",<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;"password": "TestPassword123!"<br>
+                    &nbsp;&nbsp;}'
+                </div>
+
+                <div class="command-title">Option 2: Using PowerShell</div>
+                <div class="command-block">
+                    <span class="cmd">Invoke-RestMethod</span> -Uri "http://localhost:3001/api/auth/signup" `<br>
+                    &nbsp;&nbsp;-Method POST `<br>
+                    &nbsp;&nbsp;-ContentType "application/json" `<br>
+                    &nbsp;&nbsp;-Body '{"name":"Test User","email":"test@datanexum.com","password":"TestPassword123!"}'
+                </div>
+
+                <div class="command-title">Option 3: Using Swagger UI</div>
+                <div class="command-block">
+                    <span class="comment"># Open in browser (backend must be running)</span><br>
+                    http://localhost:3001/api/docs<br><br>
+                    <span class="comment"># Navigate to Authentication -> POST /auth/signup</span><br>
+                    <span class="comment"># Click "Try it out" and fill in the form</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Authentication Architecture</h2>
+
+                <h3>File Locations</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Component</th>
+                                <th>File Path</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Auth Controller</td>
+                                <td><code>hierarchybuilder-nestjs/src/modules/auth/auth.controller.ts</code></td>
+                            </tr>
+                            <tr>
+                                <td>Auth Service</td>
+                                <td><code>hierarchybuilder-nestjs/src/modules/auth/auth.service.ts</code></td>
+                            </tr>
+                            <tr>
+                                <td>JWT Strategy</td>
+                                <td><code>hierarchybuilder-nestjs/src/modules/auth/strategies/jwt.strategy.ts</code></td>
+                            </tr>
+                            <tr>
+                                <td>Login DTOs</td>
+                                <td><code>hierarchybuilder-nestjs/src/modules/auth/dto/</code></td>
+                            </tr>
+                            <tr>
+                                <td>User Model</td>
+                                <td><code>hierarchybuilder-nestjs/prisma/schema.prisma</code></td>
+                            </tr>
+                            <tr>
+                                <td>Frontend Auth</td>
+                                <td><code>dataamp-ai/src/components/auth/</code></td>
+                            </tr>
+                            <tr>
+                                <td>Backend .env</td>
+                                <td><code>hierarchybuilder-nestjs/.env</code></td>
+                            </tr>
+                            <tr>
+                                <td>Frontend .env</td>
+                                <td><code>dataamp-ai/.env</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>API Endpoints</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Endpoint</th>
+                                <th>Method</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>/api/auth/login</code></td>
+                                <td>POST</td>
+                                <td>Email/password or SSO login</td>
+                            </tr>
+                            <tr>
+                                <td><code>/api/auth/signup</code></td>
+                                <td>POST</td>
+                                <td>Create new account</td>
+                            </tr>
+                            <tr>
+                                <td><code>/api/auth/login/email</code></td>
+                                <td>POST</td>
+                                <td>Email/password only</td>
+                            </tr>
+                            <tr>
+                                <td><code>/api/auth/signup/email</code></td>
+                                <td>POST</td>
+                                <td>Email signup only</td>
+                            </tr>
+                            <tr>
+                                <td><code>/api/auth/snowflake/sso/init</code></td>
+                                <td>POST</td>
+                                <td>Start Snowflake SSO flow</td>
+                            </tr>
+                            <tr>
+                                <td><code>/api/auth/snowflake/sso/callback</code></td>
+                                <td>POST</td>
+                                <td>Complete Snowflake SSO</td>
+                            </tr>
+                            <tr>
+                                <td><code>/api/auth/snowflake/validate</code></td>
+                                <td>POST</td>
+                                <td>Validate Snowflake code</td>
+                            </tr>
+                            <tr>
+                                <td><code>/api/auth/snowflake/refresh</code></td>
+                                <td>POST</td>
+                                <td>Refresh Snowflake token</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Quick Reference: Login Checklist</h2>
+
+                <ol>
+                    <li><strong>Is MySQL running?</strong>
+                        <div class="command-block">
+                            <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP"</span><br>
+                            <span class="cmd">docker compose</span> <span class="flag">ps</span>
+                        </div>
+                    </li>
+                    <li><strong>Is Backend running?</strong>
+                        <div class="command-block">
+                            <span class="cmd">curl</span> http://localhost:3001/api/health
+                        </div>
+                    </li>
+                    <li><strong>Is Frontend running?</strong>
+                        <div class="command-block">
+                            <span class="comment"># Should be accessible at:</span><br>
+                            http://localhost:5173 <span class="comment"># or 5174</span>
+                        </div>
+                    </li>
+                    <li><strong>Does your user exist?</strong>
+                        <div class="command-block">
+                            <span class="comment"># Check via Prisma Studio</span><br>
+                            <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br>
+                            <span class="cmd">npx</span> prisma studio<br>
+                            <span class="comment"># Opens http://localhost:5555 - check User table</span>
+                        </div>
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- BACKEND -->
+        <section id="backend" class="section">
+            <div class="card">
+                <h2>Backend (NestJS) Commands</h2>
+                <p><strong>Location:</strong> <code>C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs</code></p>
+
+                <h3>Development</h3>
+                <div class="command-block">
+                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs</span><br><br>
+                    <span class="comment"># Start development server with hot reload</span><br>
+                    <span class="cmd">npm</span> <span class="flag">run start:dev</span><br><br>
+                    <span class="comment"># Start in debug mode</span><br>
+                    <span class="cmd">npm</span> <span class="flag">run start:debug</span><br><br>
+                    <span class="comment"># Build for production</span><br>
+                    <span class="cmd">npm</span> <span class="flag">run build</span><br><br>
+                    <span class="comment"># Start production build</span><br>
+                    <span class="cmd">npm</span> <span class="flag">run start:prod</span>
+                </div>
+
+                <h3>Prisma Database Commands</h3>
+                <div class="command-block">
+                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs</span><br><br>
+                    <span class="comment"># Generate Prisma client after schema changes</span><br>
+                    <span class="cmd">npx</span> prisma generate<br><br>
+                    <span class="comment"># Create a new migration</span><br>
+                    <span class="cmd">npx</span> prisma migrate dev --name your_migration_name<br><br>
+                    <span class="comment"># Apply migrations (production)</span><br>
+                    <span class="cmd">npx</span> prisma migrate deploy<br><br>
+                    <span class="comment"># Reset database (WARNING: deletes all data)</span><br>
+                    <span class="cmd">npx</span> prisma migrate reset<br><br>
+                    <span class="comment"># Open Prisma Studio (database GUI)</span><br>
+                    <span class="cmd">npx</span> prisma studio
+                </div>
+
+                <h3>API Documentation</h3>
+                <div class="command-block">
+                    <span class="comment"># Swagger API docs available at:</span><br>
+                    http://localhost:3001/api/docs
+                </div>
+            </div>
+        </section>
+
+        <!-- FRONTEND -->
+        <section id="frontend" class="section">
+            <div class="card">
+                <h2>Frontend (React/Vite) Commands</h2>
+                <p><strong>Location:</strong> <code>C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai</code></p>
+
+                <h3>Development</h3>
+                <div class="command-block">
+                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai</span><br><br>
+                    <span class="comment"># Start development server</span><br>
+                    <span class="cmd">npm</span> <span class="flag">run dev</span><br><br>
+                    <span class="comment"># Build for production</span><br>
+                    <span class="cmd">npm</span> <span class="flag">run build</span><br><br>
+                    <span class="comment"># Preview production build</span><br>
+                    <span class="cmd">npm</span> <span class="flag">run preview</span><br><br>
+                    <span class="comment"># Run linter</span><br>
+                    <span class="cmd">npm</span> <span class="flag">run lint</span>
+                </div>
+
+                <h3>Environment Variables</h3>
+                <div class="command-block">
+                    <span class="comment"># Check/edit frontend .env</span><br>
+                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai</span><br>
+                    <span class="cmd">type</span> .env<br><br>
+                    <span class="comment"># Required variables:</span><br>
+                    VITE_API_URL=http://localhost:3001/api<br>
+                    VITE_AZURE_CLIENT_ID=your-azure-client-id<br>
+                    VITE_AZURE_TENANT_ID=your-azure-tenant-id
+                </div>
+            </div>
+        </section>
+
+        <!-- DATABASE -->
+        <section id="database" class="section">
+            <div class="card">
+                <h2>Database Commands - Complete Guide</h2>
+
+                <div class="alert alert-info">
+                    <strong>Important Paths:</strong><br>
+                    <strong>Prisma commands run from:</strong> <code>C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs</code><br>
+                    <strong>Docker commands run from:</strong> <code>C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP</code><br>
+                    <strong>Prisma Schema file:</strong> <code>...\hierarchybuilder-nestjs\prisma\schema.prisma</code>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Step 1: Start MySQL Database (Required First)</h2>
+                <p>MySQL must be running before you can use Prisma commands.</p>
+
+                <div class="command-title">Open Terminal and Run:</div>
+                <div class="command-block">
+                    <span class="comment"># STEP 1: Navigate to the docker-compose folder</span><br>
+                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP"</span><br><br>
+                    <span class="comment"># STEP 2: Start MySQL container</span><br>
+                    <span class="cmd">docker-compose</span> <span class="flag">up -d</span> mysql<br><br>
+                    <span class="comment"># STEP 3: Wait 10 seconds for MySQL to initialize, then verify it's running</span><br>
+                    <span class="cmd">docker-compose</span> <span class="flag">ps</span>
+                </div>
+
+                <div class="alert alert-success">
+                    <strong>Expected Output:</strong> You should see <code>hierarchy_mysql</code> with status <code>Up</code>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Step 2: Prisma Commands (Run from Backend Folder)</h2>
+                <p>All Prisma commands must be run from the NestJS backend folder where <code>package.json</code> and <code>prisma/</code> folder exist.</p>
+
+                <div class="command-title">Generate Prisma Client (after schema changes)</div>
+                <div class="command-block">
+                    <span class="comment"># STEP 1: Navigate to the backend folder</span><br>
+                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
+                    <span class="comment"># STEP 2: Generate Prisma client from schema</span><br>
+                    <span class="cmd">npx</span> prisma generate
+                </div>
+
+                <div class="command-title">Run Database Migrations (create/update tables)</div>
+                <div class="command-block">
+                    <span class="comment"># STEP 1: Navigate to the backend folder</span><br>
+                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
+                    <span class="comment"># STEP 2: Apply all pending migrations to the database</span><br>
+                    <span class="cmd">npx</span> prisma migrate deploy
+                </div>
+
+                <div class="command-title">Create a New Migration (when you change schema.prisma)</div>
+                <div class="command-block">
+                    <span class="comment"># STEP 1: Navigate to the backend folder</span><br>
+                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
+                    <span class="comment"># STEP 2: Create a new migration with a descriptive name</span><br>
+                    <span class="cmd">npx</span> prisma migrate dev --name add_new_feature
+                </div>
+
+                <div class="command-title">Open Prisma Studio (Visual Database Browser)</div>
+                <div class="command-block">
+                    <span class="comment"># STEP 1: Navigate to the backend folder</span><br>
+                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
+                    <span class="comment"># STEP 2: Open Prisma Studio in browser (opens http://localhost:5555)</span><br>
+                    <span class="cmd">npx</span> prisma studio
+                </div>
+
+                <div class="alert alert-warning">
+                    <strong>Prisma Studio:</strong> This opens a web browser at <code>http://localhost:5555</code> where you can view and edit database records visually. Press <code>Ctrl+C</code> in terminal to stop it.
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Step 3: Reset Database (WARNING: Deletes All Data)</h2>
+                <p>Only use this in development when you want to start fresh.</p>
+
+                <div class="command-block">
+                    <span class="comment"># STEP 1: Navigate to the backend folder</span><br>
+                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
+                    <span class="comment"># STEP 2: Reset database (DELETES ALL DATA and re-runs all migrations)</span><br>
+                    <span class="cmd">npx</span> prisma migrate reset
+                </div>
+
+                <div class="alert alert-danger">
+                    <strong>WARNING:</strong> This command drops all tables and recreates them. All data will be lost!
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>MySQL Direct Access</h2>
+
+                <div class="command-title">Connect to MySQL CLI</div>
+                <div class="command-block">
+                    <span class="comment"># Connect to MySQL inside Docker container</span><br>
+                    <span class="cmd">docker exec -it</span> hierarchy_mysql mysql -uroot -ppassword hierarchy_builder
+                </div>
+
+                <div class="command-title">View MySQL Logs</div>
+                <div class="command-block">
+                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP"</span><br><br>
+                    <span class="cmd">docker-compose</span> <span class="flag">logs -f</span> mysql
+                </div>
+
+                <h3>Connection Details</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Host</td><td><code>localhost</code></td></tr>
+                            <tr><td>Port</td><td><code>3307</code></td></tr>
+                            <tr><td>Database</td><td><code>hierarchy_builder</code></td></tr>
+                            <tr><td>Username</td><td><code>root</code></td></tr>
+                            <tr><td>Password</td><td><code>password</code> (from .env)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Database Schema (Main Tables)</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Table</th>
+                                <th>Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><code>User</code></td><td>User accounts</td></tr>
+                            <tr><td><code>Organization</code></td><td>Multi-tenant organizations</td></tr>
+                            <tr><td><code>Connection</code></td><td>Database connections (Snowflake, etc.)</td></tr>
+                            <tr><td><code>HierarchyProject</code></td><td>Hierarchy projects</td></tr>
+                            <tr><td><code>SmartHierarchyMaster</code></td><td>Hierarchy nodes</td></tr>
+                            <tr><td><code>DeploymentHistory</code></td><td>Deployment audit trail</td></tr>
+                            <tr><td><code>AuditLog</code></td><td>Activity logging</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Quick Reference: Common Workflows</h2>
+
+                <h3>First Time Setup (Fresh Install)</h3>
+                <div class="command-block">
+                    <span class="comment"># Terminal 1: Start MySQL</span><br>
+                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP"</span><br>
+                    <span class="cmd">docker-compose</span> <span class="flag">up -d</span> mysql<br><br>
+                    <span class="comment"># Terminal 2: Setup Backend</span><br>
+                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br>
+                    <span class="cmd">npm</span> <span class="flag">install</span><br>
+                    <span class="cmd">npx</span> prisma generate<br>
+                    <span class="cmd">npx</span> prisma migrate deploy<br>
+                    <span class="cmd">npm</span> <span class="flag">run start:dev</span>
+                </div>
+
+                <h3>After Pulling New Code (schema might have changed)</h3>
+                <div class="command-block">
+                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
+                    <span class="cmd">npx</span> prisma generate<br>
+                    <span class="cmd">npx</span> prisma migrate deploy
+                </div>
+
+                <h3>After Editing schema.prisma</h3>
+                <div class="command-block">
+                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
+                    <span class="cmd">npx</span> prisma migrate dev --name describe_your_changes<br>
+                    <span class="cmd">npx</span> prisma generate
+                </div>
+            </div>
+        </section>
+
+        <!-- MCP SERVER -->
+        <section id="mcp" class="section">
+            <div class="card">
+                <h2>MCP Server (Python) Commands</h2>
+                <p><strong>Location:</strong> <code>C:\Users\telha\Databridge_AI</code></p>
+
+                <h3>Start MCP Server</h3>
+                <div class="command-block">
+                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI</span><br><br>
+                    <span class="comment"># Start the MCP server (for Claude Desktop)</span><br>
+                    <span class="cmd">python</span> run_server.py<br><br>
+                    <span class="comment"># Alternative: Using fastmcp</span><br>
+                    <span class="cmd">fastmcp</span> run src/server.py
+                </div>
+
+                <h3>Install Dependencies</h3>
+                <div class="command-block">
+                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI</span><br><br>
+                    <span class="comment"># Install Python dependencies</span><br>
+                    <span class="cmd">pip</span> <span class="flag">install -r</span> requirements.txt
+                </div>
+
+                <h3>Claude Desktop Configuration</h3>
+                <div class="command-block">
+                    <span class="comment"># Config file location:</span><br>
+                    <span class="path">%APPDATA%\Claude\claude_desktop_config.json</span><br><br>
+                    <span class="comment"># Current configuration:</span><br>
+                    {<br>
+                    &nbsp;&nbsp;"mcpServers": {<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;"databridge": {<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"command": "python",<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"args": ["C:\\Users\\telha\\Databridge_AI\\run_server.py"]<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                    &nbsp;&nbsp;}<br>
+                    }
+                </div>
+
+                <h3>Available Tools (72 Total)</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Tool Count</th>
+                                <th>Examples</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Data Loading</td><td>3</td><td><code>load_csv</code>, <code>load_json</code>, <code>query_database</code></td></tr>
+                            <tr><td>Data Profiling</td><td>2</td><td><code>profile_data</code>, <code>detect_schema_drift</code></td></tr>
+                            <tr><td>Comparison</td><td>3</td><td><code>compare_hashes</code>, <code>get_orphan_details</code>, <code>get_conflict_details</code></td></tr>
+                            <tr><td>Fuzzy Matching</td><td>2</td><td><code>fuzzy_match_columns</code>, <code>fuzzy_deduplicate</code></td></tr>
+                            <tr><td>Hierarchy Management</td><td>15+</td><td><code>create_hierarchy</code>, <code>get_hierarchy_tree</code></td></tr>
+                            <tr><td>Backend Sync</td><td>10+</td><td><code>sync_to_backend</code>, <code>configure_auto_sync</code></td></tr>
+                            <tr><td>Connections</td><td>10+</td><td><code>list_backend_connections</code>, <code>get_connection_tables</code></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TESTING -->
+        <section id="tests" class="section">
+            <div class="card">
+                <h2>Testing Commands</h2>
+
+                <h3>Backend Tests (NestJS/Jest)</h3>
+                <div class="command-block">
+                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs</span><br><br>
+                    <span class="comment"># Run all unit tests</span><br>
+                    <span class="cmd">npm</span> <span class="flag">run test</span><br><br>
+                    <span class="comment"># Run tests in watch mode</span><br>
+                    <span class="cmd">npm</span> <span class="flag">run test:watch</span><br><br>
+                    <span class="comment"># Run tests with coverage</span><br>
+                    <span class="cmd">npm</span> <span class="flag">run test:cov</span><br><br>
+                    <span class="comment"># Run E2E tests</span><br>
+                    <span class="cmd">npm</span> <span class="flag">run test:e2e</span><br><br>
+                    <span class="comment"># Run specific test file</span><br>
+                    <span class="cmd">npm</span> <span class="flag">test</span> -- auth.service.spec.ts
+                </div>
+
+                <h3>Test Files Location (Backend)</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Test File</th>
+                                <th>Tests</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><code>src/modules/auth/auth.service.spec.ts</code></td><td>Authentication service</td></tr>
+                            <tr><td><code>src/modules/connections/connections.service.spec.ts</code></td><td>Database connections</td></tr>
+                            <tr><td><code>src/modules/data-matcher/data-matcher.service.spec.ts</code></td><td>Data matching</td></tr>
+                            <tr><td><code>src/modules/health/health.service.spec.ts</code></td><td>Health checks</td></tr>
+                            <tr><td><code>src/modules/reports/reports.service.spec.ts</code></td><td>Report generation</td></tr>
+                            <tr><td><code>src/modules/schema-matcher/schema-matcher.service.spec.ts</code></td><td>Schema matching</td></tr>
+                            <tr><td><code>src/modules/users/users.service.spec.ts</code></td><td>User management</td></tr>
+                            <tr><td><code>test/app.e2e-spec.ts</code></td><td>End-to-end tests</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Python Tests (Pytest)</h3>
+                <div class="command-block">
+                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI</span><br><br>
+                    <span class="comment"># Run all Python tests</span><br>
+                    <span class="cmd">pytest</span><br><br>
+                    <span class="comment"># Run with verbose output</span><br>
+                    <span class="cmd">pytest</span> <span class="flag">-v</span><br><br>
+                    <span class="comment"># Run specific test file</span><br>
+                    <span class="cmd">pytest</span> tests/test_hashing.py<br><br>
+                    <span class="comment"># Run with coverage</span><br>
+                    <span class="cmd">pytest</span> <span class="flag">--cov=src</span>
+                </div>
+
+                <h3>Test Files Location (Python)</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Test File</th>
+                                <th>Tests</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><code>tests/test_data_loading.py</code></td><td>CSV/JSON loading</td></tr>
+                            <tr><td><code>tests/test_fuzzy_matching.py</code></td><td>Fuzzy match algorithms</td></tr>
+                            <tr><td><code>tests/test_hashing.py</code></td><td>SHA-256 hash comparison</td></tr>
+                            <tr><td><code>tests/test_helpers.py</code></td><td>Utility functions</td></tr>
+                            <tr><td><code>tests/test_hierarchy_kb.py</code></td><td>Hierarchy knowledge base</td></tr>
+                            <tr><td><code>tests/test_workflow.py</code></td><td>Workflow management</td></tr>
+                            <tr><td><code>tests/conftest.py</code></td><td>Pytest fixtures</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer style="text-align: center; padding: 30px; background: var(--dark); color: white;">
+        <p>DataBridge AI - Commands Reference</p>
+        <p style="opacity: 0.7; margin-top: 5px; font-size: 14px;">Last updated: January 2025</p>
+    </footer>
+
+    <script>
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

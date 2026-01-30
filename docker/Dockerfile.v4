@@ -1,0 +1,74 @@
+# DataBridge AI V4 - Analytics Engine
+# Multi-stage build for optimized image size
+
+# =============================================================================
+# Stage 1: Builder
+# =============================================================================
+FROM python:3.11-slim as builder
+
+WORKDIR /build
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY pyproject.toml .
+COPY src/ src/
+
+# Install dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir build && \
+    pip wheel --no-cache-dir --wheel-dir /wheels .
+
+# =============================================================================
+# Stage 2: Runtime
+# =============================================================================
+FROM python:3.11-slim as runtime
+
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd -m -u 1000 databridge && \
+    mkdir -p /app/data /app/logs && \
+    chown -R databridge:databridge /app
+
+# Copy wheels from builder
+COPY --from=builder /wheels /wheels
+
+# Install application
+RUN pip install --no-cache-dir --no-index --find-links=/wheels databridge-analytics && \
+    rm -rf /wheels
+
+# Download spaCy model
+RUN python -m spacy download en_core_web_sm
+
+# Copy application files
+COPY --chown=databridge:databridge src/ /app/src/
+COPY --chown=databridge:databridge skills/ /app/skills/
+COPY --chown=databridge:databridge knowledgebase/ /app/knowledgebase/
+
+# Switch to non-root user
+USER databridge
+
+# Environment variables
+ENV PYTHONPATH=/app \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    DATABRIDGE_ENV=production
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Default command - MCP server
+EXPOSE 8000
+CMD ["python", "-m", "src.mcp.server"]

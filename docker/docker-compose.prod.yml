@@ -1,0 +1,292 @@
+# DataBridge AI Production Environment
+# docker-compose -f docker/docker-compose.prod.yml up -d
+#
+# IMPORTANT: Before deploying to production:
+# 1. Copy .env.example to .env and configure all secrets
+# 2. Set strong passwords for all services
+# 3. Configure TLS/SSL certificates
+# 4. Review resource limits
+
+version: "3.9"
+
+services:
+  # =============================================================================
+  # PostgreSQL - Primary database for V4 analytics
+  # =============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: databridge-postgres-prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-databridge_analytics}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts/postgres:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    networks:
+      - databridge-internal
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  # =============================================================================
+  # ChromaDB - Vector store for RAG and embeddings
+  # =============================================================================
+  chromadb:
+    image: ghcr.io/chroma-core/chroma:latest
+    container_name: databridge-chromadb-prod
+    restart: always
+    environment:
+      - IS_PERSISTENT=true
+      - ANONYMIZED_TELEMETRY=false
+      - CHROMA_SERVER_AUTH_PROVIDER=${CHROMA_AUTH_PROVIDER:-}
+      - CHROMA_SERVER_AUTH_CREDENTIALS=${CHROMA_AUTH_CREDENTIALS:-}
+    volumes:
+      - chromadb_data:/chroma/chroma
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+    networks:
+      - databridge-internal
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  # =============================================================================
+  # Redis - Caching and session storage
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: databridge-redis-prod
+    restart: always
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD:-}
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 768M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    networks:
+      - databridge-internal
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
+
+  # =============================================================================
+  # DataBridge V3 - Hierarchy Builder
+  # =============================================================================
+  databridge-v3:
+    image: ${V3_IMAGE:-ghcr.io/databridge-ai/databridge-v3:latest}
+    container_name: databridge-v3-prod
+    restart: always
+    environment:
+      - DATABRIDGE_ENV=production
+      - DATABRIDGE_DEBUG=false
+      - DATABRIDGE_LOG_LEVEL=INFO
+      - DATABRIDGE_DATABASE__PATH=/app/data/databridge.db
+      - DATABRIDGE_VECTOR__DB_PATH=/app/data/vectors
+      - CHROMADB_HOST=chromadb
+      - CHROMADB_PORT=8000
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-}@redis:6379/0
+      - ENCRYPTION_KEY=${V3_ENCRYPTION_KEY:?V3_ENCRYPTION_KEY is required}
+    ports:
+      - "${V3_PORT:-8000}:8000"
+    volumes:
+      - v3_data:/app/data
+    depends_on:
+      chromadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    networks:
+      - databridge-internal
+      - databridge-external
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  # =============================================================================
+  # DataBridge V4 - Analytics Engine
+  # =============================================================================
+  databridge-v4:
+    image: ${V4_IMAGE:-ghcr.io/databridge-ai/databridge-v4:latest}
+    container_name: databridge-v4-prod
+    restart: always
+    environment:
+      - DATABRIDGE_ENV=production
+      - DATABRIDGE_DEBUG=false
+      - DATABRIDGE_LOG_LEVEL=INFO
+      - POSTGRESQL_HOST=postgres
+      - POSTGRESQL_PORT=5432
+      - POSTGRESQL_DATABASE=${POSTGRES_DB:-databridge_analytics}
+      - POSTGRESQL_USER=${POSTGRES_USER}
+      - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD}
+      - V3_API_URL=http://databridge-v3:8000
+      - CHROMADB_HOST=chromadb
+      - CHROMADB_PORT=8000
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-}@redis:6379/1
+      - ENCRYPTION_KEY=${V4_ENCRYPTION_KEY:?V4_ENCRYPTION_KEY is required}
+      - NOTION_API_KEY=${NOTION_API_KEY:-}
+    ports:
+      - "${V4_PORT:-8001}:8001"
+    volumes:
+      - v4_data:/app/data
+      - v4_settings:/app/settings
+    depends_on:
+      postgres:
+        condition: service_healthy
+      chromadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      databridge-v3:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    networks:
+      - databridge-internal
+      - databridge-external
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  # =============================================================================
+  # Nginx Reverse Proxy (Optional - for TLS termination)
+  # =============================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: databridge-nginx-prod
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_cache:/var/cache/nginx
+    depends_on:
+      - databridge-v3
+      - databridge-v4
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    networks:
+      - databridge-external
+    profiles:
+      - with-nginx
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  databridge-internal:
+    driver: bridge
+    name: databridge-internal-prod
+    internal: true  # No external access to internal network
+  databridge-external:
+    driver: bridge
+    name: databridge-external-prod
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  postgres_data:
+    name: databridge-postgres-data-prod
+  chromadb_data:
+    name: databridge-chromadb-data-prod
+  redis_data:
+    name: databridge-redis-data-prod
+  v3_data:
+    name: databridge-v3-data-prod
+  v4_data:
+    name: databridge-v4-data-prod
+  v4_settings:
+    name: databridge-v4-settings-prod
+  nginx_cache:
+    name: databridge-nginx-cache-prod

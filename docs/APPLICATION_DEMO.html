@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataBridge AI - Interactive Application Demo</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #7c3aed;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255,255,255,0.95);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-tab {
+            padding: 10px 20px;
+            border: none;
+            background: var(--light);
+            color: var(--dark);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .nav-tab:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .nav-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Main Content */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .module-panel {
+            display: none;
+        }
+
+        .module-panel.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--light);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+
+        /* Grid Layout */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+        }
+
+        /* Stats */
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--light);
+        }
+
+        .data-table th {
+            background: var(--light);
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table tr:hover {
+            background: #f8fafc;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Hierarchy Tree */
+        .tree-container {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .tree-node {
+            padding: 8px 12px;
+            margin: 4px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tree-node:hover {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .tree-node.level-1 { margin-left: 0; font-weight: 600; background: #dbeafe; }
+        .tree-node.level-2 { margin-left: 20px; background: #e0e7ff; }
+        .tree-node.level-3 { margin-left: 40px; background: #ede9fe; }
+        .tree-node.level-4 { margin-left: 60px; background: #fae8ff; }
+
+        .tree-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .leaf-indicator {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+        }
+
+        .calc-indicator {
+            width: 8px;
+            height: 8px;
+            background: var(--warning);
+            border-radius: 50%;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: var(--light);
+            border-radius: 10px;
+            overflow: hidden;
+            height: 24px;
+            margin: 16px 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), var(--primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            transition: width 0.5s ease;
+        }
+
+        /* Tool Cards */
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .tool-card {
+            background: var(--light);
+            padding: 16px;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .tool-card:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-4px);
+        }
+
+        .tool-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .tool-name {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        /* Console */
+        .console {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'Consolas', monospace;
+            color: #94a3b8;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .console-line {
+            margin: 4px 0;
+            font-size: 13px;
+        }
+
+        .console-line.success { color: #4ade80; }
+        .console-line.error { color: #f87171; }
+        .console-line.info { color: #60a5fa; }
+        .console-line.warning { color: #fbbf24; }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* Architecture Diagram */
+        .architecture {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 40px 20px;
+        }
+
+        .arch-box {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            min-width: 150px;
+        }
+
+        .arch-box.highlight {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .arch-arrow {
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        /* Feature List */
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--light);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .feature-check {
+            width: 24px;
+            height: 24px;
+            background: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #94a3b8;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            color: #e2e8f0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">DB</div>
+                <span class="logo-text">DataBridge AI</span>
+            </div>
+            <nav class="nav-tabs">
+                <button class="nav-tab active" onclick="showModule('overview')">Overview</button>
+                <button class="nav-tab" onclick="showModule('reconciliation')">Reconciliation</button>
+                <button class="nav-tab" onclick="showModule('hierarchy')">Hierarchy Builder</button>
+                <button class="nav-tab" onclick="showModule('deployment')">Deployment</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        <!-- Overview Module -->
+        <div id="overview" class="module-panel active">
+            <div class="card animate-in">
+                <div class="card-header">
+                    <h2 class="card-title">Application Architecture</h2>
+                    <span class="badge badge-success">MCP Enabled</span>
+                </div>
+                <div class="architecture">
+                    <div class="arch-box">
+                        <strong>Claude AI</strong><br>
+                        <small>Frontier Model</small>
+                    </div>
+                    <span class="arch-arrow">&rarr;</span>
+                    <div class="arch-box highlight">
+                        <strong>MCP Server</strong><br>
+                        <small>FastMCP</small>
+                    </div>
+                    <span class="arch-arrow">&rarr;</span>
+                    <div class="arch-box">
+                        <strong>DataBridge AI</strong><br>
+                        <small>Tools & Services</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-3">
+                <div class="stat-card animate-in">
+                    <div class="stat-value">30+</div>
+                    <div class="stat-label">MCP Tools Available</div>
+                </div>
+                <div class="stat-card animate-in" style="animation-delay: 0.1s;">
+                    <div class="stat-value">2</div>
+                    <div class="stat-label">Integrated Modules</div>
+                </div>
+                <div class="stat-card animate-in" style="animation-delay: 0.2s;">
+                    <div class="stat-value">15</div>
+                    <div class="stat-label">Hierarchy Levels</div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card animate-in">
+                    <div class="card-header">
+                        <h2 class="card-title">Data Reconciliation Module</h2>
+                        <span class="badge badge-info">10 Tools</span>
+                    </div>
+                    <ul class="feature-list">
+                        <li><span class="feature-check">&#10003;</span> Multi-source data loading (CSV, JSON, SQL)</li>
+                        <li><span class="feature-check">&#10003;</span> SHA-256 hash comparison</li>
+                        <li><span class="feature-check">&#10003;</span> Fuzzy matching with RapidFuzz</li>
+                        <li><span class="feature-check">&#10003;</span> Conflict detection & resolution</li>
+                        <li><span class="feature-check">&#10003;</span> PDF/OCR data extraction</li>
+                        <li><span class="feature-check">&#10003;</span> Workflow management</li>
+                    </ul>
+                </div>
+
+                <div class="card animate-in" style="animation-delay: 0.1s;">
+                    <div class="card-header">
+                        <h2 class="card-title">Hierarchy Builder Module</h2>
+                        <span class="badge badge-info">20 Tools</span>
+                    </div>
+                    <ul class="feature-list">
+                        <li><span class="feature-check">&#10003;</span> 15-level hierarchy support</li>
+                        <li><span class="feature-check">&#10003;</span> Source column mappings</li>
+                        <li><span class="feature-check">&#10003;</span> Formula groups (SUM, SUBTRACT, etc.)</li>
+                        <li><span class="feature-check">&#10003;</span> CSV import/export (legacy format)</li>
+                        <li><span class="feature-check">&#10003;</span> Snowflake deployment scripts</li>
+                        <li><span class="feature-check">&#10003;</span> Validation & auditing</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reconciliation Module -->
+        <div id="reconciliation" class="module-panel">
+            <div class="card animate-in">
+                <div class="card-header">
+                    <h2 class="card-title">Data Reconciliation Dashboard</h2>
+                    <div>
+                        <button class="btn btn-primary" onclick="runReconciliation()">Run Comparison</button>
+                    </div>
+                </div>
+
+                <div class="grid-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <div class="stat-value" id="matchCount">847</div>
+                        <div class="stat-label">Matching Records</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                        <div class="stat-value" id="orphanCount">23</div>
+                        <div class="stat-label">Orphan Records</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                        <div class="stat-value" id="conflictCount">12</div>
+                        <div class="stat-label">Conflicts Detected</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card animate-in">
+                    <div class="card-header">
+                        <h2 class="card-title">Source A: CRM System</h2>
+                        <span class="badge badge-success">Loaded</span>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Customer ID</th>
+                                <th>Name</th>
+                                <th>Region</th>
+                                <th>Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>C001</td><td>Acme Corporation</td><td>North</td><td>$125,000</td></tr>
+                            <tr><td>C002</td><td>Global Industries</td><td>South</td><td>$89,500</td></tr>
+                            <tr><td>C003</td><td>Tech Solutions</td><td>East</td><td>$156,000</td></tr>
+                            <tr><td>C004</td><td>Premier Services</td><td>West</td><td>$78,000</td></tr>
+                            <tr><td>C005</td><td>Delta Manufacturing</td><td>North</td><td>$234,000</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card animate-in" style="animation-delay: 0.1s;">
+                    <div class="card-header">
+                        <h2 class="card-title">Source B: ERP System</h2>
+                        <span class="badge badge-success">Loaded</span>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Customer ID</th>
+                                <th>Name</th>
+                                <th>Region</th>
+                                <th>Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>C001</td><td>Acme Corporation</td><td>North</td><td>$125,000</td></tr>
+                            <tr><td>C002</td><td>Global Industries Inc</td><td>South</td><td>$92,000</td></tr>
+                            <tr><td>C003</td><td>Tech Solutions Inc</td><td>East</td><td>$156,000</td></tr>
+                            <tr><td>C005</td><td>Delta Mfg Co</td><td>North</td><td>$234,000</td></tr>
+                            <tr><td>C006</td><td>Omega Consulting</td><td>South</td><td>$67,000</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card animate-in">
+                <div class="card-header">
+                    <h2 class="card-title">Reconciliation Console</h2>
+                    <span class="badge badge-info">Live</span>
+                </div>
+                <div class="console" id="reconConsole">
+                    <div class="console-line info">[INFO] DataBridge AI Reconciliation Engine v1.0</div>
+                    <div class="console-line success">[SUCCESS] Source A loaded: 5 records</div>
+                    <div class="console-line success">[SUCCESS] Source B loaded: 5 records</div>
+                    <div class="console-line info">[INFO] Generating SHA-256 hashes...</div>
+                    <div class="console-line success">[SUCCESS] Hash comparison complete</div>
+                    <div class="console-line warning">[WARNING] 2 orphan records detected in Source A</div>
+                    <div class="console-line warning">[WARNING] 2 orphan records detected in Source B</div>
+                    <div class="console-line error">[CONFLICT] C002: Revenue mismatch ($89,500 vs $92,000)</div>
+                    <div class="console-line info">[INFO] Running fuzzy match on customer names...</div>
+                    <div class="console-line success">[SUCCESS] Fuzzy match: "Global Industries" ~ "Global Industries Inc" (92%)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hierarchy Module -->
+        <div id="hierarchy" class="module-panel">
+            <div class="card animate-in">
+                <div class="card-header">
+                    <h2 class="card-title">Hierarchy Builder</h2>
+                    <div>
+                        <button class="btn btn-outline" onclick="showImportModal()">Import CSV</button>
+                        <button class="btn btn-primary" onclick="showCreateModal()">+ New Hierarchy</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card animate-in">
+                    <div class="card-header">
+                        <h2 class="card-title">Income Statement Hierarchy</h2>
+                        <span class="badge badge-success">17 Nodes</span>
+                    </div>
+                    <div class="tree-container">
+                        <div class="tree-node level-1">
+                            <div class="tree-icon">&#128194;</div>
+                            Income Statement
+                        </div>
+                        <div class="tree-node level-2">
+                            <div class="tree-icon">&#128194;</div>
+                            Total Revenue
+                            <span class="calc-indicator" title="Calculated"></span>
+                        </div>
+                        <div class="tree-node level-3">
+                            <div class="tree-icon">&#128194;</div>
+                            Product Sales
+                        </div>
+                        <div class="tree-node level-4">
+                            <div class="tree-icon"><div class="leaf-indicator"></div></div>
+                            Hardware Sales
+                        </div>
+                        <div class="tree-node level-4">
+                            <div class="tree-icon"><div class="leaf-indicator"></div></div>
+                            Software Sales
+                        </div>
+                        <div class="tree-node level-3">
+                            <div class="tree-icon">&#128194;</div>
+                            Service Revenue
+                        </div>
+                        <div class="tree-node level-4">
+                            <div class="tree-icon"><div class="leaf-indicator"></div></div>
+                            Consulting
+                        </div>
+                        <div class="tree-node level-4">
+                            <div class="tree-icon"><div class="leaf-indicator"></div></div>
+                            Support Services
+                        </div>
+                        <div class="tree-node level-2">
+                            <div class="tree-icon">&#128194;</div>
+                            Total Expenses
+                            <span class="calc-indicator" title="Calculated"></span>
+                        </div>
+                        <div class="tree-node level-3">
+                            <div class="tree-icon">&#128194;</div>
+                            Cost of Goods Sold
+                        </div>
+                        <div class="tree-node level-3">
+                            <div class="tree-icon">&#128194;</div>
+                            Operating Expenses
+                        </div>
+                        <div class="tree-node level-2">
+                            <div class="tree-icon">&#128194;</div>
+                            Net Income
+                            <span class="calc-indicator" title="Formula: Revenue - Expenses"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card animate-in" style="animation-delay: 0.1s;">
+                    <div class="card-header">
+                        <h2 class="card-title">Source Mappings</h2>
+                        <span class="badge badge-info">16 Mappings</span>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Hierarchy</th>
+                                <th>Table</th>
+                                <th>Column</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Hardware Sales</td><td>DIM_ACCOUNT</td><td>ACCOUNT_CODE</td><td>4100-100</td></tr>
+                            <tr><td>Software Sales</td><td>DIM_ACCOUNT</td><td>ACCOUNT_CODE</td><td>4100-200</td></tr>
+                            <tr><td>Software Sales</td><td>DIM_ACCOUNT</td><td>ACCOUNT_CODE</td><td>4100-300</td></tr>
+                            <tr><td>Consulting</td><td>DIM_ACCOUNT</td><td>ACCOUNT_CODE</td><td>4200-100</td></tr>
+                            <tr><td>Support Services</td><td>DIM_ACCOUNT</td><td>ACCOUNT_CODE</td><td>4200-200</td></tr>
+                            <tr><td>Hardware COGS</td><td>DIM_ACCOUNT</td><td>ACCOUNT_CODE</td><td>5100-100</td></tr>
+                            <tr><td>Software COGS</td><td>DIM_ACCOUNT</td><td>ACCOUNT_CODE</td><td>5100-200</td></tr>
+                            <tr><td>Salaries</td><td>DIM_ACCOUNT</td><td>ACCOUNT_CODE</td><td>5200-*</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card animate-in">
+                <div class="card-header">
+                    <h2 class="card-title">Formula Groups</h2>
+                    <button class="btn btn-outline">+ Add Formula</button>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Group Name</th>
+                            <th>Target Hierarchy</th>
+                            <th>Formula</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Total Revenue</td>
+                            <td>REVENUE_1</td>
+                            <td><code>SUM(SALES_1) + SUM(SERVICES_1)</code></td>
+                            <td><span class="badge badge-success">Active</span></td>
+                        </tr>
+                        <tr>
+                            <td>Total Expenses</td>
+                            <td>EXPENSES_1</td>
+                            <td><code>SUM(COGS_1) + SUM(OPEX_1)</code></td>
+                            <td><span class="badge badge-success">Active</span></td>
+                        </tr>
+                        <tr>
+                            <td>Net Income</td>
+                            <td>NET_INCOME_1</td>
+                            <td><code>REVENUE_1 - EXPENSES_1</code></td>
+                            <td><span class="badge badge-success">Active</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Deployment Module -->
+        <div id="deployment" class="module-panel">
+            <div class="card animate-in">
+                <div class="card-header">
+                    <h2 class="card-title">Deployment & Export</h2>
+                    <span class="badge badge-info">Snowflake Ready</span>
+                </div>
+
+                <div class="grid-3" style="margin-bottom: 24px;">
+                    <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="exportCSV()">
+                        Export to CSV
+                    </button>
+                    <button class="btn btn-secondary" style="width: 100%; justify-content: center;" onclick="generateScripts()">
+                        Generate SQL Scripts
+                    </button>
+                    <button class="btn btn-success" style="width: 100%; justify-content: center;" onclick="validateProject()">
+                        Validate Project
+                    </button>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-bar" id="deployProgress" style="width: 0%;">Ready</div>
+                </div>
+            </div>
+
+            <div class="card animate-in">
+                <div class="card-header">
+                    <h2 class="card-title">Generated Snowflake Scripts</h2>
+                </div>
+                <div class="code-block" id="sqlOutput">
+-- DataBridge AI - Snowflake Deployment Scripts
+-- Generated: 2024-01-15
+
+-- Create Hierarchy Table
+CREATE TABLE IF NOT EXISTS DIM_HIERARCHY (
+    HIERARCHY_ID VARCHAR(50) PRIMARY KEY,
+    HIERARCHY_NAME VARCHAR(255),
+    PARENT_ID VARCHAR(50),
+    DESCRIPTION VARCHAR(1000),
+    LEVEL_1 VARCHAR(100),
+    LEVEL_2 VARCHAR(100),
+    LEVEL_3 VARCHAR(100),
+    LEVEL_4 VARCHAR(100),
+    LEVEL_5 VARCHAR(100),
+    INCLUDE_FLAG BOOLEAN DEFAULT TRUE,
+    EXCLUDE_FLAG BOOLEAN DEFAULT FALSE,
+    TRANSFORM_FLAG BOOLEAN DEFAULT FALSE,
+    CALCULATION_FLAG BOOLEAN DEFAULT FALSE,
+    ACTIVE_FLAG BOOLEAN DEFAULT TRUE,
+    IS_LEAF_NODE BOOLEAN DEFAULT FALSE,
+    FORMULA_GROUP VARCHAR(100),
+    SORT_ORDER INT
+);
+
+-- Insert Hierarchy Records
+INSERT INTO DIM_HIERARCHY VALUES
+('INCOME_STMT_1', 'Income Statement', NULL, 'Main P&L Report',
+ 'Income Statement', NULL, NULL, NULL, NULL,
+ TRUE, FALSE, FALSE, FALSE, TRUE, FALSE, NULL, 1);
+
+INSERT INTO DIM_HIERARCHY VALUES
+('REVENUE_1', 'Total Revenue', 'INCOME_STMT_1', 'All revenue streams',
+ 'Income Statement', 'Revenue', NULL, NULL, NULL,
+ TRUE, FALSE, FALSE, TRUE, TRUE, FALSE, 'Total Revenue', 2);
+
+-- ... additional insert statements ...
+
+-- Create Source Mapping Table
+CREATE TABLE IF NOT EXISTS DIM_HIERARCHY_MAPPING (
+    MAPPING_ID INT IDENTITY PRIMARY KEY,
+    HIERARCHY_ID VARCHAR(50),
+    MAPPING_INDEX INT,
+    SOURCE_DATABASE VARCHAR(100),
+    SOURCE_SCHEMA VARCHAR(100),
+    SOURCE_TABLE VARCHAR(100),
+    SOURCE_COLUMN VARCHAR(100),
+    SOURCE_UID VARCHAR(100),
+    PRECEDENCE_GROUP INT DEFAULT 1,
+    INCLUDE_FLAG BOOLEAN DEFAULT TRUE,
+    ACTIVE_FLAG BOOLEAN DEFAULT TRUE
+);
+</div>
+            </div>
+
+            <div class="card animate-in">
+                <div class="card-header">
+                    <h2 class="card-title">MCP Tools Available</h2>
+                </div>
+                <div class="tool-grid">
+                    <div class="tool-card">
+                        <div class="tool-icon">&#128194;</div>
+                        <div class="tool-name">load_csv</div>
+                    </div>
+                    <div class="tool-card">
+                        <div class="tool-icon">&#128269;</div>
+                        <div class="tool-name">compare_hashes</div>
+                    </div>
+                    <div class="tool-card">
+                        <div class="tool-icon">&#128200;</div>
+                        <div class="tool-name">fuzzy_match</div>
+                    </div>
+                    <div class="tool-card">
+                        <div class="tool-icon">&#9888;</div>
+                        <div class="tool-name">detect_conflicts</div>
+                    </div>
+                    <div class="tool-card">
+                        <div class="tool-icon">&#128203;</div>
+                        <div class="tool-name">create_hierarchy</div>
+                    </div>
+                    <div class="tool-card">
+                        <div class="tool-icon">&#128279;</div>
+                        <div class="tool-name">add_mapping</div>
+                    </div>
+                    <div class="tool-card">
+                        <div class="tool-icon">&#128290;</div>
+                        <div class="tool-name">create_formula</div>
+                    </div>
+                    <div class="tool-card">
+                        <div class="tool-icon">&#128230;</div>
+                        <div class="tool-name">export_csv</div>
+                    </div>
+                    <div class="tool-card">
+                        <div class="tool-icon">&#128187;</div>
+                        <div class="tool-name">generate_scripts</div>
+                    </div>
+                    <div class="tool-card">
+                        <div class="tool-icon">&#9989;</div>
+                        <div class="tool-name">validate_project</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Import Modal -->
+    <div class="modal-overlay" id="importModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Import Hierarchy CSV</h2>
+                <button class="modal-close" onclick="closeModal('importModal')">&times;</button>
+            </div>
+            <p style="margin-bottom: 16px;">Import hierarchy structure from CSV file in legacy format.</p>
+            <div class="code-block" style="margin-bottom: 16px;">
+HIERARCHY_ID,HIERARCHY_NAME,PARENT_ID,DESCRIPTION,...
+INCOME_STMT_1,Income Statement,,Main P&L Report,...
+REVENUE_1,Total Revenue,INCOME_STMT_1,All revenue,...
+            </div>
+            <button class="btn btn-primary" onclick="closeModal('importModal')">Select File</button>
+        </div>
+    </div>
+
+    <script>
+        // Module Navigation
+        function showModule(moduleId) {
+            document.querySelectorAll('.module-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.getElementById(moduleId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Reconciliation Demo
+        function runReconciliation() {
+            const console = document.getElementById('reconConsole');
+            const lines = [
+                { text: '[INFO] Starting new reconciliation run...', type: 'info' },
+                { text: '[INFO] Loading Source A: customers_source_a.csv', type: 'info' },
+                { text: '[SUCCESS] Source A loaded: 10 records', type: 'success' },
+                { text: '[INFO] Loading Source B: customers_source_b.csv', type: 'info' },
+                { text: '[SUCCESS] Source B loaded: 9 records', type: 'success' },
+                { text: '[INFO] Generating SHA-256 hashes for all records...', type: 'info' },
+                { text: '[SUCCESS] Hashes generated for 19 total records', type: 'success' },
+                { text: '[INFO] Comparing records by customer_id...', type: 'info' },
+                { text: '[WARNING] Orphan in Source A: C004 (Premier Services)', type: 'warning' },
+                { text: '[WARNING] Orphan in Source A: C009, C010', type: 'warning' },
+                { text: '[WARNING] Orphan in Source B: C011 (Kappa Technologies)', type: 'warning' },
+                { text: '[WARNING] Orphan in Source B: C012 (Lambda Corp)', type: 'warning' },
+                { text: '[ERROR] CONFLICT C002: Revenue $89,500 vs $92,000', type: 'error' },
+                { text: '[INFO] Applying fuzzy matching (threshold: 85%)...', type: 'info' },
+                { text: '[SUCCESS] Match: "Delta Manufacturing" ~ "Delta Mfg Co" (88%)', type: 'success' },
+                { text: '[SUCCESS] Reconciliation complete!', type: 'success' }
+            ];
+
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i < lines.length) {
+                    const line = document.createElement('div');
+                    line.className = `console-line ${lines[i].type}`;
+                    line.textContent = lines[i].text;
+                    console.appendChild(line);
+                    console.scrollTop = console.scrollHeight;
+                    i++;
+                } else {
+                    clearInterval(interval);
+                    document.getElementById('matchCount').textContent = '7';
+                    document.getElementById('orphanCount').textContent = '5';
+                    document.getElementById('conflictCount').textContent = '1';
+                }
+            }, 400);
+        }
+
+        // Deployment Functions
+        function exportCSV() {
+            animateProgress('Exporting to CSV...');
+        }
+
+        function generateScripts() {
+            animateProgress('Generating SQL scripts...');
+        }
+
+        function validateProject() {
+            animateProgress('Validating project...');
+        }
+
+        function animateProgress(text) {
+            const bar = document.getElementById('deployProgress');
+            bar.style.width = '0%';
+            bar.textContent = text;
+
+            let width = 0;
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                    bar.textContent = 'Complete!';
+                } else {
+                    width += 5;
+                    bar.style.width = width + '%';
+                }
+            }, 50);
+        }
+
+        // Modal Functions
+        function showImportModal() {
+            document.getElementById('importModal').classList.add('active');
+        }
+
+        function showCreateModal() {
+            alert('Create Hierarchy dialog - Use Claude AI to create hierarchies with natural language!');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+    </script>
+</body>
+</html>

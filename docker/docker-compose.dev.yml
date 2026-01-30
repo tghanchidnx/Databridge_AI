@@ -1,0 +1,169 @@
+# DataBridge AI Development Environment
+# docker-compose -f docker/docker-compose.dev.yml up -d
+
+version: "3.9"
+
+services:
+  # =============================================================================
+  # PostgreSQL - Primary database for V4 analytics
+  # =============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: databridge-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-databridge_analytics}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts/postgres:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - databridge-network
+
+  # =============================================================================
+  # ChromaDB - Vector store for RAG and embeddings
+  # =============================================================================
+  chromadb:
+    image: ghcr.io/chroma-core/chroma:latest
+    container_name: databridge-chromadb
+    restart: unless-stopped
+    environment:
+      - CHROMA_SERVER_AUTH_PROVIDER=
+      - CHROMA_SERVER_AUTH_CREDENTIALS=
+      - ALLOW_RESET=true
+      - IS_PERSISTENT=true
+    ports:
+      - "${CHROMADB_PORT:-8001}:8000"
+    volumes:
+      - chromadb_data:/chroma/chroma
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - databridge-network
+
+  # =============================================================================
+  # Redis - Caching and session storage
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: databridge-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - databridge-network
+
+  # =============================================================================
+  # DataBridge V3 - Hierarchy Builder
+  # =============================================================================
+  databridge-v3:
+    build:
+      context: ../v3
+      dockerfile: ../docker/Dockerfile.v3
+    container_name: databridge-v3
+    restart: unless-stopped
+    environment:
+      - DATABRIDGE_ENV=development
+      - DATABRIDGE_DEBUG=true
+      - DATABRIDGE_DATABASE__PATH=/app/data/databridge.db
+      - DATABRIDGE_VECTOR__DB_PATH=/app/data/vectors
+      - CHROMADB_HOST=chromadb
+      - CHROMADB_PORT=8000
+      - REDIS_URL=redis://redis:6379/0
+    ports:
+      - "${V3_PORT:-8000}:8000"
+    volumes:
+      - ../v3/src:/app/src:ro
+      - ../v3/skills:/app/skills:ro
+      - ../v3/templates:/app/templates:ro
+      - v3_data:/app/data
+    depends_on:
+      chromadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - databridge-network
+    profiles:
+      - full
+
+  # =============================================================================
+  # DataBridge V4 - Analytics Engine
+  # =============================================================================
+  databridge-v4:
+    build:
+      context: ../v4
+      dockerfile: ../docker/Dockerfile.v4
+    container_name: databridge-v4
+    restart: unless-stopped
+    environment:
+      - DATABRIDGE_ENV=development
+      - DATABRIDGE_DEBUG=true
+      - POSTGRESQL_HOST=postgres
+      - POSTGRESQL_PORT=5432
+      - POSTGRESQL_DATABASE=databridge_analytics
+      - POSTGRESQL_USER=postgres
+      - POSTGRESQL_PASSWORD=postgres
+      - V3_API_URL=http://databridge-v3:8000
+      - CHROMADB_PATH=http://chromadb:8000
+      - REDIS_URL=redis://redis:6379/1
+    ports:
+      - "${V4_PORT:-8002}:8000"
+    volumes:
+      - ../v4/src:/app/src:ro
+      - ../v4/skills:/app/skills:ro
+      - ../v4/knowledgebase:/app/knowledgebase:ro
+      - v4_data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      chromadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - databridge-network
+    profiles:
+      - full
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  databridge-network:
+    driver: bridge
+    name: databridge-network
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  postgres_data:
+    name: databridge-postgres-data
+  chromadb_data:
+    name: databridge-chromadb-data
+  redis_data:
+    name: databridge-redis-data
+  v3_data:
+    name: databridge-v3-data
+  v4_data:
+    name: databridge-v4-data
