@@ -1,0 +1,295 @@
+{
+  "id": "fleet_hierarchy",
+  "name": "Fleet & Route Hierarchy",
+  "domain": "operations",
+  "hierarchy_type": "asset",
+  "industry": "transportation",
+  "description": "Operational hierarchy for transportation companies organizing fleet assets by type, location, and route network. Supports capacity planning and utilization tracking.",
+  "version": "1.0",
+  "tags": ["transportation", "fleet", "trucks", "routes", "terminals", "logistics"],
+  "hierarchies": [
+    {
+      "hierarchy_id": "TOTAL_FLEET",
+      "hierarchy_name": "Total Fleet Operations",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of all fleet categories",
+      "node_type": "rollup",
+      "description": "Total fleet and route network",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "POWER_UNITS",
+      "hierarchy_name": "Power Units",
+      "parent_id": "TOTAL_FLEET",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of tractors and trucks",
+      "node_type": "rollup",
+      "description": "Tractors and straight trucks",
+      "mapping_hints": [
+        {"pattern": "PU*", "description": "Power unit codes", "examples": ["PU001"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "TRACTORS_OWNED",
+      "hierarchy_name": "Owned Tractors",
+      "parent_id": "POWER_UNITS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Company-owned tractors",
+      "mapping_hints": [
+        {"pattern": "PU-OWN*", "description": "Owned tractors", "examples": ["PU-OWN001"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "TRACTORS_LEASED",
+      "hierarchy_name": "Leased Tractors",
+      "parent_id": "POWER_UNITS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Leased tractors",
+      "mapping_hints": [
+        {"pattern": "PU-LSE*", "description": "Leased tractors", "examples": ["PU-LSE001"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "OWNER_OPERATORS",
+      "hierarchy_name": "Owner-Operators",
+      "parent_id": "POWER_UNITS",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Independent owner-operator trucks",
+      "mapping_hints": [
+        {"pattern": "PU-OO*", "description": "Owner-operators", "examples": ["PU-OO001"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "TRAILERS",
+      "hierarchy_name": "Trailers",
+      "parent_id": "TOTAL_FLEET",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of trailer types",
+      "node_type": "rollup",
+      "description": "All trailer equipment",
+      "mapping_hints": [
+        {"pattern": "TR*", "description": "Trailer codes", "examples": ["TR001"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "DRY_VANS",
+      "hierarchy_name": "Dry Vans",
+      "parent_id": "TRAILERS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Standard dry van trailers",
+      "mapping_hints": [
+        {"pattern": "TR-VAN*", "description": "Dry vans", "examples": ["TR-VAN001"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "REEFERS",
+      "hierarchy_name": "Refrigerated",
+      "parent_id": "TRAILERS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Refrigerated trailers",
+      "mapping_hints": [
+        {"pattern": "TR-REF*", "description": "Reefers", "examples": ["TR-REF001"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "FLATBEDS",
+      "hierarchy_name": "Flatbeds",
+      "parent_id": "TRAILERS",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Flatbed and specialized trailers",
+      "mapping_hints": [
+        {"pattern": "TR-FLT*", "description": "Flatbeds", "examples": ["TR-FLT001"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "CONTAINERS",
+      "hierarchy_name": "Containers & Chassis",
+      "parent_id": "TRAILERS",
+      "level": 3,
+      "sort_order": 4,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Intermodal containers and chassis",
+      "mapping_hints": [
+        {"pattern": "TR-CNT*", "description": "Containers", "examples": ["TR-CNT001"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "TERMINALS",
+      "hierarchy_name": "Terminal Network",
+      "parent_id": "TOTAL_FLEET",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": true,
+      "formula_hint": "SUM of terminal locations",
+      "node_type": "rollup",
+      "description": "Terminal and service center network",
+      "mapping_hints": [
+        {"pattern": "TM*", "description": "Terminal codes", "examples": ["TM001"], "source_type": "location_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "TM_NORTHEAST",
+      "hierarchy_name": "Northeast Terminals",
+      "parent_id": "TERMINALS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Northeast region terminals",
+      "mapping_hints": [
+        {"pattern": "TM-NE*", "description": "NE terminals", "examples": ["TM-NE01"], "source_type": "location_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "TM_SOUTHEAST",
+      "hierarchy_name": "Southeast Terminals",
+      "parent_id": "TERMINALS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Southeast region terminals",
+      "mapping_hints": [
+        {"pattern": "TM-SE*", "description": "SE terminals", "examples": ["TM-SE01"], "source_type": "location_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "TM_MIDWEST",
+      "hierarchy_name": "Midwest Terminals",
+      "parent_id": "TERMINALS",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Midwest region terminals",
+      "mapping_hints": [
+        {"pattern": "TM-MW*", "description": "MW terminals", "examples": ["TM-MW01"], "source_type": "location_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "TM_SOUTHWEST",
+      "hierarchy_name": "Southwest Terminals",
+      "parent_id": "TERMINALS",
+      "level": 3,
+      "sort_order": 4,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Southwest region terminals",
+      "mapping_hints": [
+        {"pattern": "TM-SW*", "description": "SW terminals", "examples": ["TM-SW01"], "source_type": "location_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "TM_WEST",
+      "hierarchy_name": "West Coast Terminals",
+      "parent_id": "TERMINALS",
+      "level": 3,
+      "sort_order": 5,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "West coast region terminals",
+      "mapping_hints": [
+        {"pattern": "TM-WC*", "description": "WC terminals", "examples": ["TM-WC01"], "source_type": "location_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "LANES",
+      "hierarchy_name": "Route Lanes",
+      "parent_id": "TOTAL_FLEET",
+      "level": 2,
+      "sort_order": 4,
+      "is_calculated": true,
+      "formula_hint": "SUM of route lane categories",
+      "node_type": "rollup",
+      "description": "Freight lanes and corridors",
+      "mapping_hints": [
+        {"pattern": "LN*", "description": "Lane codes", "examples": ["LN001"], "source_type": "lane_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "DEDICATED_LANES",
+      "hierarchy_name": "Dedicated Lanes",
+      "parent_id": "LANES",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Contract dedicated routes",
+      "mapping_hints": [
+        {"pattern": "LN-DED*", "description": "Dedicated lanes", "examples": ["LN-DED01"], "source_type": "lane_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "SPOT_LANES",
+      "hierarchy_name": "Spot Market Lanes",
+      "parent_id": "LANES",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Spot market freight lanes",
+      "mapping_hints": [
+        {"pattern": "LN-SPT*", "description": "Spot lanes", "examples": ["LN-SPT01"], "source_type": "lane_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    }
+  ],
+  "recommended_mappings": [
+    {"pattern": "PU*", "description": "Map power unit assets", "examples": ["PU-OWN001"], "source_type": "asset_code"},
+    {"pattern": "TR*", "description": "Map trailer assets", "examples": ["TR-VAN001"], "source_type": "asset_code"},
+    {"pattern": "TM*", "description": "Map terminal locations", "examples": ["TM-NE01"], "source_type": "location_code"},
+    {"pattern": "LN*", "description": "Map route lanes", "examples": ["LN-DED01"], "source_type": "lane_code"}
+  ],
+  "capacity_metrics": {
+    "power_units": "Tractor count",
+    "trailer_ratio": "Trailers per Power Unit",
+    "terminal_doors": "Dock doors per terminal",
+    "lane_volume": "Loads per week per lane"
+  },
+  "created_at": "2025-01-22T00:00:00",
+  "updated_at": "2025-01-22T00:00:00"
+}

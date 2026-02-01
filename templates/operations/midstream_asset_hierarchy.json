@@ -1,0 +1,298 @@
+{
+  "id": "midstream_asset_hierarchy",
+  "name": "Midstream Oil & Gas Asset Hierarchy",
+  "domain": "operations",
+  "hierarchy_type": "asset",
+  "industry": "oil_gas_midstream",
+  "description": "Asset hierarchy for midstream infrastructure including gathering systems, processing plants, pipelines, and storage facilities. Supports throughput and utilization tracking.",
+  "version": "1.0",
+  "tags": ["midstream", "pipeline", "gathering", "processing", "storage", "terminal", "infrastructure"],
+  "hierarchies": [
+    {
+      "hierarchy_id": "TOTAL_ASSETS",
+      "hierarchy_name": "Total Midstream Assets",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of all asset categories",
+      "node_type": "rollup",
+      "description": "Total midstream asset base",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "GATHERING_SYSTEMS",
+      "hierarchy_name": "Gathering Systems",
+      "parent_id": "TOTAL_ASSETS",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of gathering assets",
+      "node_type": "rollup",
+      "description": "Field gathering infrastructure",
+      "mapping_hints": [
+        {"pattern": "GS*", "description": "Gathering system codes", "examples": ["GS001"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "GS_GAS_GATHERING",
+      "hierarchy_name": "Gas Gathering",
+      "parent_id": "GATHERING_SYSTEMS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Natural gas gathering systems",
+      "mapping_hints": [
+        {"pattern": "GS-GAS*", "description": "Gas gathering", "examples": ["GS-GAS01"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "GS_LIQUIDS_GATHERING",
+      "hierarchy_name": "Crude/Liquids Gathering",
+      "parent_id": "GATHERING_SYSTEMS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Crude oil and liquids gathering",
+      "mapping_hints": [
+        {"pattern": "GS-LIQ*", "description": "Liquids gathering", "examples": ["GS-LIQ01"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "GS_WATER_GATHERING",
+      "hierarchy_name": "Water Gathering/Disposal",
+      "parent_id": "GATHERING_SYSTEMS",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Produced water handling",
+      "mapping_hints": [
+        {"pattern": "GS-WTR*", "description": "Water systems", "examples": ["GS-WTR01"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PROCESSING_PLANTS",
+      "hierarchy_name": "Processing Plants",
+      "parent_id": "TOTAL_ASSETS",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of processing assets",
+      "node_type": "rollup",
+      "description": "Gas processing and fractionation",
+      "mapping_hints": [
+        {"pattern": "PP*", "description": "Processing plant codes", "examples": ["PP001"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PP_CRYOGENIC",
+      "hierarchy_name": "Cryogenic Plants",
+      "parent_id": "PROCESSING_PLANTS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Cryogenic gas processing",
+      "mapping_hints": [
+        {"pattern": "PP-CRY*", "description": "Cryo plants", "examples": ["PP-CRY01"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PP_FRACTIONATORS",
+      "hierarchy_name": "NGL Fractionators",
+      "parent_id": "PROCESSING_PLANTS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "NGL fractionation facilities",
+      "mapping_hints": [
+        {"pattern": "PP-FRAC*", "description": "Fractionators", "examples": ["PP-FRAC01"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PP_TREATING",
+      "hierarchy_name": "Gas Treating",
+      "parent_id": "PROCESSING_PLANTS",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Amine treating and CO2 removal",
+      "mapping_hints": [
+        {"pattern": "PP-TRT*", "description": "Treating plants", "examples": ["PP-TRT01"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PIPELINES",
+      "hierarchy_name": "Transmission Pipelines",
+      "parent_id": "TOTAL_ASSETS",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": true,
+      "formula_hint": "SUM of pipeline assets",
+      "node_type": "rollup",
+      "description": "Long-haul transmission pipelines",
+      "mapping_hints": [
+        {"pattern": "PL*", "description": "Pipeline codes", "examples": ["PL001"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PL_NATURAL_GAS",
+      "hierarchy_name": "Natural Gas Pipelines",
+      "parent_id": "PIPELINES",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Interstate gas transmission",
+      "mapping_hints": [
+        {"pattern": "PL-GAS*", "description": "Gas pipelines", "examples": ["PL-GAS01"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PL_CRUDE",
+      "hierarchy_name": "Crude Oil Pipelines",
+      "parent_id": "PIPELINES",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Crude oil transmission",
+      "mapping_hints": [
+        {"pattern": "PL-CRD*", "description": "Crude pipelines", "examples": ["PL-CRD01"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PL_NGL",
+      "hierarchy_name": "NGL Pipelines",
+      "parent_id": "PIPELINES",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "NGL/Y-grade transmission",
+      "mapping_hints": [
+        {"pattern": "PL-NGL*", "description": "NGL pipelines", "examples": ["PL-NGL01"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "STORAGE",
+      "hierarchy_name": "Storage Facilities",
+      "parent_id": "TOTAL_ASSETS",
+      "level": 2,
+      "sort_order": 4,
+      "is_calculated": true,
+      "formula_hint": "SUM of storage assets",
+      "node_type": "rollup",
+      "description": "Storage tanks and caverns",
+      "mapping_hints": [
+        {"pattern": "ST*", "description": "Storage codes", "examples": ["ST001"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "ST_CRUDE_STORAGE",
+      "hierarchy_name": "Crude Storage",
+      "parent_id": "STORAGE",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Crude oil tank farms",
+      "mapping_hints": [
+        {"pattern": "ST-CRD*", "description": "Crude storage", "examples": ["ST-CRD01"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "ST_NGL_STORAGE",
+      "hierarchy_name": "NGL Storage",
+      "parent_id": "STORAGE",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "NGL storage caverns",
+      "mapping_hints": [
+        {"pattern": "ST-NGL*", "description": "NGL storage", "examples": ["ST-NGL01"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "TERMINALS",
+      "hierarchy_name": "Terminals",
+      "parent_id": "TOTAL_ASSETS",
+      "level": 2,
+      "sort_order": 5,
+      "is_calculated": true,
+      "formula_hint": "SUM of terminal assets",
+      "node_type": "rollup",
+      "description": "Loading/unloading terminals",
+      "mapping_hints": [
+        {"pattern": "TM*", "description": "Terminal codes", "examples": ["TM001"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "TM_RAIL",
+      "hierarchy_name": "Rail Terminals",
+      "parent_id": "TERMINALS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Rail loading/unloading facilities",
+      "mapping_hints": [
+        {"pattern": "TM-RAIL*", "description": "Rail terminals", "examples": ["TM-RAIL01"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "TM_MARINE",
+      "hierarchy_name": "Marine Terminals",
+      "parent_id": "TERMINALS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Dock and marine export",
+      "mapping_hints": [
+        {"pattern": "TM-MAR*", "description": "Marine terminals", "examples": ["TM-MAR01"], "source_type": "asset_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    }
+  ],
+  "recommended_mappings": [
+    {"pattern": "GS*", "description": "Map gathering system assets", "examples": ["GS-001"], "source_type": "asset_code"},
+    {"pattern": "PP*", "description": "Map processing plant assets", "examples": ["PP-001"], "source_type": "asset_code"},
+    {"pattern": "PL*", "description": "Map pipeline assets", "examples": ["PL-001"], "source_type": "asset_code"},
+    {"pattern": "ST*", "description": "Map storage assets", "examples": ["ST-001"], "source_type": "asset_code"},
+    {"pattern": "TM*", "description": "Map terminal assets", "examples": ["TM-001"], "source_type": "asset_code"}
+  ],
+  "capacity_metrics": {
+    "gathering_capacity": "MMcf/d or MBbl/d",
+    "processing_capacity": "MMcf/d inlet capacity",
+    "pipeline_capacity": "MMcf/d or MBbl/d",
+    "storage_capacity": "MMBbl or Bcf",
+    "terminal_capacity": "MBbl/d throughput"
+  },
+  "created_at": "2025-01-22T00:00:00",
+  "updated_at": "2025-01-22T00:00:00"
+}

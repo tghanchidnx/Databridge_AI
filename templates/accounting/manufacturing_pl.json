@@ -1,0 +1,443 @@
+{
+  "id": "manufacturing_pl",
+  "name": "Industrial Manufacturing P&L",
+  "domain": "accounting",
+  "hierarchy_type": "income_statement",
+  "category": "income_statement",
+  "industry": "manufacturing",
+  "description": "Income statement for industrial manufacturing companies. Includes detailed COGS breakdown, manufacturing variances, and plant-level profitability.",
+  "version": "1.0",
+  "tags": ["manufacturing", "industrial", "cogs", "production", "factory", "variance"],
+  "hierarchies": [
+    {
+      "hierarchy_id": "NET_SALES",
+      "hierarchy_name": "Net Sales",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "Gross Sales - Returns - Allowances",
+      "node_type": "rollup",
+      "description": "Net sales revenue",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "GROSS_SALES",
+      "hierarchy_name": "Gross Sales",
+      "parent_id": "NET_SALES",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Gross sales before adjustments",
+      "mapping_hints": [
+        {"pattern": "4000*", "description": "Sales accounts", "examples": ["4000"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PRODUCT_SALES",
+      "hierarchy_name": "Product Sales",
+      "parent_id": "GROSS_SALES",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Manufactured product sales",
+      "mapping_hints": [
+        {"pattern": "4010", "description": "Product sales", "examples": ["4010"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "SPARE_PARTS_SALES",
+      "hierarchy_name": "Spare Parts & Components",
+      "parent_id": "GROSS_SALES",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Spare parts and aftermarket",
+      "mapping_hints": [
+        {"pattern": "4020", "description": "Parts sales", "examples": ["4020"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "SERVICE_REVENUE",
+      "hierarchy_name": "Service Revenue",
+      "parent_id": "GROSS_SALES",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Installation and maintenance services",
+      "mapping_hints": [
+        {"pattern": "4030", "description": "Service revenue", "examples": ["4030"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "SALES_ADJUSTMENTS",
+      "hierarchy_name": "Sales Adjustments",
+      "parent_id": "NET_SALES",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Returns, discounts, and allowances",
+      "mapping_hints": [
+        {"pattern": "4100*", "description": "Sales adjustments", "examples": ["4100"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "COGS",
+      "hierarchy_name": "Cost of Goods Sold",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "Direct Materials + Direct Labor + Manufacturing Overhead",
+      "node_type": "rollup",
+      "description": "Total manufacturing cost of sales",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "DIRECT_MATERIALS",
+      "hierarchy_name": "Direct Materials",
+      "parent_id": "COGS",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Raw materials and components consumed",
+      "mapping_hints": [
+        {"pattern": "5100*", "description": "Materials", "examples": ["5100"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "RAW_MATERIALS",
+      "hierarchy_name": "Raw Materials",
+      "parent_id": "DIRECT_MATERIALS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Basic raw materials",
+      "mapping_hints": [
+        {"pattern": "5110", "description": "Raw materials", "examples": ["5110"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "PURCHASED_COMPONENTS",
+      "hierarchy_name": "Purchased Components",
+      "parent_id": "DIRECT_MATERIALS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Purchased parts and components",
+      "mapping_hints": [
+        {"pattern": "5120", "description": "Components", "examples": ["5120"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "PACKAGING",
+      "hierarchy_name": "Packaging Materials",
+      "parent_id": "DIRECT_MATERIALS",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Packaging and containers",
+      "mapping_hints": [
+        {"pattern": "5130", "description": "Packaging", "examples": ["5130"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "DIRECT_LABOR",
+      "hierarchy_name": "Direct Labor",
+      "parent_id": "COGS",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Production labor costs",
+      "mapping_hints": [
+        {"pattern": "5200*", "description": "Direct labor", "examples": ["5200"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PRODUCTION_WAGES",
+      "hierarchy_name": "Production Wages",
+      "parent_id": "DIRECT_LABOR",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Hourly production wages",
+      "mapping_hints": [
+        {"pattern": "5210", "description": "Wages", "examples": ["5210"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "PRODUCTION_BENEFITS",
+      "hierarchy_name": "Production Benefits",
+      "parent_id": "DIRECT_LABOR",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Production employee benefits",
+      "mapping_hints": [
+        {"pattern": "5220", "description": "Benefits", "examples": ["5220"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "MFG_OVERHEAD",
+      "hierarchy_name": "Manufacturing Overhead",
+      "parent_id": "COGS",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Factory overhead costs",
+      "mapping_hints": [
+        {"pattern": "5300*", "description": "Mfg overhead", "examples": ["5300"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "INDIRECT_LABOR",
+      "hierarchy_name": "Indirect Labor",
+      "parent_id": "MFG_OVERHEAD",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Supervisors and support labor",
+      "mapping_hints": [
+        {"pattern": "5310", "description": "Indirect labor", "examples": ["5310"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "FACTORY_SUPPLIES",
+      "hierarchy_name": "Factory Supplies",
+      "parent_id": "MFG_OVERHEAD",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Consumable supplies",
+      "mapping_hints": [
+        {"pattern": "5320", "description": "Supplies", "examples": ["5320"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "UTILITIES",
+      "hierarchy_name": "Utilities",
+      "parent_id": "MFG_OVERHEAD",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Factory power and utilities",
+      "mapping_hints": [
+        {"pattern": "5330", "description": "Utilities", "examples": ["5330"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "EQUIPMENT_REPAIRS",
+      "hierarchy_name": "Equipment Repairs & Maintenance",
+      "parent_id": "MFG_OVERHEAD",
+      "level": 3,
+      "sort_order": 4,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Production equipment R&M",
+      "mapping_hints": [
+        {"pattern": "5340", "description": "Equipment R&M", "examples": ["5340"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "FACTORY_DEPRECIATION",
+      "hierarchy_name": "Factory Depreciation",
+      "parent_id": "MFG_OVERHEAD",
+      "level": 3,
+      "sort_order": 5,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Production equipment and building depreciation",
+      "mapping_hints": [
+        {"pattern": "5350", "description": "Factory depreciation", "examples": ["5350"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "MFG_VARIANCES",
+      "hierarchy_name": "Manufacturing Variances",
+      "parent_id": "COGS",
+      "level": 2,
+      "sort_order": 4,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Standard cost variances",
+      "mapping_hints": [
+        {"pattern": "5400*", "description": "Variances", "examples": ["5400"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "MATERIAL_VARIANCE",
+      "hierarchy_name": "Material Price/Usage Variance",
+      "parent_id": "MFG_VARIANCES",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Material purchase and usage variances",
+      "mapping_hints": [
+        {"pattern": "5410", "description": "Material variance", "examples": ["5410"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "LABOR_VARIANCE",
+      "hierarchy_name": "Labor Rate/Efficiency Variance",
+      "parent_id": "MFG_VARIANCES",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Labor rate and efficiency variances",
+      "mapping_hints": [
+        {"pattern": "5420", "description": "Labor variance", "examples": ["5420"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "OVERHEAD_VARIANCE",
+      "hierarchy_name": "Overhead Volume Variance",
+      "parent_id": "MFG_VARIANCES",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Fixed overhead volume variance",
+      "mapping_hints": [
+        {"pattern": "5430", "description": "OH variance", "examples": ["5430"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "GROSS_PROFIT",
+      "hierarchy_name": "Gross Profit",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 3,
+      "is_calculated": true,
+      "formula_hint": "Net Sales - COGS",
+      "node_type": "calculated",
+      "description": "Gross manufacturing margin",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "OPERATING_EXPENSES",
+      "hierarchy_name": "Operating Expenses",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 4,
+      "is_calculated": true,
+      "formula_hint": "SUM of SG&A and R&D",
+      "node_type": "rollup",
+      "description": "Non-manufacturing operating expenses",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "SGA",
+      "hierarchy_name": "Selling, General & Administrative",
+      "parent_id": "OPERATING_EXPENSES",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "SG&A expenses",
+      "mapping_hints": [
+        {"pattern": "6*", "description": "SG&A accounts", "examples": ["6000"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "RD_EXPENSE",
+      "hierarchy_name": "Research & Development",
+      "parent_id": "OPERATING_EXPENSES",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Product R&D expenses",
+      "mapping_hints": [
+        {"pattern": "7*", "description": "R&D accounts", "examples": ["7000"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "OPERATING_INCOME",
+      "hierarchy_name": "Operating Income",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 5,
+      "is_calculated": true,
+      "formula_hint": "Gross Profit - Operating Expenses",
+      "node_type": "calculated",
+      "description": "Income from operations",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "NET_INCOME",
+      "hierarchy_name": "Net Income",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 6,
+      "is_calculated": true,
+      "formula_hint": "Operating Income + Other Income - Interest - Taxes",
+      "node_type": "calculated",
+      "description": "Net income",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    }
+  ],
+  "recommended_mappings": [
+    {"pattern": "40*", "description": "Map sales revenue accounts", "examples": ["4000-4099"], "source_type": "gl_account"},
+    {"pattern": "51*", "description": "Map direct materials accounts", "examples": ["5100-5199"], "source_type": "gl_account"},
+    {"pattern": "52*", "description": "Map direct labor accounts", "examples": ["5200-5299"], "source_type": "gl_account"},
+    {"pattern": "53*", "description": "Map manufacturing overhead accounts", "examples": ["5300-5399"], "source_type": "gl_account"},
+    {"pattern": "54*", "description": "Map variance accounts", "examples": ["5400-5499"], "source_type": "gl_account"}
+  ],
+  "industry_metrics": {
+    "gross_margin_pct": "Gross Profit / Net Sales",
+    "cogs_ratio": "COGS / Net Sales",
+    "labor_efficiency": "Direct Labor / Units Produced",
+    "material_yield": "Output Units / Input Materials",
+    "capacity_utilization": "Actual Output / Maximum Capacity"
+  },
+  "created_at": "2025-01-22T00:00:00",
+  "updated_at": "2025-01-22T00:00:00"
+}

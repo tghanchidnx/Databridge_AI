@@ -1,0 +1,193 @@
+{
+  "id": "legal_entity_hierarchy",
+  "name": "Legal Entity Hierarchy",
+  "domain": "operations",
+  "hierarchy_type": "legal_entity",
+  "industry": "general",
+  "description": "Legal entity structure for consolidation, intercompany eliminations, and statutory reporting. Tracks parent-subsidiary relationships and ownership structure.",
+  "version": "1.0",
+  "tags": ["legal entity", "consolidation", "subsidiary", "intercompany", "statutory", "ownership"],
+  "hierarchies": [
+    {
+      "hierarchy_id": "ULTIMATE_PARENT",
+      "hierarchy_name": "Ultimate Parent Co",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "Consolidated total of all subsidiaries",
+      "node_type": "rollup",
+      "description": "Ultimate parent company - consolidated",
+      "mapping_hints": [
+        {"pattern": "LE000", "description": "Parent entity code", "examples": ["LE000"], "source_type": "legal_entity"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "US_HOLDCO",
+      "hierarchy_name": "US Holding Company",
+      "parent_id": "ULTIMATE_PARENT",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of US subsidiaries",
+      "node_type": "rollup",
+      "description": "US intermediate holding company",
+      "mapping_hints": [
+        {"pattern": "LE100", "description": "US HoldCo code", "examples": ["LE100"], "source_type": "legal_entity"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "US_OPCO_1",
+      "hierarchy_name": "US Operating Company 1",
+      "parent_id": "US_HOLDCO",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Primary US operating entity",
+      "mapping_hints": [
+        {"pattern": "LE110", "description": "US OpCo 1", "examples": ["LE110"], "source_type": "legal_entity"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "US_OPCO_2",
+      "hierarchy_name": "US Operating Company 2",
+      "parent_id": "US_HOLDCO",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Secondary US operating entity",
+      "mapping_hints": [
+        {"pattern": "LE120", "description": "US OpCo 2", "examples": ["LE120"], "source_type": "legal_entity"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "INTL_HOLDCO",
+      "hierarchy_name": "International Holding Company",
+      "parent_id": "ULTIMATE_PARENT",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of international subsidiaries",
+      "node_type": "rollup",
+      "description": "International intermediate holding",
+      "mapping_hints": [
+        {"pattern": "LE200", "description": "Intl HoldCo code", "examples": ["LE200"], "source_type": "legal_entity"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "EUROPE_HOLDCO",
+      "hierarchy_name": "Europe Holding",
+      "parent_id": "INTL_HOLDCO",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of European entities",
+      "node_type": "rollup",
+      "description": "European holding company",
+      "mapping_hints": [
+        {"pattern": "LE210", "description": "Europe HoldCo", "examples": ["LE210"], "source_type": "legal_entity"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "UK_ENTITY",
+      "hierarchy_name": "UK Limited",
+      "parent_id": "EUROPE_HOLDCO",
+      "level": 4,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "UK operating entity",
+      "mapping_hints": [
+        {"pattern": "LE211", "description": "UK entity", "examples": ["LE211"], "source_type": "legal_entity"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "DE_ENTITY",
+      "hierarchy_name": "Germany GmbH",
+      "parent_id": "EUROPE_HOLDCO",
+      "level": 4,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "German operating entity",
+      "mapping_hints": [
+        {"pattern": "LE212", "description": "DE entity", "examples": ["LE212"], "source_type": "legal_entity"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "APAC_HOLDCO",
+      "hierarchy_name": "APAC Holding",
+      "parent_id": "INTL_HOLDCO",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of APAC entities",
+      "node_type": "rollup",
+      "description": "Asia Pacific holding company",
+      "mapping_hints": [
+        {"pattern": "LE220", "description": "APAC HoldCo", "examples": ["LE220"], "source_type": "legal_entity"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "JP_ENTITY",
+      "hierarchy_name": "Japan KK",
+      "parent_id": "APAC_HOLDCO",
+      "level": 4,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Japan operating entity",
+      "mapping_hints": [
+        {"pattern": "LE221", "description": "JP entity", "examples": ["LE221"], "source_type": "legal_entity"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "AU_ENTITY",
+      "hierarchy_name": "Australia Pty",
+      "parent_id": "APAC_HOLDCO",
+      "level": 4,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Australian operating entity",
+      "mapping_hints": [
+        {"pattern": "LE222", "description": "AU entity", "examples": ["LE222"], "source_type": "legal_entity"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "ELIMINATIONS",
+      "hierarchy_name": "Intercompany Eliminations",
+      "parent_id": "ULTIMATE_PARENT",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Intercompany elimination adjustments",
+      "mapping_hints": [
+        {"pattern": "LE999", "description": "Eliminations entity", "examples": ["LE999"], "source_type": "legal_entity"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    }
+  ],
+  "recommended_mappings": [
+    {"pattern": "LE0*", "description": "Map parent entity codes to Ultimate Parent", "examples": ["LE000-LE099"], "source_type": "legal_entity"},
+    {"pattern": "LE1*", "description": "Map US entity codes to US Holding", "examples": ["LE100-LE199"], "source_type": "legal_entity"},
+    {"pattern": "LE2*", "description": "Map international codes to Intl Holding", "examples": ["LE200-LE299"], "source_type": "legal_entity"},
+    {"pattern": "LE9*", "description": "Map elimination codes", "examples": ["LE999"], "source_type": "legal_entity"}
+  ],
+  "created_at": "2025-01-22T00:00:00",
+  "updated_at": "2025-01-22T00:00:00"
+}

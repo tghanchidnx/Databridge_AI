@@ -32,10 +32,12 @@ dependencies = [
 v3 = ["databridge-v3"]
 v4 = ["databridge-v4"]
 cli = ["databridge-cli"]
+discovery = ["databridge-discovery"]
 all = [
     "databridge-v3",
     "databridge-v4",
     "databridge-cli",
+    "databridge-discovery",
 ]
 dev = [
     "pytest>=7.0",
@@ -84,7 +86,7 @@ ignore = [
 ]
 
 [tool.ruff.isort]
-known-first-party = ["databridge_core", "databridge_models", "databridge_v3", "databridge_v4", "databridge_cli"]
+known-first-party = ["databridge_core", "databridge_models", "databridge_v3", "databridge_v4", "databridge_cli", "databridge_discovery"]
 
 # MyPy configuration
 [tool.mypy]
@@ -102,6 +104,7 @@ testpaths = [
     "apps/databridge-v4/tests",
     "libs/databridge-core/tests",
     "libs/databridge-models/tests",
+    "libs/databridge-discovery/tests",
 ]
 asyncio_mode = "auto"
 

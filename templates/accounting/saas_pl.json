@@ -1,0 +1,491 @@
+{
+  "id": "saas_pl",
+  "name": "SaaS Company P&L",
+  "domain": "accounting",
+  "hierarchy_type": "income_statement",
+  "category": "income_statement",
+  "industry": "saas",
+  "description": "Income statement for SaaS (Software as a Service) companies. Organized by SaaS metrics with ARR/MRR tracking, subscription revenue, and customer success costs.",
+  "version": "1.0",
+  "tags": ["saas", "software", "subscription", "arr", "mrr", "cac", "ltv", "churn"],
+  "hierarchies": [
+    {
+      "hierarchy_id": "TOTAL_REVENUE",
+      "hierarchy_name": "Total Revenue",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of all revenue streams",
+      "node_type": "rollup",
+      "description": "Total SaaS revenue",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "SUBSCRIPTION_REV",
+      "hierarchy_name": "Subscription Revenue",
+      "parent_id": "TOTAL_REVENUE",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of subscription revenue types",
+      "node_type": "rollup",
+      "description": "Recurring subscription revenue",
+      "mapping_hints": [
+        {"pattern": "4100*", "description": "Subscription revenue", "examples": ["4100"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "SaaS_REVENUE",
+      "hierarchy_name": "SaaS Subscriptions",
+      "parent_id": "SUBSCRIPTION_REV",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Core SaaS product subscriptions",
+      "mapping_hints": [
+        {"pattern": "4110", "description": "SaaS subscriptions", "examples": ["4110"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "PLATFORM_FEES",
+      "hierarchy_name": "Platform Fees",
+      "parent_id": "SUBSCRIPTION_REV",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Platform access and usage fees",
+      "mapping_hints": [
+        {"pattern": "4120", "description": "Platform fees", "examples": ["4120"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "ADDON_REVENUE",
+      "hierarchy_name": "Add-on Modules",
+      "parent_id": "SUBSCRIPTION_REV",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Premium add-on module subscriptions",
+      "mapping_hints": [
+        {"pattern": "4130", "description": "Add-ons", "examples": ["4130"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "USAGE_REVENUE",
+      "hierarchy_name": "Usage-Based Revenue",
+      "parent_id": "TOTAL_REVENUE",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Consumption-based revenue",
+      "mapping_hints": [
+        {"pattern": "4200*", "description": "Usage revenue", "examples": ["4200"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "API_CALLS",
+      "hierarchy_name": "API Usage",
+      "parent_id": "USAGE_REVENUE",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "API call overage charges",
+      "mapping_hints": [
+        {"pattern": "4210", "description": "API usage", "examples": ["4210"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "STORAGE_FEES",
+      "hierarchy_name": "Storage Fees",
+      "parent_id": "USAGE_REVENUE",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Data storage overage",
+      "mapping_hints": [
+        {"pattern": "4220", "description": "Storage fees", "examples": ["4220"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "TRANSACTION_FEES",
+      "hierarchy_name": "Transaction Fees",
+      "parent_id": "USAGE_REVENUE",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Per-transaction processing fees",
+      "mapping_hints": [
+        {"pattern": "4230", "description": "Transaction fees", "examples": ["4230"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "SERVICES_REV",
+      "hierarchy_name": "Professional Services",
+      "parent_id": "TOTAL_REVENUE",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Non-recurring professional services",
+      "mapping_hints": [
+        {"pattern": "4300*", "description": "Services revenue", "examples": ["4300"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "IMPLEMENTATION",
+      "hierarchy_name": "Implementation Services",
+      "parent_id": "SERVICES_REV",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Onboarding and implementation",
+      "mapping_hints": [
+        {"pattern": "4310", "description": "Implementation", "examples": ["4310"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "TRAINING",
+      "hierarchy_name": "Training",
+      "parent_id": "SERVICES_REV",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Customer training services",
+      "mapping_hints": [
+        {"pattern": "4320", "description": "Training", "examples": ["4320"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "CONSULTING",
+      "hierarchy_name": "Consulting",
+      "parent_id": "SERVICES_REV",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Advisory and consulting services",
+      "mapping_hints": [
+        {"pattern": "4330", "description": "Consulting", "examples": ["4330"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "COST_OF_REVENUE",
+      "hierarchy_name": "Cost of Revenue",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of COR components",
+      "node_type": "rollup",
+      "description": "Direct costs of service delivery",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "HOSTING_COSTS",
+      "hierarchy_name": "Hosting & Infrastructure",
+      "parent_id": "COST_OF_REVENUE",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Cloud hosting and infrastructure",
+      "mapping_hints": [
+        {"pattern": "5100*", "description": "Hosting costs", "examples": ["5100"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "CLOUD_SERVICES",
+      "hierarchy_name": "Cloud Services (AWS/GCP/Azure)",
+      "parent_id": "HOSTING_COSTS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Public cloud provider costs",
+      "mapping_hints": [
+        {"pattern": "5110", "description": "Cloud services", "examples": ["5110"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "CDN_COSTS",
+      "hierarchy_name": "CDN & Bandwidth",
+      "parent_id": "HOSTING_COSTS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Content delivery and bandwidth",
+      "mapping_hints": [
+        {"pattern": "5120", "description": "CDN costs", "examples": ["5120"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "THIRD_PARTY_SOFTWARE",
+      "hierarchy_name": "Third-Party Software",
+      "parent_id": "HOSTING_COSTS",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Embedded third-party software licenses",
+      "mapping_hints": [
+        {"pattern": "5130", "description": "3rd party software", "examples": ["5130"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "CUSTOMER_SUCCESS",
+      "hierarchy_name": "Customer Success",
+      "parent_id": "COST_OF_REVENUE",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Customer success and support",
+      "mapping_hints": [
+        {"pattern": "5200*", "description": "Customer success", "examples": ["5200"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "CS_TEAM_COSTS",
+      "hierarchy_name": "CS Team Salaries",
+      "parent_id": "CUSTOMER_SUCCESS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Customer success team compensation",
+      "mapping_hints": [
+        {"pattern": "5210", "description": "CS salaries", "examples": ["5210"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "SUPPORT_COSTS",
+      "hierarchy_name": "Support Operations",
+      "parent_id": "CUSTOMER_SUCCESS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Support team and tools",
+      "mapping_hints": [
+        {"pattern": "5220", "description": "Support", "examples": ["5220"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "PS_DELIVERY",
+      "hierarchy_name": "Professional Services Delivery",
+      "parent_id": "COST_OF_REVENUE",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Professional services delivery cost",
+      "mapping_hints": [
+        {"pattern": "5300", "description": "PS delivery", "examples": ["5300"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "GROSS_PROFIT",
+      "hierarchy_name": "Gross Profit",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 3,
+      "is_calculated": true,
+      "formula_hint": "Total Revenue - Cost of Revenue",
+      "node_type": "calculated",
+      "description": "Gross margin on SaaS delivery",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "OPERATING_EXPENSES",
+      "hierarchy_name": "Operating Expenses",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 4,
+      "is_calculated": true,
+      "formula_hint": "SUM of R&D + S&M + G&A",
+      "node_type": "rollup",
+      "description": "Operating expenses",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "RD_EXPENSE",
+      "hierarchy_name": "Research & Development",
+      "parent_id": "OPERATING_EXPENSES",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Product development costs",
+      "mapping_hints": [
+        {"pattern": "6100*", "description": "R&D", "examples": ["6100"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "ENGINEERING",
+      "hierarchy_name": "Engineering",
+      "parent_id": "RD_EXPENSE",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Engineering team costs",
+      "mapping_hints": [
+        {"pattern": "6110", "description": "Engineering", "examples": ["6110"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "PRODUCT",
+      "hierarchy_name": "Product Management",
+      "parent_id": "RD_EXPENSE",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Product management costs",
+      "mapping_hints": [
+        {"pattern": "6120", "description": "Product", "examples": ["6120"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "SM_EXPENSE",
+      "hierarchy_name": "Sales & Marketing",
+      "parent_id": "OPERATING_EXPENSES",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Customer acquisition costs",
+      "mapping_hints": [
+        {"pattern": "6200*", "description": "S&M", "examples": ["6200"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "SALES_TEAM",
+      "hierarchy_name": "Sales Team",
+      "parent_id": "SM_EXPENSE",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Sales compensation and costs",
+      "mapping_hints": [
+        {"pattern": "6210", "description": "Sales", "examples": ["6210"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "MARKETING",
+      "hierarchy_name": "Marketing",
+      "parent_id": "SM_EXPENSE",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Marketing programs and team",
+      "mapping_hints": [
+        {"pattern": "6220", "description": "Marketing", "examples": ["6220"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "GA_EXPENSE",
+      "hierarchy_name": "General & Administrative",
+      "parent_id": "OPERATING_EXPENSES",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "G&A overhead",
+      "mapping_hints": [
+        {"pattern": "6300*", "description": "G&A", "examples": ["6300"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "OPERATING_INCOME",
+      "hierarchy_name": "Operating Income (Loss)",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 5,
+      "is_calculated": true,
+      "formula_hint": "Gross Profit - Operating Expenses",
+      "node_type": "calculated",
+      "description": "Operating income/loss",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "NET_INCOME",
+      "hierarchy_name": "Net Income (Loss)",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 6,
+      "is_calculated": true,
+      "formula_hint": "Operating Income + Other - Interest - Taxes",
+      "node_type": "calculated",
+      "description": "Net income/loss",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    }
+  ],
+  "recommended_mappings": [
+    {"pattern": "41*", "description": "Map subscription revenue accounts", "examples": ["4100-4199"], "source_type": "gl_account"},
+    {"pattern": "42*", "description": "Map usage revenue accounts", "examples": ["4200-4299"], "source_type": "gl_account"},
+    {"pattern": "43*", "description": "Map services revenue accounts", "examples": ["4300-4399"], "source_type": "gl_account"},
+    {"pattern": "51*", "description": "Map hosting cost accounts", "examples": ["5100-5199"], "source_type": "gl_account"},
+    {"pattern": "61*", "description": "Map R&D expense accounts", "examples": ["6100-6199"], "source_type": "gl_account"},
+    {"pattern": "62*", "description": "Map S&M expense accounts", "examples": ["6200-6299"], "source_type": "gl_account"}
+  ],
+  "industry_metrics": {
+    "arr": "Annual Recurring Revenue",
+    "mrr": "Monthly Recurring Revenue",
+    "net_revenue_retention": "(Starting ARR + Expansion - Contraction - Churn) / Starting ARR",
+    "gross_margin": "Gross Profit / Total Revenue",
+    "cac": "S&M Expense / New Customers",
+    "ltv": "ARPU * Gross Margin / Churn Rate",
+    "ltv_cac_ratio": "LTV / CAC",
+    "magic_number": "(Current Qtr Revenue - Prior Qtr Revenue) * 4 / Prior Qtr S&M",
+    "rule_of_40": "Revenue Growth % + EBITDA Margin %"
+  },
+  "created_at": "2025-01-22T00:00:00",
+  "updated_at": "2025-01-22T00:00:00"
+}

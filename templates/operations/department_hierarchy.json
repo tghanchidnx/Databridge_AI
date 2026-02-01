@@ -1,0 +1,292 @@
+{
+  "id": "department_hierarchy",
+  "name": "Organizational Department Hierarchy",
+  "domain": "operations",
+  "hierarchy_type": "department",
+  "industry": "general",
+  "description": "Standard organizational department hierarchy for reporting by business function. Covers executive, operations, sales, finance, HR, IT, and support functions.",
+  "version": "1.0",
+  "tags": ["department", "organization", "org chart", "business unit", "function", "division"],
+  "hierarchies": [
+    {
+      "hierarchy_id": "ENTERPRISE",
+      "hierarchy_name": "Enterprise Total",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of all departments",
+      "node_type": "rollup",
+      "description": "Total enterprise - all departments",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "EXECUTIVE",
+      "hierarchy_name": "Executive & Corporate",
+      "parent_id": "ENTERPRISE",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of executive functions",
+      "node_type": "rollup",
+      "description": "Executive office and corporate functions",
+      "mapping_hints": [
+        {"pattern": "10*", "description": "Executive department codes", "examples": ["100", "101"], "source_type": "department"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "CEO_OFFICE",
+      "hierarchy_name": "CEO Office",
+      "parent_id": "EXECUTIVE",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Chief Executive Officer and staff",
+      "mapping_hints": [
+        {"pattern": "100", "description": "CEO office code", "examples": ["100"], "source_type": "department"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "LEGAL",
+      "hierarchy_name": "Legal & Compliance",
+      "parent_id": "EXECUTIVE",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Legal and regulatory compliance",
+      "mapping_hints": [
+        {"pattern": "105", "description": "Legal department code", "examples": ["105"], "source_type": "department"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "OPERATIONS",
+      "hierarchy_name": "Operations",
+      "parent_id": "ENTERPRISE",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of operations departments",
+      "node_type": "rollup",
+      "description": "Core operational departments",
+      "mapping_hints": [
+        {"pattern": "20*", "description": "Operations department codes", "examples": ["200", "210"], "source_type": "department"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "MANUFACTURING",
+      "hierarchy_name": "Manufacturing",
+      "parent_id": "OPERATIONS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Manufacturing and production",
+      "mapping_hints": [
+        {"pattern": "210", "description": "Manufacturing code", "examples": ["210"], "source_type": "department"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "SUPPLY_CHAIN",
+      "hierarchy_name": "Supply Chain",
+      "parent_id": "OPERATIONS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Supply chain and logistics",
+      "mapping_hints": [
+        {"pattern": "220", "description": "Supply chain code", "examples": ["220"], "source_type": "department"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "QUALITY",
+      "hierarchy_name": "Quality Assurance",
+      "parent_id": "OPERATIONS",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Quality control and assurance",
+      "mapping_hints": [
+        {"pattern": "230", "description": "QA code", "examples": ["230"], "source_type": "department"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "SALES_MARKETING",
+      "hierarchy_name": "Sales & Marketing",
+      "parent_id": "ENTERPRISE",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": true,
+      "formula_hint": "SUM of sales and marketing",
+      "node_type": "rollup",
+      "description": "Revenue-generating functions",
+      "mapping_hints": [
+        {"pattern": "30*", "description": "Sales/Marketing codes", "examples": ["300", "310"], "source_type": "department"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "SALES",
+      "hierarchy_name": "Sales",
+      "parent_id": "SALES_MARKETING",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Direct sales organization",
+      "mapping_hints": [
+        {"pattern": "310", "description": "Sales code", "examples": ["310"], "source_type": "department"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "MARKETING",
+      "hierarchy_name": "Marketing",
+      "parent_id": "SALES_MARKETING",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Marketing and brand management",
+      "mapping_hints": [
+        {"pattern": "320", "description": "Marketing code", "examples": ["320"], "source_type": "department"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "CUSTOMER_SUCCESS",
+      "hierarchy_name": "Customer Success",
+      "parent_id": "SALES_MARKETING",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Customer success and retention",
+      "mapping_hints": [
+        {"pattern": "330", "description": "CS code", "examples": ["330"], "source_type": "department"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "FINANCE",
+      "hierarchy_name": "Finance",
+      "parent_id": "ENTERPRISE",
+      "level": 2,
+      "sort_order": 4,
+      "is_calculated": true,
+      "formula_hint": "SUM of finance departments",
+      "node_type": "rollup",
+      "description": "Finance and accounting functions",
+      "mapping_hints": [
+        {"pattern": "40*", "description": "Finance department codes", "examples": ["400", "410"], "source_type": "department"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "ACCOUNTING",
+      "hierarchy_name": "Accounting",
+      "parent_id": "FINANCE",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "General accounting and reporting",
+      "mapping_hints": [
+        {"pattern": "410", "description": "Accounting code", "examples": ["410"], "source_type": "department"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "FPA",
+      "hierarchy_name": "FP&A",
+      "parent_id": "FINANCE",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Financial planning and analysis",
+      "mapping_hints": [
+        {"pattern": "420", "description": "FP&A code", "examples": ["420"], "source_type": "department"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "TREASURY",
+      "hierarchy_name": "Treasury",
+      "parent_id": "FINANCE",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Treasury and cash management",
+      "mapping_hints": [
+        {"pattern": "430", "description": "Treasury code", "examples": ["430"], "source_type": "department"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "HR",
+      "hierarchy_name": "Human Resources",
+      "parent_id": "ENTERPRISE",
+      "level": 2,
+      "sort_order": 5,
+      "is_calculated": true,
+      "formula_hint": "SUM of HR functions",
+      "node_type": "rollup",
+      "description": "Human resources and talent",
+      "mapping_hints": [
+        {"pattern": "50*", "description": "HR department codes", "examples": ["500", "510"], "source_type": "department"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "IT",
+      "hierarchy_name": "Information Technology",
+      "parent_id": "ENTERPRISE",
+      "level": 2,
+      "sort_order": 6,
+      "is_calculated": true,
+      "formula_hint": "SUM of IT functions",
+      "node_type": "rollup",
+      "description": "IT and technology",
+      "mapping_hints": [
+        {"pattern": "60*", "description": "IT department codes", "examples": ["600", "610"], "source_type": "department"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "RD",
+      "hierarchy_name": "Research & Development",
+      "parent_id": "ENTERPRISE",
+      "level": 2,
+      "sort_order": 7,
+      "is_calculated": true,
+      "formula_hint": "SUM of R&D functions",
+      "node_type": "rollup",
+      "description": "R&D and innovation",
+      "mapping_hints": [
+        {"pattern": "70*", "description": "R&D department codes", "examples": ["700", "710"], "source_type": "department"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    }
+  ],
+  "recommended_mappings": [
+    {"pattern": "10*", "description": "Map executive codes (10x) to Executive hierarchy", "examples": ["100-109"], "source_type": "department"},
+    {"pattern": "20*", "description": "Map operations codes (20x) to Operations hierarchy", "examples": ["200-299"], "source_type": "department"},
+    {"pattern": "30*", "description": "Map sales/marketing codes (30x) to Sales & Marketing", "examples": ["300-399"], "source_type": "department"},
+    {"pattern": "40*", "description": "Map finance codes (40x) to Finance hierarchy", "examples": ["400-499"], "source_type": "department"}
+  ],
+  "created_at": "2025-01-22T00:00:00",
+  "updated_at": "2025-01-22T00:00:00"
+}

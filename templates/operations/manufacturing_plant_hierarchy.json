@@ -1,0 +1,251 @@
+{
+  "id": "manufacturing_plant_hierarchy",
+  "name": "Manufacturing Plant Hierarchy",
+  "domain": "operations",
+  "hierarchy_type": "geographic",
+  "industry": "manufacturing",
+  "description": "Operational hierarchy for manufacturing companies organizing production by region, plant, production line, and work center. Supports capacity planning and production reporting.",
+  "version": "1.0",
+  "tags": ["manufacturing", "plant", "production line", "work center", "factory", "capacity"],
+  "hierarchies": [
+    {
+      "hierarchy_id": "GLOBAL_OPERATIONS",
+      "hierarchy_name": "Global Operations",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of all regions",
+      "node_type": "rollup",
+      "description": "Total global manufacturing operations",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "NORTH_AMERICA",
+      "hierarchy_name": "North America Region",
+      "parent_id": "GLOBAL_OPERATIONS",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of NA plants",
+      "node_type": "rollup",
+      "description": "North American manufacturing",
+      "mapping_hints": [
+        {"pattern": "NA*", "description": "North America codes", "examples": ["NA001"], "source_type": "plant_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "NA_PLANT_01",
+      "hierarchy_name": "Plant 01 - Texas",
+      "parent_id": "NORTH_AMERICA",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Texas manufacturing plant",
+      "mapping_hints": [
+        {"pattern": "NA-TX*", "description": "Texas plant", "examples": ["NA-TX01"], "source_type": "plant_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "NA_TX_LINE_A",
+      "hierarchy_name": "Production Line A",
+      "parent_id": "NA_PLANT_01",
+      "level": 4,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Assembly line A",
+      "mapping_hints": [
+        {"pattern": "NA-TX01-A*", "description": "Line A", "examples": ["NA-TX01-A01"], "source_type": "line_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "NA_TX_LINE_B",
+      "hierarchy_name": "Production Line B",
+      "parent_id": "NA_PLANT_01",
+      "level": 4,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Assembly line B",
+      "mapping_hints": [
+        {"pattern": "NA-TX01-B*", "description": "Line B", "examples": ["NA-TX01-B01"], "source_type": "line_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "NA_PLANT_02",
+      "hierarchy_name": "Plant 02 - Ohio",
+      "parent_id": "NORTH_AMERICA",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Ohio manufacturing plant",
+      "mapping_hints": [
+        {"pattern": "NA-OH*", "description": "Ohio plant", "examples": ["NA-OH01"], "source_type": "plant_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "NA_PLANT_03",
+      "hierarchy_name": "Plant 03 - Mexico",
+      "parent_id": "NORTH_AMERICA",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Mexico manufacturing plant",
+      "mapping_hints": [
+        {"pattern": "NA-MX*", "description": "Mexico plant", "examples": ["NA-MX01"], "source_type": "plant_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "EUROPE",
+      "hierarchy_name": "Europe Region",
+      "parent_id": "GLOBAL_OPERATIONS",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of Europe plants",
+      "node_type": "rollup",
+      "description": "European manufacturing",
+      "mapping_hints": [
+        {"pattern": "EU*", "description": "Europe codes", "examples": ["EU001"], "source_type": "plant_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "EU_PLANT_01",
+      "hierarchy_name": "Plant 01 - Germany",
+      "parent_id": "EUROPE",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "German manufacturing plant",
+      "mapping_hints": [
+        {"pattern": "EU-DE*", "description": "Germany plant", "examples": ["EU-DE01"], "source_type": "plant_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "EU_PLANT_02",
+      "hierarchy_name": "Plant 02 - Poland",
+      "parent_id": "EUROPE",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Poland manufacturing plant",
+      "mapping_hints": [
+        {"pattern": "EU-PL*", "description": "Poland plant", "examples": ["EU-PL01"], "source_type": "plant_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "ASIA_PACIFIC",
+      "hierarchy_name": "Asia Pacific Region",
+      "parent_id": "GLOBAL_OPERATIONS",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": true,
+      "formula_hint": "SUM of APAC plants",
+      "node_type": "rollup",
+      "description": "Asia Pacific manufacturing",
+      "mapping_hints": [
+        {"pattern": "AP*", "description": "APAC codes", "examples": ["AP001"], "source_type": "plant_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "AP_PLANT_01",
+      "hierarchy_name": "Plant 01 - China",
+      "parent_id": "ASIA_PACIFIC",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "China manufacturing plant",
+      "mapping_hints": [
+        {"pattern": "AP-CN*", "description": "China plant", "examples": ["AP-CN01"], "source_type": "plant_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "AP_PLANT_02",
+      "hierarchy_name": "Plant 02 - Vietnam",
+      "parent_id": "ASIA_PACIFIC",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Vietnam manufacturing plant",
+      "mapping_hints": [
+        {"pattern": "AP-VN*", "description": "Vietnam plant", "examples": ["AP-VN01"], "source_type": "plant_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "WAREHOUSES",
+      "hierarchy_name": "Distribution Centers",
+      "parent_id": "GLOBAL_OPERATIONS",
+      "level": 2,
+      "sort_order": 4,
+      "is_calculated": true,
+      "formula_hint": "SUM of warehouse locations",
+      "node_type": "rollup",
+      "description": "Finished goods distribution",
+      "mapping_hints": [
+        {"pattern": "DC*", "description": "Distribution center codes", "examples": ["DC001"], "source_type": "location_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "DC_EAST",
+      "hierarchy_name": "East Coast DC",
+      "parent_id": "WAREHOUSES",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Eastern US distribution",
+      "mapping_hints": [
+        {"pattern": "DC-EAST*", "description": "East DC", "examples": ["DC-EAST01"], "source_type": "location_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "DC_WEST",
+      "hierarchy_name": "West Coast DC",
+      "parent_id": "WAREHOUSES",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Western US distribution",
+      "mapping_hints": [
+        {"pattern": "DC-WEST*", "description": "West DC", "examples": ["DC-WEST01"], "source_type": "location_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    }
+  ],
+  "recommended_mappings": [
+    {"pattern": "NA*", "description": "Map North America plant codes", "examples": ["NA-TX01"], "source_type": "plant_code"},
+    {"pattern": "EU*", "description": "Map Europe plant codes", "examples": ["EU-DE01"], "source_type": "plant_code"},
+    {"pattern": "AP*", "description": "Map Asia Pacific plant codes", "examples": ["AP-CN01"], "source_type": "plant_code"},
+    {"pattern": "DC*", "description": "Map distribution center codes", "examples": ["DC-EAST01"], "source_type": "location_code"}
+  ],
+  "plant_hierarchy_pattern": {
+    "levels": ["Region", "Country", "Plant", "Production Line", "Work Center"],
+    "example": "North America > USA > Plant 01 Texas > Line A > Work Center A1"
+  },
+  "created_at": "2025-01-22T00:00:00",
+  "updated_at": "2025-01-22T00:00:00"
+}

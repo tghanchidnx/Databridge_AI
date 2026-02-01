@@ -1,0 +1,446 @@
+{
+  "id": "transportation_pl",
+  "name": "Transportation & Logistics P&L",
+  "domain": "accounting",
+  "hierarchy_type": "income_statement",
+  "category": "income_statement",
+  "industry": "transportation",
+  "description": "Income statement for transportation and logistics companies (trucking, freight, 3PL). Includes revenue by service type, fleet costs, and key transportation metrics.",
+  "version": "1.0",
+  "tags": ["transportation", "logistics", "trucking", "freight", "3pl", "fleet", "supply chain"],
+  "hierarchies": [
+    {
+      "hierarchy_id": "TOTAL_REVENUE",
+      "hierarchy_name": "Total Revenue",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of all revenue streams",
+      "node_type": "rollup",
+      "description": "Total transportation revenue",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "FREIGHT_REVENUE",
+      "hierarchy_name": "Freight Revenue",
+      "parent_id": "TOTAL_REVENUE",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of freight revenue types",
+      "node_type": "rollup",
+      "description": "Core freight transportation revenue",
+      "mapping_hints": [
+        {"pattern": "4100*", "description": "Freight revenue", "examples": ["4100"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "TRUCKLOAD_REV",
+      "hierarchy_name": "Truckload",
+      "parent_id": "FREIGHT_REVENUE",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Full truckload freight",
+      "mapping_hints": [
+        {"pattern": "4110", "description": "TL revenue", "examples": ["4110"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "LTL_REV",
+      "hierarchy_name": "Less-Than-Truckload",
+      "parent_id": "FREIGHT_REVENUE",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "LTL freight revenue",
+      "mapping_hints": [
+        {"pattern": "4120", "description": "LTL revenue", "examples": ["4120"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "INTERMODAL_REV",
+      "hierarchy_name": "Intermodal",
+      "parent_id": "FREIGHT_REVENUE",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Intermodal rail/truck",
+      "mapping_hints": [
+        {"pattern": "4130", "description": "Intermodal", "examples": ["4130"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "DEDICATED_REV",
+      "hierarchy_name": "Dedicated Contract",
+      "parent_id": "FREIGHT_REVENUE",
+      "level": 3,
+      "sort_order": 4,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Dedicated fleet contracts",
+      "mapping_hints": [
+        {"pattern": "4140", "description": "Dedicated", "examples": ["4140"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "LOGISTICS_REVENUE",
+      "hierarchy_name": "Logistics Services",
+      "parent_id": "TOTAL_REVENUE",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Value-added logistics services",
+      "mapping_hints": [
+        {"pattern": "4200*", "description": "Logistics revenue", "examples": ["4200"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "BROKERAGE_REV",
+      "hierarchy_name": "Freight Brokerage",
+      "parent_id": "LOGISTICS_REVENUE",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Freight brokerage services",
+      "mapping_hints": [
+        {"pattern": "4210", "description": "Brokerage", "examples": ["4210"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "WAREHOUSE_REV",
+      "hierarchy_name": "Warehousing",
+      "parent_id": "LOGISTICS_REVENUE",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Warehouse and storage",
+      "mapping_hints": [
+        {"pattern": "4220", "description": "Warehousing", "examples": ["4220"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "LASTMILE_REV",
+      "hierarchy_name": "Last Mile Delivery",
+      "parent_id": "LOGISTICS_REVENUE",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Final delivery services",
+      "mapping_hints": [
+        {"pattern": "4230", "description": "Last mile", "examples": ["4230"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "ACCESSORIAL_REV",
+      "hierarchy_name": "Accessorial Revenue",
+      "parent_id": "TOTAL_REVENUE",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Additional service charges",
+      "mapping_hints": [
+        {"pattern": "4300*", "description": "Accessorials", "examples": ["4300"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "FUEL_SURCHARGE",
+      "hierarchy_name": "Fuel Surcharge",
+      "parent_id": "ACCESSORIAL_REV",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Fuel surcharge revenue",
+      "mapping_hints": [
+        {"pattern": "4310", "description": "FSC", "examples": ["4310"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "DETENTION_REV",
+      "hierarchy_name": "Detention & Layover",
+      "parent_id": "ACCESSORIAL_REV",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Detention and layover charges",
+      "mapping_hints": [
+        {"pattern": "4320", "description": "Detention", "examples": ["4320"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "OPERATING_COSTS",
+      "hierarchy_name": "Operating Costs",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of operating cost categories",
+      "node_type": "rollup",
+      "description": "Direct operating costs",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PURCHASED_TRANS",
+      "hierarchy_name": "Purchased Transportation",
+      "parent_id": "OPERATING_COSTS",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Third-party carrier costs",
+      "mapping_hints": [
+        {"pattern": "5100*", "description": "Purchased trans", "examples": ["5100"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "RAIL_COSTS",
+      "hierarchy_name": "Rail & Intermodal",
+      "parent_id": "PURCHASED_TRANS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Rail and intermodal costs",
+      "mapping_hints": [
+        {"pattern": "5110", "description": "Rail costs", "examples": ["5110"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "CARRIER_COSTS",
+      "hierarchy_name": "Third-Party Carriers",
+      "parent_id": "PURCHASED_TRANS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Carrier and drayage costs",
+      "mapping_hints": [
+        {"pattern": "5120", "description": "Carrier costs", "examples": ["5120"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "DRIVER_COSTS",
+      "hierarchy_name": "Driver Compensation",
+      "parent_id": "OPERATING_COSTS",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Driver wages and benefits",
+      "mapping_hints": [
+        {"pattern": "5200*", "description": "Driver costs", "examples": ["5200"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "DRIVER_WAGES",
+      "hierarchy_name": "Driver Wages",
+      "parent_id": "DRIVER_COSTS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Driver pay (per mile, per hour)",
+      "mapping_hints": [
+        {"pattern": "5210", "description": "Wages", "examples": ["5210"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "DRIVER_BENEFITS",
+      "hierarchy_name": "Driver Benefits",
+      "parent_id": "DRIVER_COSTS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Health, retirement, per diem",
+      "mapping_hints": [
+        {"pattern": "5220", "description": "Benefits", "examples": ["5220"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "FUEL_COSTS",
+      "hierarchy_name": "Fuel",
+      "parent_id": "OPERATING_COSTS",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Diesel and fuel costs",
+      "mapping_hints": [
+        {"pattern": "5300", "description": "Fuel", "examples": ["5300"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "EQUIPMENT_COSTS",
+      "hierarchy_name": "Equipment",
+      "parent_id": "OPERATING_COSTS",
+      "level": 2,
+      "sort_order": 4,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Equipment and fleet costs",
+      "mapping_hints": [
+        {"pattern": "5400*", "description": "Equipment", "examples": ["5400"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "LEASE_COSTS",
+      "hierarchy_name": "Equipment Leases",
+      "parent_id": "EQUIPMENT_COSTS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Truck and trailer leases",
+      "mapping_hints": [
+        {"pattern": "5410", "description": "Leases", "examples": ["5410"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "MAINTENANCE",
+      "hierarchy_name": "Maintenance & Repairs",
+      "parent_id": "EQUIPMENT_COSTS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Fleet maintenance and repairs",
+      "mapping_hints": [
+        {"pattern": "5420", "description": "Maintenance", "examples": ["5420"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "TIRES",
+      "hierarchy_name": "Tires",
+      "parent_id": "EQUIPMENT_COSTS",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Tire costs",
+      "mapping_hints": [
+        {"pattern": "5430", "description": "Tires", "examples": ["5430"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "INSURANCE",
+      "hierarchy_name": "Insurance & Claims",
+      "parent_id": "OPERATING_COSTS",
+      "level": 2,
+      "sort_order": 5,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Insurance and claims costs",
+      "mapping_hints": [
+        {"pattern": "5500*", "description": "Insurance", "examples": ["5500"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "OPERATING_RATIO",
+      "hierarchy_name": "Operating Ratio",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 3,
+      "is_calculated": true,
+      "formula_hint": "Operating Costs / Total Revenue",
+      "node_type": "calculated",
+      "description": "Operating ratio (key trucking metric)",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "GROSS_MARGIN",
+      "hierarchy_name": "Gross Margin",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 4,
+      "is_calculated": true,
+      "formula_hint": "Total Revenue - Operating Costs",
+      "node_type": "calculated",
+      "description": "Gross margin",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "SGA",
+      "hierarchy_name": "SG&A Expenses",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 5,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Selling, general & administrative",
+      "mapping_hints": [
+        {"pattern": "6*", "description": "SG&A", "examples": ["6000"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "OPERATING_INCOME",
+      "hierarchy_name": "Operating Income",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 6,
+      "is_calculated": true,
+      "formula_hint": "Gross Margin - SG&A",
+      "node_type": "calculated",
+      "description": "Income from operations",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    }
+  ],
+  "recommended_mappings": [
+    {"pattern": "41*", "description": "Map freight revenue accounts", "examples": ["4100-4199"], "source_type": "gl_account"},
+    {"pattern": "42*", "description": "Map logistics revenue accounts", "examples": ["4200-4299"], "source_type": "gl_account"},
+    {"pattern": "51*", "description": "Map purchased transportation", "examples": ["5100-5199"], "source_type": "gl_account"},
+    {"pattern": "52*", "description": "Map driver cost accounts", "examples": ["5200-5299"], "source_type": "gl_account"},
+    {"pattern": "54*", "description": "Map equipment cost accounts", "examples": ["5400-5499"], "source_type": "gl_account"}
+  ],
+  "industry_metrics": {
+    "operating_ratio": "Operating Costs / Revenue (lower is better, <90% target)",
+    "revenue_per_mile": "Total Revenue / Total Miles",
+    "cost_per_mile": "Operating Costs / Total Miles",
+    "deadhead_percent": "Empty Miles / Total Miles",
+    "utilization": "Revenue Miles / Available Miles",
+    "driver_turnover": "Driver Departures / Average Drivers"
+  },
+  "created_at": "2025-01-22T00:00:00",
+  "updated_at": "2025-01-22T00:00:00"
+}

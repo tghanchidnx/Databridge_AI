@@ -1,0 +1,265 @@
+{
+  "id": "standard_pl",
+  "name": "Standard P&L (Income Statement)",
+  "category": "income_statement",
+  "industry": "general",
+  "description": "Standard profit and loss statement structure suitable for most businesses. Includes revenue, COGS, gross profit, operating expenses, and net income.",
+  "version": "1.0",
+  "tags": ["p&l", "profit and loss", "income statement", "general", "standard"],
+  "hierarchies": [
+    {
+      "hierarchy_id": "REVENUE",
+      "hierarchy_name": "Revenue",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of children",
+      "description": "Total revenue from all sources",
+      "mapping_hints": [
+        {"pattern": "4*", "description": "Revenue accounts typically start with 4", "examples": ["4000", "4100"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "REVENUE_PRODUCT",
+      "hierarchy_name": "Product Revenue",
+      "parent_id": "REVENUE",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Revenue from product sales",
+      "mapping_hints": [
+        {"pattern": "41*", "description": "Product revenue accounts", "examples": ["4100", "4110"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "REVENUE_SERVICE",
+      "hierarchy_name": "Service Revenue",
+      "parent_id": "REVENUE",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Revenue from services",
+      "mapping_hints": [
+        {"pattern": "42*", "description": "Service revenue accounts", "examples": ["4200", "4210"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "REVENUE_OTHER",
+      "hierarchy_name": "Other Revenue",
+      "parent_id": "REVENUE",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Other operating revenue",
+      "mapping_hints": [
+        {"pattern": "49*", "description": "Other revenue accounts", "examples": ["4900"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "COGS",
+      "hierarchy_name": "Cost of Goods Sold",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of children",
+      "description": "Direct costs of producing goods/services",
+      "mapping_hints": [
+        {"pattern": "5*", "description": "COGS accounts typically start with 5", "examples": ["5000", "5100"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "COGS_MATERIALS",
+      "hierarchy_name": "Direct Materials",
+      "parent_id": "COGS",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Raw materials and components",
+      "mapping_hints": [
+        {"pattern": "51*", "description": "Materials cost accounts", "examples": ["5100"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "COGS_LABOR",
+      "hierarchy_name": "Direct Labor",
+      "parent_id": "COGS",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Direct labor costs",
+      "mapping_hints": [
+        {"pattern": "52*", "description": "Labor cost accounts", "examples": ["5200"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "COGS_OVERHEAD",
+      "hierarchy_name": "Manufacturing Overhead",
+      "parent_id": "COGS",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Indirect production costs",
+      "mapping_hints": [
+        {"pattern": "53*", "description": "Overhead accounts", "examples": ["5300"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "GROSS_PROFIT",
+      "hierarchy_name": "Gross Profit",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 3,
+      "is_calculated": true,
+      "formula_hint": "Revenue - COGS",
+      "description": "Revenue minus cost of goods sold",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "OPEX",
+      "hierarchy_name": "Operating Expenses",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 4,
+      "is_calculated": true,
+      "formula_hint": "SUM of children",
+      "description": "Operating expenses by category",
+      "mapping_hints": [
+        {"pattern": "6*", "description": "Operating expense accounts", "examples": ["6000", "6100"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "OPEX_SALES_MARKETING",
+      "hierarchy_name": "Sales & Marketing",
+      "parent_id": "OPEX",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Sales and marketing expenses",
+      "mapping_hints": [
+        {"pattern": "61*", "description": "Sales & marketing accounts", "examples": ["6100", "6110"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "OPEX_RD",
+      "hierarchy_name": "Research & Development",
+      "parent_id": "OPEX",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "R&D expenses",
+      "mapping_hints": [
+        {"pattern": "62*", "description": "R&D accounts", "examples": ["6200"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "OPEX_GA",
+      "hierarchy_name": "General & Administrative",
+      "parent_id": "OPEX",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "G&A expenses",
+      "mapping_hints": [
+        {"pattern": "63*", "description": "G&A accounts", "examples": ["6300", "6310"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "OPEX_DEPRECIATION",
+      "hierarchy_name": "Depreciation & Amortization",
+      "parent_id": "OPEX",
+      "level": 2,
+      "sort_order": 4,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "D&A expense",
+      "mapping_hints": [
+        {"pattern": "64*", "description": "Depreciation accounts", "examples": ["6400"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "OPERATING_INCOME",
+      "hierarchy_name": "Operating Income",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 5,
+      "is_calculated": true,
+      "formula_hint": "Gross Profit - Operating Expenses",
+      "description": "Operating income (EBIT)",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "OTHER_INCOME_EXP",
+      "hierarchy_name": "Other Income/Expense",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 6,
+      "is_calculated": true,
+      "formula_hint": "SUM of children",
+      "description": "Non-operating income and expenses",
+      "mapping_hints": [
+        {"pattern": "7*", "description": "Other income/expense accounts", "examples": ["7000", "7100"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "INTEREST_EXPENSE",
+      "hierarchy_name": "Interest Expense",
+      "parent_id": "OTHER_INCOME_EXP",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Interest expense on debt",
+      "mapping_hints": [
+        {"pattern": "71*", "description": "Interest expense accounts", "examples": ["7100"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "NET_INCOME",
+      "hierarchy_name": "Net Income",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 7,
+      "is_calculated": true,
+      "formula_hint": "Operating Income + Other Income/Expense",
+      "description": "Bottom line net income",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    }
+  ],
+  "recommended_mappings": [
+    {"pattern": "4*", "description": "Map revenue accounts (4xxx) to Revenue hierarchy", "examples": ["4000-4999"]},
+    {"pattern": "5*", "description": "Map COGS accounts (5xxx) to COGS hierarchy", "examples": ["5000-5999"]},
+    {"pattern": "6*", "description": "Map operating expense accounts (6xxx) to OpEx hierarchy", "examples": ["6000-6999"]},
+    {"pattern": "7*", "description": "Map other income/expense accounts (7xxx) to Other I/E hierarchy", "examples": ["7000-7999"]}
+  ],
+  "created_at": "2025-01-22T00:00:00",
+  "updated_at": "2025-01-22T00:00:00"
+}

@@ -1,0 +1,389 @@
+{
+  "id": "midstream_oil_gas_pl",
+  "name": "Midstream Oil & Gas P&L",
+  "domain": "accounting",
+  "hierarchy_type": "income_statement",
+  "category": "income_statement",
+  "industry": "oil_gas_midstream",
+  "description": "Income statement for midstream oil & gas companies (gathering, processing, transportation, storage). Includes fee-based and commodity revenue, throughput metrics, and DCF calculations.",
+  "version": "1.0",
+  "tags": ["midstream", "gathering", "processing", "transportation", "pipeline", "mlp", "dcf"],
+  "hierarchies": [
+    {
+      "hierarchy_id": "TOTAL_REVENUE",
+      "hierarchy_name": "Total Revenue",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of all revenue streams",
+      "node_type": "rollup",
+      "description": "Total midstream revenue",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "FEE_BASED_REV",
+      "hierarchy_name": "Fee-Based Revenue",
+      "parent_id": "TOTAL_REVENUE",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of fee-based revenue",
+      "node_type": "rollup",
+      "description": "Contracted fee-based revenue",
+      "mapping_hints": [
+        {"pattern": "4100*", "description": "Fee revenue", "examples": ["4100"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "GATHERING_FEES",
+      "hierarchy_name": "Gathering Fees",
+      "parent_id": "FEE_BASED_REV",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Gas and liquids gathering fees",
+      "mapping_hints": [
+        {"pattern": "4110", "description": "Gathering fees", "examples": ["4110"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "PROCESSING_FEES",
+      "hierarchy_name": "Processing Fees",
+      "parent_id": "FEE_BASED_REV",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Gas processing and NGL extraction fees",
+      "mapping_hints": [
+        {"pattern": "4120", "description": "Processing fees", "examples": ["4120"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "TRANSPORTATION_FEES",
+      "hierarchy_name": "Transportation Fees",
+      "parent_id": "FEE_BASED_REV",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Pipeline transportation tariffs",
+      "mapping_hints": [
+        {"pattern": "4130", "description": "Transportation fees", "examples": ["4130"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "STORAGE_FEES",
+      "hierarchy_name": "Storage Fees",
+      "parent_id": "FEE_BASED_REV",
+      "level": 3,
+      "sort_order": 4,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Crude and NGL storage fees",
+      "mapping_hints": [
+        {"pattern": "4140", "description": "Storage fees", "examples": ["4140"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "TERMINALLING_FEES",
+      "hierarchy_name": "Terminalling Fees",
+      "parent_id": "FEE_BASED_REV",
+      "level": 3,
+      "sort_order": 5,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Terminal throughput fees",
+      "mapping_hints": [
+        {"pattern": "4150", "description": "Terminalling fees", "examples": ["4150"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "COMMODITY_REV",
+      "hierarchy_name": "Commodity-Based Revenue",
+      "parent_id": "TOTAL_REVENUE",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of commodity sales",
+      "node_type": "rollup",
+      "description": "Revenue from commodity sales (percent of proceeds)",
+      "mapping_hints": [
+        {"pattern": "4200*", "description": "Commodity revenue", "examples": ["4200"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "NGL_SALES",
+      "hierarchy_name": "NGL Sales",
+      "parent_id": "COMMODITY_REV",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "NGL product sales (percent of proceeds)",
+      "mapping_hints": [
+        {"pattern": "4210", "description": "NGL sales", "examples": ["4210"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "RESIDUE_GAS_SALES",
+      "hierarchy_name": "Residue Gas Sales",
+      "parent_id": "COMMODITY_REV",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Residue gas sales from processing",
+      "mapping_hints": [
+        {"pattern": "4220", "description": "Residue gas", "examples": ["4220"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "OTHER_REV",
+      "hierarchy_name": "Other Revenue",
+      "parent_id": "TOTAL_REVENUE",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Other operating revenue",
+      "mapping_hints": [
+        {"pattern": "4300*", "description": "Other revenue", "examples": ["4300"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "DEFICIENCY_REV",
+      "hierarchy_name": "Minimum Volume Deficiency Revenue",
+      "parent_id": "OTHER_REV",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Take-or-pay deficiency payments",
+      "mapping_hints": [
+        {"pattern": "4310", "description": "MVC deficiency", "examples": ["4310"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "TOTAL_COSTS",
+      "hierarchy_name": "Operating Costs",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of operating costs",
+      "node_type": "rollup",
+      "description": "Total operating costs",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "COST_OF_PRODUCT",
+      "hierarchy_name": "Cost of Product",
+      "parent_id": "TOTAL_COSTS",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Purchased commodity costs",
+      "mapping_hints": [
+        {"pattern": "5100", "description": "Product costs", "examples": ["5100"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "OPERATIONS_COSTS",
+      "hierarchy_name": "Operations & Maintenance",
+      "parent_id": "TOTAL_COSTS",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "O&M expenses",
+      "mapping_hints": [
+        {"pattern": "5200*", "description": "O&M costs", "examples": ["5200"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "LABOR_COSTS",
+      "hierarchy_name": "Labor & Benefits",
+      "parent_id": "OPERATIONS_COSTS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Operations labor costs",
+      "mapping_hints": [
+        {"pattern": "5210", "description": "Labor", "examples": ["5210"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "POWER_FUEL",
+      "hierarchy_name": "Power & Fuel",
+      "parent_id": "OPERATIONS_COSTS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Electricity and compression fuel",
+      "mapping_hints": [
+        {"pattern": "5220", "description": "Power/fuel", "examples": ["5220"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "REPAIRS_MAINT",
+      "hierarchy_name": "Repairs & Maintenance",
+      "parent_id": "OPERATIONS_COSTS",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Pipeline and facility maintenance",
+      "mapping_hints": [
+        {"pattern": "5230", "description": "R&M", "examples": ["5230"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "INTEGRITY_COSTS",
+      "hierarchy_name": "Pipeline Integrity",
+      "parent_id": "OPERATIONS_COSTS",
+      "level": 3,
+      "sort_order": 4,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Integrity management and inspections",
+      "mapping_hints": [
+        {"pattern": "5240", "description": "Integrity", "examples": ["5240"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "FUEL_SHRINK",
+      "hierarchy_name": "Fuel, Shrink & L&U",
+      "parent_id": "TOTAL_COSTS",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "System fuel, shrink, and lost/unaccounted",
+      "mapping_hints": [
+        {"pattern": "5300*", "description": "Fuel/shrink", "examples": ["5300"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "GROSS_MARGIN",
+      "hierarchy_name": "Gross Margin",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 3,
+      "is_calculated": true,
+      "formula_hint": "Total Revenue - Operating Costs",
+      "node_type": "calculated",
+      "description": "Gross margin before DD&A and G&A",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "DDA",
+      "hierarchy_name": "Depreciation & Amortization",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 4,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "DD&A on midstream assets",
+      "mapping_hints": [
+        {"pattern": "5400*", "description": "DD&A", "examples": ["5400"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "GNA",
+      "hierarchy_name": "G&A Expenses",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 5,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "General and administrative expenses",
+      "mapping_hints": [
+        {"pattern": "6*", "description": "G&A", "examples": ["6000"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "OPERATING_INCOME",
+      "hierarchy_name": "Operating Income",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 6,
+      "is_calculated": true,
+      "formula_hint": "Gross Margin - DD&A - G&A",
+      "node_type": "calculated",
+      "description": "Income from operations",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "EBITDA",
+      "hierarchy_name": "Adjusted EBITDA",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 7,
+      "is_calculated": true,
+      "formula_hint": "Operating Income + DD&A + non-cash items",
+      "node_type": "calculated",
+      "description": "Adjusted EBITDA (key midstream metric)",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "DCF",
+      "hierarchy_name": "Distributable Cash Flow",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 8,
+      "is_calculated": true,
+      "formula_hint": "EBITDA - Maintenance CapEx - Cash Interest - Cash Taxes",
+      "node_type": "calculated",
+      "description": "DCF for MLP distributions",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    }
+  ],
+  "recommended_mappings": [
+    {"pattern": "411*", "description": "Map gathering fee accounts", "examples": ["4110-4119"], "source_type": "gl_account"},
+    {"pattern": "412*", "description": "Map processing fee accounts", "examples": ["4120-4129"], "source_type": "gl_account"},
+    {"pattern": "413*", "description": "Map transportation fee accounts", "examples": ["4130-4139"], "source_type": "gl_account"},
+    {"pattern": "42*", "description": "Map commodity revenue accounts", "examples": ["4200-4299"], "source_type": "gl_account"},
+    {"pattern": "52*", "description": "Map O&M cost accounts", "examples": ["5200-5299"], "source_type": "gl_account"}
+  ],
+  "industry_metrics": {
+    "fee_margin": "Fee Revenue / Total Revenue",
+    "om_ratio": "O&M / Revenue",
+    "ebitda_margin": "EBITDA / Revenue",
+    "dcf_coverage": "DCF / Distributions",
+    "throughput_utilization": "Actual Throughput / Capacity"
+  },
+  "created_at": "2025-01-22T00:00:00",
+  "updated_at": "2025-01-22T00:00:00"
+}

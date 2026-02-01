@@ -1,0 +1,262 @@
+{
+  "id": "asset_hierarchy",
+  "name": "Asset Class Hierarchy",
+  "domain": "operations",
+  "hierarchy_type": "asset",
+  "industry": "general",
+  "description": "Asset classification hierarchy for fixed asset management, depreciation reporting, and capital planning. Covers property, equipment, vehicles, IT assets, and intangibles.",
+  "version": "1.0",
+  "tags": ["asset", "fixed asset", "property", "equipment", "depreciation", "capital"],
+  "hierarchies": [
+    {
+      "hierarchy_id": "TOTAL_ASSETS",
+      "hierarchy_name": "Total Fixed Assets",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of all asset classes",
+      "node_type": "rollup",
+      "description": "Total fixed assets by category",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "LAND_BUILDINGS",
+      "hierarchy_name": "Land & Buildings",
+      "parent_id": "TOTAL_ASSETS",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of land and building assets",
+      "node_type": "rollup",
+      "description": "Real property assets",
+      "mapping_hints": [
+        {"pattern": "FA1*", "description": "Land & building codes", "examples": ["FA100", "FA110"], "source_type": "asset_class"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "LAND",
+      "hierarchy_name": "Land",
+      "parent_id": "LAND_BUILDINGS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Land holdings (not depreciated)",
+      "mapping_hints": [
+        {"pattern": "FA100", "description": "Land asset code", "examples": ["FA100"], "source_type": "asset_class"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "BUILDINGS",
+      "hierarchy_name": "Buildings",
+      "parent_id": "LAND_BUILDINGS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Office buildings, warehouses, facilities",
+      "mapping_hints": [
+        {"pattern": "FA110", "description": "Building asset code", "examples": ["FA110"], "source_type": "asset_class"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "LEASEHOLD",
+      "hierarchy_name": "Leasehold Improvements",
+      "parent_id": "LAND_BUILDINGS",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Improvements to leased properties",
+      "mapping_hints": [
+        {"pattern": "FA120", "description": "Leasehold code", "examples": ["FA120"], "source_type": "asset_class"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "MACHINERY_EQUIPMENT",
+      "hierarchy_name": "Machinery & Equipment",
+      "parent_id": "TOTAL_ASSETS",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of M&E assets",
+      "node_type": "rollup",
+      "description": "Production and operational equipment",
+      "mapping_hints": [
+        {"pattern": "FA2*", "description": "M&E codes", "examples": ["FA200", "FA210"], "source_type": "asset_class"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PRODUCTION_EQUIPMENT",
+      "hierarchy_name": "Production Equipment",
+      "parent_id": "MACHINERY_EQUIPMENT",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Manufacturing and production machinery",
+      "mapping_hints": [
+        {"pattern": "FA200", "description": "Production equipment code", "examples": ["FA200"], "source_type": "asset_class"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "OFFICE_EQUIPMENT",
+      "hierarchy_name": "Office Equipment",
+      "parent_id": "MACHINERY_EQUIPMENT",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Office furniture and equipment",
+      "mapping_hints": [
+        {"pattern": "FA210", "description": "Office equipment code", "examples": ["FA210"], "source_type": "asset_class"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "VEHICLES",
+      "hierarchy_name": "Vehicles",
+      "parent_id": "TOTAL_ASSETS",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": true,
+      "formula_hint": "SUM of vehicle assets",
+      "node_type": "rollup",
+      "description": "Transportation equipment",
+      "mapping_hints": [
+        {"pattern": "FA3*", "description": "Vehicle codes", "examples": ["FA300", "FA310"], "source_type": "asset_class"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "FLEET",
+      "hierarchy_name": "Fleet Vehicles",
+      "parent_id": "VEHICLES",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Company fleet vehicles",
+      "mapping_hints": [
+        {"pattern": "FA300", "description": "Fleet vehicle code", "examples": ["FA300"], "source_type": "asset_class"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "HEAVY_EQUIPMENT",
+      "hierarchy_name": "Heavy Equipment",
+      "parent_id": "VEHICLES",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Trucks, forklifts, heavy machinery",
+      "mapping_hints": [
+        {"pattern": "FA310", "description": "Heavy equipment code", "examples": ["FA310"], "source_type": "asset_class"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "IT_ASSETS",
+      "hierarchy_name": "IT Assets",
+      "parent_id": "TOTAL_ASSETS",
+      "level": 2,
+      "sort_order": 4,
+      "is_calculated": true,
+      "formula_hint": "SUM of IT assets",
+      "node_type": "rollup",
+      "description": "Technology and IT infrastructure",
+      "mapping_hints": [
+        {"pattern": "FA4*", "description": "IT asset codes", "examples": ["FA400", "FA410"], "source_type": "asset_class"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "HARDWARE",
+      "hierarchy_name": "Computer Hardware",
+      "parent_id": "IT_ASSETS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Servers, workstations, networking",
+      "mapping_hints": [
+        {"pattern": "FA400", "description": "Hardware code", "examples": ["FA400"], "source_type": "asset_class"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "SOFTWARE",
+      "hierarchy_name": "Software",
+      "parent_id": "IT_ASSETS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Capitalized software licenses",
+      "mapping_hints": [
+        {"pattern": "FA410", "description": "Software code", "examples": ["FA410"], "source_type": "asset_class"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "INTANGIBLES",
+      "hierarchy_name": "Intangible Assets",
+      "parent_id": "TOTAL_ASSETS",
+      "level": 2,
+      "sort_order": 5,
+      "is_calculated": true,
+      "formula_hint": "SUM of intangible assets",
+      "node_type": "rollup",
+      "description": "Non-physical assets",
+      "mapping_hints": [
+        {"pattern": "FA5*", "description": "Intangible codes", "examples": ["FA500", "FA510"], "source_type": "asset_class"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PATENTS",
+      "hierarchy_name": "Patents & Trademarks",
+      "parent_id": "INTANGIBLES",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Intellectual property",
+      "mapping_hints": [
+        {"pattern": "FA500", "description": "IP code", "examples": ["FA500"], "source_type": "asset_class"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "GOODWILL",
+      "hierarchy_name": "Goodwill",
+      "parent_id": "INTANGIBLES",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Acquisition goodwill",
+      "mapping_hints": [
+        {"pattern": "FA510", "description": "Goodwill code", "examples": ["FA510"], "source_type": "asset_class"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    }
+  ],
+  "recommended_mappings": [
+    {"pattern": "FA1*", "description": "Map land & building codes to Land & Buildings", "examples": ["FA100-FA199"], "source_type": "asset_class"},
+    {"pattern": "FA2*", "description": "Map M&E codes to Machinery & Equipment", "examples": ["FA200-FA299"], "source_type": "asset_class"},
+    {"pattern": "FA3*", "description": "Map vehicle codes to Vehicles", "examples": ["FA300-FA399"], "source_type": "asset_class"},
+    {"pattern": "FA4*", "description": "Map IT codes to IT Assets", "examples": ["FA400-FA499"], "source_type": "asset_class"}
+  ],
+  "created_at": "2025-01-22T00:00:00",
+  "updated_at": "2025-01-22T00:00:00"
+}

@@ -1,0 +1,261 @@
+{
+  "id": "geographic_hierarchy",
+  "name": "Geographic Hierarchy",
+  "domain": "operations",
+  "hierarchy_type": "geographic",
+  "industry": "general",
+  "description": "Multi-level geographic hierarchy for organizing data by global regions, countries, states/provinces, and cities. Useful for sales territories, operations management, and regional reporting.",
+  "version": "1.0",
+  "tags": ["geographic", "region", "country", "territory", "sales", "operations", "location"],
+  "hierarchies": [
+    {
+      "hierarchy_id": "GLOBAL",
+      "hierarchy_name": "Global",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of all regions",
+      "node_type": "rollup",
+      "description": "Global total - all regions",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "AMERICAS",
+      "hierarchy_name": "Americas",
+      "parent_id": "GLOBAL",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of Americas countries",
+      "node_type": "rollup",
+      "description": "North, Central, and South America",
+      "mapping_hints": [
+        {"pattern": "AM*", "description": "Americas region codes", "examples": ["AMER", "AM01"], "source_type": "region"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "US",
+      "hierarchy_name": "United States",
+      "parent_id": "AMERICAS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of US states/regions",
+      "node_type": "rollup",
+      "description": "United States operations",
+      "mapping_hints": [
+        {"pattern": "US*", "description": "US country codes", "examples": ["US", "USA"], "source_type": "country"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "US_NORTHEAST",
+      "hierarchy_name": "US Northeast",
+      "parent_id": "US",
+      "level": 4,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of Northeast states",
+      "node_type": "rollup",
+      "description": "Northeast US region",
+      "mapping_hints": [
+        {"pattern": "NE*", "description": "Northeast codes", "examples": ["NEAST", "NE01"], "source_type": "region"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "US_SOUTHEAST",
+      "hierarchy_name": "US Southeast",
+      "parent_id": "US",
+      "level": 4,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Southeast US region",
+      "mapping_hints": [
+        {"pattern": "SE*", "description": "Southeast codes", "examples": ["SEAST", "SE01"], "source_type": "region"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "US_MIDWEST",
+      "hierarchy_name": "US Midwest",
+      "parent_id": "US",
+      "level": 4,
+      "sort_order": 3,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Midwest US region",
+      "mapping_hints": [
+        {"pattern": "MW*", "description": "Midwest codes", "examples": ["MWEST", "MW01"], "source_type": "region"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "US_WEST",
+      "hierarchy_name": "US West",
+      "parent_id": "US",
+      "level": 4,
+      "sort_order": 4,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Western US region",
+      "mapping_hints": [
+        {"pattern": "WS*", "description": "West codes", "examples": ["WEST", "WS01"], "source_type": "region"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "CANADA",
+      "hierarchy_name": "Canada",
+      "parent_id": "AMERICAS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Canadian operations",
+      "mapping_hints": [
+        {"pattern": "CA*", "description": "Canada country codes", "examples": ["CA", "CAN"], "source_type": "country"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "LATAM",
+      "hierarchy_name": "Latin America",
+      "parent_id": "AMERICAS",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Latin American operations",
+      "mapping_hints": [
+        {"pattern": "LA*", "description": "LATAM region codes", "examples": ["LATAM", "LA01"], "source_type": "region"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "EMEA",
+      "hierarchy_name": "EMEA",
+      "parent_id": "GLOBAL",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of EMEA countries",
+      "node_type": "rollup",
+      "description": "Europe, Middle East, and Africa",
+      "mapping_hints": [
+        {"pattern": "EM*", "description": "EMEA region codes", "examples": ["EMEA", "EM01"], "source_type": "region"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "EUROPE",
+      "hierarchy_name": "Europe",
+      "parent_id": "EMEA",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "European operations",
+      "mapping_hints": [
+        {"pattern": "EU*", "description": "Europe codes", "examples": ["EUR", "EU01"], "source_type": "region"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "MEA",
+      "hierarchy_name": "Middle East & Africa",
+      "parent_id": "EMEA",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Middle East and Africa operations",
+      "mapping_hints": [
+        {"pattern": "ME*", "description": "MEA codes", "examples": ["MEA", "ME01"], "source_type": "region"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "APAC",
+      "hierarchy_name": "Asia Pacific",
+      "parent_id": "GLOBAL",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": true,
+      "formula_hint": "SUM of APAC countries",
+      "node_type": "rollup",
+      "description": "Asia Pacific region",
+      "mapping_hints": [
+        {"pattern": "AP*", "description": "APAC region codes", "examples": ["APAC", "AP01"], "source_type": "region"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "GREATER_CHINA",
+      "hierarchy_name": "Greater China",
+      "parent_id": "APAC",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "China, Hong Kong, Taiwan",
+      "mapping_hints": [
+        {"pattern": "CN*", "description": "China codes", "examples": ["CN", "CHN"], "source_type": "country"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "JAPAN",
+      "hierarchy_name": "Japan",
+      "parent_id": "APAC",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Japan operations",
+      "mapping_hints": [
+        {"pattern": "JP*", "description": "Japan codes", "examples": ["JP", "JPN"], "source_type": "country"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "SEASIA",
+      "hierarchy_name": "Southeast Asia",
+      "parent_id": "APAC",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Southeast Asian countries",
+      "mapping_hints": [
+        {"pattern": "SEA*", "description": "SEA codes", "examples": ["SEASIA", "SEA01"], "source_type": "region"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "ANZ",
+      "hierarchy_name": "Australia & New Zealand",
+      "parent_id": "APAC",
+      "level": 3,
+      "sort_order": 4,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Australia and New Zealand",
+      "mapping_hints": [
+        {"pattern": "ANZ*", "description": "ANZ codes", "examples": ["ANZ", "AU"], "source_type": "region"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    }
+  ],
+  "recommended_mappings": [
+    {"pattern": "AM*", "description": "Map Americas region codes to Americas hierarchy", "examples": ["AMER", "AM"], "source_type": "region"},
+    {"pattern": "EM*", "description": "Map EMEA region codes to EMEA hierarchy", "examples": ["EMEA", "EM"], "source_type": "region"},
+    {"pattern": "AP*", "description": "Map APAC region codes to APAC hierarchy", "examples": ["APAC", "AP"], "source_type": "region"}
+  ],
+  "created_at": "2025-01-22T00:00:00",
+  "updated_at": "2025-01-22T00:00:00"
+}

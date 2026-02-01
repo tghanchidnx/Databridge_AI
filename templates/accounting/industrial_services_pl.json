@@ -1,0 +1,345 @@
+{
+  "id": "industrial_services_pl",
+  "name": "Industrial Services Company P&L",
+  "domain": "accounting",
+  "hierarchy_type": "income_statement",
+  "category": "income_statement",
+  "industry": "industrial_services",
+  "description": "Income statement for industrial services companies (maintenance, equipment services, facility services). Includes labor-intensive service delivery with project-based and contract revenue.",
+  "version": "1.0",
+  "tags": ["industrial services", "maintenance", "facility services", "project-based", "contract"],
+  "hierarchies": [
+    {
+      "hierarchy_id": "TOTAL_REVENUE",
+      "hierarchy_name": "Total Revenue",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of all revenue streams",
+      "node_type": "rollup",
+      "description": "Total service revenue",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "CONTRACT_REVENUE",
+      "hierarchy_name": "Contract Revenue",
+      "parent_id": "TOTAL_REVENUE",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Recurring contract-based revenue",
+      "mapping_hints": [
+        {"pattern": "4100*", "description": "Contract revenue", "examples": ["4100"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "MAINTENANCE_CONTRACTS",
+      "hierarchy_name": "Maintenance Contracts",
+      "parent_id": "CONTRACT_REVENUE",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Recurring maintenance agreements",
+      "mapping_hints": [
+        {"pattern": "4110", "description": "Maintenance contracts", "examples": ["4110"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "FACILITY_CONTRACTS",
+      "hierarchy_name": "Facility Management Contracts",
+      "parent_id": "CONTRACT_REVENUE",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Facilities management contracts",
+      "mapping_hints": [
+        {"pattern": "4120", "description": "FM contracts", "examples": ["4120"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "STAFFING_CONTRACTS",
+      "hierarchy_name": "Staffing & Labor Contracts",
+      "parent_id": "CONTRACT_REVENUE",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Contract staffing services",
+      "mapping_hints": [
+        {"pattern": "4130", "description": "Staffing", "examples": ["4130"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "PROJECT_REVENUE",
+      "hierarchy_name": "Project Revenue",
+      "parent_id": "TOTAL_REVENUE",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Non-recurring project-based revenue",
+      "mapping_hints": [
+        {"pattern": "4200*", "description": "Project revenue", "examples": ["4200"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "TURNAROUND_PROJECTS",
+      "hierarchy_name": "Turnaround & Shutdown Projects",
+      "parent_id": "PROJECT_REVENUE",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Plant turnaround services",
+      "mapping_hints": [
+        {"pattern": "4210", "description": "Turnarounds", "examples": ["4210"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "CAPITAL_PROJECTS",
+      "hierarchy_name": "Capital Projects",
+      "parent_id": "PROJECT_REVENUE",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Capital construction projects",
+      "mapping_hints": [
+        {"pattern": "4220", "description": "Capital projects", "examples": ["4220"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "REPAIR_PROJECTS",
+      "hierarchy_name": "Repair & Emergency Work",
+      "parent_id": "PROJECT_REVENUE",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Emergency and unplanned repairs",
+      "mapping_hints": [
+        {"pattern": "4230", "description": "Repair work", "examples": ["4230"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "EQUIPMENT_REVENUE",
+      "hierarchy_name": "Equipment & Rentals",
+      "parent_id": "TOTAL_REVENUE",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Equipment rental and sales",
+      "mapping_hints": [
+        {"pattern": "4300*", "description": "Equipment revenue", "examples": ["4300"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "DIRECT_COSTS",
+      "hierarchy_name": "Direct Costs",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of direct service delivery costs",
+      "node_type": "rollup",
+      "description": "Direct costs of service delivery",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "FIELD_LABOR",
+      "hierarchy_name": "Field Labor",
+      "parent_id": "DIRECT_COSTS",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Direct labor costs",
+      "mapping_hints": [
+        {"pattern": "5100*", "description": "Field labor", "examples": ["5100"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "CRAFT_WAGES",
+      "hierarchy_name": "Craft Wages",
+      "parent_id": "FIELD_LABOR",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Skilled craft labor wages",
+      "mapping_hints": [
+        {"pattern": "5110", "description": "Craft wages", "examples": ["5110"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "LABOR_BURDEN",
+      "hierarchy_name": "Labor Burden",
+      "parent_id": "FIELD_LABOR",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Benefits, taxes, insurance on direct labor",
+      "mapping_hints": [
+        {"pattern": "5120", "description": "Burden", "examples": ["5120"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "SUBCONTRACT_LABOR",
+      "hierarchy_name": "Subcontract Labor",
+      "parent_id": "FIELD_LABOR",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Subcontractor labor costs",
+      "mapping_hints": [
+        {"pattern": "5130", "description": "Subcontract", "examples": ["5130"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "MATERIALS_SUPPLIES",
+      "hierarchy_name": "Materials & Supplies",
+      "parent_id": "DIRECT_COSTS",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Job materials and supplies",
+      "mapping_hints": [
+        {"pattern": "5200*", "description": "Materials", "examples": ["5200"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "EQUIPMENT_COSTS",
+      "hierarchy_name": "Equipment Costs",
+      "parent_id": "DIRECT_COSTS",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Equipment and tool costs",
+      "mapping_hints": [
+        {"pattern": "5300*", "description": "Equipment", "examples": ["5300"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "TRAVEL_LODGING",
+      "hierarchy_name": "Travel & Lodging",
+      "parent_id": "DIRECT_COSTS",
+      "level": 2,
+      "sort_order": 4,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Field travel and per diem",
+      "mapping_hints": [
+        {"pattern": "5400", "description": "Travel", "examples": ["5400"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "GROSS_MARGIN",
+      "hierarchy_name": "Gross Margin",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 3,
+      "is_calculated": true,
+      "formula_hint": "Total Revenue - Direct Costs",
+      "node_type": "calculated",
+      "description": "Gross margin on services",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "INDIRECT_COSTS",
+      "hierarchy_name": "Indirect Costs",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 4,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Indirect operating costs",
+      "mapping_hints": [
+        {"pattern": "55*", "description": "Indirect costs", "examples": ["5500"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "SGA",
+      "hierarchy_name": "SG&A Expenses",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 5,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Selling, general & administrative",
+      "mapping_hints": [
+        {"pattern": "6*", "description": "SG&A", "examples": ["6000"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "OPERATING_INCOME",
+      "hierarchy_name": "Operating Income",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 6,
+      "is_calculated": true,
+      "formula_hint": "Gross Margin - Indirect Costs - SG&A",
+      "node_type": "calculated",
+      "description": "Income from operations",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "EBITDA",
+      "hierarchy_name": "EBITDA",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 7,
+      "is_calculated": true,
+      "formula_hint": "Operating Income + DD&A",
+      "node_type": "calculated",
+      "description": "Earnings before interest, taxes, depreciation, amortization",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    }
+  ],
+  "recommended_mappings": [
+    {"pattern": "41*", "description": "Map contract revenue accounts", "examples": ["4100-4199"], "source_type": "gl_account"},
+    {"pattern": "42*", "description": "Map project revenue accounts", "examples": ["4200-4299"], "source_type": "gl_account"},
+    {"pattern": "51*", "description": "Map field labor accounts", "examples": ["5100-5199"], "source_type": "gl_account"},
+    {"pattern": "52*", "description": "Map materials accounts", "examples": ["5200-5299"], "source_type": "gl_account"}
+  ],
+  "industry_metrics": {
+    "gross_margin_pct": "Gross Margin / Revenue",
+    "labor_efficiency": "Revenue / Direct Labor Hours",
+    "utilization_rate": "Billable Hours / Available Hours",
+    "contract_renewal_rate": "Renewed Contracts / Expiring Contracts",
+    "revenue_per_employee": "Revenue / Headcount"
+  },
+  "created_at": "2025-01-22T00:00:00",
+  "updated_at": "2025-01-22T00:00:00"
+}

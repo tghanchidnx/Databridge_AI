@@ -1,0 +1,247 @@
+{
+  "id": "cost_center_hierarchy",
+  "name": "Cost Center Hierarchy",
+  "domain": "finance",
+  "hierarchy_type": "cost_center",
+  "industry": "general",
+  "description": "Cost center hierarchy for expense allocation and responsibility accounting. Organizes costs by organizational responsibility with rollup to department and corporate levels.",
+  "version": "1.0",
+  "tags": ["cost center", "expense", "allocation", "responsibility", "budget", "fpa"],
+  "hierarchies": [
+    {
+      "hierarchy_id": "CORPORATE",
+      "hierarchy_name": "Corporate Total",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of all cost centers",
+      "node_type": "rollup",
+      "description": "Total corporate cost centers",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "CC_REVENUE_GENERATING",
+      "hierarchy_name": "Revenue-Generating",
+      "parent_id": "CORPORATE",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of revenue CC",
+      "node_type": "rollup",
+      "description": "Cost centers tied to revenue activities",
+      "mapping_hints": [
+        {"pattern": "1*", "description": "Revenue CC codes", "examples": ["1000", "1100"], "source_type": "cost_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "CC_SALES",
+      "hierarchy_name": "Sales",
+      "parent_id": "CC_REVENUE_GENERATING",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Sales cost centers by region/team",
+      "mapping_hints": [
+        {"pattern": "11*", "description": "Sales CC codes", "examples": ["1100", "1110"], "source_type": "cost_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "CC_SALES_ENTERPRISE",
+      "hierarchy_name": "Enterprise Sales",
+      "parent_id": "CC_SALES",
+      "level": 4,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Enterprise sales team",
+      "mapping_hints": [
+        {"pattern": "1110", "description": "Enterprise sales CC", "examples": ["1110"], "source_type": "cost_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "CC_SALES_SMB",
+      "hierarchy_name": "SMB Sales",
+      "parent_id": "CC_SALES",
+      "level": 4,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Small/medium business sales",
+      "mapping_hints": [
+        {"pattern": "1120", "description": "SMB sales CC", "examples": ["1120"], "source_type": "cost_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "CC_MARKETING",
+      "hierarchy_name": "Marketing",
+      "parent_id": "CC_REVENUE_GENERATING",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Marketing cost centers",
+      "mapping_hints": [
+        {"pattern": "12*", "description": "Marketing CC codes", "examples": ["1200", "1210"], "source_type": "cost_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "CC_PRODUCTION",
+      "hierarchy_name": "Production/Operations",
+      "parent_id": "CORPORATE",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of production CC",
+      "node_type": "rollup",
+      "description": "Production and operations cost centers",
+      "mapping_hints": [
+        {"pattern": "2*", "description": "Production CC codes", "examples": ["2000", "2100"], "source_type": "cost_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "CC_MANUFACTURING",
+      "hierarchy_name": "Manufacturing",
+      "parent_id": "CC_PRODUCTION",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Manufacturing facilities",
+      "mapping_hints": [
+        {"pattern": "21*", "description": "Manufacturing CC codes", "examples": ["2100", "2110"], "source_type": "cost_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "CC_LOGISTICS",
+      "hierarchy_name": "Logistics",
+      "parent_id": "CC_PRODUCTION",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Logistics and distribution",
+      "mapping_hints": [
+        {"pattern": "22*", "description": "Logistics CC codes", "examples": ["2200", "2210"], "source_type": "cost_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "CC_SUPPORT",
+      "hierarchy_name": "Support Functions",
+      "parent_id": "CORPORATE",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": true,
+      "formula_hint": "SUM of support CC",
+      "node_type": "rollup",
+      "description": "Corporate support functions",
+      "mapping_hints": [
+        {"pattern": "3*", "description": "Support CC codes", "examples": ["3000", "3100"], "source_type": "cost_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "CC_FINANCE",
+      "hierarchy_name": "Finance",
+      "parent_id": "CC_SUPPORT",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Finance department",
+      "mapping_hints": [
+        {"pattern": "3100", "description": "Finance CC", "examples": ["3100"], "source_type": "cost_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "CC_HR",
+      "hierarchy_name": "Human Resources",
+      "parent_id": "CC_SUPPORT",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "HR department",
+      "mapping_hints": [
+        {"pattern": "3200", "description": "HR CC", "examples": ["3200"], "source_type": "cost_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "CC_IT",
+      "hierarchy_name": "Information Technology",
+      "parent_id": "CC_SUPPORT",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "IT department",
+      "mapping_hints": [
+        {"pattern": "3300", "description": "IT CC", "examples": ["3300"], "source_type": "cost_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "CC_LEGAL",
+      "hierarchy_name": "Legal",
+      "parent_id": "CC_SUPPORT",
+      "level": 3,
+      "sort_order": 4,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Legal department",
+      "mapping_hints": [
+        {"pattern": "3400", "description": "Legal CC", "examples": ["3400"], "source_type": "cost_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "CC_FACILITIES",
+      "hierarchy_name": "Facilities",
+      "parent_id": "CC_SUPPORT",
+      "level": 3,
+      "sort_order": 5,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Facilities management",
+      "mapping_hints": [
+        {"pattern": "3500", "description": "Facilities CC", "examples": ["3500"], "source_type": "cost_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "CC_RD",
+      "hierarchy_name": "Research & Development",
+      "parent_id": "CORPORATE",
+      "level": 2,
+      "sort_order": 4,
+      "is_calculated": true,
+      "formula_hint": "SUM of R&D CC",
+      "node_type": "rollup",
+      "description": "R&D cost centers",
+      "mapping_hints": [
+        {"pattern": "4*", "description": "R&D CC codes", "examples": ["4000", "4100"], "source_type": "cost_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    }
+  ],
+  "recommended_mappings": [
+    {"pattern": "1*", "description": "Map revenue CC codes (1xxx) to Revenue-Generating", "examples": ["1000-1999"], "source_type": "cost_center"},
+    {"pattern": "2*", "description": "Map production CC codes (2xxx) to Production", "examples": ["2000-2999"], "source_type": "cost_center"},
+    {"pattern": "3*", "description": "Map support CC codes (3xxx) to Support Functions", "examples": ["3000-3999"], "source_type": "cost_center"},
+    {"pattern": "4*", "description": "Map R&D CC codes (4xxx) to R&D", "examples": ["4000-4999"], "source_type": "cost_center"}
+  ],
+  "created_at": "2025-01-22T00:00:00",
+  "updated_at": "2025-01-22T00:00:00"
+}

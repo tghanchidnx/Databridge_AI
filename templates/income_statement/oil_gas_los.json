@@ -1,0 +1,350 @@
+{
+  "id": "oil_gas_los",
+  "name": "Oil & Gas Lease Operating Statement",
+  "category": "income_statement",
+  "industry": "oil_gas",
+  "description": "Lease Operating Statement (LOS) for upstream oil & gas operations. Includes revenue by product, LOE categories, and netback calculations.",
+  "version": "1.0",
+  "tags": ["oil and gas", "upstream", "e&p", "los", "lease operating statement", "netback", "loe"],
+  "hierarchies": [
+    {
+      "hierarchy_id": "GROSS_REVENUE",
+      "hierarchy_name": "Gross Revenue",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of children (Oil + Gas + NGL + Other)",
+      "description": "Total gross revenue before royalties",
+      "mapping_hints": [
+        {"pattern": "4*", "description": "Revenue accounts", "examples": ["4000", "4100"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "REV_OIL",
+      "hierarchy_name": "Oil Revenue",
+      "parent_id": "GROSS_REVENUE",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Crude oil sales revenue",
+      "mapping_hints": [
+        {"pattern": "410*", "description": "Oil revenue accounts", "examples": ["4100", "4101"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "REV_GAS",
+      "hierarchy_name": "Natural Gas Revenue",
+      "parent_id": "GROSS_REVENUE",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Natural gas sales revenue",
+      "mapping_hints": [
+        {"pattern": "420*", "description": "Gas revenue accounts", "examples": ["4200", "4201"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "REV_NGL",
+      "hierarchy_name": "NGL Revenue",
+      "parent_id": "GROSS_REVENUE",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Natural gas liquids revenue",
+      "mapping_hints": [
+        {"pattern": "430*", "description": "NGL revenue accounts", "examples": ["4300"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "REV_OTHER",
+      "hierarchy_name": "Other Operating Revenue",
+      "parent_id": "GROSS_REVENUE",
+      "level": 2,
+      "sort_order": 4,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Other operating revenue (gathering fees, etc.)",
+      "mapping_hints": [
+        {"pattern": "490*", "description": "Other revenue accounts", "examples": ["4900"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "ROYALTIES",
+      "hierarchy_name": "Royalties & Burdens",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of children",
+      "description": "Royalty payments and overriding royalty interests",
+      "mapping_hints": [
+        {"pattern": "45*", "description": "Royalty expense accounts", "examples": ["4500"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "ROYALTY_LESSOR",
+      "hierarchy_name": "Lessor Royalties",
+      "parent_id": "ROYALTIES",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Royalties paid to mineral owners",
+      "mapping_hints": [
+        {"pattern": "450*", "description": "Lessor royalty accounts", "examples": ["4500"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "ROYALTY_ORRI",
+      "hierarchy_name": "Overriding Royalty Interest",
+      "parent_id": "ROYALTIES",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "ORRI payments",
+      "mapping_hints": [
+        {"pattern": "451*", "description": "ORRI accounts", "examples": ["4510"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "NET_REVENUE",
+      "hierarchy_name": "Net Revenue",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 3,
+      "is_calculated": true,
+      "formula_hint": "Gross Revenue - Royalties & Burdens",
+      "description": "Revenue after royalties",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "LOE",
+      "hierarchy_name": "Lease Operating Expenses",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 4,
+      "is_calculated": true,
+      "formula_hint": "SUM of children",
+      "description": "Total LOE by category",
+      "mapping_hints": [
+        {"pattern": "5*", "description": "LOE accounts", "examples": ["5000", "5100"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "LOE_LABOR",
+      "hierarchy_name": "Field Labor",
+      "parent_id": "LOE",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Field personnel and pumper costs",
+      "mapping_hints": [
+        {"pattern": "510*", "description": "Field labor accounts", "examples": ["5100"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "LOE_REPAIRS",
+      "hierarchy_name": "Well Repairs & Maintenance",
+      "parent_id": "LOE",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Well workover and maintenance",
+      "mapping_hints": [
+        {"pattern": "520*", "description": "Repair accounts", "examples": ["5200"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "LOE_CHEMICALS",
+      "hierarchy_name": "Chemicals & Treating",
+      "parent_id": "LOE",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Chemicals and treating costs",
+      "mapping_hints": [
+        {"pattern": "530*", "description": "Chemical accounts", "examples": ["5300"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "LOE_UTILITIES",
+      "hierarchy_name": "Utilities & Fuel",
+      "parent_id": "LOE",
+      "level": 2,
+      "sort_order": 4,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Electricity, fuel gas, water",
+      "mapping_hints": [
+        {"pattern": "540*", "description": "Utility accounts", "examples": ["5400"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "LOE_SALTWATER",
+      "hierarchy_name": "Saltwater Disposal",
+      "parent_id": "LOE",
+      "level": 2,
+      "sort_order": 5,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Produced water disposal",
+      "mapping_hints": [
+        {"pattern": "550*", "description": "SWD accounts", "examples": ["5500"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "LOE_COMPRESSION",
+      "hierarchy_name": "Compression",
+      "parent_id": "LOE",
+      "level": 2,
+      "sort_order": 6,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Compression and gathering costs",
+      "mapping_hints": [
+        {"pattern": "560*", "description": "Compression accounts", "examples": ["5600"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "LOE_OTHER",
+      "hierarchy_name": "Other LOE",
+      "parent_id": "LOE",
+      "level": 2,
+      "sort_order": 7,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Other lease operating expenses",
+      "mapping_hints": [
+        {"pattern": "590*", "description": "Other LOE accounts", "examples": ["5900"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "TRANSPORTATION",
+      "hierarchy_name": "Transportation & Gathering",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 5,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Pipeline and trucking costs",
+      "mapping_hints": [
+        {"pattern": "57*", "description": "Transportation accounts", "examples": ["5700"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "TAXES",
+      "hierarchy_name": "Production Taxes",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 6,
+      "is_calculated": true,
+      "formula_hint": "SUM of children",
+      "description": "Severance and ad valorem taxes",
+      "mapping_hints": [
+        {"pattern": "58*", "description": "Tax accounts", "examples": ["5800"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "TAX_SEVERANCE",
+      "hierarchy_name": "Severance Tax",
+      "parent_id": "TAXES",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "State severance/production taxes",
+      "mapping_hints": [
+        {"pattern": "580*", "description": "Severance tax accounts", "examples": ["5800"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "TAX_ADVALOREM",
+      "hierarchy_name": "Ad Valorem Tax",
+      "parent_id": "TAXES",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Property/ad valorem taxes",
+      "mapping_hints": [
+        {"pattern": "581*", "description": "Ad valorem accounts", "examples": ["5810"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "NETBACK",
+      "hierarchy_name": "Field Netback",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 7,
+      "is_calculated": true,
+      "formula_hint": "Net Revenue - LOE - Transportation - Production Taxes",
+      "description": "Net revenue less field-level costs",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "DDA",
+      "hierarchy_name": "DD&A",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 8,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Depreciation, depletion & amortization",
+      "mapping_hints": [
+        {"pattern": "6*", "description": "DD&A accounts", "examples": ["6000"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "OPERATING_INCOME",
+      "hierarchy_name": "Operating Income",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 9,
+      "is_calculated": true,
+      "formula_hint": "Netback - DD&A",
+      "description": "Operating income before G&A and interest",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    }
+  ],
+  "recommended_mappings": [
+    {"pattern": "41*", "description": "Map oil revenue accounts to Oil Revenue", "examples": ["4100-4199"]},
+    {"pattern": "42*", "description": "Map gas revenue accounts to Gas Revenue", "examples": ["4200-4299"]},
+    {"pattern": "43*", "description": "Map NGL revenue accounts to NGL Revenue", "examples": ["4300-4399"]},
+    {"pattern": "45*", "description": "Map royalty accounts to Royalties & Burdens", "examples": ["4500-4599"]},
+    {"pattern": "5*", "description": "Map operating expense accounts to appropriate LOE categories", "examples": ["5000-5999"]}
+  ],
+  "created_at": "2025-01-22T00:00:00",
+  "updated_at": "2025-01-22T00:00:00"
+}

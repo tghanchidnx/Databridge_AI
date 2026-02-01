@@ -292,47 +292,278 @@ app.add_typer(template_app, name="template")
 def template_list(
     domain: str = typer.Option(None, "--domain", "-d", help="Filter by domain"),
     industry: str = typer.Option(None, "--industry", "-i", help="Filter by industry"),
+    category: str = typer.Option(None, "--category", "-c", help="Filter by category"),
 ):
     """List available hierarchy templates."""
-    console.print("[dim]Implementation pending in Phase 4...[/dim]")
+    from src.templates import TemplateService
+
+    service = TemplateService()
+    templates = service.list_templates(domain=domain, industry=industry, category=category)
+
+    if not templates:
+        console.print("[yellow]No templates found matching the filters.[/yellow]")
+        return
+
+    table = Table(title="Hierarchy Templates")
+    table.add_column("ID", style="cyan")
+    table.add_column("Name", style="green")
+    table.add_column("Domain", style="blue")
+    table.add_column("Industry", style="magenta")
+    table.add_column("Hierarchies", style="yellow", justify="right")
+
+    for t in templates:
+        table.add_row(
+            t.id,
+            t.name,
+            t.domain,
+            t.industry,
+            str(t.hierarchy_count),
+        )
+
+    console.print(table)
+
+
+@template_app.command("show")
+def template_show(
+    template_id: str = typer.Argument(..., help="Template ID to show"),
+):
+    """Show details of a specific template."""
+    from src.templates import TemplateService
+
+    service = TemplateService()
+    template = service.get_template(template_id)
+
+    if not template:
+        console.print(f"[red]Template not found: {template_id}[/red]")
+        raise typer.Exit(1)
+
+    console.print(Panel(
+        f"""[bold]{template.name}[/bold]
+
+[cyan]Domain:[/cyan] {template.domain}
+[cyan]Category:[/cyan] {template.category}
+[cyan]Industry:[/cyan] {template.industry}
+[cyan]Version:[/cyan] {template.version}
+
+[cyan]Description:[/cyan]
+{template.description}
+
+[cyan]Tags:[/cyan] {', '.join(template.tags) if template.tags else '-'}
+[cyan]Hierarchies:[/cyan] {len(template.hierarchies)} nodes""",
+        title=f"Template: {template_id}",
+        border_style="blue",
+    ))
+
+    # Show hierarchy structure
+    if template.hierarchies:
+        tree_table = Table(title="Hierarchy Structure")
+        tree_table.add_column("ID", style="cyan")
+        tree_table.add_column("Name", style="green")
+        tree_table.add_column("Parent", style="blue")
+        tree_table.add_column("Level", style="magenta", justify="right")
+        tree_table.add_column("Type", style="yellow")
+
+        for h in sorted(template.hierarchies, key=lambda x: x.sort_order):
+            tree_table.add_row(
+                h.hierarchy_id,
+                h.hierarchy_name,
+                h.parent_id or "(root)",
+                str(h.level),
+                h.node_type,
+            )
+
+        console.print(tree_table)
+
+
+@template_app.command("recommend")
+def template_recommend(
+    industry: str = typer.Option(None, "--industry", "-i", help="Target industry"),
+    statement_type: str = typer.Option(None, "--type", "-t", help="Statement type (pl, balance_sheet, etc.)"),
+):
+    """Get template recommendations based on industry and needs."""
+    from src.templates import TemplateService
+
+    service = TemplateService()
+    recommendations = service.recommend_templates(industry=industry, statement_type=statement_type)
+
+    if not recommendations:
+        console.print("[yellow]No matching templates found.[/yellow]")
+        return
+
+    console.print(Panel(
+        f"Based on: industry='{industry or 'any'}', type='{statement_type or 'any'}'",
+        title="Template Recommendations",
+        border_style="green",
+    ))
+
+    table = Table()
+    table.add_column("#", style="dim", width=3)
+    table.add_column("Template", style="cyan")
+    table.add_column("Name", style="green")
+    table.add_column("Description", style="white")
+
+    for i, t in enumerate(recommendations, 1):
+        table.add_row(
+            str(i),
+            t.id,
+            t.name,
+            t.description[:60] + "..." if len(t.description) > 60 else t.description,
+        )
+
+    console.print(table)
 
 
 # Skill commands
 skill_app = typer.Typer(
     name="skill",
-    help="Manage AI skills.",
+    help="Manage AI skills/personas.",
     no_args_is_help=True,
 )
 app.add_typer(skill_app, name="skill")
 
 
 @skill_app.command("list")
-def skill_list():
+def skill_list(
+    domain: str = typer.Option(None, "--domain", "-d", help="Filter by domain"),
+    industry: str = typer.Option(None, "--industry", "-i", help="Filter by industry"),
+):
     """List available AI skills."""
-    import json
-    from pathlib import Path
+    from src.templates import SkillManager
 
-    skills_index = Path("skills/index.json")
-    if not skills_index.exists():
-        console.print("[yellow]Skills index not found.[/yellow]")
+    manager = SkillManager()
+    skills = manager.list_skills(domain=domain, industry=industry)
+
+    if not skills:
+        console.print("[yellow]No skills found matching the filters.[/yellow]")
         return
 
-    with open(skills_index) as f:
-        data = json.load(f)
-
-    table = Table(title="Available Skills")
+    table = Table(title="Available AI Skills")
     table.add_column("ID", style="cyan")
     table.add_column("Name", style="green")
     table.add_column("Domain", style="blue")
+    table.add_column("Industries", style="magenta")
 
-    for skill in data.get("skills", []):
+    for s in skills:
         table.add_row(
-            skill.get("id", ""),
-            skill.get("name", ""),
-            skill.get("domain", ""),
+            s.id,
+            s.name,
+            s.domain,
+            ", ".join(s.industries[:3]) + ("..." if len(s.industries) > 3 else ""),
         )
 
     console.print(table)
+
+
+@skill_app.command("show")
+def skill_show(
+    skill_id: str = typer.Argument(..., help="Skill ID to show"),
+):
+    """Show details of a specific skill."""
+    from src.templates import SkillManager
+
+    manager = SkillManager()
+    skill = manager.get_skill(skill_id, load_prompt=False)
+
+    if not skill:
+        console.print(f"[red]Skill not found: {skill_id}[/red]")
+        raise typer.Exit(1)
+
+    console.print(Panel(
+        f"""[bold]{skill.name}[/bold]
+
+[cyan]Domain:[/cyan] {skill.domain}
+[cyan]Industries:[/cyan] {', '.join(skill.industries)}
+[cyan]Communication Style:[/cyan] {skill.communication_style}
+
+[cyan]Description:[/cyan]
+{skill.description}
+
+[cyan]Capabilities:[/cyan]
+{chr(10).join('  • ' + c for c in skill.capabilities)}
+
+[cyan]Frequently Used Tools:[/cyan]
+{chr(10).join('  • ' + t for t in skill.tools_frequently_used) if skill.tools_frequently_used else '  (none specified)'}
+
+[cyan]Prompt File:[/cyan] {skill.prompt_file}
+[cyan]Documentation:[/cyan] {skill.documentation_file}""",
+        title=f"Skill: {skill_id}",
+        border_style="blue",
+    ))
+
+
+@skill_app.command("prompt")
+def skill_prompt(
+    skill_id: str = typer.Argument(..., help="Skill ID"),
+    output: str = typer.Option(None, "--output", "-o", help="Save to file"),
+):
+    """Get the system prompt for a skill."""
+    from src.templates import SkillManager
+
+    manager = SkillManager()
+    prompt = manager.get_prompt(skill_id)
+
+    if not prompt:
+        console.print(f"[red]Skill or prompt not found: {skill_id}[/red]")
+        raise typer.Exit(1)
+
+    if output:
+        from pathlib import Path
+        Path(output).write_text(prompt, encoding="utf-8")
+        console.print(f"[green]Prompt saved to: {output}[/green]")
+    else:
+        console.print(Panel(
+            prompt,
+            title=f"System Prompt: {skill_id}",
+            border_style="green",
+        ))
+
+
+@skill_app.command("recommend")
+def skill_recommend(
+    industry: str = typer.Option(None, "--industry", "-i", help="Target industry"),
+    task_type: str = typer.Option(None, "--task", "-t", help="Task type (analysis, reconciliation, etc.)"),
+):
+    """Get skill recommendation based on context."""
+    from src.templates import SkillManager
+
+    manager = SkillManager()
+    skill = manager.recommend_skill(industry=industry, task_type=task_type)
+
+    if not skill:
+        console.print("[yellow]No matching skill found.[/yellow]")
+        return
+
+    console.print(Panel(
+        f"""[bold]Recommended Skill:[/bold] {skill.id}
+
+[cyan]Name:[/cyan] {skill.name}
+[cyan]Domain:[/cyan] {skill.domain}
+[cyan]Industries:[/cyan] {', '.join(skill.industries)}
+
+[cyan]Capabilities:[/cyan]
+{chr(10).join('  • ' + c for c in skill.capabilities)}
+
+[dim]Use 'librarian skill prompt {skill.id}' to get the system prompt.[/dim]""",
+        title="Skill Recommendation",
+        border_style="green",
+    ))
+
+
+@skill_app.command("domains")
+def skill_domains():
+    """List available skill domains."""
+    from src.templates import SkillManager
+
+    manager = SkillManager()
+    domains = manager.get_domains()
+
+    if not domains:
+        console.print("[yellow]No domains found.[/yellow]")
+        return
+
+    console.print("[bold]Available Skill Domains:[/bold]")
+    for domain in domains:
+        console.print(f"  • {domain}")
 
 
 # MCP commands

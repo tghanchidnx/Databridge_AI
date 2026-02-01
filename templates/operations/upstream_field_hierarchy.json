@@ -1,0 +1,267 @@
+{
+  "id": "upstream_field_hierarchy",
+  "name": "Upstream Oil & Gas Field Hierarchy",
+  "domain": "operations",
+  "hierarchy_type": "geographic",
+  "industry": "oil_gas_upstream",
+  "description": "Geographic and operational hierarchy for upstream E&P operations. Organizes production by basin, area, field, and well. Supports rollup of production volumes, LOE, and capital.",
+  "version": "1.0",
+  "tags": ["upstream", "e&p", "field", "basin", "well", "production", "operations"],
+  "hierarchies": [
+    {
+      "hierarchy_id": "TOTAL_COMPANY",
+      "hierarchy_name": "Total Company",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of all basins",
+      "node_type": "rollup",
+      "description": "Total company production and operations",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PERMIAN_BASIN",
+      "hierarchy_name": "Permian Basin",
+      "parent_id": "TOTAL_COMPANY",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of Permian areas",
+      "node_type": "rollup",
+      "description": "Permian Basin operations",
+      "mapping_hints": [
+        {"pattern": "PERM*", "description": "Permian codes", "examples": ["PERM001"], "source_type": "field_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "DELAWARE_BASIN",
+      "hierarchy_name": "Delaware Basin",
+      "parent_id": "PERMIAN_BASIN",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Delaware Basin sub-region",
+      "mapping_hints": [
+        {"pattern": "DEL*", "description": "Delaware codes", "examples": ["DEL001"], "source_type": "field_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "DEL_BONE_SPRING",
+      "hierarchy_name": "Bone Spring",
+      "parent_id": "DELAWARE_BASIN",
+      "level": 4,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Bone Spring formation assets",
+      "mapping_hints": [
+        {"pattern": "DEL-BS*", "description": "Bone Spring", "examples": ["DEL-BS01"], "source_type": "field_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "DEL_WOLFCAMP",
+      "hierarchy_name": "Wolfcamp",
+      "parent_id": "DELAWARE_BASIN",
+      "level": 4,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Wolfcamp formation assets",
+      "mapping_hints": [
+        {"pattern": "DEL-WC*", "description": "Wolfcamp", "examples": ["DEL-WC01"], "source_type": "field_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "MIDLAND_BASIN",
+      "hierarchy_name": "Midland Basin",
+      "parent_id": "PERMIAN_BASIN",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Midland Basin sub-region",
+      "mapping_hints": [
+        {"pattern": "MID*", "description": "Midland codes", "examples": ["MID001"], "source_type": "field_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "MID_SPRABERRY",
+      "hierarchy_name": "Spraberry",
+      "parent_id": "MIDLAND_BASIN",
+      "level": 4,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Spraberry formation assets",
+      "mapping_hints": [
+        {"pattern": "MID-SP*", "description": "Spraberry", "examples": ["MID-SP01"], "source_type": "field_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "EAGLE_FORD",
+      "hierarchy_name": "Eagle Ford",
+      "parent_id": "TOTAL_COMPANY",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of Eagle Ford areas",
+      "node_type": "rollup",
+      "description": "Eagle Ford Shale operations",
+      "mapping_hints": [
+        {"pattern": "EF*", "description": "Eagle Ford codes", "examples": ["EF001"], "source_type": "field_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "EF_OIL_WINDOW",
+      "hierarchy_name": "Oil Window",
+      "parent_id": "EAGLE_FORD",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Eagle Ford oil window assets",
+      "mapping_hints": [
+        {"pattern": "EF-OIL*", "description": "Oil window", "examples": ["EF-OIL01"], "source_type": "field_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "EF_GAS_WINDOW",
+      "hierarchy_name": "Gas/Condensate Window",
+      "parent_id": "EAGLE_FORD",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Eagle Ford gas/condensate window",
+      "mapping_hints": [
+        {"pattern": "EF-GAS*", "description": "Gas window", "examples": ["EF-GAS01"], "source_type": "field_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "BAKKEN",
+      "hierarchy_name": "Bakken/Three Forks",
+      "parent_id": "TOTAL_COMPANY",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": true,
+      "formula_hint": "SUM of Bakken areas",
+      "node_type": "rollup",
+      "description": "Bakken/Williston Basin operations",
+      "mapping_hints": [
+        {"pattern": "BAK*", "description": "Bakken codes", "examples": ["BAK001"], "source_type": "field_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "DJ_BASIN",
+      "hierarchy_name": "DJ Basin",
+      "parent_id": "TOTAL_COMPANY",
+      "level": 2,
+      "sort_order": 4,
+      "is_calculated": true,
+      "formula_hint": "SUM of DJ areas",
+      "node_type": "rollup",
+      "description": "Denver-Julesburg Basin operations",
+      "mapping_hints": [
+        {"pattern": "DJ*", "description": "DJ Basin codes", "examples": ["DJ001"], "source_type": "field_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "DJ_NIOBRARA",
+      "hierarchy_name": "Niobrara",
+      "parent_id": "DJ_BASIN",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Niobrara formation",
+      "mapping_hints": [
+        {"pattern": "DJ-NIO*", "description": "Niobrara", "examples": ["DJ-NIO01"], "source_type": "field_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "APPALACHIAN",
+      "hierarchy_name": "Appalachian Basin",
+      "parent_id": "TOTAL_COMPANY",
+      "level": 2,
+      "sort_order": 5,
+      "is_calculated": true,
+      "formula_hint": "SUM of Appalachian areas",
+      "node_type": "rollup",
+      "description": "Appalachian Basin (Marcellus/Utica)",
+      "mapping_hints": [
+        {"pattern": "APP*", "description": "Appalachian codes", "examples": ["APP001"], "source_type": "field_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "APP_MARCELLUS",
+      "hierarchy_name": "Marcellus",
+      "parent_id": "APPALACHIAN",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Marcellus Shale assets",
+      "mapping_hints": [
+        {"pattern": "APP-MAR*", "description": "Marcellus", "examples": ["APP-MAR01"], "source_type": "field_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "APP_UTICA",
+      "hierarchy_name": "Utica",
+      "parent_id": "APPALACHIAN",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Utica Shale assets",
+      "mapping_hints": [
+        {"pattern": "APP-UTI*", "description": "Utica", "examples": ["APP-UTI01"], "source_type": "field_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "NON_OPERATED",
+      "hierarchy_name": "Non-Operated Interests",
+      "parent_id": "TOTAL_COMPANY",
+      "level": 2,
+      "sort_order": 6,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Non-operated working interests",
+      "mapping_hints": [
+        {"pattern": "NON*", "description": "Non-op codes", "examples": ["NON001"], "source_type": "field_code"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    }
+  ],
+  "recommended_mappings": [
+    {"pattern": "PERM*", "description": "Map Permian Basin field codes", "examples": ["PERM-001"], "source_type": "field_code"},
+    {"pattern": "DEL*", "description": "Map Delaware Basin field codes", "examples": ["DEL-001"], "source_type": "field_code"},
+    {"pattern": "MID*", "description": "Map Midland Basin field codes", "examples": ["MID-001"], "source_type": "field_code"},
+    {"pattern": "EF*", "description": "Map Eagle Ford field codes", "examples": ["EF-001"], "source_type": "field_code"},
+    {"pattern": "BAK*", "description": "Map Bakken field codes", "examples": ["BAK-001"], "source_type": "field_code"}
+  ],
+  "well_hierarchy_pattern": {
+    "levels": ["Basin", "Sub-Basin", "Area", "Field", "Pad", "Well"],
+    "example": "Permian > Delaware > Lea County > Monument > PAD-001 > WELL-001H"
+  },
+  "created_at": "2025-01-22T00:00:00",
+  "updated_at": "2025-01-22T00:00:00"
+}

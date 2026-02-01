@@ -1,0 +1,284 @@
+{
+  "version": "2.0",
+  "templates": [
+    {
+      "id": "standard_pl",
+      "name": "Standard P&L (Income Statement)",
+      "domain": "accounting",
+      "hierarchy_type": "income_statement",
+      "category": "income_statement",
+      "industry": "general",
+      "description": "Standard profit and loss statement structure suitable for most businesses. Includes revenue, COGS, gross profit, operating expenses, and net income.",
+      "hierarchy_count": 18,
+      "file": "accounting/standard_pl.json"
+    },
+    {
+      "id": "standard_bs",
+      "name": "Standard Balance Sheet",
+      "domain": "accounting",
+      "hierarchy_type": "balance_sheet",
+      "category": "balance_sheet",
+      "industry": "general",
+      "description": "Standard balance sheet structure with assets, liabilities, and equity sections. Includes current/non-current classifications.",
+      "hierarchy_count": 20,
+      "file": "accounting/standard_bs.json"
+    },
+    {
+      "id": "oil_gas_los",
+      "name": "Oil & Gas Lease Operating Statement",
+      "domain": "accounting",
+      "hierarchy_type": "income_statement",
+      "category": "income_statement",
+      "industry": "oil_gas",
+      "description": "Lease Operating Statement (LOS) for upstream oil & gas operations. Includes revenue by product, LOE categories, and netback calculations.",
+      "hierarchy_count": 25,
+      "file": "accounting/oil_gas_los.json"
+    },
+    {
+      "id": "upstream_oil_gas_pl",
+      "name": "Upstream Oil & Gas P&L",
+      "domain": "accounting",
+      "hierarchy_type": "income_statement",
+      "category": "income_statement",
+      "industry": "oil_gas_upstream",
+      "description": "Comprehensive income statement for E&P (Exploration & Production) companies. Includes revenue by product type, LOE breakdown, DD&A, and proved reserve metrics.",
+      "hierarchy_count": 28,
+      "file": "accounting/upstream_oil_gas_pl.json"
+    },
+    {
+      "id": "midstream_oil_gas_pl",
+      "name": "Midstream Oil & Gas P&L",
+      "domain": "accounting",
+      "hierarchy_type": "income_statement",
+      "category": "income_statement",
+      "industry": "oil_gas_midstream",
+      "description": "Income statement for midstream oil & gas companies (gathering, processing, transportation, storage). Includes fee-based and commodity revenue, throughput metrics, and DCF calculations.",
+      "hierarchy_count": 26,
+      "file": "accounting/midstream_oil_gas_pl.json"
+    },
+    {
+      "id": "oilfield_services_pl",
+      "name": "Oilfield Services Company P&L",
+      "domain": "accounting",
+      "hierarchy_type": "income_statement",
+      "category": "income_statement",
+      "industry": "oil_gas_services",
+      "description": "Income statement for oilfield services companies (drilling, completions, pressure pumping, wireline). Includes service line revenue, equipment utilization, and crew metrics.",
+      "hierarchy_count": 30,
+      "file": "accounting/oilfield_services_pl.json"
+    },
+    {
+      "id": "manufacturing_pl",
+      "name": "Industrial Manufacturing P&L",
+      "domain": "accounting",
+      "hierarchy_type": "income_statement",
+      "category": "income_statement",
+      "industry": "manufacturing",
+      "description": "Income statement for industrial manufacturing companies. Includes detailed COGS breakdown, manufacturing variances, and plant-level profitability.",
+      "hierarchy_count": 32,
+      "file": "accounting/manufacturing_pl.json"
+    },
+    {
+      "id": "industrial_services_pl",
+      "name": "Industrial Services Company P&L",
+      "domain": "accounting",
+      "hierarchy_type": "income_statement",
+      "category": "income_statement",
+      "industry": "industrial_services",
+      "description": "Income statement for industrial services companies (maintenance, equipment services, facility services). Includes labor-intensive service delivery with project-based and contract revenue.",
+      "hierarchy_count": 25,
+      "file": "accounting/industrial_services_pl.json"
+    },
+    {
+      "id": "saas_pl",
+      "name": "SaaS Company P&L",
+      "domain": "accounting",
+      "hierarchy_type": "income_statement",
+      "category": "income_statement",
+      "industry": "saas",
+      "description": "Income statement for SaaS (Software as a Service) companies. Organized by SaaS metrics with ARR/MRR tracking, subscription revenue, and customer success costs.",
+      "hierarchy_count": 35,
+      "file": "accounting/saas_pl.json"
+    },
+    {
+      "id": "transportation_pl",
+      "name": "Transportation & Logistics P&L",
+      "domain": "accounting",
+      "hierarchy_type": "income_statement",
+      "category": "income_statement",
+      "industry": "transportation",
+      "description": "Income statement for transportation and logistics companies (trucking, freight, 3PL). Includes revenue by service type, fleet costs, and key transportation metrics.",
+      "hierarchy_count": 32,
+      "file": "accounting/transportation_pl.json"
+    },
+    {
+      "id": "geographic_hierarchy",
+      "name": "Geographic Hierarchy",
+      "domain": "operations",
+      "hierarchy_type": "geographic",
+      "category": "geographic",
+      "industry": "general",
+      "description": "Multi-level geographic hierarchy for organizing data by global regions, countries, states/provinces, and cities. Useful for sales territories and regional reporting.",
+      "hierarchy_count": 17,
+      "file": "operations/geographic_hierarchy.json"
+    },
+    {
+      "id": "department_hierarchy",
+      "name": "Organizational Department Hierarchy",
+      "domain": "operations",
+      "hierarchy_type": "department",
+      "category": "department",
+      "industry": "general",
+      "description": "Standard organizational department hierarchy for reporting by business function. Covers executive, operations, sales, finance, HR, IT, and support functions.",
+      "hierarchy_count": 20,
+      "file": "operations/department_hierarchy.json"
+    },
+    {
+      "id": "asset_hierarchy",
+      "name": "Asset Class Hierarchy",
+      "domain": "operations",
+      "hierarchy_type": "asset",
+      "category": "asset",
+      "industry": "general",
+      "description": "Asset classification hierarchy for fixed asset management, depreciation reporting, and capital planning. Covers property, equipment, vehicles, IT assets, and intangibles.",
+      "hierarchy_count": 17,
+      "file": "operations/asset_hierarchy.json"
+    },
+    {
+      "id": "legal_entity_hierarchy",
+      "name": "Legal Entity Hierarchy",
+      "domain": "operations",
+      "hierarchy_type": "legal_entity",
+      "category": "legal_entity",
+      "industry": "general",
+      "description": "Legal entity structure for consolidation, intercompany eliminations, and statutory reporting. Tracks parent-subsidiary relationships and ownership structure.",
+      "hierarchy_count": 12,
+      "file": "operations/legal_entity_hierarchy.json"
+    },
+    {
+      "id": "upstream_field_hierarchy",
+      "name": "Upstream Oil & Gas Field Hierarchy",
+      "domain": "operations",
+      "hierarchy_type": "geographic",
+      "category": "geographic",
+      "industry": "oil_gas_upstream",
+      "description": "Geographic and operational hierarchy for upstream E&P operations. Organizes production by basin, area, field, and well. Supports rollup of production volumes, LOE, and capital.",
+      "hierarchy_count": 17,
+      "file": "operations/upstream_field_hierarchy.json"
+    },
+    {
+      "id": "midstream_asset_hierarchy",
+      "name": "Midstream Oil & Gas Asset Hierarchy",
+      "domain": "operations",
+      "hierarchy_type": "asset",
+      "category": "asset",
+      "industry": "oil_gas_midstream",
+      "description": "Asset hierarchy for midstream infrastructure including gathering systems, processing plants, pipelines, and storage facilities. Supports throughput and utilization tracking.",
+      "hierarchy_count": 22,
+      "file": "operations/midstream_asset_hierarchy.json"
+    },
+    {
+      "id": "manufacturing_plant_hierarchy",
+      "name": "Manufacturing Plant Hierarchy",
+      "domain": "operations",
+      "hierarchy_type": "geographic",
+      "category": "geographic",
+      "industry": "manufacturing",
+      "description": "Operational hierarchy for manufacturing companies organizing production by region, plant, production line, and work center. Supports capacity planning and production reporting.",
+      "hierarchy_count": 18,
+      "file": "operations/manufacturing_plant_hierarchy.json"
+    },
+    {
+      "id": "fleet_hierarchy",
+      "name": "Fleet & Route Hierarchy",
+      "domain": "operations",
+      "hierarchy_type": "asset",
+      "category": "asset",
+      "industry": "transportation",
+      "description": "Operational hierarchy for transportation companies organizing fleet assets by type, location, and route network. Supports capacity planning and utilization tracking.",
+      "hierarchy_count": 23,
+      "file": "operations/fleet_hierarchy.json"
+    },
+    {
+      "id": "cost_center_hierarchy",
+      "name": "Cost Center Hierarchy",
+      "domain": "finance",
+      "hierarchy_type": "cost_center",
+      "category": "cost_center",
+      "industry": "general",
+      "description": "Cost center hierarchy for expense allocation and responsibility accounting. Organizes costs by organizational responsibility with rollup to department and corporate levels.",
+      "hierarchy_count": 16,
+      "file": "finance/cost_center_hierarchy.json"
+    },
+    {
+      "id": "profit_center_hierarchy",
+      "name": "Profit Center Hierarchy",
+      "domain": "finance",
+      "hierarchy_type": "profit_center",
+      "category": "profit_center",
+      "industry": "general",
+      "description": "Profit center hierarchy for profitability analysis and revenue/cost allocation. Tracks P&L by business segment, product line, or market.",
+      "hierarchy_count": 14,
+      "file": "finance/profit_center_hierarchy.json"
+    }
+  ],
+  "domains": {
+    "accounting": {
+      "name": "Accounting",
+      "description": "Chart of accounts, GL structures, and statutory reporting hierarchies",
+      "hierarchy_types": ["chart_of_accounts", "income_statement", "balance_sheet", "cash_flow", "trial_balance"]
+    },
+    "finance": {
+      "name": "Finance",
+      "description": "Cost centers, profit centers, budgeting, and management reporting hierarchies",
+      "hierarchy_types": ["cost_center", "profit_center", "budget", "forecast", "management_reporting"]
+    },
+    "operations": {
+      "name": "Operations",
+      "description": "Geographic, departmental, asset, and organizational hierarchies",
+      "hierarchy_types": ["geographic", "department", "legal_entity", "asset", "acquisition", "product", "project"]
+    }
+  },
+  "industries": {
+    "general": {
+      "name": "General",
+      "description": "Industry-agnostic templates suitable for most businesses"
+    },
+    "oil_gas": {
+      "name": "Oil & Gas",
+      "description": "Templates for oil and gas industry (general)",
+      "sub_industries": ["oil_gas_upstream", "oil_gas_midstream", "oil_gas_services"]
+    },
+    "oil_gas_upstream": {
+      "name": "Oil & Gas - Upstream (E&P)",
+      "description": "Exploration & Production companies",
+      "parent": "oil_gas"
+    },
+    "oil_gas_midstream": {
+      "name": "Oil & Gas - Midstream",
+      "description": "Gathering, processing, transportation, and storage",
+      "parent": "oil_gas"
+    },
+    "oil_gas_services": {
+      "name": "Oil & Gas - Services",
+      "description": "Oilfield services (drilling, completions, well services)",
+      "parent": "oil_gas"
+    },
+    "manufacturing": {
+      "name": "Industrial Manufacturing",
+      "description": "Discrete and process manufacturing companies"
+    },
+    "industrial_services": {
+      "name": "Industrial Services",
+      "description": "Industrial maintenance, facility services, equipment services"
+    },
+    "saas": {
+      "name": "SaaS / Software",
+      "description": "Software as a Service and technology companies"
+    },
+    "transportation": {
+      "name": "Transportation & Logistics",
+      "description": "Trucking, freight, 3PL, and logistics companies"
+    }
+  }
+}

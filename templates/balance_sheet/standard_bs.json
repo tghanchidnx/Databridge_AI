@@ -1,0 +1,296 @@
+{
+  "id": "standard_bs",
+  "name": "Standard Balance Sheet",
+  "category": "balance_sheet",
+  "industry": "general",
+  "description": "Standard balance sheet structure with assets, liabilities, and equity sections. Includes current/non-current classifications.",
+  "version": "1.0",
+  "tags": ["balance sheet", "bs", "general", "standard", "assets", "liabilities", "equity"],
+  "hierarchies": [
+    {
+      "hierarchy_id": "ASSETS",
+      "hierarchy_name": "Total Assets",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of children (Current Assets + Non-Current Assets)",
+      "description": "Total assets",
+      "mapping_hints": [
+        {"pattern": "1*", "description": "Asset accounts typically start with 1", "examples": ["1000", "1100"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "CURRENT_ASSETS",
+      "hierarchy_name": "Current Assets",
+      "parent_id": "ASSETS",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of children",
+      "description": "Assets expected to be converted to cash within 12 months",
+      "mapping_hints": [
+        {"pattern": "10*", "description": "Current asset accounts", "examples": ["1000", "1010"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "CASH",
+      "hierarchy_name": "Cash & Cash Equivalents",
+      "parent_id": "CURRENT_ASSETS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Cash and liquid investments",
+      "mapping_hints": [
+        {"pattern": "100*", "description": "Cash accounts", "examples": ["1000", "1001"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "AR",
+      "hierarchy_name": "Accounts Receivable",
+      "parent_id": "CURRENT_ASSETS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Amounts owed by customers",
+      "mapping_hints": [
+        {"pattern": "102*", "description": "AR accounts", "examples": ["1020", "1021"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "INVENTORY",
+      "hierarchy_name": "Inventory",
+      "parent_id": "CURRENT_ASSETS",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Goods held for sale",
+      "mapping_hints": [
+        {"pattern": "103*", "description": "Inventory accounts", "examples": ["1030", "1031"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "PREPAID",
+      "hierarchy_name": "Prepaid Expenses",
+      "parent_id": "CURRENT_ASSETS",
+      "level": 3,
+      "sort_order": 4,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Prepaid expenses",
+      "mapping_hints": [
+        {"pattern": "105*", "description": "Prepaid accounts", "examples": ["1050"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "NONCURRENT_ASSETS",
+      "hierarchy_name": "Non-Current Assets",
+      "parent_id": "ASSETS",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of children",
+      "description": "Long-term assets",
+      "mapping_hints": [
+        {"pattern": "15*", "description": "Fixed asset accounts", "examples": ["1500", "1510"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PPE",
+      "hierarchy_name": "Property, Plant & Equipment",
+      "parent_id": "NONCURRENT_ASSETS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Net PP&E",
+      "mapping_hints": [
+        {"pattern": "150*", "description": "PP&E accounts", "examples": ["1500", "1501"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "INTANGIBLES",
+      "hierarchy_name": "Intangible Assets",
+      "parent_id": "NONCURRENT_ASSETS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Goodwill and intangibles",
+      "mapping_hints": [
+        {"pattern": "155*", "description": "Intangible accounts", "examples": ["1550"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "LIABILITIES",
+      "hierarchy_name": "Total Liabilities",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of children (Current + Long-term)",
+      "description": "Total liabilities",
+      "mapping_hints": [
+        {"pattern": "2*", "description": "Liability accounts typically start with 2", "examples": ["2000", "2100"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "CURRENT_LIABILITIES",
+      "hierarchy_name": "Current Liabilities",
+      "parent_id": "LIABILITIES",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of children",
+      "description": "Obligations due within 12 months",
+      "mapping_hints": [
+        {"pattern": "20*", "description": "Current liability accounts", "examples": ["2000", "2010"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "AP",
+      "hierarchy_name": "Accounts Payable",
+      "parent_id": "CURRENT_LIABILITIES",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Amounts owed to suppliers",
+      "mapping_hints": [
+        {"pattern": "200*", "description": "AP accounts", "examples": ["2000", "2001"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "ACCRUED",
+      "hierarchy_name": "Accrued Liabilities",
+      "parent_id": "CURRENT_LIABILITIES",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Accrued expenses",
+      "mapping_hints": [
+        {"pattern": "205*", "description": "Accrued liability accounts", "examples": ["2050"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "CURRENT_DEBT",
+      "hierarchy_name": "Current Portion of Debt",
+      "parent_id": "CURRENT_LIABILITIES",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Short-term debt and current maturities",
+      "mapping_hints": [
+        {"pattern": "210*", "description": "Current debt accounts", "examples": ["2100"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "LONGTERM_LIABILITIES",
+      "hierarchy_name": "Long-Term Liabilities",
+      "parent_id": "LIABILITIES",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of children",
+      "description": "Obligations due beyond 12 months",
+      "mapping_hints": [
+        {"pattern": "25*", "description": "Long-term liability accounts", "examples": ["2500"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "LONGTERM_DEBT",
+      "hierarchy_name": "Long-Term Debt",
+      "parent_id": "LONGTERM_LIABILITIES",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Long-term borrowings",
+      "mapping_hints": [
+        {"pattern": "250*", "description": "Long-term debt accounts", "examples": ["2500"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "EQUITY",
+      "hierarchy_name": "Shareholders' Equity",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 3,
+      "is_calculated": true,
+      "formula_hint": "SUM of children",
+      "description": "Total equity",
+      "mapping_hints": [
+        {"pattern": "3*", "description": "Equity accounts typically start with 3", "examples": ["3000", "3100"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "COMMON_STOCK",
+      "hierarchy_name": "Common Stock",
+      "parent_id": "EQUITY",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Common stock and additional paid-in capital",
+      "mapping_hints": [
+        {"pattern": "300*", "description": "Common stock accounts", "examples": ["3000"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "RETAINED_EARNINGS",
+      "hierarchy_name": "Retained Earnings",
+      "parent_id": "EQUITY",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": false,
+      "formula_hint": null,
+      "description": "Accumulated retained earnings",
+      "mapping_hints": [
+        {"pattern": "310*", "description": "Retained earnings accounts", "examples": ["3100"]}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "LIAB_EQUITY",
+      "hierarchy_name": "Total Liabilities + Equity",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 4,
+      "is_calculated": true,
+      "formula_hint": "Total Liabilities + Shareholders' Equity (should equal Total Assets)",
+      "description": "Verification: L+E should equal Assets",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    }
+  ],
+  "recommended_mappings": [
+    {"pattern": "1*", "description": "Map asset accounts (1xxx) to appropriate asset categories", "examples": ["1000-1999"]},
+    {"pattern": "2*", "description": "Map liability accounts (2xxx) to liability categories", "examples": ["2000-2999"]},
+    {"pattern": "3*", "description": "Map equity accounts (3xxx) to equity categories", "examples": ["3000-3999"]}
+  ],
+  "created_at": "2025-01-22T00:00:00",
+  "updated_at": "2025-01-22T00:00:00"
+}

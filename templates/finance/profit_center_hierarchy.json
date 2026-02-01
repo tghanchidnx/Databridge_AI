@@ -1,0 +1,217 @@
+{
+  "id": "profit_center_hierarchy",
+  "name": "Profit Center Hierarchy",
+  "domain": "finance",
+  "hierarchy_type": "profit_center",
+  "industry": "general",
+  "description": "Profit center hierarchy for profitability analysis and revenue/cost allocation. Tracks P&L by business segment, product line, or market.",
+  "version": "1.0",
+  "tags": ["profit center", "profitability", "segment", "business unit", "margin", "fpa"],
+  "hierarchies": [
+    {
+      "hierarchy_id": "ENTERPRISE_PL",
+      "hierarchy_name": "Enterprise P&L",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of all profit centers",
+      "node_type": "rollup",
+      "description": "Total enterprise profit centers",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PC_PRODUCTS",
+      "hierarchy_name": "Products Division",
+      "parent_id": "ENTERPRISE_PL",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of product profit centers",
+      "node_type": "rollup",
+      "description": "Product-based profit centers",
+      "mapping_hints": [
+        {"pattern": "P*", "description": "Product PC codes", "examples": ["P100", "P200"], "source_type": "profit_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PC_PRODUCT_A",
+      "hierarchy_name": "Product Line A",
+      "parent_id": "PC_PRODUCTS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Product line A profitability",
+      "mapping_hints": [
+        {"pattern": "P100", "description": "Product A PC", "examples": ["P100"], "source_type": "profit_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "PC_PRODUCT_B",
+      "hierarchy_name": "Product Line B",
+      "parent_id": "PC_PRODUCTS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Product line B profitability",
+      "mapping_hints": [
+        {"pattern": "P200", "description": "Product B PC", "examples": ["P200"], "source_type": "profit_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "PC_PRODUCT_C",
+      "hierarchy_name": "Product Line C",
+      "parent_id": "PC_PRODUCTS",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Product line C profitability",
+      "mapping_hints": [
+        {"pattern": "P300", "description": "Product C PC", "examples": ["P300"], "source_type": "profit_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "PC_SERVICES",
+      "hierarchy_name": "Services Division",
+      "parent_id": "ENTERPRISE_PL",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of service profit centers",
+      "node_type": "rollup",
+      "description": "Service-based profit centers",
+      "mapping_hints": [
+        {"pattern": "S*", "description": "Service PC codes", "examples": ["S100", "S200"], "source_type": "profit_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PC_CONSULTING",
+      "hierarchy_name": "Consulting Services",
+      "parent_id": "PC_SERVICES",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Consulting services profitability",
+      "mapping_hints": [
+        {"pattern": "S100", "description": "Consulting PC", "examples": ["S100"], "source_type": "profit_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "PC_SUPPORT_SVC",
+      "hierarchy_name": "Support Services",
+      "parent_id": "PC_SERVICES",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Support services profitability",
+      "mapping_hints": [
+        {"pattern": "S200", "description": "Support PC", "examples": ["S200"], "source_type": "profit_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "PC_TRAINING",
+      "hierarchy_name": "Training Services",
+      "parent_id": "PC_SERVICES",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Training services profitability",
+      "mapping_hints": [
+        {"pattern": "S300", "description": "Training PC", "examples": ["S300"], "source_type": "profit_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "PC_MARKETS",
+      "hierarchy_name": "Markets Division",
+      "parent_id": "ENTERPRISE_PL",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": true,
+      "formula_hint": "SUM of market profit centers",
+      "node_type": "rollup",
+      "description": "Market-based profit centers",
+      "mapping_hints": [
+        {"pattern": "M*", "description": "Market PC codes", "examples": ["M100", "M200"], "source_type": "profit_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PC_ENTERPRISE_MKT",
+      "hierarchy_name": "Enterprise Market",
+      "parent_id": "PC_MARKETS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Enterprise customer segment",
+      "mapping_hints": [
+        {"pattern": "M100", "description": "Enterprise market PC", "examples": ["M100"], "source_type": "profit_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "PC_MIDMARKET",
+      "hierarchy_name": "Mid-Market",
+      "parent_id": "PC_MARKETS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Mid-market customer segment",
+      "mapping_hints": [
+        {"pattern": "M200", "description": "Mid-market PC", "examples": ["M200"], "source_type": "profit_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "PC_SMB",
+      "hierarchy_name": "Small Business",
+      "parent_id": "PC_MARKETS",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "SMB customer segment",
+      "mapping_hints": [
+        {"pattern": "M300", "description": "SMB PC", "examples": ["M300"], "source_type": "profit_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "PC_UNALLOCATED",
+      "hierarchy_name": "Unallocated/Corporate",
+      "parent_id": "ENTERPRISE_PL",
+      "level": 2,
+      "sort_order": 4,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Corporate overhead not allocated to profit centers",
+      "mapping_hints": [
+        {"pattern": "U*", "description": "Unallocated PC codes", "examples": ["U000", "U100"], "source_type": "profit_center"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    }
+  ],
+  "recommended_mappings": [
+    {"pattern": "P*", "description": "Map product PC codes to Products Division", "examples": ["P100-P999"], "source_type": "profit_center"},
+    {"pattern": "S*", "description": "Map service PC codes to Services Division", "examples": ["S100-S999"], "source_type": "profit_center"},
+    {"pattern": "M*", "description": "Map market PC codes to Markets Division", "examples": ["M100-M999"], "source_type": "profit_center"}
+  ],
+  "created_at": "2025-01-22T00:00:00",
+  "updated_at": "2025-01-22T00:00:00"
+}

@@ -1,0 +1,430 @@
+{
+  "id": "oilfield_services_pl",
+  "name": "Oilfield Services Company P&L",
+  "domain": "accounting",
+  "hierarchy_type": "income_statement",
+  "category": "income_statement",
+  "industry": "oil_gas_services",
+  "description": "Income statement for oilfield services companies (drilling, completions, pressure pumping, wireline). Includes service line revenue, equipment utilization, and crew metrics.",
+  "version": "1.0",
+  "tags": ["oilfield services", "drilling", "completions", "pressure pumping", "wireline", "rig count"],
+  "hierarchies": [
+    {
+      "hierarchy_id": "TOTAL_REVENUE",
+      "hierarchy_name": "Total Revenue",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 1,
+      "is_calculated": true,
+      "formula_hint": "SUM of all service revenue",
+      "node_type": "rollup",
+      "description": "Total service revenue",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "DRILLING_REV",
+      "hierarchy_name": "Drilling Services Revenue",
+      "parent_id": "TOTAL_REVENUE",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Contract drilling revenue",
+      "mapping_hints": [
+        {"pattern": "4100*", "description": "Drilling revenue", "examples": ["4100"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "DAYRATE_REV",
+      "hierarchy_name": "Dayrate Revenue",
+      "parent_id": "DRILLING_REV",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Rig dayrate contract revenue",
+      "mapping_hints": [
+        {"pattern": "4110", "description": "Dayrate", "examples": ["4110"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "MOBILIZATION_REV",
+      "hierarchy_name": "Mobilization Revenue",
+      "parent_id": "DRILLING_REV",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Rig move and mobilization fees",
+      "mapping_hints": [
+        {"pattern": "4120", "description": "Mob/demob", "examples": ["4120"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "REIMBURSABLES_REV",
+      "hierarchy_name": "Reimbursable Revenue",
+      "parent_id": "DRILLING_REV",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Reimbursable costs charged to operators",
+      "mapping_hints": [
+        {"pattern": "4130", "description": "Reimbursables", "examples": ["4130"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "COMPLETION_REV",
+      "hierarchy_name": "Completion Services Revenue",
+      "parent_id": "TOTAL_REVENUE",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Completion and stimulation services",
+      "mapping_hints": [
+        {"pattern": "4200*", "description": "Completion revenue", "examples": ["4200"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PUMPING_REV",
+      "hierarchy_name": "Pressure Pumping",
+      "parent_id": "COMPLETION_REV",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Hydraulic fracturing and cementing",
+      "mapping_hints": [
+        {"pattern": "4210", "description": "Pressure pumping", "examples": ["4210"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "COILED_TUBING_REV",
+      "hierarchy_name": "Coiled Tubing",
+      "parent_id": "COMPLETION_REV",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Coiled tubing services",
+      "mapping_hints": [
+        {"pattern": "4220", "description": "Coiled tubing", "examples": ["4220"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "WIRELINE_REV",
+      "hierarchy_name": "Wireline Services",
+      "parent_id": "COMPLETION_REV",
+      "level": 3,
+      "sort_order": 3,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Wireline logging and perforating",
+      "mapping_hints": [
+        {"pattern": "4230", "description": "Wireline", "examples": ["4230"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "PRODUCTION_SVC_REV",
+      "hierarchy_name": "Production Services Revenue",
+      "parent_id": "TOTAL_REVENUE",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Production enhancement services",
+      "mapping_hints": [
+        {"pattern": "4300*", "description": "Production services", "examples": ["4300"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "WORKOVER_REV",
+      "hierarchy_name": "Workover Services",
+      "parent_id": "PRODUCTION_SVC_REV",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Workover rig services",
+      "mapping_hints": [
+        {"pattern": "4310", "description": "Workover", "examples": ["4310"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "ARTIFICIAL_LIFT_REV",
+      "hierarchy_name": "Artificial Lift",
+      "parent_id": "PRODUCTION_SVC_REV",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Artificial lift systems and services",
+      "mapping_hints": [
+        {"pattern": "4320", "description": "Artificial lift", "examples": ["4320"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "EQUIPMENT_RENTAL_REV",
+      "hierarchy_name": "Equipment Rental",
+      "parent_id": "TOTAL_REVENUE",
+      "level": 2,
+      "sort_order": 4,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Oilfield equipment rentals",
+      "mapping_hints": [
+        {"pattern": "4400", "description": "Equipment rental", "examples": ["4400"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "DIRECT_COSTS",
+      "hierarchy_name": "Direct Costs",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 2,
+      "is_calculated": true,
+      "formula_hint": "SUM of direct service costs",
+      "node_type": "rollup",
+      "description": "Direct costs of services",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "LABOR_COSTS",
+      "hierarchy_name": "Field Labor & Crews",
+      "parent_id": "DIRECT_COSTS",
+      "level": 2,
+      "sort_order": 1,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Direct labor costs",
+      "mapping_hints": [
+        {"pattern": "5100*", "description": "Labor costs", "examples": ["5100"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "CREW_WAGES",
+      "hierarchy_name": "Crew Wages & Salaries",
+      "parent_id": "LABOR_COSTS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Field crew wages",
+      "mapping_hints": [
+        {"pattern": "5110", "description": "Crew wages", "examples": ["5110"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "CREW_BENEFITS",
+      "hierarchy_name": "Crew Benefits",
+      "parent_id": "LABOR_COSTS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Health, retirement, and benefits",
+      "mapping_hints": [
+        {"pattern": "5120", "description": "Benefits", "examples": ["5120"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "MATERIALS_COSTS",
+      "hierarchy_name": "Materials & Supplies",
+      "parent_id": "DIRECT_COSTS",
+      "level": 2,
+      "sort_order": 2,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Direct materials consumed",
+      "mapping_hints": [
+        {"pattern": "5200*", "description": "Materials", "examples": ["5200"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "PROPPANT_COSTS",
+      "hierarchy_name": "Proppant",
+      "parent_id": "MATERIALS_COSTS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Sand and proppant costs",
+      "mapping_hints": [
+        {"pattern": "5210", "description": "Proppant", "examples": ["5210"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "CHEMICALS_COSTS",
+      "hierarchy_name": "Chemicals & Fluids",
+      "parent_id": "MATERIALS_COSTS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Frac chemicals and drilling fluids",
+      "mapping_hints": [
+        {"pattern": "5220", "description": "Chemicals", "examples": ["5220"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "EQUIPMENT_COSTS",
+      "hierarchy_name": "Equipment Costs",
+      "parent_id": "DIRECT_COSTS",
+      "level": 2,
+      "sort_order": 3,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Equipment-related direct costs",
+      "mapping_hints": [
+        {"pattern": "5300*", "description": "Equipment costs", "examples": ["5300"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "FUEL_COSTS",
+      "hierarchy_name": "Fuel & Power",
+      "parent_id": "EQUIPMENT_COSTS",
+      "level": 3,
+      "sort_order": 1,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Equipment fuel costs",
+      "mapping_hints": [
+        {"pattern": "5310", "description": "Fuel", "examples": ["5310"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "REPAIRS_COSTS",
+      "hierarchy_name": "Repairs & Maintenance",
+      "parent_id": "EQUIPMENT_COSTS",
+      "level": 3,
+      "sort_order": 2,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Equipment repairs and parts",
+      "mapping_hints": [
+        {"pattern": "5320", "description": "R&M", "examples": ["5320"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "THIRD_PARTY_COSTS",
+      "hierarchy_name": "Third-Party Services",
+      "parent_id": "DIRECT_COSTS",
+      "level": 2,
+      "sort_order": 4,
+      "is_calculated": false,
+      "node_type": "detail",
+      "description": "Subcontractor and third-party costs",
+      "mapping_hints": [
+        {"pattern": "5400", "description": "Third-party", "examples": ["5400"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": false, "is_leaf_node": true}
+    },
+    {
+      "hierarchy_id": "GROSS_MARGIN",
+      "hierarchy_name": "Gross Margin",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 3,
+      "is_calculated": true,
+      "formula_hint": "Total Revenue - Direct Costs",
+      "node_type": "calculated",
+      "description": "Gross margin on services",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "DDA",
+      "hierarchy_name": "Depreciation & Amortization",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 4,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "DD&A on service equipment",
+      "mapping_hints": [
+        {"pattern": "5500*", "description": "DD&A", "examples": ["5500"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "SGA",
+      "hierarchy_name": "SG&A Expenses",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 5,
+      "is_calculated": true,
+      "node_type": "rollup",
+      "description": "Selling, general & administrative",
+      "mapping_hints": [
+        {"pattern": "6*", "description": "SG&A", "examples": ["6000"], "source_type": "gl_account"}
+      ],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "OPERATING_INCOME",
+      "hierarchy_name": "Operating Income",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 6,
+      "is_calculated": true,
+      "formula_hint": "Gross Margin - DD&A - SG&A",
+      "node_type": "calculated",
+      "description": "Income from operations",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    },
+    {
+      "hierarchy_id": "EBITDA",
+      "hierarchy_name": "Adjusted EBITDA",
+      "parent_id": null,
+      "level": 1,
+      "sort_order": 7,
+      "is_calculated": true,
+      "formula_hint": "Operating Income + DD&A",
+      "node_type": "calculated",
+      "description": "EBITDA for valuation",
+      "mapping_hints": [],
+      "flags": {"include_flag": true, "calculation_flag": true, "is_leaf_node": false}
+    }
+  ],
+  "recommended_mappings": [
+    {"pattern": "41*", "description": "Map drilling revenue accounts", "examples": ["4100-4199"], "source_type": "gl_account"},
+    {"pattern": "42*", "description": "Map completion revenue accounts", "examples": ["4200-4299"], "source_type": "gl_account"},
+    {"pattern": "51*", "description": "Map labor cost accounts", "examples": ["5100-5199"], "source_type": "gl_account"},
+    {"pattern": "52*", "description": "Map materials cost accounts", "examples": ["5200-5299"], "source_type": "gl_account"},
+    {"pattern": "53*", "description": "Map equipment cost accounts", "examples": ["5300-5399"], "source_type": "gl_account"}
+  ],
+  "industry_metrics": {
+    "gross_margin_pct": "Gross Margin / Revenue",
+    "ebitda_margin": "EBITDA / Revenue",
+    "revenue_per_rig": "Drilling Revenue / Active Rigs",
+    "utilization_rate": "Revenue Days / Available Days",
+    "revenue_per_stage": "Frac Revenue / Stages Completed"
+  },
+  "created_at": "2025-01-22T00:00:00",
+  "updated_at": "2025-01-22T00:00:00"
+}
