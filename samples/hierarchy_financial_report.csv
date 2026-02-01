@@ -1,0 +1,18 @@
+HIERARCHY_ID,HIERARCHY_NAME,PARENT_ID,DESCRIPTION,LEVEL_1,LEVEL_2,LEVEL_3,LEVEL_4,LEVEL_5,INCLUDE_FLAG,EXCLUDE_FLAG,TRANSFORM_FLAG,CALCULATION_FLAG,ACTIVE_FLAG,IS_LEAF_NODE,FORMULA_GROUP,SORT_ORDER
+INCOME_STMT_1,Income Statement,,"Main P&L Report",Income Statement,,,,,true,false,false,false,true,false,,1
+REVENUE_1,Total Revenue,INCOME_STMT_1,"All revenue streams",Income Statement,Revenue,,,,true,false,false,true,true,false,Total Revenue,2
+SALES_1,Product Sales,REVENUE_1,"Sales of products",Income Statement,Revenue,Product Sales,,,true,false,false,false,true,false,Total Revenue,3
+SALES_HW_1,Hardware Sales,SALES_1,"Hardware product sales",Income Statement,Revenue,Product Sales,Hardware,,true,false,false,false,true,true,Total Revenue,4
+SALES_SW_1,Software Sales,SALES_1,"Software product sales",Income Statement,Revenue,Product Sales,Software,,true,false,false,false,true,true,Total Revenue,5
+SERVICES_1,Service Revenue,REVENUE_1,"Service-based revenue",Income Statement,Revenue,Services,,,true,false,false,false,true,false,Total Revenue,6
+SVC_CONSULT_1,Consulting,SERVICES_1,"Consulting services",Income Statement,Revenue,Services,Consulting,,true,false,false,false,true,true,Total Revenue,7
+SVC_SUPPORT_1,Support Services,SERVICES_1,"Support contracts",Income Statement,Revenue,Services,Support,,true,false,false,false,true,true,Total Revenue,8
+EXPENSES_1,Total Expenses,INCOME_STMT_1,"All expenses",Income Statement,Expenses,,,,true,false,false,true,true,false,Total Expenses,9
+COGS_1,Cost of Goods Sold,EXPENSES_1,"Direct costs",Income Statement,Expenses,COGS,,,true,false,false,true,true,false,Total Expenses,10
+COGS_HW_1,Hardware COGS,COGS_1,"Hardware direct costs",Income Statement,Expenses,COGS,Hardware,,true,false,false,false,true,true,Total Expenses,11
+COGS_SW_1,Software COGS,COGS_1,"Software direct costs",Income Statement,Expenses,COGS,Software,,true,false,false,false,true,true,Total Expenses,12
+OPEX_1,Operating Expenses,EXPENSES_1,"Operational costs",Income Statement,Expenses,Operating,,,true,false,false,true,true,false,Total Expenses,13
+SALARIES_1,Salaries & Wages,OPEX_1,"Personnel costs",Income Statement,Expenses,Operating,Salaries,,true,false,false,false,true,true,Total Expenses,14
+FACILITIES_1,Facilities,OPEX_1,"Office and utilities",Income Statement,Expenses,Operating,Facilities,,true,false,false,false,true,true,Total Expenses,15
+MARKETING_1,Marketing,OPEX_1,"Marketing spend",Income Statement,Expenses,Operating,Marketing,,true,false,false,false,true,true,Total Expenses,16
+NET_INCOME_1,Net Income,INCOME_STMT_1,"Bottom line",Income Statement,Net Income,,,,true,false,false,true,true,false,Net Income,17

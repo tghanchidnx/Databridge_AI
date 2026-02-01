@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "databridge-ai": {
+      "command": "python",
+      "args": ["C:\\Users\\telha\\databridge_ai\\src\\server.py"],
+      "env": {}
+    }
+  }
+}

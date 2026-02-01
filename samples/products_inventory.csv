@@ -1,0 +1,11 @@
+product_id,product_name,category,subcategory,unit_price,stock_qty,supplier
+P001,Laptop Pro 15,Electronics,Computers,1299.99,45,TechSupply Inc
+P002,Wireless Mouse,Electronics,Accessories,29.99,250,TechSupply Inc
+P003,Office Chair Deluxe,Furniture,Seating,349.99,32,OfficeMax Ltd
+P004,Standing Desk,Furniture,Desks,599.99,18,OfficeMax Ltd
+P005,Monitor 27" 4K,Electronics,Displays,449.99,65,TechSupply Inc
+P006,Keyboard Mechanical,Electronics,Accessories,89.99,180,TechSupply Inc
+P007,Filing Cabinet,Furniture,Storage,179.99,28,OfficeMax Ltd
+P008,Desk Lamp LED,Furniture,Lighting,45.99,95,LightingPro
+P009,USB-C Hub,Electronics,Accessories,59.99,120,TechSupply Inc
+P010,Webcam HD,Electronics,Accessories,79.99,88,TechSupply Inc

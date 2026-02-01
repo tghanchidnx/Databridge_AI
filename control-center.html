@@ -1,0 +1,2175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataBridge AI - Control Center</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --accent-blue: #3b82f6;
+            --accent-green: #22c55e;
+            --accent-red: #ef4444;
+            --accent-yellow: #eab308;
+            --accent-purple: #a855f7;
+            --border-color: #475569;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-primary);
+            border-radius: 20px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.online { background: var(--accent-green); }
+        .status-dot.offline { background: var(--accent-red); animation: none; }
+        .status-dot.checking { background: var(--accent-yellow); }
+        .status-dot.manual { background: var(--accent-purple); animation: none; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .service-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .service-header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .service-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .service-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .service-icon.python { background: linear-gradient(135deg, #3776ab, #ffd43b); }
+        .service-icon.nestjs { background: linear-gradient(135deg, #e0234e, #ff6b6b); }
+        .service-icon.react { background: linear-gradient(135deg, #61dafb, #087ea4); }
+
+        .service-name h3 {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+
+        .service-name span {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .service-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .service-status.online {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--accent-green);
+        }
+
+        .service-status.offline {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-red);
+        }
+
+        .service-status.checking {
+            background: rgba(234, 179, 8, 0.15);
+            color: var(--accent-yellow);
+        }
+
+        .service-status.manual {
+            background: rgba(168, 85, 247, 0.15);
+            color: var(--accent-purple);
+        }
+
+        .service-body {
+            padding: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+
+        .info-label {
+            width: 100px;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .info-value {
+            color: var(--text-primary);
+            word-break: break-all;
+        }
+
+        .info-value a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        .info-value a:hover {
+            text-decoration: underline;
+        }
+
+        .info-value code {
+            background: var(--bg-primary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+        }
+
+        .folder-path {
+            background: var(--bg-primary);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.8rem;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .folder-path:hover {
+            background: var(--bg-card);
+        }
+
+        .folder-path .icon {
+            color: var(--accent-yellow);
+        }
+
+        .service-actions {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-success {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #16a34a;
+        }
+
+        .btn-danger {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .quick-links {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            margin-bottom: 40px;
+        }
+
+        .quick-links h2 {
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .link-card {
+            background: var(--bg-primary);
+            padding: 16px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .link-card:hover {
+            border-color: var(--accent-blue);
+            background: var(--bg-card);
+        }
+
+        .link-icon {
+            font-size: 1.5rem;
+        }
+
+        .link-text h4 {
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+
+        .link-text span {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .commands-section {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            margin-bottom: 40px;
+        }
+
+        .commands-section h2 {
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .command-block {
+            background: var(--bg-primary);
+            border-radius: 10px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .command-header {
+            padding: 12px 16px;
+            background: var(--bg-card);
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .command-body {
+            padding: 16px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .copy-btn:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .terminal-output {
+            background: #0c0c0c;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .terminal-output .line {
+            margin-bottom: 4px;
+        }
+
+        .terminal-output .prompt {
+            color: var(--accent-green);
+        }
+
+        .terminal-output .info {
+            color: var(--accent-blue);
+        }
+
+        .terminal-output .error {
+            color: var(--accent-red);
+        }
+
+        .terminal-output .warning {
+            color: var(--accent-yellow);
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .status-bar {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>DataBridge AI Control Center</h1>
+            <p>Manage and monitor all services for the DataBridge AI platform</p>
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-dot" id="mcp-dot"></span>
+                    <span>MCP Server</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-dot" id="nestjs-dot"></span>
+                    <span>NestJS V1 (3001)</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-dot" id="react-dot"></span>
+                    <span>React V1 (5173)</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-dot" id="nestjs-v2-dot"></span>
+                    <span>NestJS V2 (3002)</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-dot" id="react-v2-dot"></span>
+                    <span>React V2 (5174)</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-dot online" id="autosync-dot"></span>
+                    <span>Auto-Sync: ON</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="services-grid">
+            <!-- DataBridge AI MCP Server -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-title">
+                        <div class="service-icon python">&#128013;</div>
+                        <div class="service-name">
+                            <h3>DataBridge AI MCP Server</h3>
+                            <span>Python / FastMCP</span>
+                        </div>
+                    </div>
+                    <div class="service-status checking" id="mcp-status">
+                        <span class="status-dot checking"></span>
+                        Checking...
+                    </div>
+                </div>
+                <div class="service-body">
+                    <div class="info-row">
+                        <span class="info-label">Type:</span>
+                        <span class="info-value">MCP Protocol Server (72 tools)</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Port:</span>
+                        <span class="info-value"><code>N/A (MCP stdio)</code></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Entry Point:</span>
+                        <span class="info-value"><code>server.py</code></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Config:</span>
+                        <span class="info-value"><code>src/config.py</code>, <code>.env</code></span>
+                    </div>
+                    <div class="folder-path" onclick="copyPath('C:\\Users\\telha\\Databridge_AI')">
+                        <span class="icon">&#128193;</span>
+                        <span>C:\Users\telha\Databridge_AI</span>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn btn-success" onclick="copyCommand('python server.py')">
+                        &#9654; Start Command
+                    </button>
+                    <button class="btn btn-secondary" onclick="copyCommand('fastmcp dev src/server.py')">
+                        &#128260; Dev Mode
+                    </button>
+                    <button class="btn btn-secondary" onclick="copyCommand('pytest tests/')">
+                        &#128269; Run Tests
+                    </button>
+                </div>
+            </div>
+
+            <!-- NestJS Backend -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-title">
+                        <div class="service-icon nestjs">&#128187;</div>
+                        <div class="service-name">
+                            <h3>Hierarchy Builder Backend</h3>
+                            <span>NestJS / Prisma / MySQL</span>
+                        </div>
+                    </div>
+                    <div class="service-status checking" id="nestjs-status">
+                        <span class="status-dot checking"></span>
+                        Checking...
+                    </div>
+                </div>
+                <div class="service-body">
+                    <div class="info-row">
+                        <span class="info-label">Port:</span>
+                        <span class="info-value"><a href="http://localhost:3001" target="_blank">http://localhost:3001</a></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">API Docs:</span>
+                        <span class="info-value"><a href="http://localhost:3001/api/docs" target="_blank">Swagger UI</a></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">API Prefix:</span>
+                        <span class="info-value"><code>/api</code></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Database:</span>
+                        <span class="info-value"><code>MySQL (localhost:3306)</code></span>
+                    </div>
+                    <div class="folder-path" onclick="copyPath('C:\\Users\\telha\\Databridge_AI\\current application\\extracted_app\\HIERARCHY_BUILDER_APP\\hierarchybuilder-nestjs')">
+                        <span class="icon">&#128193;</span>
+                        <span>...\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs</span>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn btn-success" onclick="copyCommand('npm run start:dev')">
+                        &#9654; Start Dev
+                    </button>
+                    <button class="btn btn-primary" onclick="copyCommand('npm run start:prod')">
+                        &#128640; Production
+                    </button>
+                    <button class="btn btn-secondary" onclick="copyCommand('npm run prisma:migrate')">
+                        &#128451; Migrate DB
+                    </button>
+                </div>
+            </div>
+
+            <!-- React Frontend -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-title">
+                        <div class="service-icon react">&#9883;</div>
+                        <div class="service-name">
+                            <h3>DataAmp AI Frontend</h3>
+                            <span>React / Vite / TailwindCSS</span>
+                        </div>
+                    </div>
+                    <div class="service-status checking" id="react-status">
+                        <span class="status-dot checking"></span>
+                        Checking...
+                    </div>
+                </div>
+                <div class="service-body">
+                    <div class="info-row">
+                        <span class="info-label">Dev Port:</span>
+                        <span class="info-value"><a href="http://localhost:5173" target="_blank">http://localhost:5173</a></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Alt Port:</span>
+                        <span class="info-value"><a href="http://localhost:5174" target="_blank">http://localhost:5174</a></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Backend:</span>
+                        <span class="info-value"><code>http://localhost:3001/api</code></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Build Tool:</span>
+                        <span class="info-value"><code>Vite</code></span>
+                    </div>
+                    <div class="folder-path" onclick="copyPath('C:\\Users\\telha\\Databridge_AI\\current application\\extracted_app\\HIERARCHY_BUILDER_APP\\dataamp-ai')">
+                        <span class="icon">&#128193;</span>
+                        <span>...\HIERARCHY_BUILDER_APP\dataamp-ai</span>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn btn-success" onclick="copyCommand('npm run dev')">
+                        &#9654; Start Dev
+                    </button>
+                    <button class="btn btn-primary" onclick="copyCommand('npm run build')">
+                        &#128230; Build
+                    </button>
+                    <button class="btn btn-secondary" onclick="copyCommand('npm run kill')">
+                        &#128721; Kill Port
+                    </button>
+                </div>
+            </div>
+
+            <!-- Hierarchy Knowledge Base MCP Tools -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-title">
+                        <div class="service-icon" style="background: linear-gradient(135deg, #10b981, #059669);">&#128209;</div>
+                        <div class="service-name">
+                            <h3>Hierarchy KB MCP Tools</h3>
+                            <span>Connections / Schema / Data Matcher</span>
+                        </div>
+                    </div>
+                    <div class="service-status manual" id="hkb-status">
+                        <span class="status-dot manual"></span>
+                        65+ Tools
+                    </div>
+                </div>
+                <div class="service-body">
+                    <div class="info-row">
+                        <span class="info-label">Tool Count:</span>
+                        <span class="info-value"><code>65+ MCP tools</code></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Backend:</span>
+                        <span class="info-value"><a href="http://localhost:3001/api" target="_blank">localhost:3001/api</a></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Auth:</span>
+                        <span class="info-value"><code>API Key (X-API-Key)</code></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Categories:</span>
+                        <span class="info-value">Connections (8), Schema Matcher (4), Data Matcher (3), Hierarchy (35+)</span>
+                    </div>
+                    <div class="folder-path" onclick="copyPath('C:\\Users\\telha\\Databridge_AI\\src')">
+                        <span class="icon">&#128193;</span>
+                        <span>C:\Users\telha\Databridge_AI\src</span>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn btn-success" onclick="copyCommand('pytest tests/ -v')">
+                        &#128269; Run Tests
+                    </button>
+                    <button class="btn btn-secondary" onclick="copyCommand('python -c \"from src.server import mcp; print(len(mcp._tool_manager._tools))\"')">
+                        &#128202; Count Tools
+                    </button>
+                    <button class="btn btn-primary" onclick="window.open('http://localhost:5173/hierarchy-knowledge-base', '_blank')">
+                        &#127912; Open UI
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- V2 FP&A Platform Section Header -->
+        <div class="commands-section" style="background: linear-gradient(135deg, var(--bg-secondary), rgba(168, 85, 247, 0.15)); border: 2px solid var(--accent-purple); margin-bottom: 24px;">
+            <h2 style="color: var(--accent-purple);">&#128640; V2 FP&A Platform - Enhanced Features</h2>
+            <p style="color: var(--text-secondary); margin-top: 8px;">
+                Next-generation Financial Planning & Analysis platform with multi-system mapping, live data preview, fact table generation, Excel integration, and AI-powered automation.
+            </p>
+            <div style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;">
+                <span style="background: rgba(168, 85, 247, 0.2); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem;">Multi-System Mapping</span>
+                <span style="background: rgba(59, 130, 246, 0.2); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem;">Live Data Preview</span>
+                <span style="background: rgba(34, 197, 94, 0.2); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem;">Fact Table Generation</span>
+                <span style="background: rgba(234, 179, 8, 0.2); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem;">Excel Import/Export</span>
+                <span style="background: rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem;">AI Automation</span>
+            </div>
+        </div>
+
+        <!-- V2 Services Grid -->
+        <div class="services-grid">
+            <!-- V2 NestJS Backend -->
+            <div class="service-card" style="border: 1px solid var(--accent-purple);">
+                <div class="service-header">
+                    <div class="service-title">
+                        <div class="service-icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">&#128187;</div>
+                        <div class="service-name">
+                            <h3>V2 Backend (FP&A)</h3>
+                            <span>NestJS / Prisma / MySQL</span>
+                        </div>
+                    </div>
+                    <div class="service-status checking" id="nestjs-v2-status">
+                        <span class="status-dot checking"></span>
+                        Checking...
+                    </div>
+                </div>
+                <div class="service-body">
+                    <div class="info-row">
+                        <span class="info-label">Port:</span>
+                        <span class="info-value"><a href="http://localhost:3002" target="_blank">http://localhost:3002</a></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">API Docs:</span>
+                        <span class="info-value"><a href="http://localhost:3002/api/docs" target="_blank">Swagger UI</a></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Database:</span>
+                        <span class="info-value"><code>MySQL (localhost:3308)</code></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Features:</span>
+                        <span class="info-value">AI Services, Excel Module, Query Executor, Fact Tables</span>
+                    </div>
+                    <div class="folder-path" onclick="copyPath('C:\\Users\\telha\\Databridge_AI\\v2\\backend')">
+                        <span class="icon">&#128193;</span>
+                        <span>C:\Users\telha\Databridge_AI\v2\backend</span>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn btn-success" onclick="copyCommand('cd C:\\Users\\telha\\Databridge_AI\\v2\\backend && npm run start:dev')">
+                        &#9654; Start Dev
+                    </button>
+                    <button class="btn btn-primary" onclick="window.open('http://localhost:3002/api/docs', '_blank')">
+                        &#128196; API Docs
+                    </button>
+                    <button class="btn btn-secondary" onclick="copyCommand('cd C:\\Users\\telha\\Databridge_AI\\v2\\backend && npm run prisma:migrate')">
+                        &#128451; Migrate DB
+                    </button>
+                </div>
+            </div>
+
+            <!-- V2 React Frontend -->
+            <div class="service-card" style="border: 1px solid var(--accent-purple);">
+                <div class="service-header">
+                    <div class="service-title">
+                        <div class="service-icon" style="background: linear-gradient(135deg, #a855f7, #3b82f6);">&#9883;</div>
+                        <div class="service-name">
+                            <h3>V2 Frontend (FP&A)</h3>
+                            <span>React / Vite / TailwindCSS</span>
+                        </div>
+                    </div>
+                    <div class="service-status checking" id="react-v2-status">
+                        <span class="status-dot checking"></span>
+                        Checking...
+                    </div>
+                </div>
+                <div class="service-body">
+                    <div class="info-row">
+                        <span class="info-label">Port:</span>
+                        <span class="info-value"><a href="http://localhost:5174" target="_blank">http://localhost:5174</a></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Backend:</span>
+                        <span class="info-value"><code>http://localhost:3002/api</code></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Features:</span>
+                        <span class="info-value">System Mapping Panel, Live Preview, Excel Import</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Components:</span>
+                        <span class="info-value">Keyboard Shortcuts, Floating Toolbar, Heatmap</span>
+                    </div>
+                    <div class="folder-path" onclick="copyPath('C:\\Users\\telha\\Databridge_AI\\v2\\frontend')">
+                        <span class="icon">&#128193;</span>
+                        <span>C:\Users\telha\Databridge_AI\v2\frontend</span>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn btn-success" onclick="copyCommand('cd C:\\Users\\telha\\Databridge_AI\\v2\\frontend && npm run dev')">
+                        &#9654; Start Dev
+                    </button>
+                    <button class="btn btn-primary" onclick="window.open('http://localhost:5174', '_blank')">
+                        &#127912; Open UI
+                    </button>
+                    <button class="btn btn-secondary" onclick="copyCommand('cd C:\\Users\\telha\\Databridge_AI\\v2\\frontend && npm run build')">
+                        &#128230; Build
+                    </button>
+                </div>
+            </div>
+
+            <!-- V2 AI Services -->
+            <div class="service-card" style="border: 1px solid var(--accent-purple);">
+                <div class="service-header">
+                    <div class="service-title">
+                        <div class="service-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">&#129302;</div>
+                        <div class="service-name">
+                            <h3>V2 AI Services</h3>
+                            <span>NL Query / Auto-Mapper / Anomaly</span>
+                        </div>
+                    </div>
+                    <div class="service-status manual">
+                        <span class="status-dot manual"></span>
+                        8 Services
+                    </div>
+                </div>
+                <div class="service-body">
+                    <div class="info-row">
+                        <span class="info-label">Endpoints:</span>
+                        <span class="info-value"><code>/api/ai/*</code></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">NL Query:</span>
+                        <span class="info-value">Natural language to SQL translation</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Auto-Map:</span>
+                        <span class="info-value">Excel column to hierarchy mapping</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Services:</span>
+                        <span class="info-value">Chat, Mapping, Formula, Anomaly, NL Builder</span>
+                    </div>
+                    <div class="folder-path" onclick="copyPath('C:\\Users\\telha\\Databridge_AI\\v2\\backend\\src\\modules\\ai')">
+                        <span class="icon">&#128193;</span>
+                        <span>v2\backend\src\modules\ai</span>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn btn-primary" onclick="window.open('http://localhost:3002/api/docs#/ai', '_blank')">
+                        &#128196; AI API Docs
+                    </button>
+                    <button class="btn btn-secondary" onclick="copyCommand('curl -X POST http://localhost:3002/api/ai/health')">
+                        &#128269; Health Check
+                    </button>
+                </div>
+            </div>
+
+            <!-- V2 Excel Module -->
+            <div class="service-card" style="border: 1px solid var(--accent-purple);">
+                <div class="service-header">
+                    <div class="service-title">
+                        <div class="service-icon" style="background: linear-gradient(135deg, #22c55e, #10b981);">&#128196;</div>
+                        <div class="service-name">
+                            <h3>V2 Excel Module</h3>
+                            <span>Import / Export / Auto-Detect</span>
+                        </div>
+                    </div>
+                    <div class="service-status manual">
+                        <span class="status-dot manual"></span>
+                        4 Endpoints
+                    </div>
+                </div>
+                <div class="service-body">
+                    <div class="info-row">
+                        <span class="info-label">Import:</span>
+                        <span class="info-value"><code>POST /api/excel/import</code></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Export:</span>
+                        <span class="info-value"><code>GET /api/excel/export/:projectId</code></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Preview:</span>
+                        <span class="info-value"><code>POST /api/excel/preview</code></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Features:</span>
+                        <span class="info-value">AI column detection, Multi-sheet, Conflict resolution</span>
+                    </div>
+                    <div class="folder-path" onclick="copyPath('C:\\Users\\telha\\Databridge_AI\\v2\\backend\\src\\modules\\excel')">
+                        <span class="icon">&#128193;</span>
+                        <span>v2\backend\src\modules\excel</span>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn btn-primary" onclick="window.open('http://localhost:3002/api/docs#/excel', '_blank')">
+                        &#128196; Excel API Docs
+                    </button>
+                    <button class="btn btn-secondary" onclick="copyCommand('curl http://localhost:3002/api/excel/template -o template.xlsx')">
+                        &#128229; Get Template
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="quick-links">
+            <h2>&#128279; Quick Links</h2>
+            <div class="links-grid">
+                <a href="http://localhost:5173" target="_blank" class="link-card">
+                    <span class="link-icon">&#127912;</span>
+                    <div class="link-text">
+                        <h4>DataAmp UI</h4>
+                        <span>localhost:5173</span>
+                    </div>
+                </a>
+                <a href="http://localhost:3001/api/docs" target="_blank" class="link-card">
+                    <span class="link-icon">&#128196;</span>
+                    <div class="link-text">
+                        <h4>Swagger API Docs</h4>
+                        <span>localhost:3001/api/docs</span>
+                    </div>
+                </a>
+                <a href="file:///C:/Users/telha/Databridge_AI/docs/MANIFEST.md" target="_blank" class="link-card">
+                    <span class="link-icon">&#128214;</span>
+                    <div class="link-text">
+                        <h4>MCP Tools Manifest</h4>
+                        <span>docs/MANIFEST.md</span>
+                    </div>
+                </a>
+                <a href="file:///C:/Users/telha/Databridge_AI/docs/USER_DOCUMENTATION.md" target="_blank" class="link-card">
+                    <span class="link-icon">&#128221;</span>
+                    <div class="link-text">
+                        <h4>User Documentation</h4>
+                        <span>docs/USER_DOCUMENTATION.md</span>
+                    </div>
+                </a>
+                <a href="file:///C:/Users/telha/Databridge_AI/docs/APPLICATION_DEMO.html" target="_blank" class="link-card">
+                    <span class="link-icon">&#127916;</span>
+                    <div class="link-text">
+                        <h4>Interactive Demo</h4>
+                        <span>docs/APPLICATION_DEMO.html</span>
+                    </div>
+                </a>
+                <a href="file:///C:/Users/telha/Databridge_AI/samples" target="_blank" class="link-card">
+                    <span class="link-icon">&#128194;</span>
+                    <div class="link-text">
+                        <h4>Sample Data</h4>
+                        <span>samples/</span>
+                    </div>
+                </a>
+                <a href="http://localhost:5173/hierarchy-knowledge-base" target="_blank" class="link-card">
+                    <span class="link-icon">&#128209;</span>
+                    <div class="link-text">
+                        <h4>Hierarchy KB UI</h4>
+                        <span>localhost:5173/hierarchy-knowledge-base</span>
+                    </div>
+                </a>
+                <a href="file:///C:/Users/telha/Databridge_AI/docs/MCP_HIERARCHY_KB_TOOLS.md" target="_blank" class="link-card">
+                    <span class="link-icon">&#128218;</span>
+                    <div class="link-text">
+                        <h4>Hierarchy KB Docs</h4>
+                        <span>docs/MCP_HIERARCHY_KB_TOOLS.md</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- V2 Quick Links -->
+        <div class="quick-links" style="border: 1px solid var(--accent-purple); background: linear-gradient(135deg, var(--bg-secondary), rgba(168, 85, 247, 0.08));">
+            <h2 style="color: var(--accent-purple);">&#128640; V2 FP&A Platform Links</h2>
+            <div class="links-grid">
+                <a href="http://localhost:5174" target="_blank" class="link-card">
+                    <span class="link-icon">&#127912;</span>
+                    <div class="link-text">
+                        <h4>V2 FP&A UI</h4>
+                        <span>localhost:5174</span>
+                    </div>
+                </a>
+                <a href="http://localhost:3002/api/docs" target="_blank" class="link-card">
+                    <span class="link-icon">&#128196;</span>
+                    <div class="link-text">
+                        <h4>V2 Swagger API Docs</h4>
+                        <span>localhost:3002/api/docs</span>
+                    </div>
+                </a>
+                <a href="file:///C:/Users/telha/Databridge_AI/v2/docs/V2_FPA_PLATFORM_DOCUMENTATION.md" target="_blank" class="link-card">
+                    <span class="link-icon">&#128214;</span>
+                    <div class="link-text">
+                        <h4>V2 FP&A Documentation</h4>
+                        <span>v2/docs/V2_FPA_PLATFORM_DOCUMENTATION.md</span>
+                    </div>
+                </a>
+                <a href="file:///C:/Users/telha/Databridge_AI/v2/docs/V2_INTERACTIVE_DEMO.html" target="_blank" class="link-card">
+                    <span class="link-icon">&#127916;</span>
+                    <div class="link-text">
+                        <h4>V2 Interactive Demo</h4>
+                        <span>v2/docs/V2_INTERACTIVE_DEMO.html</span>
+                    </div>
+                </a>
+                <a href="http://localhost:5174/hierarchy-knowledge-base" target="_blank" class="link-card">
+                    <span class="link-icon">&#128209;</span>
+                    <div class="link-text">
+                        <h4>V2 Hierarchy KB</h4>
+                        <span>localhost:5174/hierarchy-knowledge-base</span>
+                    </div>
+                </a>
+                <a href="http://localhost:3002/api/docs#/ai" target="_blank" class="link-card">
+                    <span class="link-icon">&#129302;</span>
+                    <div class="link-text">
+                        <h4>V2 AI Services API</h4>
+                        <span>localhost:3002/api/docs#/ai</span>
+                    </div>
+                </a>
+                <a href="http://localhost:3002/api/docs#/excel" target="_blank" class="link-card">
+                    <span class="link-icon">&#128196;</span>
+                    <div class="link-text">
+                        <h4>V2 Excel API</h4>
+                        <span>localhost:3002/api/docs#/excel</span>
+                    </div>
+                </a>
+                <a href="http://localhost:3002/api/docs#/smart-hierarchy" target="_blank" class="link-card">
+                    <span class="link-icon">&#128202;</span>
+                    <div class="link-text">
+                        <h4>V2 Smart Hierarchy API</h4>
+                        <span>localhost:3002/api/docs#/smart-hierarchy</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Startup Commands -->
+        <div class="commands-section">
+            <h2>&#128187; Startup Commands</h2>
+
+            <!-- MySQL Setup Section -->
+            <div class="command-block" style="border: 1px solid var(--accent-yellow);">
+                <div class="command-header" style="background: linear-gradient(135deg, var(--bg-card), rgba(234, 179, 8, 0.2));">
+                    <span>&#128451; MySQL Setup (First Time Only - Run as Admin)</span>
+                    <button class="copy-btn" onclick="copyMySQLSetup()">&#128203; Copy All</button>
+                </div>
+                <div class="command-body">
+<span style="color: #eab308">&#9888; IMPORTANT: Run these commands in an Administrator Command Prompt</span>
+<span style="color: #94a3b8"># Right-click Command Prompt → Run as Administrator</span>
+
+<span style="color: #3b82f6">Step 1: Navigate to MySQL bin directory</span>
+cd "C:\Program Files\MySQL\MySQL Server 8.4\bin"
+
+<span style="color: #3b82f6">Step 2: Initialize MySQL data directory</span>
+mysqld --initialize-insecure --console
+
+<span style="color: #3b82f6">Step 3: Install MySQL as Windows service</span>
+mysqld --install MySQL84
+
+<span style="color: #3b82f6">Step 4: Start MySQL service</span>
+net start MySQL84
+
+<span style="color: #3b82f6">Step 5: Set root password and create database</span>
+mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'admin'; CREATE DATABASE IF NOT EXISTS dataamplifier CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; FLUSH PRIVILEGES;"
+
+<span style="color: #22c55e">&#10004; MySQL is now configured!</span></div>
+            </div>
+
+            <div class="command-block" style="border: 1px solid var(--accent-green);">
+                <div class="command-header" style="background: linear-gradient(135deg, var(--bg-card), rgba(34, 197, 94, 0.2));">
+                    <span>&#9889; Quick Start (After Initial Setup)</span>
+                    <button class="copy-btn" onclick="copyQuickStart()">&#128203; Copy All</button>
+                </div>
+                <div class="command-body">
+<span style="color: #22c55e">&#128293; Run these 3 commands in separate terminals:</span>
+
+<span style="color: #3b82f6">1. Start MySQL (Admin prompt - if not running):</span>
+net start MySQL84
+
+<span style="color: #3b82f6">2. Start NestJS Backend (Terminal 1):</span>
+cd "C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"
+npm run start:dev
+
+<span style="color: #3b82f6">3. Start Vite Frontend (Terminal 2):</span>
+cd "C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai"
+npm run dev
+
+<span style="color: #22c55e">&#10004; Open http://localhost:5173 in your browser</span></div>
+            </div>
+
+            <div class="command-block">
+                <div class="command-header">
+                    <span>Services Status Check</span>
+                </div>
+                <div class="command-body">
+<span style="color: #94a3b8"># Check MySQL service status (Admin prompt)</span>
+net start MySQL84
+<span style="color: #22c55e"># If running: "The requested service has already been started"</span>
+
+<span style="color: #94a3b8"># Check NestJS backend health</span>
+curl http://localhost:3001/api/health
+<span style="color: #22c55e"># Expected: {"data":{"status":"ok","database":{"status":"connected"}}}</span>
+
+<span style="color: #94a3b8"># Check what's running on ports</span>
+netstat -ano | findstr ":3306"   <span style="color: #94a3b8"># MySQL</span>
+netstat -ano | findstr ":3001"   <span style="color: #94a3b8"># NestJS Backend</span>
+netstat -ano | findstr ":5173"   <span style="color: #94a3b8"># Vite Frontend</span></div>
+            </div>
+
+            <div class="command-block">
+                <div class="command-header">
+                    <span>Start All Services (3 Terminals)</span>
+                    <button class="copy-btn" onclick="copyAllCommands()">&#128203; Copy All</button>
+                </div>
+                <div class="command-body">
+<span style="color: #94a3b8"># Terminal 1: Python MCP Server</span>
+cd C:\Users\telha\Databridge_AI
+python server.py
+
+<span style="color: #94a3b8"># Terminal 2: NestJS Backend</span>
+cd "C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"
+npm run start:dev
+
+<span style="color: #94a3b8"># Terminal 3: React Frontend</span>
+cd "C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai"
+npm run dev</div>
+            </div>
+
+            <div class="command-block">
+                <div class="command-header">
+                    <span>Database Commands</span>
+                </div>
+                <div class="command-body">
+<span style="color: #94a3b8"># Generate Prisma client</span>
+npm run prisma:generate
+
+<span style="color: #94a3b8"># Run database migrations</span>
+npm run prisma:migrate
+
+<span style="color: #94a3b8"># Open Prisma Studio (DB GUI)</span>
+npx prisma studio</div>
+            </div>
+
+            <div class="command-block">
+                <div class="command-header">
+                    <span>Testing Commands</span>
+                </div>
+                <div class="command-body">
+<span style="color: #94a3b8"># Python tests - All tests</span>
+cd C:\Users\telha\Databridge_AI
+pytest tests/ -v
+
+<span style="color: #94a3b8"># Run specific test file</span>
+pytest tests/test_hierarchy_kb.py -v
+
+<span style="color: #94a3b8"># Quick tool test</span>
+python test_tools.py
+
+<span style="color: #94a3b8"># Test with coverage</span>
+pytest tests/ -v --cov=src --cov-report=html
+
+<span style="color: #94a3b8"># NestJS tests</span>
+cd hierarchybuilder-nestjs
+npm run test</div>
+            </div>
+
+            <div class="command-block">
+                <div class="command-header">
+                    <span>Hierarchy KB Testing Guide</span>
+                </div>
+                <div class="command-body">
+<span style="color: #94a3b8"># 1. Verify MCP Server loads all tools</span>
+python -c "from src.server import mcp; print(f'Total tools: {len(mcp._tool_manager._tools)}')"
+
+<span style="color: #94a3b8"># 2. Test Connections module (requires NestJS backend)</span>
+pytest tests/test_hierarchy_kb.py::TestConnectionsModule -v
+
+<span style="color: #94a3b8"># 3. Test Schema Matcher module</span>
+pytest tests/test_hierarchy_kb.py::TestSchemaMatcherModule -v
+
+<span style="color: #94a3b8"># 4. Test Data Matcher module</span>
+pytest tests/test_hierarchy_kb.py::TestDataMatcherModule -v
+
+<span style="color: #94a3b8"># 5. Test Enhanced Hierarchy tools</span>
+pytest tests/test_hierarchy_kb.py::TestEnhancedHierarchyTools -v
+
+<span style="color: #94a3b8"># 6. Integration test (all modules)</span>
+pytest tests/test_hierarchy_kb.py -v --tb=short</div>
+            </div>
+        </div>
+
+        <!-- V2 FP&A Platform Startup Commands -->
+        <div class="commands-section" style="background: linear-gradient(135deg, var(--bg-secondary), rgba(168, 85, 247, 0.1)); border: 2px solid var(--accent-purple);">
+            <h2 style="color: var(--accent-purple);">&#128640; V2 FP&A Platform Startup Commands</h2>
+
+            <div class="command-block" style="border: 1px solid var(--accent-purple);">
+                <div class="command-header" style="background: linear-gradient(135deg, var(--bg-card), rgba(168, 85, 247, 0.2));">
+                    <span>&#9889; V2 Quick Start (3 Terminals)</span>
+                    <button class="copy-btn" onclick="copyV2QuickStart()">&#128203; Copy All</button>
+                </div>
+                <div class="command-body">
+<span style="color: #a855f7">&#128293; V2 Services run on DIFFERENT ports from V1:</span>
+<span style="color: #94a3b8">V2 Backend: 3002 | V2 Frontend: 5174 | V2 MySQL: 3308</span>
+
+<span style="color: #3b82f6">Terminal 1 - V2 MySQL (if using Docker):</span>
+cd C:\Users\telha\Databridge_AI\v2
+docker-compose up -d mysql-v2
+<span style="color: #94a3b8"># Or use existing MySQL on port 3308</span>
+
+<span style="color: #3b82f6">Terminal 2 - V2 NestJS Backend:</span>
+cd C:\Users\telha\Databridge_AI\v2\backend
+npm install   <span style="color: #94a3b8"># First time only</span>
+npm run start:dev
+<span style="color: #94a3b8"># Wait for: "Nest application successfully started on port 3002"</span>
+
+<span style="color: #3b82f6">Terminal 3 - V2 React Frontend:</span>
+cd C:\Users\telha\Databridge_AI\v2\frontend
+npm install   <span style="color: #94a3b8"># First time only</span>
+npm run dev
+<span style="color: #94a3b8"># Opens at: http://localhost:5174</span>
+
+<span style="color: #22c55e">&#10004; V2 FP&A Platform is ready!</span>
+<span style="color: #22c55e">   UI: http://localhost:5174</span>
+<span style="color: #22c55e">   API Docs: http://localhost:3002/api/docs</span></div>
+            </div>
+
+            <div class="command-block" style="border: 1px solid var(--accent-purple);">
+                <div class="command-header" style="background: linear-gradient(135deg, var(--bg-card), rgba(168, 85, 247, 0.2));">
+                    <span>&#128451; V2 Database Setup</span>
+                    <button class="copy-btn" onclick="copyV2DBSetup()">&#128203; Copy All</button>
+                </div>
+                <div class="command-body">
+<span style="color: #a855f7">&#9888; V2 uses a separate database on port 3308</span>
+
+<span style="color: #3b82f6">Option 1 - Docker Compose (Recommended):</span>
+cd C:\Users\telha\Databridge_AI\v2
+docker-compose up -d mysql-v2 redis-v2
+
+<span style="color: #3b82f6">Option 2 - Local MySQL on port 3308:</span>
+<span style="color: #94a3b8"># Create V2 database</span>
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS hierarchybuilder_v2 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+<span style="color: #3b82f6">Run Prisma Migrations:</span>
+cd C:\Users\telha\Databridge_AI\v2\backend
+npm run prisma:migrate
+npm run prisma:generate
+
+<span style="color: #3b82f6">Seed Initial Data (Optional):</span>
+npm run prisma:seed</div>
+            </div>
+
+            <div class="command-block" style="border: 1px solid var(--accent-purple);">
+                <div class="command-header" style="background: linear-gradient(135deg, var(--bg-card), rgba(168, 85, 247, 0.2));">
+                    <span>&#128269; V2 Health Checks</span>
+                </div>
+                <div class="command-body">
+<span style="color: #94a3b8"># Check V2 Backend Health</span>
+curl http://localhost:3002/api/health
+<span style="color: #22c55e"># Expected: {"status":"ok","database":{"status":"connected"}}</span>
+
+<span style="color: #94a3b8"># Check V2 AI Services Health</span>
+curl http://localhost:3002/api/ai/health
+<span style="color: #22c55e"># Expected: {"status":"healthy","service":"ai"}</span>
+
+<span style="color: #94a3b8"># Check V2 Frontend</span>
+curl -I http://localhost:5174
+<span style="color: #22c55e"># Expected: HTTP/1.1 200 OK</span>
+
+<span style="color: #94a3b8"># Check V2 Ports</span>
+netstat -ano | findstr ":3002"   <span style="color: #94a3b8"># V2 Backend</span>
+netstat -ano | findstr ":5174"   <span style="color: #94a3b8"># V2 Frontend</span>
+netstat -ano | findstr ":3308"   <span style="color: #94a3b8"># V2 MySQL</span>
+netstat -ano | findstr ":6381"   <span style="color: #94a3b8"># V2 Redis</span></div>
+            </div>
+
+            <div class="command-block" style="border: 1px solid var(--accent-purple);">
+                <div class="command-header" style="background: linear-gradient(135deg, var(--bg-card), rgba(168, 85, 247, 0.2));">
+                    <span>&#129302; V2 AI Services API Examples</span>
+                </div>
+                <div class="command-body">
+<span style="color: #a855f7">&#128161; AI-Powered Features on port 3002</span>
+
+<span style="color: #3b82f6">Natural Language to SQL:</span>
+curl -X POST http://localhost:3002/api/ai/natural-language-query \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{"query": "Show Q3 actuals vs budget by department", "context": {...}}'
+
+<span style="color: #3b82f6">Auto-Map Excel Columns:</span>
+curl -X POST http://localhost:3002/api/ai/auto-map-excel \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{"excelData": {...}, "sheetName": "Sheet1"}'
+
+<span style="color: #3b82f6">Get Mapping Suggestions:</span>
+curl -X POST http://localhost:3002/api/ai/suggest-mappings \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{"hierarchy": {...}, "availableSources": [...]}'
+
+<span style="color: #3b82f6">Detect Anomalies:</span>
+curl -X POST http://localhost:3002/api/ai/detect-anomalies \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{"nodes": [...], "config": {}}'
+
+<span style="color: #3b82f6">Generate Hierarchy from Natural Language:</span>
+curl -X POST http://localhost:3002/api/ai/generate-hierarchy \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{"description": "Standard P&L with revenue and expenses", "industry": "general"}'</div>
+            </div>
+
+            <div class="command-block" style="border: 1px solid var(--accent-purple);">
+                <div class="command-header" style="background: linear-gradient(135deg, var(--bg-card), rgba(168, 85, 247, 0.2));">
+                    <span>&#128196; V2 Excel Integration Examples</span>
+                </div>
+                <div class="command-body">
+<span style="color: #22c55e">&#128229; Excel Import/Export on port 3002</span>
+
+<span style="color: #3b82f6">Download Excel Template:</span>
+curl http://localhost:3002/api/excel/template -o hierarchy_template.xlsx
+
+<span style="color: #3b82f6">Import Excel File:</span>
+curl -X POST http://localhost:3002/api/excel/import \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "file=@your_hierarchy.xlsx" \
+  -F "projectId=PROJECT_UUID"
+
+<span style="color: #3b82f6">Preview Import (without saving):</span>
+curl -X POST http://localhost:3002/api/excel/preview \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "file=@your_hierarchy.xlsx"
+
+<span style="color: #3b82f6">Export Project to Excel:</span>
+curl http://localhost:3002/api/excel/export/PROJECT_UUID \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -o exported_project.xlsx</div>
+            </div>
+
+            <div class="command-block" style="border: 1px solid var(--accent-purple);">
+                <div class="command-header" style="background: linear-gradient(135deg, var(--bg-card), rgba(168, 85, 247, 0.2));">
+                    <span>&#128202; V2 Smart Hierarchy FP&A Features</span>
+                </div>
+                <div class="command-body">
+<span style="color: #eab308">&#128161; New FP&A Mapping Types in V2</span>
+
+<span style="color: #3b82f6">System Types:</span>
+- ACTUALS    <span style="color: #94a3b8"># Actual financial data from GL</span>
+- BUDGET     <span style="color: #94a3b8"># Budget/Plan data</span>
+- FORECAST   <span style="color: #94a3b8"># Rolling forecasts</span>
+- PRIOR_YEAR <span style="color: #94a3b8"># Prior year comparisons</span>
+- CUSTOM     <span style="color: #94a3b8"># User-defined system type</span>
+
+<span style="color: #3b82f6">Join Types:</span>
+- INNER <span style="color: #94a3b8"># Required dimension (row excluded if no match)</span>
+- LEFT  <span style="color: #94a3b8"># Optional dimension (NULL if no match)</span>
+- RIGHT <span style="color: #94a3b8"># Rare use case</span>
+- FULL  <span style="color: #94a3b8"># Include all records from both sides</span>
+
+<span style="color: #3b82f6">Dimension Roles:</span>
+- PRIMARY   <span style="color: #94a3b8"># Main grouping dimension (e.g., Account)</span>
+- SECONDARY <span style="color: #94a3b8"># Supporting dimension (e.g., Department)</span>
+- OPTIONAL  <span style="color: #94a3b8"># Optional breakout (e.g., Product)</span>
+
+<span style="color: #3b82f6">Live Preview Query:</span>
+curl -X POST http://localhost:3002/api/smart-hierarchy/preview-query \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{"projectId": "UUID", "systemType": "ACTUALS", "limit": 100}'
+
+<span style="color: #3b82f6">Generate Fact Table Script:</span>
+curl -X POST http://localhost:3002/api/smart-hierarchy/generate-fact-table \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{"projectId": "UUID", "factTableName": "fact_financials", "includeVariance": true}'</div>
+            </div>
+        </div>
+
+        <!-- Environment Files -->
+        <div class="commands-section">
+            <h2>&#9881; Configuration Files</h2>
+            <div class="links-grid" style="margin-top: 16px;">
+                <div class="link-card" onclick="copyPath('C:\\Users\\telha\\Databridge_AI\\.env')">
+                    <span class="link-icon">&#128273;</span>
+                    <div class="link-text">
+                        <h4>MCP Server .env</h4>
+                        <span>Databridge_AI\.env</span>
+                    </div>
+                </div>
+                <div class="link-card" onclick="copyPath('C:\\Users\\telha\\Databridge_AI\\current application\\extracted_app\\HIERARCHY_BUILDER_APP\\hierarchybuilder-nestjs\\.env')">
+                    <span class="link-icon">&#128273;</span>
+                    <div class="link-text">
+                        <h4>NestJS .env</h4>
+                        <span>hierarchybuilder-nestjs\.env</span>
+                    </div>
+                </div>
+                <div class="link-card" onclick="copyPath('C:\\Users\\telha\\Databridge_AI\\current application\\extracted_app\\HIERARCHY_BUILDER_APP\\dataamp-ai\\.env')">
+                    <span class="link-icon">&#128273;</span>
+                    <div class="link-text">
+                        <h4>React .env</h4>
+                        <span>dataamp-ai\.env</span>
+                    </div>
+                </div>
+                <div class="link-card" onclick="copyPath('C:\\Users\\telha\\Databridge_AI\\claude_desktop_config.example.json')">
+                    <span class="link-icon">&#128273;</span>
+                    <div class="link-text">
+                        <h4>Claude MCP Config</h4>
+                        <span>claude_desktop_config.json</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Getting Started Guide -->
+        <div class="commands-section" style="background: linear-gradient(135deg, var(--bg-secondary), rgba(59, 130, 246, 0.1)); border: 1px solid var(--accent-blue);">
+            <h2>&#128640; Getting Started - Quick Start Guide</h2>
+
+            <div class="command-block">
+                <div class="command-header">
+                    <span>Step 1: Prerequisites</span>
+                </div>
+                <div class="command-body">
+<span style="color: #22c55e">&#10004; Required Software:</span>
+- Python 3.10+ (with pip)
+- Node.js 18+ (with npm)
+- MySQL 8.0+ (running on localhost:3306)
+- Git (for version control)
+
+<span style="color: #22c55e">&#10004; Required Python Packages:</span>
+pip install fastmcp pandas requests pydantic pydantic-settings rapidfuzz sqlalchemy pytesseract pypdf pillow
+
+<span style="color: #22c55e">&#10004; Claude Desktop (for MCP integration):</span>
+- Download from: https://claude.ai/download
+- Configure MCP in: %APPDATA%\Claude\claude_desktop_config.json</div>
+            </div>
+
+            <div class="command-block">
+                <div class="command-header">
+                    <span>Step 2: Environment Setup</span>
+                </div>
+                <div class="command-body">
+<span style="color: #94a3b8"># 1. Create MCP Server .env file (C:\Users\telha\Databridge_AI\.env)</span>
+DATA_DIR=data
+WORKFLOW_FILE=data/workflow.json
+AUDIT_LOG=data/audit_trail.csv
+MAX_ROWS_DISPLAY=10
+NESTJS_BACKEND_URL=http://localhost:3001/api
+NESTJS_API_KEY=dev-key-1
+NESTJS_SYNC_ENABLED=true
+
+<span style="color: #94a3b8"># 2. Verify NestJS backend .env has matching API key</span>
+<span style="color: #94a3b8"># File: hierarchybuilder-nestjs/.env</span>
+API_KEY=dev-key-1
+DATABASE_URL="mysql://root:password@localhost:3306/hierarchy_builder"</div>
+            </div>
+
+            <div class="command-block">
+                <div class="command-header">
+                    <span>Step 3: Start Services (In Order)</span>
+                    <button class="copy-btn" onclick="copyStartupSequence()">&#128203; Copy All</button>
+                </div>
+                <div class="command-body">
+<span style="color: #eab308">&#9888; IMPORTANT: Start services in this exact order!</span>
+
+<span style="color: #3b82f6">Terminal 1 - NestJS Backend (START FIRST):</span>
+cd "C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"
+npm install   <span style="color: #94a3b8"># First time only</span>
+npm run start:dev
+<span style="color: #94a3b8"># Wait for: "Nest application successfully started"</span>
+<span style="color: #94a3b8"># Verify: http://localhost:3001/api/health should return {"status":"ok"}</span>
+
+<span style="color: #3b82f6">Terminal 2 - React Frontend (START SECOND):</span>
+cd "C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai"
+npm install   <span style="color: #94a3b8"># First time only</span>
+npm run dev
+<span style="color: #94a3b8"># Verify: http://localhost:5173 should load the UI</span>
+
+<span style="color: #3b82f6">Terminal 3 - MCP Server (for testing):</span>
+cd C:\Users\telha\Databridge_AI
+python server.py   <span style="color: #94a3b8"># Or use: fastmcp dev src/server.py</span></div>
+            </div>
+
+            <div class="command-block">
+                <div class="command-header">
+                    <span>Step 4: Configure Claude Desktop MCP</span>
+                </div>
+                <div class="command-body">
+<span style="color: #94a3b8"># Edit: %APPDATA%\Claude\claude_desktop_config.json</span>
+{
+  "mcpServers": {
+    "databridge": {
+      "command": "python",
+      "args": ["C:\\Users\\telha\\Databridge_AI\\server.py"],
+      "env": {
+        "PYTHONPATH": "C:\\Users\\telha\\Databridge_AI\\src"
+      }
+    }
+  }
+}
+
+<span style="color: #94a3b8"># After saving, restart Claude Desktop to load MCP tools</span></div>
+            </div>
+
+            <div class="command-block">
+                <div class="command-header">
+                    <span>Step 5: Verify Installation</span>
+                </div>
+                <div class="command-body">
+<span style="color: #94a3b8"># Test 1: Check NestJS backend health</span>
+curl http://localhost:3001/api/health
+<span style="color: #22c55e"># Expected: {"data":{"status":"ok","database":{"status":"connected"}}}</span>
+
+<span style="color: #94a3b8"># Test 2: Check Smart Hierarchy API (with auth)</span>
+curl -H "X-API-Key: dev-key-1" http://localhost:3001/api/smart-hierarchy/projects
+<span style="color: #22c55e"># Expected: {"data":[...],"statusCode":200}</span>
+
+<span style="color: #94a3b8"># Test 3: Count MCP tools</span>
+cd C:\Users\telha\Databridge_AI
+python -c "from src.server import mcp; print(f'Total tools: {len(mcp._tool_manager._tools)}')"
+<span style="color: #22c55e"># Expected: Total tools: 71</span>
+
+<span style="color: #94a3b8"># Test 4: Run test suite</span>
+pytest tests/ -v -m "not backend"
+<span style="color: #22c55e"># Expected: 60 passed</span></div>
+            </div>
+        </div>
+
+        <!-- Smart Hierarchy API Reference -->
+        <div class="commands-section">
+            <h2>&#128209; Smart Hierarchy API Reference</h2>
+
+            <div class="command-block">
+                <div class="command-header">
+                    <span>API Endpoints Overview</span>
+                </div>
+                <div class="command-body">
+<span style="color: #3b82f6">Base URL:</span> http://localhost:3001/api
+<span style="color: #3b82f6">Authentication:</span> Header - X-API-Key: dev-key-1
+
+<span style="color: #eab308">&#128193; Project Management:</span>
+GET    /smart-hierarchy/projects              <span style="color: #94a3b8"># List all projects</span>
+POST   /smart-hierarchy/projects              <span style="color: #94a3b8"># Create project</span>
+GET    /smart-hierarchy/projects/:id          <span style="color: #94a3b8"># Get project by ID</span>
+DELETE /smart-hierarchy/projects/:id          <span style="color: #94a3b8"># Delete project</span>
+
+<span style="color: #eab308">&#128209; Hierarchy Operations:</span>
+GET    /smart-hierarchy/project/:id           <span style="color: #94a3b8"># List hierarchies in project</span>
+POST   /smart-hierarchy                       <span style="color: #94a3b8"># Create hierarchy</span>
+GET    /smart-hierarchy/project/:id/:hid      <span style="color: #94a3b8"># Get hierarchy</span>
+PUT    /smart-hierarchy/project/:id/:hid      <span style="color: #94a3b8"># Update hierarchy</span>
+DELETE /smart-hierarchy/project/:id/:hid      <span style="color: #94a3b8"># Delete hierarchy</span>
+GET    /smart-hierarchy/project/:id/tree      <span style="color: #94a3b8"># Get hierarchy tree</span>
+GET    /smart-hierarchy/project/:id/search    <span style="color: #94a3b8"># Search hierarchies</span>
+
+<span style="color: #eab308">&#128202; Dashboard:</span>
+GET    /smart-hierarchy/dashboard/stats       <span style="color: #94a3b8"># Get statistics</span>
+GET    /smart-hierarchy/dashboard/activities  <span style="color: #94a3b8"># Get recent activities</span>
+
+<span style="color: #eab308">&#128640; Deployment:</span>
+POST   /smart-hierarchy/projects/:id/deployment/scripts  <span style="color: #94a3b8"># Generate SQL</span>
+POST   /smart-hierarchy/deployment/snowflake             <span style="color: #94a3b8"># Deploy to Snowflake</span>
+GET    /smart-hierarchy/projects/:id/deployment/history  <span style="color: #94a3b8"># Get history</span>
+
+<span style="color: #eab308">&#128196; Export/Import:</span>
+GET    /smart-hierarchy/projects/:id/export/csv   <span style="color: #94a3b8"># Export to CSV</span>
+POST   /smart-hierarchy/projects/:id/import/csv   <span style="color: #94a3b8"># Import from CSV</span>
+
+<span style="color: #eab308">&#128279; Connections (for Schema/Data Matching):</span>
+GET    /connections                           <span style="color: #94a3b8"># List database connections</span>
+GET    /connections/:id                       <span style="color: #94a3b8"># Get connection details</span>
+GET    /connections/:id/test                  <span style="color: #94a3b8"># Test connection</span>
+POST   /connections/databases                 <span style="color: #94a3b8"># List databases</span>
+POST   /connections/schemas                   <span style="color: #94a3b8"># List schemas</span>
+POST   /connections/tables                    <span style="color: #94a3b8"># List tables</span>
+POST   /connections/columns                   <span style="color: #94a3b8"># List columns</span></div>
+            </div>
+
+            <div class="command-block">
+                <div class="command-header">
+                    <span>Example API Calls</span>
+                </div>
+                <div class="command-body">
+<span style="color: #94a3b8"># Create a new project</span>
+curl -X POST http://localhost:3001/api/smart-hierarchy/projects \
+  -H "X-API-Key: dev-key-1" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "My Hierarchy Project", "description": "Test project"}'
+
+<span style="color: #94a3b8"># Create a hierarchy in the project</span>
+curl -X POST http://localhost:3001/api/smart-hierarchy \
+  -H "X-API-Key: dev-key-1" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "projectId": "PROJECT_UUID_HERE",
+    "hierarchyId": "REVENUE",
+    "hierarchyName": "Revenue",
+    "description": "Revenue hierarchy",
+    "parentId": null,
+    "mapping": [],
+    "flags": {"include_flag": true, "active_flag": true}
+  }'
+
+<span style="color: #94a3b8"># Get hierarchy tree</span>
+curl -H "X-API-Key: dev-key-1" \
+  http://localhost:3001/api/smart-hierarchy/project/PROJECT_UUID/tree</div>
+            </div>
+        </div>
+
+        <!-- MCP Tools Quick Reference -->
+        <div class="commands-section">
+            <h2>&#128295; MCP Tools Quick Reference (72 Tools)</h2>
+
+            <div class="command-block">
+                <div class="command-header">
+                    <span>Tool Categories</span>
+                </div>
+                <div class="command-body">
+<span style="color: #3b82f6">&#128193; Data Loading (3 tools):</span>
+load_csv, load_json, query_database
+
+<span style="color: #3b82f6">&#128202; Data Profiling (2 tools):</span>
+profile_data, detect_schema_drift
+
+<span style="color: #3b82f6">&#128269; Data Comparison (3 tools):</span>
+compare_hashes, get_orphan_details, get_conflict_details
+
+<span style="color: #3b82f6">&#128270; Fuzzy Matching (2 tools):</span>
+fuzzy_match_columns, fuzzy_deduplicate
+
+<span style="color: #3b82f6">&#128196; PDF/OCR (3 tools):</span>
+extract_text_from_pdf, ocr_image, parse_table_from_text
+
+<span style="color: #3b82f6">&#128466; Workflow (4 tools):</span>
+save_workflow_step, get_workflow, clear_workflow, get_audit_log
+
+<span style="color: #3b82f6">&#128260; Transform (2 tools):</span>
+transform_column, merge_sources
+
+<span style="color: #3b82f6">&#128214; Documentation (1 tool):</span>
+update_manifest
+
+<span style="color: #10b981">&#128209; Hierarchy Management (34 tools):</span>
+create_hierarchy_project, get_hierarchy_project, list_hierarchy_projects,
+delete_hierarchy_project, create_hierarchy, get_hierarchy, list_hierarchies,
+update_hierarchy, delete_hierarchy, get_hierarchy_tree, add_source_mapping,
+remove_source_mapping, create_formula_group, add_formula_rule, list_formula_groups,
+validate_hierarchy_project, export_hierarchy_csv, export_mapping_csv,
+export_project_json, import_hierarchy_csv, generate_hierarchy_scripts,
+sync_to_backend, sync_from_backend, sync_backend_health, configure_auto_sync, list_backend_projects,
+get_backend_hierarchy_tree, get_dashboard_stats, get_recent_activities,
+search_hierarchies_backend, generate_deployment_scripts, push_hierarchy_to_snowflake,
+get_deployment_history, export_hierarchy_csv_backend, import_hierarchy_csv_backend,
+create_filter_group_backend, list_filter_groups_backend
+
+<span style="color: #a855f7">&#128279; Connections (8 tools):</span>
+list_backend_connections, get_backend_connection, test_backend_connection,
+get_connection_databases, get_connection_schemas, get_connection_tables,
+get_connection_columns, get_column_distinct_values
+
+<span style="color: #f97316">&#128200; Schema Matcher (4 tools):</span>
+compare_database_schemas, get_schema_comparison_result,
+list_schema_comparisons, generate_merge_sql_script
+
+<span style="color: #ef4444">&#128202; Data Matcher (3 tools):</span>
+compare_table_data, get_data_comparison_summary, get_backend_table_statistics</div>
+            </div>
+        </div>
+
+        <!-- Auto-Sync Architecture -->
+        <div class="commands-section" style="background: linear-gradient(135deg, var(--bg-secondary), rgba(34, 197, 94, 0.1)); border: 1px solid var(--accent-green);">
+            <h2>&#128260; Auto-Sync Architecture</h2>
+
+            <div class="command-block">
+                <div class="command-header">
+                    <span>How Auto-Sync Works</span>
+                </div>
+                <div class="command-body">
+<span style="color: #22c55e">&#9989; AUTO-SYNC IS ENABLED BY DEFAULT</span>
+
+When you make changes via MCP tools (create, update, delete), they are <span style="color: #22c55e">automatically synced</span>
+to the NestJS backend. This means:
+
+<span style="color: #3b82f6">&#128196; MCP Server Changes:</span>
+  - Create project via MCP → <span style="color: #22c55e">Instantly appears in Web UI</span>
+  - Create hierarchy via MCP → <span style="color: #22c55e">Instantly appears in Web UI</span>
+  - Update hierarchy via MCP → <span style="color: #22c55e">Instantly reflects in Web UI</span>
+  - Delete hierarchy via MCP → <span style="color: #22c55e">Instantly removed from Web UI</span>
+
+<span style="color: #3b82f6">&#128187; Web UI Changes:</span>
+  - Changes in the Web UI are stored in the MySQL database
+  - Use backend-prefixed tools to read UI data: list_backend_projects, get_backend_hierarchy_tree
+  - Or use sync_from_backend to pull UI changes to local MCP storage
+
+<span style="color: #eab308">&#9888; Note:</span> UI → MCP sync is on-demand (use sync_from_backend)</div>
+            </div>
+
+            <div class="command-block">
+                <div class="command-header">
+                    <span>Sync Architecture Diagram</span>
+                </div>
+                <div class="command-body">
+<span style="color: #94a3b8">
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           AUTO-SYNC FLOW                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────┐         ┌──────────────────┐         ┌──────────────────┐
+│   Claude/MCP     │   AUTO  │   NestJS Backend │  DIRECT │   React Web UI   │
+│   (Local JSON)   │ ──────► │   (MySQL DB)     │ ◄─────► │   (Browser)      │
+│                  │  SYNC   │                  │         │                  │
+└──────────────────┘         └──────────────────┘         └──────────────────┘
+        │                            ▲
+        │                            │
+        └────────────────────────────┘
+              ON-DEMAND PULL
+           (sync_from_backend)
+
+<span style="color: #22c55e">&#10132; MCP → Backend:</span> Automatic (on every write operation)
+<span style="color: #eab308">&#10132; Backend → MCP:</span> On-demand (call sync_from_backend)
+<span style="color: #3b82f6">&#10132; Backend ↔ UI:</span> Real-time (direct API communication)
+</span></div>
+            </div>
+
+            <div class="command-block">
+                <div class="command-header">
+                    <span>Auto-Sync Tools</span>
+                </div>
+                <div class="command-body">
+<span style="color: #22c55e">&#128736; Configure Auto-Sync:</span>
+configure_auto_sync(enabled=true)   <span style="color: #94a3b8"># Enable/disable auto-sync</span>
+sync_backend_health()               <span style="color: #94a3b8"># Check sync status and connectivity</span>
+
+<span style="color: #3b82f6">&#128260; Manual Sync Tools (if auto-sync disabled):</span>
+sync_to_backend(local_project_id)   <span style="color: #94a3b8"># Push local changes to backend</span>
+sync_from_backend(backend_project_id) <span style="color: #94a3b8"># Pull backend changes to local</span>
+
+<span style="color: #a855f7">&#128269; Backend Read Tools:</span>
+list_backend_projects()             <span style="color: #94a3b8"># List projects from backend (UI data)</span>
+get_backend_hierarchy_tree(id)      <span style="color: #94a3b8"># Get hierarchy tree from backend</span>
+get_dashboard_stats()               <span style="color: #94a3b8"># Get backend dashboard statistics</span>
+get_recent_activities()             <span style="color: #94a3b8"># Get recent UI activities</span></div>
+            </div>
+
+            <div class="command-block">
+                <div class="command-header">
+                    <span>Response Format with Auto-Sync</span>
+                </div>
+                <div class="command-body">
+<span style="color: #94a3b8"># When auto-sync is enabled, responses include sync status:</span>
+{
+  "status": "success",
+  "project": { ... },
+  <span style="color: #22c55e">"sync": {
+    "auto_sync": "enabled",
+    "synced": true
+  }</span>
+}
+
+<span style="color: #94a3b8"># If sync fails but local operation succeeds:</span>
+{
+  "status": "success",
+  "project": { ... },
+  <span style="color: #eab308">"sync": {
+    "auto_sync": "enabled",
+    "synced": false,
+    "error": "Backend not reachable"
+  }</span>
+}</div>
+            </div>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="commands-section">
+            <h2>&#128679; Troubleshooting Guide</h2>
+
+            <div class="command-block">
+                <div class="command-header">
+                    <span>Common Issues & Solutions</span>
+                </div>
+                <div class="command-body">
+<span style="color: #ef4444">&#10060; Issue: "Backend not reachable"</span>
+<span style="color: #22c55e">&#10004; Solution:</span>
+1. Ensure NestJS backend is running: npm run start:dev
+2. Check if port 3001 is in use: netstat -an | findstr :3001
+3. Verify .env has correct NESTJS_BACKEND_URL
+
+<span style="color: #ef4444">&#10060; Issue: "401 Unauthorized" on API calls</span>
+<span style="color: #22c55e">&#10004; Solution:</span>
+1. Check API key matches in both .env files
+2. Ensure X-API-Key header is included in requests
+3. Default key is: dev-key-1
+
+<span style="color: #ef4444">&#10060; Issue: "Database connection failed"</span>
+<span style="color: #22c55e">&#10004; Solution:</span>
+1. Verify MySQL is running on port 3306
+2. Check DATABASE_URL in hierarchybuilder-nestjs/.env
+3. Run: npm run prisma:migrate (in NestJS folder)
+
+<span style="color: #ef4444">&#10060; Issue: MCP tools not showing in Claude Desktop</span>
+<span style="color: #22c55e">&#10004; Solution:</span>
+1. Verify claude_desktop_config.json syntax is valid JSON
+2. Check Python path is correct in config
+3. Restart Claude Desktop completely
+4. Check logs: %APPDATA%\Claude\logs\
+
+<span style="color: #ef4444">&#10060; Issue: "Module not found" errors</span>
+<span style="color: #22c55e">&#10004; Solution:</span>
+1. Ensure PYTHONPATH includes src directory
+2. Run from correct directory: cd C:\Users\telha\Databridge_AI
+3. Install missing packages: pip install -r requirements.txt
+
+<span style="color: #ef4444">&#10060; Issue: Tests failing with import errors</span>
+<span style="color: #22c55e">&#10004; Solution:</span>
+1. Run tests from project root directory
+2. Use: python -m pytest tests/ -v
+3. Check pytest.ini has correct pythonpath setting
+
+<span style="color: #ef4444">&#10060; Issue: Port already in use</span>
+<span style="color: #22c55e">&#10004; Solution:</span>
+<span style="color: #94a3b8"># Find process using port</span>
+netstat -ano | findstr :3001
+<span style="color: #94a3b8"># Kill process by PID</span>
+taskkill /PID [PID_NUMBER] /F</div>
+            </div>
+
+            <div class="command-block">
+                <div class="command-header">
+                    <span>Health Check Commands</span>
+                </div>
+                <div class="command-body">
+<span style="color: #94a3b8"># Check all services status</span>
+curl http://localhost:3001/api/health
+curl http://localhost:5173 -I
+
+<span style="color: #94a3b8"># Check database connection via API</span>
+curl -H "X-API-Key: dev-key-1" http://localhost:3001/api/smart-hierarchy/projects
+
+<span style="color: #94a3b8"># Check MCP tool count</span>
+python -c "from src.server import mcp; print(len(mcp._tool_manager._tools))"
+
+<span style="color: #94a3b8"># Run quick smoke test</span>
+pytest tests/test_hierarchy_kb.py::TestConfiguration -v</div>
+            </div>
+        </div>
+
+        <!-- Data Storage -->
+        <div class="commands-section">
+            <h2>&#128451; Data Storage</h2>
+            <div class="links-grid" style="margin-top: 16px;">
+                <div class="link-card" onclick="copyPath('C:\\Users\\telha\\Databridge_AI\\data\\workflow.json')">
+                    <span class="link-icon">&#128196;</span>
+                    <div class="link-text">
+                        <h4>Workflow Recipes</h4>
+                        <span>data/workflow.json</span>
+                    </div>
+                </div>
+                <div class="link-card" onclick="copyPath('C:\\Users\\telha\\Databridge_AI\\data\\audit_trail.csv')">
+                    <span class="link-icon">&#128196;</span>
+                    <div class="link-text">
+                        <h4>Audit Trail</h4>
+                        <span>data/audit_trail.csv</span>
+                    </div>
+                </div>
+                <div class="link-card" onclick="copyPath('C:\\Users\\telha\\Databridge_AI\\data\\hierarchy_projects.json')">
+                    <span class="link-icon">&#128196;</span>
+                    <div class="link-text">
+                        <h4>Hierarchy Projects</h4>
+                        <span>data/hierarchy_projects.json</span>
+                    </div>
+                </div>
+                <div class="link-card" onclick="copyPath('C:\\Users\\telha\\Databridge_AI\\data\\hierarchies.json')">
+                    <span class="link-icon">&#128196;</span>
+                    <div class="link-text">
+                        <h4>Hierarchies</h4>
+                        <span>data/hierarchies.json</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>DataBridge AI Control Center | Last Updated: <span id="lastUpdate"></span></p>
+            <p style="margin-top: 8px; font-size: 0.8rem;">Click on folder paths to copy to clipboard</p>
+        </footer>
+    </div>
+
+    <script>
+        // Update timestamp
+        document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
+
+        // Check service status using image/script loading technique (more reliable than fetch)
+        async function checkServiceStatus() {
+            // V1 Services
+            checkPort(3001, 'nestjs');
+            checkPort(5173, 'react');
+
+            // V2 Services
+            checkPort(3002, 'nestjs-v2');
+            checkPort(5174, 'react-v2');
+
+            // MCP server uses stdio, not HTTP - show as "Manual Check"
+            updateStatus('mcp', 'manual');
+        }
+
+        function checkPort(port, serviceId) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+            fetch(`http://localhost:${port}`, {
+                method: 'HEAD',
+                mode: 'no-cors',
+                signal: controller.signal
+            })
+            .then(() => {
+                clearTimeout(timeoutId);
+                updateStatus(serviceId, 'online');
+            })
+            .catch((e) => {
+                clearTimeout(timeoutId);
+                // For no-cors, we can't distinguish success from CORS block
+                // Try with an img element as fallback
+                checkPortWithImg(port, serviceId);
+            });
+        }
+
+        function checkPortWithImg(port, serviceId) {
+            const img = new Image();
+            const timeout = setTimeout(() => {
+                updateStatus(serviceId, 'offline');
+            }, 3000);
+
+            img.onload = img.onerror = function() {
+                clearTimeout(timeout);
+                // Both onload and onerror indicate the server responded
+                updateStatus(serviceId, 'online');
+            };
+
+            img.src = `http://localhost:${port}/favicon.ico?_=${Date.now()}`;
+        }
+
+        function checkPortMultiple(ports, serviceId) {
+            let checked = 0;
+            let found = false;
+
+            ports.forEach(port => {
+                const img = new Image();
+                const timeout = setTimeout(() => {
+                    checked++;
+                    if (checked === ports.length && !found) {
+                        updateStatus(serviceId, 'offline');
+                    }
+                }, 2000);
+
+                img.onload = img.onerror = function() {
+                    clearTimeout(timeout);
+                    if (!found) {
+                        found = true;
+                        updateStatus(serviceId, 'online');
+                    }
+                };
+
+                img.src = `http://localhost:${port}/favicon.ico?_=${Date.now()}`;
+            });
+        }
+
+        function updateStatus(service, status) {
+            const statusEl = document.getElementById(`${service}-status`);
+            const dotEl = document.getElementById(`${service}-dot`);
+
+            if (statusEl) {
+                statusEl.className = `service-status ${status}`;
+                const dot = statusEl.querySelector('.status-dot');
+                if (dot) dot.className = `status-dot ${status}`;
+
+                const statusText = {
+                    'online': 'Online',
+                    'offline': 'Offline',
+                    'checking': 'Checking...',
+                    'manual': 'stdio (Manual)'
+                };
+                statusEl.innerHTML = `<span class="status-dot ${status}"></span>${statusText[status]}`;
+            }
+
+            if (dotEl) {
+                dotEl.className = `status-dot ${status}`;
+            }
+        }
+
+        function copyPath(path) {
+            navigator.clipboard.writeText(path).then(() => {
+                showNotification('Path copied to clipboard!');
+            });
+        }
+
+        function copyCommand(command) {
+            navigator.clipboard.writeText(command).then(() => {
+                showNotification('Command copied to clipboard!');
+            });
+        }
+
+        function copyMySQLSetup() {
+            const commands = `# MySQL First-Time Setup (Run as Administrator)
+# Right-click Command Prompt → Run as Administrator
+
+cd "C:\\Program Files\\MySQL\\MySQL Server 8.4\\bin"
+mysqld --initialize-insecure --console
+mysqld --install MySQL84
+net start MySQL84
+mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'admin'; CREATE DATABASE IF NOT EXISTS dataamplifier CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; FLUSH PRIVILEGES;"`;
+
+            navigator.clipboard.writeText(commands).then(() => {
+                showNotification('MySQL setup commands copied!');
+            });
+        }
+
+        function copyQuickStart() {
+            const commands = `# Quick Start - Hierarchy Builder UI App
+
+# 1. Start MySQL (Admin prompt - if not running):
+net start MySQL84
+
+# 2. Start NestJS Backend (Terminal 1):
+cd "C:\\Users\\telha\\Databridge_AI\\current application\\extracted_app\\HIERARCHY_BUILDER_APP\\hierarchybuilder-nestjs"
+npm run start:dev
+
+# 3. Start Vite Frontend (Terminal 2):
+cd "C:\\Users\\telha\\Databridge_AI\\current application\\extracted_app\\HIERARCHY_BUILDER_APP\\dataamp-ai"
+npm run dev
+
+# Open http://localhost:5173 in your browser`;
+
+            navigator.clipboard.writeText(commands).then(() => {
+                showNotification('Quick start commands copied!');
+            });
+        }
+
+        function copyAllCommands() {
+            const commands = `# Terminal 1: Python MCP Server
+cd C:\\Users\\telha\\Databridge_AI
+python server.py
+
+# Terminal 2: NestJS Backend
+cd "C:\\Users\\telha\\Databridge_AI\\current application\\extracted_app\\HIERARCHY_BUILDER_APP\\hierarchybuilder-nestjs"
+npm run start:dev
+
+# Terminal 3: React Frontend
+cd "C:\\Users\\telha\\Databridge_AI\\current application\\extracted_app\\HIERARCHY_BUILDER_APP\\dataamp-ai"
+npm run dev`;
+
+            navigator.clipboard.writeText(commands).then(() => {
+                showNotification('All commands copied to clipboard!');
+            });
+        }
+
+        function copyStartupSequence() {
+            const commands = `# START SERVICES IN THIS ORDER:
+
+# Terminal 1 - NestJS Backend (START FIRST):
+cd "C:\\Users\\telha\\Databridge_AI\\current application\\extracted_app\\HIERARCHY_BUILDER_APP\\hierarchybuilder-nestjs"
+npm run start:dev
+# Wait for: "Nest application successfully started"
+
+# Terminal 2 - React Frontend (START SECOND):
+cd "C:\\Users\\telha\\Databridge_AI\\current application\\extracted_app\\HIERARCHY_BUILDER_APP\\dataamp-ai"
+npm run dev
+
+# Terminal 3 - MCP Server (optional, for testing):
+cd C:\\Users\\telha\\Databridge_AI
+python server.py
+
+# Verification:
+# - Backend: http://localhost:3001/api/health
+# - Frontend: http://localhost:5173
+# - API Test: curl -H "X-API-Key: dev-key-1" http://localhost:3001/api/smart-hierarchy/projects`;
+
+            navigator.clipboard.writeText(commands).then(() => {
+                showNotification('Startup sequence copied!');
+            });
+        }
+
+        function copyV2QuickStart() {
+            const commands = `# V2 FP&A PLATFORM QUICK START
+# V2 runs on DIFFERENT ports: Backend 3002, Frontend 5174, MySQL 3308
+
+# Terminal 1 - V2 MySQL (Docker):
+cd C:\\Users\\telha\\Databridge_AI\\v2
+docker-compose up -d mysql-v2
+
+# Terminal 2 - V2 NestJS Backend:
+cd C:\\Users\\telha\\Databridge_AI\\v2\\backend
+npm install
+npm run start:dev
+# Wait for: "Nest application successfully started on port 3002"
+
+# Terminal 3 - V2 React Frontend:
+cd C:\\Users\\telha\\Databridge_AI\\v2\\frontend
+npm install
+npm run dev
+# Opens at: http://localhost:5174
+
+# Verification:
+# - V2 UI: http://localhost:5174
+# - V2 API Docs: http://localhost:3002/api/docs
+# - V2 Health: curl http://localhost:3002/api/health`;
+
+            navigator.clipboard.writeText(commands).then(() => {
+                showNotification('V2 Quick Start commands copied!');
+            });
+        }
+
+        function copyV2DBSetup() {
+            const commands = `# V2 DATABASE SETUP
+
+# Option 1 - Docker Compose (Recommended):
+cd C:\\Users\\telha\\Databridge_AI\\v2
+docker-compose up -d mysql-v2 redis-v2
+
+# Option 2 - Local MySQL on port 3308:
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS hierarchybuilder_v2 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+# Run Prisma Migrations:
+cd C:\\Users\\telha\\Databridge_AI\\v2\\backend
+npm run prisma:migrate
+npm run prisma:generate
+
+# Seed Initial Data (Optional):
+npm run prisma:seed`;
+
+            navigator.clipboard.writeText(commands).then(() => {
+                showNotification('V2 DB setup commands copied!');
+            });
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: var(--accent-green);
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-weight: 500;
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        }
+
+        // Add animation styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Check status on load and every 30 seconds
+        checkServiceStatus();
+        setInterval(checkServiceStatus, 30000);
+    </script>
+</body>
+</html>

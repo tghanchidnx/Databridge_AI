@@ -1,0 +1,11 @@
+customer_id,customer_name,email,region,revenue,signup_date
+C001,Acme Corporation,contact@acme.com,North,125000.00,2023-01-15
+C002,Global Industries,info@global.com,South,89000.00,2023-02-20
+C003,Tech Solutions Inc,sales@techsol.com,East,156000.00,2023-03-10
+C004,Prime Services Ltd,hello@prime.com,West,78000.00,2023-04-05
+C005,Delta Manufacturing,orders@delta.com,North,234000.00,2023-05-18
+C006,Omega Consulting,contact@omega.com,South,67000.00,2023-06-22
+C007,Alpha Partners,info@alpha.com,East,145000.00,2023-07-30
+C008,Beta Solutions,support@beta.com,West,98000.00,2023-08-14
+C009,Gamma Enterprises,sales@gamma.com,North,178000.00,2023-09-25
+C010,Sigma Holdings,contact@sigma.com,South,112000.00,2023-10-08

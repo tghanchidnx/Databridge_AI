@@ -1,0 +1,19 @@
+account_code,account_name,category,subcategory,account_type,is_active
+4100-100,Product Sales - Hardware,Revenue,Sales,Income,true
+4100-200,Product Sales - Software,Revenue,Sales,Income,true
+4100-300,Product Sales - Services,Revenue,Sales,Income,true
+4200-100,Service Revenue - Consulting,Revenue,Services,Income,true
+4200-200,Service Revenue - Support,Revenue,Services,Income,true
+4200-300,Service Revenue - Training,Revenue,Services,Income,true
+5100-100,Cost of Goods - Hardware,Expenses,COGS,Expense,true
+5100-200,Cost of Goods - Software,Expenses,COGS,Expense,true
+5200-100,Salaries - Engineering,Expenses,Operating,Expense,true
+5200-200,Salaries - Sales,Expenses,Operating,Expense,true
+5200-300,Salaries - Admin,Expenses,Operating,Expense,true
+5300-100,Rent - Office,Expenses,Facilities,Expense,true
+5300-200,Utilities - Electric,Expenses,Facilities,Expense,true
+5300-300,Utilities - Internet,Expenses,Facilities,Expense,true
+5400-100,Marketing - Digital,Expenses,Marketing,Expense,true
+5400-200,Marketing - Events,Expenses,Marketing,Expense,true
+5500-100,Depreciation - Equipment,Expenses,Non-Cash,Expense,true
+5500-200,Amortization - Software,Expenses,Non-Cash,Expense,true

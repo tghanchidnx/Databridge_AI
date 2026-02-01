@@ -1,0 +1,227 @@
+{
+  "version": "1.0",
+  "skills": [
+    {
+      "id": "financial-analyst",
+      "name": "Financial Analyst",
+      "description": "General financial analysis and reconciliation expert. Specializes in GL reconciliation, trial balance analysis, bank reconciliation, intercompany matching, and chart of accounts design.",
+      "domain": "accounting",
+      "industries": ["general", "all"],
+      "prompt_file": "financial-analyst-prompt.txt",
+      "documentation_file": "financial-analyst.md",
+      "capabilities": [
+        "reconciliation",
+        "hierarchy-building",
+        "variance-analysis",
+        "data-quality",
+        "trial-balance",
+        "bank-reconciliation",
+        "intercompany-matching",
+        "chart-of-accounts"
+      ],
+      "hierarchy_types": [
+        "chart_of_accounts",
+        "income_statement",
+        "balance_sheet",
+        "cash_flow",
+        "trial_balance"
+      ],
+      "tags": ["finance", "accounting", "reconciliation", "gaap", "ifrs", "gl"],
+      "version": "1.0"
+    },
+    {
+      "id": "fpa-oil-gas-analyst",
+      "name": "FP&A Oil & Gas Analyst",
+      "description": "Specialized in upstream/midstream oil & gas financial analysis. Expert in LOE analysis, reserve reporting, JIB reconciliation, hedge accounting, and production variance analysis.",
+      "domain": "finance",
+      "industries": ["oil_gas", "oil_gas_upstream", "oil_gas_midstream", "oil_gas_services", "energy"],
+      "prompt_file": "fpa-oil-gas-analyst-prompt.txt",
+      "documentation_file": "fpa-oil-gas-analyst.md",
+      "capabilities": [
+        "lease-operating-statements",
+        "jib-reconciliation",
+        "reserve-analysis",
+        "hedge-accounting",
+        "production-variance",
+        "netback-calculation",
+        "loe-analysis",
+        "royalty-calculations",
+        "decline-curve-analysis",
+        "drilling-economics"
+      ],
+      "hierarchy_types": [
+        "income_statement",
+        "cost_center",
+        "asset",
+        "geographic"
+      ],
+      "tags": ["oil and gas", "upstream", "e&p", "midstream", "fpa", "reserves", "hedging", "los", "drilling"],
+      "version": "1.0"
+    },
+    {
+      "id": "operations-analyst",
+      "name": "Operations Analyst",
+      "description": "Expert in operational reporting hierarchies including geographic structures, organizational design, asset management, and departmental reporting.",
+      "domain": "operations",
+      "industries": ["general", "manufacturing", "retail", "logistics", "transportation", "industrial_services"],
+      "prompt_file": "operations-analyst-prompt.txt",
+      "documentation_file": "operations-analyst.md",
+      "capabilities": [
+        "geographic-hierarchies",
+        "department-structures",
+        "asset-classification",
+        "org-design",
+        "territory-management",
+        "consolidation-rules",
+        "acquisition-integration",
+        "fleet-management",
+        "plant-hierarchy"
+      ],
+      "hierarchy_types": [
+        "geographic",
+        "department",
+        "asset",
+        "legal_entity",
+        "acquisition",
+        "product"
+      ],
+      "tags": ["operations", "geographic", "department", "org structure", "asset management", "fleet", "plant"],
+      "version": "1.0"
+    },
+    {
+      "id": "fpa-cost-analyst",
+      "name": "FP&A Cost Analyst",
+      "description": "Financial planning and analysis expert specializing in cost center management, budget hierarchies, profit center analysis, and management reporting structures.",
+      "domain": "finance",
+      "industries": ["general", "manufacturing", "technology", "services", "saas", "industrial_services"],
+      "prompt_file": "fpa-cost-analyst-prompt.txt",
+      "documentation_file": "fpa-cost-analyst.md",
+      "capabilities": [
+        "cost-center-design",
+        "profit-center-analysis",
+        "budget-hierarchies",
+        "allocation-rules",
+        "variance-analysis",
+        "management-reporting",
+        "responsibility-accounting",
+        "activity-based-costing"
+      ],
+      "hierarchy_types": [
+        "cost_center",
+        "profit_center",
+        "budget",
+        "forecast",
+        "management_reporting"
+      ],
+      "tags": ["fpa", "cost center", "profit center", "budgeting", "management reporting", "allocation"],
+      "version": "1.0"
+    },
+    {
+      "id": "manufacturing-analyst",
+      "name": "Manufacturing Financial Analyst",
+      "description": "Specialist in manufacturing financial analysis including standard costing, variance analysis, COGS breakdown, plant-level profitability, and inventory management.",
+      "domain": "accounting",
+      "industries": ["manufacturing", "industrial_services"],
+      "prompt_file": "manufacturing-analyst-prompt.txt",
+      "documentation_file": "manufacturing-analyst.md",
+      "capabilities": [
+        "standard-costing",
+        "manufacturing-variance",
+        "cogs-analysis",
+        "inventory-management",
+        "plant-profitability",
+        "capacity-analysis",
+        "bill-of-materials",
+        "work-in-progress"
+      ],
+      "hierarchy_types": [
+        "income_statement",
+        "cost_center",
+        "geographic"
+      ],
+      "tags": ["manufacturing", "cogs", "variance", "standard cost", "inventory", "plant", "production"],
+      "version": "1.0"
+    },
+    {
+      "id": "saas-metrics-analyst",
+      "name": "SaaS Metrics Analyst",
+      "description": "Specialist in SaaS and subscription business metrics including ARR/MRR analysis, cohort analysis, CAC/LTV calculations, and unit economics.",
+      "domain": "finance",
+      "industries": ["saas", "technology", "software"],
+      "prompt_file": "saas-metrics-analyst-prompt.txt",
+      "documentation_file": "saas-metrics-analyst.md",
+      "capabilities": [
+        "arr-mrr-analysis",
+        "cohort-analysis",
+        "cac-ltv-calculation",
+        "churn-analysis",
+        "net-revenue-retention",
+        "unit-economics",
+        "subscription-revenue",
+        "rule-of-40"
+      ],
+      "hierarchy_types": [
+        "income_statement",
+        "cost_center",
+        "profit_center"
+      ],
+      "tags": ["saas", "arr", "mrr", "churn", "cac", "ltv", "subscription", "recurring revenue"],
+      "version": "1.0"
+    },
+    {
+      "id": "transportation-analyst",
+      "name": "Transportation & Logistics Analyst",
+      "description": "Specialist in transportation and logistics financial analysis including operating ratio analysis, fleet economics, lane profitability, and driver metrics.",
+      "domain": "operations",
+      "industries": ["transportation", "logistics", "trucking", "freight"],
+      "prompt_file": "transportation-analyst-prompt.txt",
+      "documentation_file": "transportation-analyst.md",
+      "capabilities": [
+        "operating-ratio-analysis",
+        "fleet-economics",
+        "lane-profitability",
+        "driver-cost-analysis",
+        "fuel-surcharge",
+        "utilization-metrics",
+        "accessorial-analysis",
+        "route-optimization"
+      ],
+      "hierarchy_types": [
+        "income_statement",
+        "asset",
+        "geographic",
+        "cost_center"
+      ],
+      "tags": ["transportation", "logistics", "trucking", "freight", "fleet", "operating ratio", "lanes"],
+      "version": "1.0"
+    }
+  ],
+  "domains": {
+    "accounting": {
+      "name": "Accounting",
+      "description": "Financial accounting, GL, and statutory reporting expertise",
+      "skills": ["financial-analyst", "manufacturing-analyst"]
+    },
+    "finance": {
+      "name": "Finance",
+      "description": "FP&A, budgeting, and management reporting expertise",
+      "skills": ["fpa-oil-gas-analyst", "fpa-cost-analyst", "saas-metrics-analyst"]
+    },
+    "operations": {
+      "name": "Operations",
+      "description": "Operational reporting and organizational structures",
+      "skills": ["operations-analyst", "transportation-analyst"]
+    }
+  },
+  "industries": {
+    "general": ["financial-analyst", "operations-analyst", "fpa-cost-analyst"],
+    "oil_gas": ["fpa-oil-gas-analyst", "operations-analyst"],
+    "oil_gas_upstream": ["fpa-oil-gas-analyst"],
+    "oil_gas_midstream": ["fpa-oil-gas-analyst"],
+    "oil_gas_services": ["fpa-oil-gas-analyst", "operations-analyst"],
+    "manufacturing": ["manufacturing-analyst", "operations-analyst", "fpa-cost-analyst"],
+    "industrial_services": ["operations-analyst", "fpa-cost-analyst"],
+    "saas": ["saas-metrics-analyst", "fpa-cost-analyst"],
+    "transportation": ["transportation-analyst", "operations-analyst"]
+  }
+}

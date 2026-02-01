@@ -1,0 +1,6 @@
+# This directory contains client-specific knowledge base profiles
+# Each client has their own subdirectory with:
+# - config.json: Client settings and preferences
+# - prompts.json: Custom prompts for this client
+# - mappings.json: Known GL to hierarchy mappings
+# - notes.md: Free-form notes and domain knowledge

@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "DNX Hierarchy Manager": {
+      "command": "python",
+      "args": ["server.py"],
+      "cwd": "C:/Users/telha/Databridge_AI",
+      "env": {
+        "PYTHONPATH": "C:/Users/telha/Databridge_AI"
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+account_id,account_name,account_type
+4000,Software Sales,Revenue
+4010,Hardware Sales,Revenue
+4500,Consulting Services,Revenue
+5000,Cost of Software,COGS
+5010,Cost of Hardware,COGS
+6000,Sales Commissions,Operating Expense
+6100,Marketing Campaigns,Operating Expense
+7000,Salaries,Operating Expense
+7100,Rent,Operating Expense
+7200,Utilities,Operating Expense

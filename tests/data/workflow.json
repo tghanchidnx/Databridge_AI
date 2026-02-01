@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "steps": [
+    {
+      "id": 1,
+      "name": "Test",
+      "type": "test",
+      "parameters": {},
+      "created_at": "2026-01-20T23:18:46.034478"
+    }
+  ],
+  "cleared_at": "2026-01-20T23:18:46.018123"
+}

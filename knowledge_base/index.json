@@ -1,0 +1,5 @@
+{
+  "version": "1.0",
+  "description": "Client Knowledge Base - stores client-specific configurations, prompts, and mappings",
+  "clients": []
+}
