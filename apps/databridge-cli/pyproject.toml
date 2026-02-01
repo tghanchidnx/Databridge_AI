@@ -20,9 +20,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-v3 = ["databridge-v3"]
-v4 = ["databridge-v4"]
-all = ["databridge-v3", "databridge-v4"]
+librarian = ["databridge-librarian"]
+researcher = ["databridge-researcher"]
+all = ["databridge-librarian", "databridge-researcher"]
 dev = [
     "pytest>=7.0",
 ]

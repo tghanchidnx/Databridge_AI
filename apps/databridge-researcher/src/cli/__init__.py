@@ -1,5 +1,5 @@
 """
-CLI module for DataBridge Analytics V4.
+CLI module for DataBridge Researcher.
 
 Typer-based command line interface with commands:
 - connection: Manage data warehouse connections
@@ -9,6 +9,8 @@ Typer-based command line interface with commands:
 - workflow: Run FP&A workflows
 - mcp: Start MCP server
 """
+
+from .app import app, main_cli
 
 __all__ = [
     "app",

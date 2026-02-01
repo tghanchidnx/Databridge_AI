@@ -3,9 +3,9 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "databridge-v3"
+name = "databridge-librarian"
 version = "3.0.0"
-description = "Headless DataBridge AI - Python CLI for Financial Hierarchy Building"
+description = "DataBridge Librarian - Hierarchy Management & Knowledge Base Builder"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
@@ -100,16 +100,16 @@ dev = [
     "pre-commit>=3.6.0",
 ]
 all = [
-    "databridge-v3[connectors,ocr,dev]",
+    "databridge-librarian[connectors,ocr,dev]",
 ]
 
 [project.scripts]
-databridge = "src.cli.app:app"
+databridge-librarian = "src.cli.app:app"
 
 [project.urls]
-Homepage = "https://github.com/databridge-ai/databridge-v3"
-Documentation = "https://databridge-ai.github.io/docs/v3"
-Repository = "https://github.com/databridge-ai/databridge-v3"
+Homepage = "https://github.com/databridge-ai/databridge-librarian"
+Documentation = "https://databridge-ai.github.io/docs/librarian"
+Repository = "https://github.com/databridge-ai/databridge-librarian"
 
 [tool.setuptools.packages.find]
 where = ["."]

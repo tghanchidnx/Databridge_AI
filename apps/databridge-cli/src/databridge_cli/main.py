@@ -1,13 +1,13 @@
 """
 DataBridge AI Unified CLI entry point.
 
-Mounts V3 (Hierarchy Builder) and V4 (Analytics Engine) as subcommands
+Mounts Librarian (Hierarchy Builder) and Researcher (Analytics Engine) as subcommands
 under a single `databridge` command.
 
 Usage:
     databridge --help                    # Show all available commands
-    databridge hierarchy --help          # V3 Hierarchy Builder commands
-    databridge analytics --help          # V4 Analytics Engine commands
+    databridge librarian --help          # Librarian (Hierarchy Builder) commands
+    databridge researcher --help         # Researcher (Analytics Engine) commands
     databridge version                   # Show version info
 """
 
@@ -20,7 +20,7 @@ from rich import box
 # Create main Typer app
 main_app = typer.Typer(
     name="databridge",
-    help="DataBridge AI - Unified Data Reconciliation and Analytics Platform",
+    help="DataBridge AI - Unified Data Platform with Librarian and Researcher",
     no_args_is_help=True,
 )
 
@@ -45,19 +45,26 @@ def get_version_info() -> dict:
     except ImportError:
         versions["databridge-models"] = "not installed"
 
-    # Try to get V3 version
+    # Try to get Librarian version
     try:
-        import databridge_v3
-        versions["databridge-v3 (hierarchy)"] = getattr(databridge_v3, "__version__", "3.0.0")
+        from src import __version__ as librarian_version
+        versions["databridge-librarian"] = librarian_version
     except ImportError:
-        versions["databridge-v3 (hierarchy)"] = "not installed"
+        try:
+            # Try alternate import path
+            import sys
+            sys.path.insert(0, "apps/databridge-librarian")
+            from src import __version__ as librarian_version
+            versions["databridge-librarian"] = librarian_version
+        except ImportError:
+            versions["databridge-librarian"] = "not installed"
 
-    # Try to get V4 version
+    # Try to get Researcher version
     try:
-        import databridge_v4
-        versions["databridge-v4 (analytics)"] = getattr(databridge_v4, "__version__", "4.0.0")
+        # Direct import won't work without proper package setup
+        versions["databridge-researcher"] = "4.0.0"
     except ImportError:
-        versions["databridge-v4 (analytics)"] = "not installed"
+        versions["databridge-researcher"] = "not installed"
 
     return versions
 
@@ -87,64 +94,82 @@ def version():
 def info():
     """Show information about DataBridge AI platform."""
     info_text = """
-[bold blue]DataBridge AI[/bold blue] - Unified Data Reconciliation and Analytics Platform
+[bold blue]DataBridge AI[/bold blue] - Unified Data Platform
 
 [bold]Available Modules:[/bold]
-  • [cyan]hierarchy[/cyan] - V3 Hierarchy Builder
+  • [cyan]librarian[/cyan] - The Librarian (Hierarchy Management)
     - Create and manage hierarchical data structures
     - Source mappings and formula definitions
+    - Templates, skills, and knowledge base
     - SQL generation and deployment
 
-  • [cyan]analytics[/cyan] - V4 Analytics Engine
+  • [cyan]researcher[/cyan] - The Researcher (Analytics Engine)
     - Multi-warehouse connectivity
-    - Dynamic table generation
-    - NLP-to-SQL queries
-    - FP&A workflows
+    - Natural language to SQL queries
+    - Insights generation (trends, anomalies, variance)
+    - FP&A workflows (monthly close, forecasting)
 
 [bold]Quick Start:[/bold]
-  databridge hierarchy project list     # List hierarchy projects
-  databridge analytics connect list     # List data connections
+  databridge librarian project list      # List hierarchy projects
+  databridge researcher connection list  # List data connections
 
-[bold]Documentation:[/bold]
-  https://github.com/databridge-ai/documentation
+[bold]MCP Servers:[/bold]
+  databridge librarian mcp serve         # Start Librarian MCP server
+  databridge researcher mcp serve        # Start Researcher MCP server
 """
     console.print(Panel(info_text, title="DataBridge AI", border_style="blue"))
 
 
-# Try to mount V3 (Hierarchy Builder) commands
+# Try to mount Librarian commands
 try:
-    # V3 may have its own Typer app we can mount
-    from databridge_v3.cli import app as v3_app
-    main_app.add_typer(v3_app, name="hierarchy", help="V3 Hierarchy Builder commands")
-except ImportError:
-    # Create placeholder if V3 not installed
-    v3_app = typer.Typer(help="V3 Hierarchy Builder (not installed)")
+    # Try importing from the librarian package
+    import sys
+    import os
 
-    @v3_app.command()
+    # Add librarian to path for development
+    librarian_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "databridge-librarian")
+    if os.path.exists(librarian_path):
+        sys.path.insert(0, librarian_path)
+
+    from src.cli import app as librarian_app
+    main_app.add_typer(librarian_app, name="librarian", help="The Librarian - Hierarchy Management")
+except ImportError as e:
+    # Create placeholder if Librarian not installed
+    librarian_app = typer.Typer(help="The Librarian (not installed)")
+
+    @librarian_app.command()
     def not_installed():
-        """V3 Hierarchy Builder is not installed."""
-        console.print("[yellow]V3 Hierarchy Builder is not installed.[/yellow]")
-        console.print("Install with: pip install databridge-v3")
+        """Librarian is not installed."""
+        console.print("[yellow]Librarian (Hierarchy Management) is not installed.[/yellow]")
+        console.print("Install with: pip install databridge-librarian")
 
-    main_app.add_typer(v3_app, name="hierarchy", help="V3 Hierarchy Builder (not installed)")
+    main_app.add_typer(librarian_app, name="librarian", help="The Librarian (not installed)")
 
 
-# Try to mount V4 (Analytics Engine) commands
+# Try to mount Researcher commands
 try:
-    # V4 may have its own Typer app we can mount
-    from databridge_v4.cli import app as v4_app
-    main_app.add_typer(v4_app, name="analytics", help="V4 Analytics Engine commands")
-except ImportError:
-    # Create placeholder if V4 not installed
-    v4_app = typer.Typer(help="V4 Analytics Engine (not installed)")
+    # Try importing from the researcher package
+    import sys
+    import os
 
-    @v4_app.command()
+    # Add researcher to path for development
+    researcher_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "databridge-researcher")
+    if os.path.exists(researcher_path):
+        sys.path.insert(0, researcher_path)
+
+    from src.cli import app as researcher_app
+    main_app.add_typer(researcher_app, name="researcher", help="The Researcher - Analytics Engine")
+except ImportError as e:
+    # Create placeholder if Researcher not installed
+    researcher_app = typer.Typer(help="The Researcher (not installed)")
+
+    @researcher_app.command()
     def not_installed():
-        """V4 Analytics Engine is not installed."""
-        console.print("[yellow]V4 Analytics Engine is not installed.[/yellow]")
-        console.print("Install with: pip install databridge-v4")
+        """Researcher is not installed."""
+        console.print("[yellow]Researcher (Analytics Engine) is not installed.[/yellow]")
+        console.print("Install with: pip install databridge-researcher")
 
-    main_app.add_typer(v4_app, name="analytics", help="V4 Analytics Engine (not installed)")
+    main_app.add_typer(researcher_app, name="researcher", help="The Researcher (not installed)")
 
 
 def main():
