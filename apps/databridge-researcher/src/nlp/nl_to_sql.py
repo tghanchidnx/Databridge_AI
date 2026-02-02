@@ -1,8 +1,8 @@
 """
-NL-to-SQL Engine for DataBridge AI V4 Analytics Engine.
+NL-to-SQL Engine for DataBridge AI Researcher Analytics Engine.
 
 Translates natural language queries into SQL using intent classification
-and entity extraction.
+and entity extraction. Supports multi-turn conversations with context tracking.
 """
 
 from dataclasses import dataclass, field
@@ -10,6 +10,12 @@ from typing import Optional, List, Dict, Any
 
 from .intent import IntentClassifier, Intent, IntentType
 from .entity import EntityExtractor, Entity, EntityType, CatalogEntry
+from .context import (
+    ConversationContext,
+    QueryTurn,
+    get_conversation_context,
+    create_conversation_context,
+)
 from ..query.builder import QueryBuilder, Query
 from ..query.dialects import SQLDialect, get_dialect
 
@@ -26,6 +32,9 @@ class NLQueryResult:
     explanation: str = ""
     suggestions: List[str] = field(default_factory=list)
     errors: List[str] = field(default_factory=list)
+    original_query: Optional[str] = None  # Original query before resolution
+    resolved_query: Optional[str] = None  # Query after reference resolution
+    context_used: bool = False  # Whether context was used
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
@@ -38,6 +47,9 @@ class NLQueryResult:
             "explanation": self.explanation,
             "suggestions": self.suggestions,
             "errors": self.errors,
+            "original_query": self.original_query,
+            "resolved_query": self.resolved_query,
+            "context_used": self.context_used,
         }
 
 
@@ -47,6 +59,12 @@ class NLToSQLEngine:
 
     Combines intent classification and entity extraction to generate
     appropriate SQL queries for different types of analytical questions.
+
+    Supports multi-turn conversations with context tracking for:
+    - Pronoun resolution ("show it by month")
+    - Entity inheritance (use last metrics if not specified)
+    - Table persistence across queries
+    - Follow-up questions
     """
 
     def __init__(
@@ -55,6 +73,8 @@ class NLToSQLEngine:
         dialect: str = "postgresql",
         default_table: Optional[str] = None,
         confidence_threshold: float = 0.5,
+        context: Optional[ConversationContext] = None,
+        use_context: bool = True,
     ):
         """
         Initialize the NL-to-SQL engine.
@@ -64,12 +84,44 @@ class NLToSQLEngine:
             dialect: SQL dialect to generate.
             default_table: Default table if none specified.
             confidence_threshold: Minimum confidence to generate SQL.
+            context: Optional conversation context for multi-turn queries.
+            use_context: Whether to use context by default (default True).
         """
         self.intent_classifier = IntentClassifier()
         self.entity_extractor = EntityExtractor(catalog=catalog)
         self.dialect = get_dialect(dialect)
         self.default_table = default_table
         self.confidence_threshold = confidence_threshold
+        self._context = context
+        self._use_context = use_context
+
+    @property
+    def context(self) -> Optional[ConversationContext]:
+        """Get the conversation context."""
+        return self._context
+
+    @context.setter
+    def context(self, value: ConversationContext) -> None:
+        """Set the conversation context."""
+        self._context = value
+
+    def create_context(self, session_id: Optional[str] = None) -> ConversationContext:
+        """
+        Create and attach a new conversation context.
+
+        Args:
+            session_id: Optional session identifier.
+
+        Returns:
+            The created context.
+        """
+        self._context = create_conversation_context(session_id=session_id)
+        return self._context
+
+    def clear_context(self) -> None:
+        """Clear the current conversation context."""
+        if self._context:
+            self._context.clear()
 
     def load_catalog(self, catalog: List[Dict[str, Any]]) -> None:
         """
@@ -80,81 +132,171 @@ class NLToSQLEngine:
         """
         self.entity_extractor.load_catalog_from_dict(catalog)
 
-    def translate(self, query: str) -> NLQueryResult:
+    def translate(
+        self,
+        query: str,
+        use_context: Optional[bool] = None,
+    ) -> NLQueryResult:
         """
         Translate a natural language query to SQL.
 
+        When context is enabled, this method:
+        1. Resolves pronoun references ("it", "them", "that")
+        2. Inherits missing metrics/dimensions from previous queries
+        3. Uses last table if not specified
+        4. Records the turn for future reference
+
         Args:
             query: Natural language query string.
+            use_context: Override default context usage (optional).
 
         Returns:
             NLQueryResult with generated SQL and metadata.
         """
         errors = []
         suggestions = []
+        original_query = query
+        resolved_query = query
+        context_used = False
 
-        # Classify intent
-        intent = self.intent_classifier.classify(query)
+        # Determine if we should use context
+        should_use_context = (
+            use_context if use_context is not None else self._use_context
+        )
+        has_context = self._context is not None and should_use_context
 
-        # Extract entities
-        entities = self.entity_extractor.extract(query)
+        # Step 1: Resolve references using context
+        if has_context and self._context.turn_count > 0:
+            resolved_query = self._context.resolve_references(query)
+            if resolved_query != query:
+                context_used = True
+
+        # Classify intent (use resolved query)
+        intent = self.intent_classifier.classify(resolved_query)
+
+        # Extract entities (use resolved query)
+        entities = self.entity_extractor.extract(resolved_query)
+
+        # Step 2: Inherit missing context
+        inherited_entities = []
+        if has_context:
+            inferred = self._context.infer_missing_context(entities)
+
+            # Add inherited metrics if none found
+            if inferred["metrics"]:
+                current_metrics = [e for e in entities if e.entity_type == EntityType.METRIC]
+                if not current_metrics:
+                    inherited_entities.extend(inferred["metrics"])
+                    context_used = True
+
+            # Add inherited dimensions if none found
+            if inferred["dimensions"]:
+                current_dims = [e for e in entities if e.entity_type == EntityType.DIMENSION]
+                if not current_dims:
+                    inherited_entities.extend(inferred["dimensions"])
+                    context_used = True
+
+        # Combine current and inherited entities
+        all_entities = entities + inherited_entities
 
         # Calculate overall confidence
         entity_confidence = (
-            sum(e.confidence for e in entities) / len(entities)
-            if entities else 0.0
+            sum(e.confidence for e in all_entities) / len(all_entities)
+            if all_entities else 0.0
         )
         overall_confidence = (intent.confidence + entity_confidence) / 2
 
+        # Boost confidence if context was used successfully
+        if context_used and overall_confidence < self.confidence_threshold:
+            overall_confidence = min(overall_confidence * 1.2, 1.0)
+
         # Check confidence threshold
         if overall_confidence < self.confidence_threshold:
-            suggestions = self.intent_classifier.get_suggestions(query)
+            suggestions = self.intent_classifier.get_suggestions(resolved_query)
             return NLQueryResult(
                 success=False,
                 intent=intent,
-                entities=entities,
+                entities=all_entities,
                 confidence=overall_confidence,
                 explanation="Confidence too low to generate SQL",
                 suggestions=suggestions,
                 errors=["Could not understand query with sufficient confidence"],
+                original_query=original_query,
+                resolved_query=resolved_query if context_used else None,
+                context_used=context_used,
             )
 
         # Determine table
-        table = self._determine_table(entities)
+        table = self._determine_table(all_entities)
+
+        # Step 3: Use table from context if not specified
+        if not table and has_context:
+            table = self._context.last_table
+            if table:
+                context_used = True
+
         if not table and self.default_table:
             table = self.default_table
+
         if not table:
             return NLQueryResult(
                 success=False,
                 intent=intent,
-                entities=entities,
+                entities=all_entities,
                 confidence=overall_confidence,
                 explanation="Could not determine target table",
                 errors=["No table specified and no default table configured"],
+                original_query=original_query,
+                resolved_query=resolved_query if context_used else None,
+                context_used=context_used,
             )
 
         # Generate SQL based on intent type
         try:
-            sql_query = self._generate_sql(intent, entities, table)
-            explanation = self._generate_explanation(intent, entities, table)
+            sql_query = self._generate_sql(intent, all_entities, table)
+            explanation = self._generate_explanation(intent, all_entities, table)
 
-            return NLQueryResult(
+            result = NLQueryResult(
                 success=True,
                 query=sql_query,
                 intent=intent,
-                entities=entities,
+                entities=all_entities,
                 confidence=overall_confidence,
                 explanation=explanation,
+                original_query=original_query,
+                resolved_query=resolved_query if context_used else None,
+                context_used=context_used,
             )
+
+            # Step 4: Record turn in context
+            if has_context:
+                self._context.add_turn(QueryTurn(
+                    query_text=original_query,
+                    resolved_query=resolved_query if context_used else None,
+                    entities=entities,  # Only store directly extracted entities
+                    intent_type=intent.intent_type.value if intent.intent_type else None,
+                    table=table,
+                    success=True,
+                    sql=sql_query.sql,
+                ))
+
+                # Track filters for future reference
+                if intent.time_filter:
+                    self._context.update_filters({"time": intent.time_filter})
+
+            return result
 
         except Exception as e:
             return NLQueryResult(
                 success=False,
                 intent=intent,
-                entities=entities,
+                entities=all_entities,
                 confidence=overall_confidence,
                 explanation="Error generating SQL",
                 errors=[str(e)],
+                original_query=original_query,
+                resolved_query=resolved_query if context_used else None,
+                context_used=context_used,
             )
 
     def _determine_table(self, entities: List[Entity]) -> Optional[str]:
@@ -375,12 +517,22 @@ class NLToSQLEngine:
         time_filter: Dict[str, Any],
         time_columns: List[Entity],
     ) -> None:
-        """Add time-based WHERE conditions."""
+        """
+        Add time-based WHERE conditions using parameterized queries.
+
+        This method uses parameterized queries to prevent SQL injection.
+        All user-provided values (year, month) are passed as parameters
+        rather than being interpolated into the SQL string.
+        """
+        from ..query.safety import get_sanitizer
+
         time_col = time_columns[0].name if time_columns else "date"
+        sanitizer = get_sanitizer()
 
         reference = time_filter.get("reference")
         if reference:
             # Add appropriate date filter based on reference
+            # These use SQL functions with no user input, so they're safe
             current_ts = self.dialect.format_current_timestamp()
 
             if reference == "this_year":
@@ -394,13 +546,31 @@ class NLToSQLEngine:
                 # Simplified - real implementation would handle year boundary
                 builder.where(f"MONTH({time_col}) = MONTH({current_ts}) - 1")
 
-        # Specific year filter
+        # Specific year filter - PARAMETERIZED to prevent SQL injection
         if "year" in time_filter:
-            builder.where(f"YEAR({time_col}) = {time_filter['year']}")
+            try:
+                # Validate and sanitize the year value
+                year_value = sanitizer.validate_year(time_filter["year"])
+                # Use parameterized query
+                builder.param("filter_year", year_value)
+                builder.where(f"YEAR({time_col}) = :filter_year")
+            except Exception as e:
+                # Log and skip invalid year filter
+                import logging
+                logging.getLogger(__name__).warning(f"Invalid year filter: {e}")
 
-        # Specific month filter
+        # Specific month filter - PARAMETERIZED to prevent SQL injection
         if "month" in time_filter:
-            builder.where(f"MONTH({time_col}) = {time_filter['month']}")
+            try:
+                # Validate and sanitize the month value
+                month_value = sanitizer.validate_month(time_filter["month"])
+                # Use parameterized query
+                builder.param("filter_month", month_value)
+                builder.where(f"MONTH({time_col}) = :filter_month")
+            except Exception as e:
+                # Log and skip invalid month filter
+                import logging
+                logging.getLogger(__name__).warning(f"Invalid month filter: {e}")
 
     def _generate_explanation(
         self,
