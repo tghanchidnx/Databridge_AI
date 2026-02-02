@@ -7,7 +7,7 @@ across both Librarian and Researcher applications.
 
 import csv
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, asdict
@@ -107,7 +107,7 @@ class AuditLogger:
             AuditEntry: The logged entry.
         """
         entry = AuditEntry(
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             action=action,
             entity_type=entity_type,
             entity_id=entity_id,
@@ -190,8 +190,85 @@ class AuditLogger:
             pass
 
 
-# Global audit logger instance
+# =============================================================================
+# Workflow Tracing
+# =============================================================================
+
+@dataclass
+class WorkflowTrace:
+    """Represents a single step in a workflow execution trace."""
+    session_id: str
+    step_id: str
+    tool_name: str
+    status: str  # e.g., "started", "success", "failure"
+    start_time: str
+    end_time: Optional[str] = None
+    input_snapshots: Optional[List[str]] = None
+    output_snapshot: Optional[str] = None
+    data_shape: Optional[Dict[str, int]] = None  # e.g., {"rows": 100, "columns": 5}
+    details: Optional[Dict[str, Any]] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return asdict(self)
+
+
+class WorkflowLogger:
+    """
+    Workflow execution trace logger.
+    """
+
+    def __init__(self, log_path: Path, buffer_size: int = 1):
+        self._log_path = Path(log_path)
+        self._buffer_size = buffer_size
+        self._buffer: List[WorkflowTrace] = []
+        self._lock = threading.Lock()
+
+        self._log_path.parent.mkdir(parents=True, exist_ok=True)
+        if not self._log_path.exists():
+            self._write_headers()
+
+    def _write_headers(self) -> None:
+        with open(self._log_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(WorkflowTrace.__dataclass_fields__.keys())
+
+    def log(self, trace: WorkflowTrace):
+        with self._lock:
+            self._buffer.append(trace)
+            if len(self._buffer) >= self._buffer_size:
+                self._flush()
+
+    def _flush(self):
+        if not self._buffer:
+            return
+        with open(self._log_path, "a", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=WorkflowTrace.__dataclass_fields__.keys())
+            for trace in self._buffer:
+                row = trace.to_dict()
+                row["input_snapshots"] = json.dumps(row["input_snapshots"]) if row["input_snapshots"] else ""
+                row["data_shape"] = json.dumps(row["data_shape"]) if row["data_shape"] else ""
+                row["details"] = json.dumps(row["details"]) if row["details"] else ""
+                writer.writerow(row)
+        self._buffer.clear()
+
+    def flush(self):
+        with self._lock:
+            self._flush()
+
+    def __del__(self):
+        try:
+            self.flush()
+        except Exception:
+            pass
+
+
+# =============================================================================
+# Global Logger Management
+# =============================================================================
+
 _audit_logger: Optional[AuditLogger] = None
+_workflow_logger: Optional[WorkflowLogger] = None
 
 
 def set_audit_logger(logger: AuditLogger) -> None:
@@ -205,6 +282,17 @@ def get_audit_logger() -> Optional[AuditLogger]:
     return _audit_logger
 
 
+def set_workflow_logger(logger: WorkflowLogger) -> None:
+    """Set the global workflow logger."""
+    global _workflow_logger
+    _workflow_logger = logger
+
+
+def get_workflow_logger() -> Optional[WorkflowLogger]:
+    """Get the global workflow logger."""
+    return _workflow_logger
+
+
 def log_action(
     action: str,
     entity_type: str,
@@ -214,17 +302,18 @@ def log_action(
 ) -> Optional[AuditEntry]:
     """
     Log an action using the global audit logger.
-
-    Args:
-        action: Action performed.
-        entity_type: Type of entity.
-        entity_id: Optional entity identifier.
-        details: Optional additional details.
-        **kwargs: Additional arguments passed to log().
-
-    Returns:
-        AuditEntry if logger is configured, None otherwise.
     """
-    if _audit_logger is None:
+    logger = get_audit_logger()
+    if logger is None:
         return None
-    return _audit_logger.log(action, entity_type, entity_id, details=details, **kwargs)
+    return logger.log(action, entity_type, entity_id, details=details, **kwargs)
+
+
+def log_workflow_step(trace: WorkflowTrace) -> None:
+    """
+    Log a workflow step using the global workflow logger.
+    """
+    logger = get_workflow_logger()
+    if logger is None:
+        return
+    logger.log(trace)

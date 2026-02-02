@@ -8,7 +8,7 @@ Generates VW_1 tier views from:
 """
 
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 import os
 
@@ -550,7 +550,7 @@ class ViewGeneratorService:
             )
             view.generated_sql = sql
 
-        view.updated_at = datetime.utcnow()
+        view.updated_at = datetime.now(timezone.utc)
         db.commit()
         db.refresh(view)
 
@@ -581,7 +581,7 @@ class ViewGeneratorService:
 
         if soft_delete:
             view.is_active = False
-            view.updated_at = datetime.utcnow()
+            view.updated_at = datetime.now(timezone.utc)
         else:
             db.delete(view)
 

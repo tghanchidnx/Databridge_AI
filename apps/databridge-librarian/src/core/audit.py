@@ -6,7 +6,7 @@ Provides comprehensive audit trail without storing PII.
 
 import csv
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 
@@ -73,7 +73,7 @@ class AuditLogger:
         Returns:
             int: ID of the created audit log entry.
         """
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(timezone.utc)
 
         # Write to CSV
         self._write_csv(

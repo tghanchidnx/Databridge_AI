@@ -5,7 +5,7 @@ Provides CRUD operations for canonical models with JSON file storage.
 """
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -344,7 +344,7 @@ class SourceModelStore:
         Args:
             model: The model to save.
         """
-        model.updated_at = datetime.utcnow()
+        model.updated_at = datetime.now(timezone.utc)
         path = self._get_model_path(model.id)
         data = self._serialize_model(model)
 

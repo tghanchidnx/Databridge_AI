@@ -11,7 +11,7 @@ import hashlib
 import json
 import sqlite3
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -456,9 +456,9 @@ class DiscoverySession:
             "type": "librarian_csv",
             "output_dir": str(output_path),
             "files": files_created,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         })
-        self._state.last_export_at = datetime.utcnow()
+        self._state.last_export_at = datetime.now(timezone.utc)
 
         if self.persist_path:
             self._save_state()
@@ -553,7 +553,7 @@ class DiscoverySession:
         evidence_data = {
             "session_id": self.id,
             "session_name": self._state.name,
-            "exported_at": datetime.utcnow().isoformat(),
+            "exported_at": datetime.now(timezone.utc).isoformat(),
             "summary": self._state.to_summary(),
             "evidence": [
                 {
@@ -619,7 +619,7 @@ class DiscoverySession:
         state_json = self._state.model_dump_json()
         db.execute(
             "INSERT OR REPLACE INTO sessions (id, state, updated_at) VALUES (?, ?, ?)",
-            (self.id, state_json, datetime.utcnow().timestamp()),
+            (self.id, state_json, datetime.now(timezone.utc).timestamp()),
         )
         db.commit()
         db.close()

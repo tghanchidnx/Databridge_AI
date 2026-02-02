@@ -21,12 +21,26 @@ from ...reconciliation import (
 from ...reconciliation.fuzzy import MatchMethod
 
 
+import uuid
+from datetime import datetime, timezone
+import io
+import os
+
+import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
+import redis
+
+from databridge_core.audit.logger import WorkflowTrace, log_workflow_step
+
+# ==================== Redis Connection ====================
+
+REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
+redis_client = redis.from_url(REDIS_URL)
+
+
 def register_reconciliation_tools(mcp: FastMCP) -> None:
     """Register all reconciliation MCP tools."""
-
-    # Workflow state storage
-    _workflow_steps: List[Dict[str, Any]] = []
-    _data_cache: Dict[str, Any] = {}
 
     # ==================== Data Loading Tools ====================
 
@@ -38,10 +52,10 @@ def register_reconciliation_tools(mcp: FastMCP) -> None:
         skip_rows: int = 0,
         columns: Optional[List[str]] = None,
         max_rows: Optional[int] = None,
-        cache_key: Optional[str] = None,
+        session_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
-        Load data from a CSV file.
+        Load data from a CSV file and create a data snapshot.
 
         Args:
             file_path: Path to the CSV file.
@@ -49,12 +63,28 @@ def register_reconciliation_tools(mcp: FastMCP) -> None:
             has_header: Whether the file has a header row.
             skip_rows: Number of rows to skip at the start.
             columns: Specific columns to load (None for all).
-            max_rows: Maximum rows to load (None for unlimited).
-            cache_key: Key to cache the loaded data for later use.
+            max_rows: Maximum rows to load.
+            session_id: Existing session ID to link workflow steps.
 
         Returns:
-            Dictionary with load results including row count, columns, and schema.
+            Dictionary with load results and snapshot details.
         """
+        session_id = session_id or f"session_{uuid.uuid4()}"
+        step_id = f"step_{uuid.uuid4()}"
+        start_time = datetime.now(timezone.utc)
+
+        log_workflow_step(WorkflowTrace(
+            session_id=session_id,
+            step_id=step_id,
+            tool_name="load_csv",
+            status="started",
+            start_time=start_time.isoformat(),
+            details={"parameters": {
+                "file_path": file_path, "delimiter": delimiter, "has_header": has_header,
+                "skip_rows": skip_rows, "columns": columns, "max_rows": max_rows
+            }}
+        ))
+
         loader = DataLoader(max_rows=max_rows)
         result = loader.load_csv(
             path=file_path,
@@ -64,13 +94,176 @@ def register_reconciliation_tools(mcp: FastMCP) -> None:
             columns=columns,
         )
 
-        if result.success and cache_key and result.data is not None:
-            _data_cache[cache_key] = result.data
+        end_time = datetime.now(timezone.utc)
+        status = "success" if result.success else "failure"
+        output_snapshot_id = None
+        data_shape = None
+
+        if result.success and result.data is not None:
+            try:
+                df = result.data
+                output_snapshot_id = f"snapshot:{session_id}:{step_id}"
+                data_shape = {"rows": len(df), "columns": len(df.columns)}
+
+                # Serialize DataFrame to Parquet in memory
+                buffer = io.BytesIO()
+                table = pa.Table.from_pandas(df)
+                pq.write_table(table, buffer)
+                buffer.seek(0)
+
+                # Save to Redis with a 1-hour expiry
+                redis_client.set(output_snapshot_id, buffer.getvalue(), ex=3600)
+
+            except Exception as e:
+                status = "failure"
+                result.success = False
+                result.errors.append(f"Snapshot Error: {e}")
+
+        log_workflow_step(WorkflowTrace(
+            session_id=session_id,
+            step_id=step_id,
+            tool_name="load_csv",
+            status=status,
+            start_time=start_time.isoformat(),
+            end_time=end_time.isoformat(),
+            output_snapshot=output_snapshot_id,
+            data_shape=data_shape,
+            details={"errors": result.errors} if not result.success else None
+        ))
 
         response = result.to_dict()
         if result.success and result.data is not None:
             response["preview"] = result.data.head(5).to_dict(orient="records")
+        
+        response["session_id"] = session_id
+        response["step_id"] = step_id
+        response["output_snapshot"] = output_snapshot_id
+
         return response
+
+    @mcp.tool()
+    def get_data_snapshot_url(
+        session_id: str,
+        step_id: str,
+    ) -> Dict[str, Any]:
+        """
+        Get the access URL for a specific data snapshot.
+
+        Args:
+            session_id: The session ID of the workflow.
+            step_id: The step ID of the tool execution.
+
+        Returns:
+            A dictionary containing the URL to access the snapshot data.
+        """
+        snapshot_key = f"snapshot:{session_id}:{step_id}"
+
+        if not redis_client.exists(snapshot_key):
+            return {
+                "success": False,
+                "error": "Snapshot not found. It may have expired or was not created successfully."
+            }
+
+        # The databridge-researcher service runs on port 8002 as per docker-compose
+        base_url = os.environ.get("RESEARCHER_API_URL", "http://localhost:8002")
+        access_url = f"{base_url}/api/v1/viewer/snapshot/{session_id}/{step_id}"
+
+        return {
+            "success": True,
+            "access_url": access_url,
+            "format_note": "Append '?format=csv' to get CSV, or '?format=json' for JSON."
+        }
+
+    @mcp.tool()
+    def export_workflow_diagram(
+        session_id: str,
+        output_path: str,
+    ) -> Dict[str, Any]:
+        """
+        Exports a visual data flow diagram for a given session.
+
+        Args:
+            session_id: The session ID to visualize.
+            output_path: The path to save the HTML output file.
+
+        Returns:
+            A dictionary with the result of the export operation.
+        """
+        log_dir = Path(os.environ.get("DATABRIDGE_LOG_DIR", "./logs"))
+        trace_file = log_dir / "workflow_trace.csv"
+
+        if not trace_file.exists():
+            return {"success": False, "error": f"Workflow trace file not found at {trace_file}"}
+
+        try:
+            with open(trace_file, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                session_steps = [row for row in reader if row["session_id"] == session_id]
+
+            if not session_steps:
+                return {"success": False, "error": f"No workflow steps found for session_id: {session_id}"}
+
+            dot = graphviz.Digraph(comment=f'Workflow for Session {session_id}')
+            dot.attr(rankdir='TB', splines='ortho')
+
+            for step in session_steps:
+                step_id = step["step_id"]
+                tool_name = step["tool_name"]
+                status = step["status"]
+                data_shape = json.loads(step["data_shape"]) if step["data_shape"] else {}
+                
+                color = "green" if status == "success" else "red" if status == "failure" else "orange"
+                
+                label = f"**{tool_name}**\n*Step ID: {step_id}*\nStatus: {status}"
+                if data_shape:
+                    label += f"\nOutput: {data_shape.get('rows')} rows x {data_shape.get('columns')} cols"
+
+                dot.node(step_id, label, shape='box', style='rounded,filled', fillcolor=color, fontname="Arial")
+
+                if step["input_snapshots"]:
+                    input_ids = json.loads(step["input_snapshots"])
+                    for input_id in input_ids:
+                        # Find the step that produced this input
+                        source_step_id = input_id.split(":")[-1]
+                        dot.edge(source_step_id, step_id)
+
+            # Render and save
+            output_file = Path(output_path)
+            output_file.parent.mkdir(parents=True, exist_ok=True)
+            
+            svg_data = dot.pipe(format='svg').decode('utf-8')
+            
+            html_content = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>DataBridge AI - Workflow Diagram</title>
+                <style>
+                    body {{ font-family: Arial, sans-serif; }}
+                    h1 {{ color: #333; }}
+                </style>
+            </head>
+            <body>
+                <h1>Workflow Diagram for Session: {session_id}</h1>
+                <div>{svg_data}</div>
+            </body>
+            </html>
+            """
+            
+            with open(output_file, "w", encoding="utf-8") as f:
+                f.write(html_content)
+
+            return {
+                "success": True,
+                "output_path": str(output_file.resolve()),
+                "steps_visualized": len(session_steps)
+            }
+
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+
 
     @mcp.tool()
     def load_json(

@@ -9,7 +9,7 @@ Uses NetworkX for graph-based lineage tracking:
 """
 
 from typing import List, Dict, Any, Optional, Set, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 
 try:
@@ -164,7 +164,7 @@ class LineageTrackerService:
             existing.transformation_logic = transformation_logic
             existing.description = description
             existing.confidence_score = confidence_score
-            existing.updated_at = datetime.utcnow()
+            existing.updated_at = datetime.now(timezone.utc)
             db.commit()
             self._invalidate_cache(project_id)
             return existing
@@ -229,7 +229,7 @@ class LineageTrackerService:
 
         if edge:
             edge.is_active = False
-            edge.updated_at = datetime.utcnow()
+            edge.updated_at = datetime.now(timezone.utc)
             db.commit()
             self._invalidate_cache(project_id)
             return True

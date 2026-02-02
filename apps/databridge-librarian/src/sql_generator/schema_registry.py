@@ -8,7 +8,7 @@ Manages schema metadata for validation and discovery:
 """
 
 from typing import List, Dict, Any, Optional, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 import hashlib
 import json
 
@@ -100,7 +100,7 @@ class SchemaRegistryService:
             existing.indexes = indexes or []
             existing.validation_rules = validation_rules or []
             existing.schema_hash = schema_hash
-            existing.updated_at = datetime.utcnow()
+            existing.updated_at = datetime.now(timezone.utc)
             db.commit()
             return existing
 

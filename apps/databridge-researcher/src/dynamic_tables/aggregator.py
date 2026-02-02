@@ -8,7 +8,7 @@ Handles intermediate aggregations with filter precedence:
 """
 
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -134,7 +134,7 @@ class AggregationService:
             raise ValueError(f"Aggregation not found: {agg_id}")
 
         agg.add_precedence_filter(precedence, column, values, operator)
-        agg.updated_at = datetime.utcnow()
+        agg.updated_at = datetime.now(timezone.utc)
 
         return agg
 
@@ -172,7 +172,7 @@ class AggregationService:
             sql = self._generate_simple_sql(agg, source_table, source_database, source_schema, dialect)
 
         agg.generated_sql = sql
-        agg.updated_at = datetime.utcnow()
+        agg.updated_at = datetime.now(timezone.utc)
         return sql
 
     def _generate_simple_sql(

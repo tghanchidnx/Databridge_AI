@@ -11,7 +11,7 @@ Applies formulas to create output tables:
 """
 
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -156,7 +156,7 @@ class FormulaExecutorService:
             round_decimals=round_decimals,
         )
         output.calculated_columns.append(formula)
-        output.updated_at = datetime.utcnow()
+        output.updated_at = datetime.now(timezone.utc)
 
         return output
 
@@ -191,7 +191,7 @@ class FormulaExecutorService:
             "on": join_condition,
             "type": join_type,
         })
-        output.updated_at = datetime.utcnow()
+        output.updated_at = datetime.now(timezone.utc)
 
         return output
 
@@ -223,7 +223,7 @@ class FormulaExecutorService:
             sql = self._generate_manual(output, dialect)
 
         output.generated_sql = sql
-        output.updated_at = datetime.utcnow()
+        output.updated_at = datetime.now(timezone.utc)
         return sql
 
     def _generate_with_template(self, output: OutputTable, dialect: SQLDialect) -> str:
@@ -380,7 +380,7 @@ class FormulaExecutorService:
             raise ValueError(f"Output table not found: {table_id}")
 
         output.status = status
-        output.updated_at = datetime.utcnow()
+        output.updated_at = datetime.now(timezone.utc)
         return output
 
     def mark_deployed(
@@ -394,11 +394,11 @@ class FormulaExecutorService:
             raise ValueError(f"Output table not found: {table_id}")
 
         output.is_deployed = True
-        output.last_deployed_at = datetime.utcnow()
+        output.last_deployed_at = datetime.now(timezone.utc)
         output.status = TableStatus.DEPLOYED
         if connection_id:
             output.deployment_connection_id = connection_id
-        output.updated_at = datetime.utcnow()
+        output.updated_at = datetime.now(timezone.utc)
 
         return output
 

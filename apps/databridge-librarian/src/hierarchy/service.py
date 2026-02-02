@@ -4,7 +4,7 @@ Hierarchy Service for DataBridge AI Librarian.
 Provides CRUD operations for projects, hierarchies, and source mappings.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
@@ -282,7 +282,7 @@ class HierarchyService:
             if industry is not None:
                 project.industry = industry
 
-            project.updated_at = datetime.utcnow()
+            project.updated_at = datetime.now(timezone.utc)
 
             self._log_action(
                 action="update_project",
@@ -639,7 +639,7 @@ class HierarchyService:
             if create_version:
                 # SCD Type 2: Close current version and create new
                 hierarchy.is_current = False
-                hierarchy.effective_to = datetime.utcnow()
+                hierarchy.effective_to = datetime.now(timezone.utc)
 
                 # Create new version
                 new_hierarchy = Hierarchy(
@@ -794,7 +794,7 @@ class HierarchyService:
             if soft_delete:
                 hierarchy.is_current = False
                 hierarchy.active_flag = False
-                hierarchy.effective_to = datetime.utcnow()
+                hierarchy.effective_to = datetime.now(timezone.utc)
             else:
                 session.delete(hierarchy)
 

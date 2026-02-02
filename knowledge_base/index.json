@@ -1,5 +1,13 @@
 {
   "version": "1.0",
   "description": "Client Knowledge Base - stores client-specific configurations, prompts, and mappings",
-  "clients": []
+  "clients": [
+    {
+      "client_id": "demo_oilco",
+      "client_name": "Demo Oil & Gas Corp",
+      "industry": "oil_gas_upstream",
+      "erp_system": "SAP S/4HANA",
+      "prompt_count": 1
+    }
+  ]
 }

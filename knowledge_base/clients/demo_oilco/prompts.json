@@ -1,0 +1,14 @@
+{
+  "prompts": [
+    {
+      "id": "7998b894-a65d-4584-a370-bbbb6f06332c",
+      "name": "Revenue Recognition Rules",
+      "trigger": "When mapping revenue accounts",
+      "content": "Demo Oil Corp recognizes revenue at the wellhead. Oil revenue uses NYMEX WTI pricing with a $2.50/bbl basin differential. Gas revenue uses Henry Hub minus $0.35/MMBtu transport deduction. NGL revenue is 45% of WTI.",
+      "domain": "general",
+      "category": "revenue",
+      "created_at": "2026-02-02 08:50:08.051905",
+      "updated_at": "2026-02-02 08:50:08.051905"
+    }
+  ]
+}

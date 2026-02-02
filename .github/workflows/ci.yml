@@ -340,12 +340,64 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ============================================
+  # dbt Validation (Non-blocking)
+  # ============================================
+  dbt-validation:
+    name: dbt Project Validation
+    runs-on: ubuntu-latest
+    needs: libs-test
+    if: hashFiles('generated/dbt/**/dbt_project.yml') != ''
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dbt
+        run: |
+          python -m pip install --upgrade pip
+          pip install dbt-core==1.7.0
+
+      - name: Find and validate dbt projects
+        run: |
+          echo "## dbt Project Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Find all dbt_project.yml files
+          projects=$(find generated/dbt -name 'dbt_project.yml' 2>/dev/null || true)
+
+          if [ -z "$projects" ]; then
+            echo "No dbt projects found in generated/dbt/" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+
+          echo "| Project | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          for project_file in $projects; do
+            project_dir=$(dirname "$project_file")
+            echo "Validating: $project_dir"
+
+            cd "$project_dir"
+            if dbt parse --no-version-check 2>/dev/null; then
+              echo "| $project_dir | :white_check_mark: Valid |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| $project_dir | :warning: Parse errors |" >> $GITHUB_STEP_SUMMARY
+            fi
+            cd - > /dev/null
+          done
+        continue-on-error: true
+
+  # ============================================
   # Summary Job
   # ============================================
   ci-summary:
     name: CI Summary
     runs-on: ubuntu-latest
-    needs: [libs-test, v3-integration, v4-integration, security-scan, docker-build]
+    needs: [libs-test, v3-integration, v4-integration, security-scan, docker-build, dbt-validation]
     if: always()
     steps:
       - name: Check job statuses
@@ -359,3 +411,4 @@ jobs:
           echo "| V4 Integration | ${{ needs.v4-integration.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Security Scan | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Docker Build | ${{ needs.docker-build.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| dbt Validation | ${{ needs.dbt-validation.result }} |" >> $GITHUB_STEP_SUMMARY

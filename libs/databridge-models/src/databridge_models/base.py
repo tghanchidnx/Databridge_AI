@@ -4,7 +4,7 @@ SQLAlchemy base classes and mixins for DataBridge AI platform.
 Provides common database model functionality used across Librarian and Researcher applications.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from sqlalchemy import Column, DateTime, String, Boolean
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -35,13 +35,13 @@ class TimestampMixin:
     """
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
         nullable=False
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
         nullable=False
     )
 
@@ -91,7 +91,7 @@ class SoftDeleteMixin:
     def soft_delete(self, deleted_by: Optional[str] = None) -> None:
         """Mark the record as deleted."""
         self.is_deleted = True
-        self.deleted_at = datetime.utcnow()
+        self.deleted_at = lambda: datetime.now(timezone.utc)()
         self.deleted_by = deleted_by
 
     def restore(self) -> None:

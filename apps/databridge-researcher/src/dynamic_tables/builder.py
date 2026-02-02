@@ -9,7 +9,7 @@ Builds DT_2 tier tables from VW_1 views with:
 """
 
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -171,7 +171,7 @@ class DynamicTableBuilderService:
             on_condition=on_condition,
         )
         dt.joins.append(join_def)
-        dt.updated_at = datetime.utcnow()
+        dt.updated_at = datetime.now(timezone.utc)
 
         return dt
 
@@ -213,7 +213,7 @@ class DynamicTableBuilderService:
             precedence_group=precedence_group,
         )
         dt.filters.append(filter_def)
-        dt.updated_at = datetime.utcnow()
+        dt.updated_at = datetime.now(timezone.utc)
 
         return dt
 
@@ -252,7 +252,7 @@ class DynamicTableBuilderService:
             filter_condition=filter_condition,
         )
         dt.aggregations.append(agg_def)
-        dt.updated_at = datetime.utcnow()
+        dt.updated_at = datetime.now(timezone.utc)
 
         return dt
 
@@ -263,7 +263,7 @@ class DynamicTableBuilderService:
             raise ValueError(f"Dynamic table not found: {table_id}")
 
         dt.group_by = columns
-        dt.updated_at = datetime.utcnow()
+        dt.updated_at = datetime.now(timezone.utc)
         return dt
 
     def generate_sql(
@@ -294,7 +294,7 @@ class DynamicTableBuilderService:
             sql = self._generate_manual(dt, dialect)
 
         dt.generated_sql = sql
-        dt.updated_at = datetime.utcnow()
+        dt.updated_at = datetime.now(timezone.utc)
         return sql
 
     def _generate_with_template(self, dt: DynamicTable, dialect: SQLDialect) -> str:
@@ -466,7 +466,7 @@ class DynamicTableBuilderService:
             raise ValueError(f"Dynamic table not found: {table_id}")
 
         dt.status = status
-        dt.updated_at = datetime.utcnow()
+        dt.updated_at = datetime.now(timezone.utc)
         return dt
 
     def delete_dynamic_table(self, table_id: str) -> bool:

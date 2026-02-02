@@ -8,7 +8,7 @@ Wires together:
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -106,7 +106,7 @@ class DiscoveryProgress:
             "started_at": self.started_at.isoformat(),
             "current_table": self.current_table,
             "error_message": self.error_message,
-            "elapsed_seconds": (datetime.utcnow() - self.started_at).total_seconds(),
+            "elapsed_seconds": (datetime.now(timezone.utc) - self.started_at).total_seconds(),
         }
 
 
@@ -379,7 +379,7 @@ class SourceDiscoveryService:
             result.columns_discovered = sum(len(t.columns) for t in model.tables)
             result.entities_inferred = len(model.entities)
             result.relationships_inferred = len(model.relationships)
-            result.completed_at = datetime.utcnow()
+            result.completed_at = datetime.now(timezone.utc)
             result.duration_seconds = (
                 result.completed_at - result.started_at
             ).total_seconds()
@@ -483,7 +483,7 @@ class SourceDiscoveryService:
             self._apply_confidence_filters(model, result)
 
             # Save
-            model.analyzed_at = datetime.utcnow()
+            model.analyzed_at = datetime.now(timezone.utc)
             self.store.save_model(model)
 
             self._update_progress(phase_progress=1.0)
@@ -497,7 +497,7 @@ class SourceDiscoveryService:
             result.columns_discovered = sum(len(t.columns) for t in model.tables)
             result.entities_inferred = len(model.entities)
             result.relationships_inferred = len(model.relationships)
-            result.completed_at = datetime.utcnow()
+            result.completed_at = datetime.now(timezone.utc)
             result.duration_seconds = (
                 result.completed_at - result.started_at
             ).total_seconds()

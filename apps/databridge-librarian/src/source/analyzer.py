@@ -6,7 +6,7 @@ entity types, relationships, and column roles.
 """
 
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 from .models import (
@@ -190,7 +190,7 @@ class SourceAnalyzer:
         # Infer relationships
         model.relationships = self._infer_relationships(model.tables)
 
-        model.analyzed_at = datetime.utcnow()
+        model.analyzed_at = datetime.now(timezone.utc)
         return model
 
     def _analyze_table(

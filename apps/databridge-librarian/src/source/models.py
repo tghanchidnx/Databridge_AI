@@ -6,7 +6,7 @@ including entities, relationships, and column mappings.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 import uuid
@@ -429,7 +429,7 @@ class CanonicalModel:
             approved=inferred_by == "user",
         )
         self.relationships.append(rel)
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
         return rel
 
     def add_column_merge(
@@ -447,7 +447,7 @@ class CanonicalModel:
             description=description,
         )
         self.column_merges.append(merge)
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
         return merge
 
     def rename_entity(self, old_name: str, new_name: str) -> bool:
@@ -457,7 +457,7 @@ class CanonicalModel:
             return False
 
         entity.name = new_name
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
         return True
 
     def approve_entity(self, name: str) -> bool:
@@ -468,7 +468,7 @@ class CanonicalModel:
 
         entity.approved = True
         entity.rejected = False
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
         return True
 
     def reject_entity(self, name: str, reason: str = "") -> bool:
@@ -480,7 +480,7 @@ class CanonicalModel:
         entity.rejected = True
         entity.approved = False
         entity.user_notes = reason
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
         return True
 
     def approve_relationship(self, id_or_name: str) -> bool:
@@ -491,7 +491,7 @@ class CanonicalModel:
 
         rel.approved = True
         rel.rejected = False
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
         return True
 
     def reject_relationship(self, id_or_name: str) -> bool:
@@ -502,7 +502,7 @@ class CanonicalModel:
 
         rel.rejected = True
         rel.approved = False
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
         return True
 
     @property

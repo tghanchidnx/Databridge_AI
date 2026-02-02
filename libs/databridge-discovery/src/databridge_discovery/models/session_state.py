@@ -7,7 +7,7 @@ sources analyzed, proposed hierarchies, and evidence collected.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 from uuid import uuid4
@@ -196,24 +196,24 @@ class DiscoverySessionState(BaseModel):
         """Add a source to the session."""
         self.sources.append(source)
         self.total_sources = len(self.sources)
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     def add_proposal(self, proposal: ProposedHierarchy) -> None:
         """Add a proposed hierarchy to the session."""
         self.proposed_hierarchies.append(proposal)
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     def approve_hierarchy(self, hierarchy_id: str) -> bool:
         """Approve a proposed hierarchy."""
         for proposal in self.proposed_hierarchies:
             if proposal.id == hierarchy_id:
                 proposal.status = "approved"
-                proposal.reviewed_at = datetime.utcnow()
+                proposal.reviewed_at = datetime.now(timezone.utc)
                 if hierarchy_id not in self.approved_hierarchies:
                     self.approved_hierarchies.append(hierarchy_id)
                 if hierarchy_id in self.rejected_hierarchies:
                     self.rejected_hierarchies.remove(hierarchy_id)
-                self.updated_at = datetime.utcnow()
+                self.updated_at = datetime.now(timezone.utc)
                 return True
         return False
 
@@ -222,14 +222,14 @@ class DiscoverySessionState(BaseModel):
         for proposal in self.proposed_hierarchies:
             if proposal.id == hierarchy_id:
                 proposal.status = "rejected"
-                proposal.reviewed_at = datetime.utcnow()
+                proposal.reviewed_at = datetime.now(timezone.utc)
                 if reason:
                     proposal.user_notes = reason
                 if hierarchy_id not in self.rejected_hierarchies:
                     self.rejected_hierarchies.append(hierarchy_id)
                 if hierarchy_id in self.approved_hierarchies:
                     self.approved_hierarchies.remove(hierarchy_id)
-                self.updated_at = datetime.utcnow()
+                self.updated_at = datetime.now(timezone.utc)
                 return True
         return False
 
@@ -250,7 +250,7 @@ class DiscoverySessionState(BaseModel):
     def add_evidence(self, evidence: DiscoveryEvidence) -> None:
         """Add evidence to the session."""
         self.evidence.append(evidence)
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     def get_evidence_for_hierarchy(self, hierarchy_id: str) -> list[DiscoveryEvidence]:
         """Get all evidence supporting a specific hierarchy."""

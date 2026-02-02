@@ -5,7 +5,7 @@ Pytest configuration and shared fixtures for DataBridge AI Librarian tests.
 import pytest
 import tempfile
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Generator
 import uuid
 
@@ -54,8 +54,8 @@ def sample_project_data() -> dict:
         "description": "A test project for P&L hierarchy",
         "industry": "Manufacturing",
         "created_by": "test_user",
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow(),
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
     }
 
 
