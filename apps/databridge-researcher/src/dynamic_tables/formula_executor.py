@@ -42,10 +42,10 @@ class FormulaExecutorService:
         self._output_tables: Dict[str, OutputTable] = {}
 
         # Set up Jinja2 template environment
-        v3_template_dir = Path(__file__).parent.parent.parent.parent / "v3" / "src" / "sql_generator" / "templates"
-        if v3_template_dir.exists():
+        librarian_template_dir = Path(__file__).parent.parent.parent.parent / "librarian" / "src" / "sql_generator" / "templates"
+        if librarian_template_dir.exists():
             self._env = Environment(
-                loader=FileSystemLoader(str(v3_template_dir)),
+                loader=FileSystemLoader(str(librarian_template_dir)),
                 autoescape=select_autoescape(default=False),
                 trim_blocks=True,
                 lstrip_blocks=True,
@@ -77,7 +77,7 @@ class FormulaExecutorService:
             source_tables: List of source table definitions
             dimensions: List of dimension column definitions
             base_measures: List of base measure column definitions
-            formula_group_id: Optional V3 formula group ID
+            formula_group_id: Optional Librarian formula group ID
             formula_group_name: Optional formula group name
             target_database: Target database
             target_schema: Target schema

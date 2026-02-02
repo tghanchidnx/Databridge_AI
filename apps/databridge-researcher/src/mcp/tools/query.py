@@ -1,5 +1,5 @@
 """
-MCP Tools for Query Building and NL-to-SQL in DataBridge AI V4.
+MCP Tools for Query Building and NL-to-SQL in DataBridge AI Researcher.
 
 Provides 10 tools for SQL query construction and natural language translation.
 """

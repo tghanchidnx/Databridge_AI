@@ -2,9 +2,9 @@
 
 ## Executive Summary
 
-DataBridge AI is a mature, MCP-native data platform with **77+ implemented tools** across two core applications:
-- **V3 Hierarchy Builder**: 40+ tools for financial hierarchy management, reconciliation, and SQL generation
-- **V4 Analytics Engine**: 37+ tools for query building, NL-to-SQL, insights, and FP&A workflows
+DataBridge AI is a mature, MCP-native data platform with **144+ implemented tools** across two core applications:
+- **Librarian Hierarchy Builder**: 92+ tools for financial hierarchy management, reconciliation, and SQL generation
+- **Researcher Analytics Engine**: 52+ tools for query building, NL-to-SQL, insights, and FP&A workflows
 
 This plan outlines the strategic roadmap to transform DataBridge from a powerful CLI/MCP tool into an enterprise-grade, automated data warehouse platform with both **Basic Mode** (direct SQL execution) and **Advanced Mode** (dbt + GitHub integration).
 
@@ -16,8 +16,8 @@ This plan outlines the strategic roadmap to transform DataBridge from a powerful
 
 | Component | Status | Tools/Features |
 |-----------|--------|----------------|
-| **V3 Hierarchy Builder** | ✅ Complete | 40+ MCP tools, hierarchy CRUD, formula management |
-| **V4 Analytics Engine** | ✅ Complete | 37+ MCP tools, NL-to-SQL, insights engines |
+| **Librarian Hierarchy Builder** | ✅ Complete | 92+ MCP tools, hierarchy CRUD, formula management |
+| **Researcher Analytics Engine** | ✅ Complete | 52+ MCP tools, NL-to-SQL, insights engines |
 | **SQL Generator** | ✅ Complete | Snowflake/PostgreSQL templates, view generation |
 | **Vector Store (RAG)** | ✅ Complete | ChromaDB integration, semantic search |
 | **Reconciliation Engine** | ✅ Complete | Fuzzy matching, data profiling, comparison |
@@ -37,7 +37,7 @@ This plan outlines the strategic roadmap to transform DataBridge from a powerful
 | **Connector Adapters** | ⚠️ Partial | PostgreSQL complete; Snowflake, Databricks, SQL Server need implementation |
 | **Deployment Module** | ⚠️ Partial | Script generation exists; orchestration needed |
 | **CLI Tool** | ⚠️ Partial | Basic structure; needs command implementation |
-| **V3-V4 Sync** | ⚠️ Partial | Client exists; event-driven sync needed |
+| **Librarian-Researcher Sync** | ⚠️ Partial | Client exists; event-driven sync needed |
 
 ### What's Not Built
 
@@ -59,23 +59,23 @@ This plan outlines the strategic roadmap to transform DataBridge from a powerful
 ```
 DataBridge_AI/
 ├── apps/
-│   ├── databridge-v3/          # Hierarchy Builder (Python 3.10+)
+│   ├── databridge-librarian/          # Hierarchy Builder (Python 3.10+)
 │   │   ├── src/
 │   │   │   ├── hierarchy/      # Core hierarchy operations
 │   │   │   ├── reconciliation/ # Data comparison engine
 │   │   │   ├── sql_generator/  # DDL/DML generation
 │   │   │   ├── vectors/        # RAG & embeddings
-│   │   │   └── mcp/tools/      # 40+ MCP tools
+│   │   │   └── mcp/tools/      # 92+ MCP tools
 │   │   └── tests/
 │   │
-│   ├── databridge-v4/          # Analytics Engine (Python 3.10+)
+│   ├── databridge-researcher/          # Analytics Engine (Python 3.10+)
 │   │   ├── src/
 │   │   │   ├── query/          # SQL builder
 │   │   │   ├── nlp/            # NL-to-SQL
 │   │   │   ├── insights/       # Analytics engines
 │   │   │   ├── workflows/      # FP&A workflows
 │   │   │   ├── connectors/     # Warehouse connectors
-│   │   │   └── mcp/tools/      # 37+ MCP tools
+│   │   │   └── mcp/tools/      # 52+ MCP tools
 │   │   └── tests/
 │   │
 │   └── databridge-cli/         # Unified CLI (planned)
@@ -101,9 +101,9 @@ DataBridge_AI/
                     ┌─────────────────────────────┼─────────────────────────────┐
                     │                             │                             │
           ┌─────────▼─────────┐         ┌────────▼────────┐         ┌─────────▼─────────┐
-          │   V3 Hierarchy    │         │   V4 Analytics  │         │   Orchestration   │
+          │   Librarian Hierarchy    │         │   Researcher Analytics  │         │   Orchestration   │
           │     Builder       │◄───────►│      Engine     │◄───────►│      Engine       │
-          │   (40+ tools)     │  Sync   │   (37+ tools)   │  Trigger│   (New Module)    │
+          │   (92+ tools)     │  Sync   │   (52+ tools)   │  Trigger│   (New Module)    │
           └─────────┬─────────┘         └────────┬────────┘         └─────────┬─────────┘
                     │                            │                            │
                     │                            │                            │
@@ -142,9 +142,9 @@ Complete the warehouse connector framework and add intelligent source analysis c
 | BigQuery | P2 | 3 days | google-cloud-bigquery |
 
 **File Locations**:
-- `apps/databridge-v4/src/connectors/snowflake.py`
-- `apps/databridge-v4/src/connectors/databricks.py`
-- `apps/databridge-v4/src/connectors/sqlserver.py`
+- `apps/databridge-researcher/src/connectors/snowflake.py`
+- `apps/databridge-researcher/src/connectors/databricks.py`
+- `apps/databridge-researcher/src/connectors/sqlserver.py`
 
 **Base Interface** (already defined in `connectors/base.py`):
 ```python
@@ -166,17 +166,17 @@ class BaseConnector(ABC):
 
 **Purpose**: Automatically analyze source data and infer dimensional model structure.
 
-**New Module Location**: `apps/databridge-v3/src/semantic/`
+**New Module Location**: `apps/databridge-librarian/src/semantic/`
 
 **Components**:
 
 ```python
-# apps/databridge-v3/src/semantic/__init__.py
+# apps/databridge-librarian/src/semantic/__init__.py
 from .analyzer import SemanticAnalyzer
 from .entity_detector import EntityDetector
 from .relationship_inferencer import RelationshipInferencer
 
-# apps/databridge-v3/src/semantic/analyzer.py
+# apps/databridge-librarian/src/semantic/analyzer.py
 class SemanticAnalyzer:
     """
     Analyzes source metadata to build a canonical data model.
@@ -205,7 +205,7 @@ class SemanticAnalyzer:
 
 ### 1.3 New MCP Tools for Phase 1
 
-**Add to** `apps/databridge-v3/src/mcp/tools/semantic.py`:
+**Add to** `apps/databridge-librarian/src/mcp/tools/semantic.py`:
 
 ```python
 @mcp.tool()
@@ -255,13 +255,13 @@ def merge_source_columns(
 
 **Unit Tests**:
 ```python
-# apps/databridge-v4/tests/unit/connectors/test_snowflake.py
+# apps/databridge-researcher/tests/unit/connectors/test_snowflake.py
 class TestSnowflakeConnector:
     def test_connect_with_valid_credentials(self): ...
     def test_get_schema_returns_metadata(self): ...
     def test_execute_query_returns_results(self): ...
 
-# apps/databridge-v3/tests/unit/semantic/test_analyzer.py
+# apps/databridge-librarian/tests/unit/semantic/test_analyzer.py
 class TestSemanticAnalyzer:
     def test_detects_customer_entity(self): ...
     def test_detects_scd_type_2_pattern(self): ...
@@ -270,7 +270,7 @@ class TestSemanticAnalyzer:
 
 **Integration Tests**:
 ```python
-# apps/databridge-v3/tests/integration/test_semantic_analysis.py
+# apps/databridge-librarian/tests/integration/test_semantic_analysis.py
 def test_full_semantic_analysis_workflow():
     """End-to-end test: connect → analyze → review → approve."""
     ...
@@ -295,7 +295,7 @@ Transform the approved canonical model into deployable Snowflake objects using t
 
 ### 2.1 Warehouse Modeler Module
 
-**Location**: `apps/databridge-v3/src/warehouse_modeler/`
+**Location**: `apps/databridge-librarian/src/warehouse_modeler/`
 
 **Current State**: The `sql_generator/` module generates VW_1 tier views. This phase extends it to the full pipeline.
 
@@ -312,7 +312,7 @@ Transform the approved canonical model into deployable Snowflake objects using t
 **Implementation**:
 
 ```python
-# apps/databridge-v3/src/warehouse_modeler/modeler.py
+# apps/databridge-librarian/src/warehouse_modeler/modeler.py
 class WarehouseModeler:
     """
     Generates the full Snowflake object pipeline from a canonical model.
@@ -367,7 +367,7 @@ class WarehouseModeler:
 **Basic Mode**: Direct SQL files for immediate execution.
 
 ```python
-# apps/databridge-v3/src/warehouse_modeler/generators/sql_generator.py
+# apps/databridge-librarian/src/warehouse_modeler/generators/sql_generator.py
 class SQLScriptGenerator:
     """Generates plain SQL scripts for Basic Mode deployment."""
 
@@ -386,7 +386,7 @@ class SQLScriptGenerator:
 **Advanced Mode**: dbt project with full version control.
 
 ```python
-# apps/databridge-v3/src/warehouse_modeler/generators/dbt_generator.py
+# apps/databridge-librarian/src/warehouse_modeler/generators/dbt_generator.py
 class DbtProjectGenerator:
     """Generates a complete dbt project for Advanced Mode deployment."""
 
@@ -429,10 +429,10 @@ class DbtProjectGenerator:
 
 ### 2.3 GitHub Integration (Advanced Mode)
 
-**Location**: `apps/databridge-v3/src/integrations/github.py`
+**Location**: `apps/databridge-librarian/src/integrations/github.py`
 
 ```python
-# apps/databridge-v3/src/integrations/github.py
+# apps/databridge-librarian/src/integrations/github.py
 from github import Github
 from github.Repository import Repository
 
@@ -474,7 +474,7 @@ class GitHubIntegration:
 
 ### 2.4 New MCP Tools for Phase 2
 
-**Add to** `apps/databridge-v3/src/mcp/tools/warehouse.py`:
+**Add to** `apps/databridge-librarian/src/mcp/tools/warehouse.py`:
 
 ```python
 @mcp.tool()
@@ -533,7 +533,7 @@ def push_dbt_project_to_github(
 
 **Unit Tests**:
 ```python
-# apps/databridge-v3/tests/unit/warehouse_modeler/test_dbt_generator.py
+# apps/databridge-librarian/tests/unit/warehouse_modeler/test_dbt_generator.py
 class TestDbtProjectGenerator:
     def test_generates_valid_dbt_project_yml(self): ...
     def test_generates_staging_models_with_source_refs(self): ...
@@ -543,7 +543,7 @@ class TestDbtProjectGenerator:
 
 **Integration Tests**:
 ```python
-# apps/databridge-v3/tests/integration/test_dbt_generation.py
+# apps/databridge-librarian/tests/integration/test_dbt_generation.py
 def test_generated_dbt_project_passes_dbt_parse():
     """Verify generated project passes `dbt parse`."""
     ...
@@ -572,10 +572,10 @@ Implement robust deployment pipelines for both Basic and Advanced modes with pro
 
 ### 3.1 Deployment Orchestrator
 
-**Location**: `apps/databridge-v3/src/deployment/orchestrator.py`
+**Location**: `apps/databridge-librarian/src/deployment/orchestrator.py`
 
 ```python
-# apps/databridge-v3/src/deployment/orchestrator.py
+# apps/databridge-librarian/src/deployment/orchestrator.py
 from enum import Enum
 from typing import Optional
 import asyncio
@@ -686,10 +686,10 @@ class DeploymentOrchestrator:
 
 ### 3.2 ETL Generator Enhancements
 
-**Enhance existing** `apps/databridge-v3/src/sql_generator/`:
+**Enhance existing** `apps/databridge-librarian/src/sql_generator/`:
 
 ```python
-# apps/databridge-v3/src/sql_generator/etl_generator.py
+# apps/databridge-librarian/src/sql_generator/etl_generator.py
 class ETLGenerator:
     """
     Generates data loading statements for both modes.
@@ -719,10 +719,10 @@ class ETLGenerator:
 
 ### 3.3 Validation Suite
 
-**Location**: `apps/databridge-v4/src/validation/`
+**Location**: `apps/databridge-researcher/src/validation/`
 
 ```python
-# apps/databridge-v4/src/validation/suite.py
+# apps/databridge-researcher/src/validation/suite.py
 class ValidationSuite:
     """
     Post-deployment validation for both modes.
@@ -765,7 +765,7 @@ class ValidationSuite:
 
 ### 3.4 New MCP Tools for Phase 3
 
-**Add to** `apps/databridge-v3/src/mcp/tools/deployment.py`:
+**Add to** `apps/databridge-librarian/src/mcp/tools/deployment.py`:
 
 ```python
 @mcp.tool()
@@ -839,7 +839,7 @@ def trigger_dbt_run(
 
 **Unit Tests**:
 ```python
-# apps/databridge-v3/tests/unit/deployment/test_orchestrator.py
+# apps/databridge-librarian/tests/unit/deployment/test_orchestrator.py
 class TestDeploymentOrchestrator:
     def test_basic_mode_commits_on_success(self): ...
     def test_basic_mode_rollbacks_on_failure(self): ...
@@ -849,7 +849,7 @@ class TestDeploymentOrchestrator:
 
 **Integration Tests**:
 ```python
-# apps/databridge-v3/tests/integration/test_deployment.py
+# apps/databridge-librarian/tests/integration/test_deployment.py
 @pytest.mark.integration
 def test_full_basic_deployment_workflow():
     """End-to-end: generate → deploy → validate."""
@@ -873,14 +873,14 @@ def test_full_advanced_deployment_workflow():
 
 ---
 
-## Phase 4: V3-V4 Integration & Workflow Automation (Weeks 13-16)
+## Phase 4: Librarian-Researcher Integration & Workflow Automation (Weeks 13-16)
 
 ### Goal
-Create seamless integration between V3 (Hierarchy Builder) and V4 (Analytics Engine) with automated synchronization and high-level workflow tools.
+Create seamless integration between Librarian (Hierarchy Builder) and Researcher (Analytics Engine) with automated synchronization and high-level workflow tools.
 
 ### 4.1 Event-Driven Synchronization
 
-**Current State**: V4 has a `V3Client` in `integration/v3_client.py` for manual sync.
+**Current State**: Researcher has a `LibrarianClient` in `integration/librarian_client.py` for manual sync.
 
 **Enhancement**: Add event-driven synchronization using Redis Pub/Sub.
 
@@ -929,12 +929,12 @@ class EventSubscriber:
                 pass
 ```
 
-**V4 Event Handlers**:
+**Researcher Event Handlers**:
 
 ```python
-# apps/databridge-v4/src/integration/event_handlers.py
-class V4EventHandlers:
-    """Handles events from V3."""
+# apps/databridge-researcher/src/integration/event_handlers.py
+class ResearcherEventHandlers:
+    """Handles events from Librarian."""
 
     def __init__(self, subscriber: EventSubscriber):
         self.subscriber = subscriber
@@ -946,7 +946,7 @@ class V4EventHandlers:
 
     def on_deployment_completed(self, message: dict) -> None:
         """
-        When V3 completes a deployment:
+        When Librarian completes a deployment:
         1. Refresh metadata catalog
         2. Update knowledge base
         3. Re-index for NL-to-SQL
@@ -961,7 +961,7 @@ class V4EventHandlers:
 
 ### 4.2 High-Level Workflow MCP Tools
 
-**Location**: `apps/databridge-v3/src/mcp/tools/workflow.py`
+**Location**: `apps/databridge-librarian/src/mcp/tools/workflow.py`
 
 ```python
 @mcp.tool()
@@ -1039,7 +1039,7 @@ def workflow_query_deployed_warehouse(
 ) -> dict:
     """
     Query the deployed warehouse using natural language.
-    Uses V4's NL-to-SQL capabilities.
+    Uses Researcher's NL-to-SQL capabilities.
 
     Args:
         workflow_id: Completed workflow
@@ -1055,37 +1055,37 @@ def workflow_query_deployed_warehouse(
 
 ### 4.3 Natural Language Interface Enhancement
 
-**Enhance V4's NL-to-SQL** to work with dynamically deployed warehouses:
+**Enhance Researcher's NL-to-SQL** to work with dynamically deployed warehouses:
 
 ```python
-# apps/databridge-v4/src/nlp/enhanced_nl_to_sql.py
+# apps/databridge-researcher/src/nlp/enhanced_nl_to_sql.py
 class EnhancedNLToSQL:
     """
-    Enhanced NL-to-SQL that integrates with V3 deployments.
+    Enhanced NL-to-SQL that integrates with Librarian deployments.
     """
 
     def __init__(
         self,
         catalog: MetadataCatalog,
         knowledge_base: KnowledgeBase,
-        v3_client: V3Client
+        librarian_client: LibrarianClient
     ):
         self.catalog = catalog
         self.kb = knowledge_base
-        self.v3 = v3_client
+        self.librarian = librarian_client
 
     def translate(self, question: str, context: Optional[dict] = None) -> SQLQuery:
         """
         Translate natural language to SQL with full context awareness.
 
         Enhanced features:
-        - Understands V3 hierarchy structures
-        - Uses formula definitions from V3
+        - Understands Librarian hierarchy structures
+        - Uses formula definitions from Librarian
         - Leverages business glossary
         - Applies FP&A domain knowledge
         """
-        # Get hierarchy context from V3
-        hierarchies = self.v3.get_hierarchies_for_project(context.get("project_id"))
+        # Get hierarchy context from Librarian
+        hierarchies = self.librarian.get_hierarchies_for_project(context.get("project_id"))
 
         # Enrich catalog with hierarchy metadata
         enriched_catalog = self._enrich_catalog(hierarchies)
@@ -1098,10 +1098,10 @@ class EnhancedNLToSQL:
 
 **Integration Tests**:
 ```python
-# apps/databridge-v4/tests/integration/test_v3_v4_sync.py
+# apps/databridge-researcher/tests/integration/test_librarian_researcher_sync.py
 @pytest.mark.integration
 def test_event_driven_catalog_refresh():
-    """Verify V4 refreshes catalog when V3 deploys."""
+    """Verify Researcher refreshes catalog when Librarian deploys."""
     ...
 
 @pytest.mark.integration
@@ -1129,9 +1129,9 @@ def test_5_minute_data_warehouse():
 ### 4.5 Deliverables
 
 - [ ] Event publisher/subscriber in databridge-core
-- [ ] V4 event handlers for auto-sync
+- [ ] Researcher event handlers for auto-sync
 - [ ] 5 high-level workflow MCP tools
-- [ ] Enhanced NL-to-SQL with V3 context
+- [ ] Enhanced NL-to-SQL with Librarian context
 - [ ] End-to-end integration tests
 - [ ] "5-Minute Data Warehouse" demo script
 
@@ -1218,19 +1218,19 @@ docs/
 ├── DEPLOYMENT_PLAN.md            # This document
 ├── architecture/
 │   ├── overview.md               # System architecture
-│   ├── v3-hierarchy-builder.md   # V3 deep dive
-│   ├── v4-analytics-engine.md    # V4 deep dive
+│   ├── librarian-hierarchy-builder.md   # Librarian deep dive
+│   ├── researcher-analytics-engine.md    # Researcher deep dive
 │   └── data-flow.md              # Data flow diagrams
 ├── user-guide/
 │   ├── getting-started.md        # First deployment
 │   ├── connecting-sources.md     # Connector setup
-│   ├── building-hierarchies.md   # V3 workflows
-│   ├── analytics-queries.md      # V4 workflows
+│   ├── building-hierarchies.md   # Librarian workflows
+│   ├── analytics-queries.md      # Researcher workflows
 │   ├── deployment-modes.md       # Basic vs Advanced
 │   └── templates-skills.md       # Using templates
 ├── api-reference/
-│   ├── v3-mcp-tools.md           # 40+ V3 tools
-│   ├── v4-mcp-tools.md           # 37+ V4 tools
+│   ├── librarian-mcp-tools.md           # 92+ Librarian tools
+│   ├── researcher-mcp-tools.md           # 52+ Researcher tools
 │   └── workflow-tools.md         # Workflow tools
 ├── operations/
 │   ├── docker-deployment.md      # Container setup
@@ -1250,17 +1250,17 @@ docs/
 ```python
 # apps/databridge-cli/src/databridge_cli/main.py
 import typer
-from databridge_v3.cli import app as v3_app
-from databridge_v4.cli import app as v4_app
+from databridge_librarian.cli import app as librarian_app
+from databridge_researcher.cli import app as researcher_app
 
 app = typer.Typer(
     name="databridge",
     help="DataBridge AI - Automated Data Warehouse Platform"
 )
 
-# Mount V3 and V4 as subcommands
-app.add_typer(v3_app, name="hierarchy", help="Hierarchy Builder (V3)")
-app.add_typer(v4_app, name="analytics", help="Analytics Engine (V4)")
+# Mount Librarian and Researcher as subcommands
+app.add_typer(librarian_app, name="hierarchy", help="Hierarchy Builder (Librarian)")
+app.add_typer(researcher_app, name="analytics", help="Analytics Engine (Researcher)")
 
 # Top-level workflow commands
 @app.command()
@@ -1315,7 +1315,7 @@ if __name__ == "__main__":
 
 **Total New Tools**: 18
 
-**Final Tool Count**: 77 existing + 18 new = **95 MCP tools**
+**Final Tool Count**: 144 existing + 18 new = **162 MCP tools**
 
 ---
 
@@ -1349,12 +1349,12 @@ if __name__ == "__main__":
 - [ ] Validation suite catches 95%+ of data quality issues
 
 ### Phase 4
-- [ ] Event-driven sync updates V4 within 5 seconds of V3 deployment
+- [ ] Event-driven sync updates Researcher within 5 seconds of Librarian deployment
 - [ ] NL-to-SQL accuracy >85% on deployed warehouses
 - [ ] End-to-end workflow completes in <10 minutes for typical projects
 
 ### Phase 5
-- [ ] All 95 MCP tools documented with examples
+- [ ] All 162 MCP tools documented with examples
 - [ ] CLI passes usability testing
 - [ ] Production deployment guide validated by external tester
 
@@ -1367,7 +1367,7 @@ if __name__ == "__main__":
 | **Phase 1** | Weeks 1-4 | Connectors & Semantic Analysis |
 | **Phase 2** | Weeks 5-8 | Warehouse Model Generation |
 | **Phase 3** | Weeks 9-12 | Deployment Orchestration |
-| **Phase 4** | Weeks 13-16 | V3-V4 Integration |
+| **Phase 4** | Weeks 13-16 | Librarian-Researcher Integration |
 | **Phase 5** | Weeks 17-20 | Production Hardening |
 
 **Total Duration**: 20 weeks (~5 months)

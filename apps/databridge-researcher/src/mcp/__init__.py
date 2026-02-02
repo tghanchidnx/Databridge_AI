@@ -1,4 +1,4 @@
-"""MCP module for DataBridge AI V4 Analytics Engine."""
+"""MCP module for DataBridge AI Researcher Analytics Engine."""
 
 from .server import mcp
 

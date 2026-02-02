@@ -29,13 +29,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-v3 = ["databridge-v3"]
-v4 = ["databridge-v4"]
+librarian = ["databridge-librarian"]
+researcher = ["databridge-researcher"]
 cli = ["databridge-cli"]
 discovery = ["databridge-discovery"]
 all = [
-    "databridge-v3",
-    "databridge-v4",
+    "databridge-librarian",
+    "databridge-researcher",
     "databridge-cli",
     "databridge-discovery",
 ]
@@ -86,7 +86,7 @@ ignore = [
 ]
 
 [tool.ruff.isort]
-known-first-party = ["databridge_core", "databridge_models", "databridge_v3", "databridge_v4", "databridge_cli", "databridge_discovery"]
+known-first-party = ["databridge_core", "databridge_models", "databridge_librarian", "databridge_researcher", "databridge_cli", "databridge_discovery"]
 
 # MyPy configuration
 [tool.mypy]
@@ -100,8 +100,8 @@ ignore_missing_imports = true
 minversion = "7.0"
 addopts = "-ra -q"
 testpaths = [
-    "apps/databridge-v3/tests",
-    "apps/databridge-v4/tests",
+    "apps/databridge-librarian/tests",
+    "apps/databridge-researcher/tests",
     "libs/databridge-core/tests",
     "libs/databridge-models/tests",
     "libs/databridge-discovery/tests",

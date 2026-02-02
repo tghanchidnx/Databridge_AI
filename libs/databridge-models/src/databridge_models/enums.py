@@ -1,7 +1,7 @@
 """
 Shared enumerations for DataBridge AI platform.
 
-These enums are used across V3 and V4 applications for consistent
+These enums are used across Librarian and Researcher applications for consistent
 type definitions and validation.
 """
 

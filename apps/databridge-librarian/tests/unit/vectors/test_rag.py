@@ -1,5 +1,5 @@
 """
-Unit tests for V3 HierarchyRAG pipeline.
+Unit tests for Librarian HierarchyRAG pipeline.
 
 Tests retrieval-augmented generation for hierarchy context.
 """

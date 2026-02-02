@@ -17,7 +17,7 @@ class TestSettings:
 
         settings = Settings()
 
-        assert settings.app_name == "DataBridge AI V3 - Hierarchy Builder"
+        assert settings.app_name == "DataBridge AI Librarian - Hierarchy Builder"
         assert settings.version == "3.0.0"
         assert settings.debug is False
 

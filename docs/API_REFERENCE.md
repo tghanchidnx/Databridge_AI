@@ -1,18 +1,18 @@
 # DataBridge AI API Reference
 
-This document provides a complete reference for all MCP tools available in DataBridge AI V3 and V4.
+This document provides a complete reference for all MCP tools available in DataBridge AI Librarian and Researcher.
 
 ---
 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [V4 Analytics Engine (37 Tools)](#v4-analytics-engine-37-tools)
+2. [Researcher Analytics Engine (37 Tools)](#researcher-analytics-engine-37-tools)
    - [Query Tools (10)](#query-tools-10)
    - [Insights Tools (8)](#insights-tools-8)
    - [Knowledge Base Tools (7)](#knowledge-base-tools-7)
    - [FP&A Tools (12)](#fpa-tools-12)
-3. [V3 Hierarchy Builder (92 Tools)](#v3-hierarchy-builder-92-tools)
+3. [Librarian Hierarchy Builder (92 Tools)](#librarian-hierarchy-builder-92-tools)
    - [Project Tools (5)](#project-tools-5)
    - [Hierarchy Tools (15)](#hierarchy-tools-15)
    - [Reconciliation Tools (20)](#reconciliation-tools-20)
@@ -46,7 +46,7 @@ Tools use API key authentication. Pass the key via:
 
 ---
 
-## V4 Analytics Engine (37 Tools)
+## Researcher Analytics Engine (37 Tools)
 
 ### Query Tools (10)
 
@@ -373,7 +373,7 @@ Get hierarchy context for analysis.
 **Parameters:**
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| hierarchy_id | string | Yes | Hierarchy ID from V3 |
+| hierarchy_id | string | Yes | Hierarchy ID from Librarian |
 | include_mappings | boolean | No | Include source mappings |
 
 ---
@@ -573,7 +573,7 @@ Compare multiple forecast scenarios.
 
 ---
 
-## V3 Hierarchy Builder (92 Tools)
+## Librarian Hierarchy Builder (92 Tools)
 
 ### Project Tools (5)
 

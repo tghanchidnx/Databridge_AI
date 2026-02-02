@@ -1,5 +1,5 @@
 """
-Credential encryption and management for DataBridge AI V3.
+Credential encryption and management for DataBridge AI Librarian.
 
 Uses Fernet symmetric encryption for storing sensitive credentials.
 """
@@ -25,7 +25,7 @@ class CredentialManager:
     """
 
     # Salt for key derivation (in production, store per-installation)
-    _SALT = b"databridge_v3_credential_salt"
+    _SALT = b"databridge_librarian_credential_salt"
     _ITERATIONS = 480000
 
     def __init__(self, master_key: Optional[str] = None):

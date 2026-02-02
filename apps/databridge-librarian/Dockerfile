@@ -1,5 +1,5 @@
 # ============================================
-# DataBridge V3 - Hierarchy Builder
+# DataBridge Librarian - Hierarchy Builder
 # Multi-stage Dockerfile for production deployment
 # ============================================
 
@@ -49,7 +49,7 @@ ARG BUILD_DATE
 ARG VCS_REF
 
 # Labels following OCI image spec
-LABEL org.opencontainers.image.title="DataBridge V3 - Hierarchy Builder" \
+LABEL org.opencontainers.image.title="DataBridge Librarian - Hierarchy Builder" \
       org.opencontainers.image.description="Headless MCP-native hierarchy management and data reconciliation engine" \
       org.opencontainers.image.version="${VERSION}" \
       org.opencontainers.image.created="${BUILD_DATE}" \

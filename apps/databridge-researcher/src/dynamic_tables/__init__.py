@@ -1,5 +1,5 @@
 """
-Dynamic Tables Module for DataBridge AI V4.
+Dynamic Tables Module for DataBridge AI Researcher.
 
 This module provides services for building the DT_2 and DT_3 tiers:
 - DT_2: Dynamic tables built from VW_1 views
@@ -7,7 +7,7 @@ This module provides services for building the DT_2 and DT_3 tiers:
 - DT_3: Output tables with formula calculations
 
 Architecture:
-    [V3: TBL_0 -> VW_1] -> DT_2 -> DT_3A -> DT_3 (Output)
+    [Librarian: TBL_0 -> VW_1] -> DT_2 -> DT_3A -> DT_3 (Output)
 """
 
 from .models import (

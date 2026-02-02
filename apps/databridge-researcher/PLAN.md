@@ -3,7 +3,7 @@
 ## Version 4.0.0 - Fact Data Analysis Engine
 
 **MCP Server Name:** Headless DataBridge Analytics - Python
-**Companion To:** v3 Headless DataBridge AI (Hierarchy Management)
+**Companion To:** Librarian Headless DataBridge AI (Hierarchy Management)
 
 ---
 
@@ -13,25 +13,25 @@
 A **pure Python command-line analytics engine** that:
 1. Connects to enterprise data warehouses (Snowflake, Databricks, SQL Server)
 2. Reads metadata, schemas, and fact/dimension structures
-3. Leverages v3 hierarchies for reporting dimensions
+3. Leverages Librarian hierarchies for reporting dimensions
 4. Performs analysis with **compute pushdown** to the data warehouse
 5. Uses **natural language knowledgebase** for contextual understanding
 6. Provides AI-powered insights through MCP integration
 
 ### Key Differentiator: Compute Pushdown
-Unlike traditional tools that pull data locally, v4 **pushes computation to the data warehouse**:
+Unlike traditional tools that pull data locally, Researcher **pushes computation to the data warehouse**:
 - Generates optimized SQL/SparkSQL for the target platform
 - Reads only metadata, schemas, and aggregated results
 - Minimizes data transfer and memory usage
 - Leverages data warehouse computing power
 
-### Relationship to v3
+### Relationship to Librarian
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    User / Claude AI                             │
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌──────────────────────┐        ┌──────────────────────┐      │
-│  │  V3: Hierarchy       │◄──────►│  V4: Analytics       │      │
+│  │  Librarian: Hierarchy       │◄──────►│  Researcher: Analytics       │      │
 │  │  Management          │        │  Engine              │      │
 │  │                      │        │                      │      │
 │  │  • Build hierarchies │        │  • Analyze facts     │      │
@@ -98,7 +98,7 @@ Unlike traditional tools that pull data locally, v4 **pushes computation to the 
 │  │   Connector    │  │   Connector    │  │   Connector            │    │
 │  └────────────────┘  └────────────────┘  └────────────────────────┘    │
 │  ┌────────────────┐  ┌────────────────┐  ┌────────────────────────┐    │
-│  │   PostgreSQL   │  │   MySQL        │  │   V3 Hierarchy         │    │
+│  │   PostgreSQL   │  │   MySQL        │  │   Librarian Hierarchy         │    │
 │  │   Connector    │  │   Connector    │  │   Integration          │    │
 │  └────────────────┘  └────────────────┘  └────────────────────────┘    │
 ├─────────────────────────────────────────────────────────────────────────┤
@@ -115,7 +115,7 @@ Unlike traditional tools that pull data locally, v4 **pushes computation to the 
 ### 1.2 Directory Structure
 
 ```
-v4/
+researcher/
 ├── src/
 │   ├── __init__.py
 │   ├── main.py                      # Entry point
@@ -185,7 +185,7 @@ v4/
 │   │   ├── business_glossary.py     # Business term definitions
 │   │   ├── metric_definitions.py    # Metric/KPI definitions
 │   │   ├── relationship_kb.py       # Join path knowledge
-│   │   └── context_loader.py        # V3 hierarchy integration
+│   │   └── context_loader.py        # Librarian hierarchy integration
 │   │
 │   ├── insights/                    # Insight generation
 │   │   ├── __init__.py
@@ -210,14 +210,14 @@ v4/
 │   │   ├── insight_tools.py         # Insight MCP tools
 │   │   └── kb_tools.py              # Knowledgebase MCP tools
 │   │
-│   └── integration/                 # V3 integration
+│   └── integration/                 # Librarian integration
 │       ├── __init__.py
-│       ├── hierarchy_client.py      # V3 hierarchy access
+│       ├── hierarchy_client.py      # Librarian hierarchy access
 │       └── dimension_mapper.py      # Map hierarchies to dimensions
 │
 ├── docker/                          # Docker sample environment
 │   ├── docker-compose.yml           # Full stack orchestration
-│   ├── Dockerfile.analytics         # V4 application container
+│   ├── Dockerfile.analytics         # Researcher application container
 │   ├── init-scripts/                # Database initialization
 │   │   ├── 01-create-schema.sql
 │   │   ├── 02-create-dimensions.sql
@@ -330,8 +330,8 @@ fact_tables = analyzer.detect_fact_tables()
 dimension_tables = analyzer.detect_dimension_tables()
 # Returns: [DimensionTableAnalysis(table_name, attributes, hierarchy_levels)]
 
-# Map to V3 hierarchies
-hierarchy_mapping = analyzer.map_to_v3_hierarchies(v3_client)
+# Map to Librarian hierarchies
+hierarchy_mapping = analyzer.map_to_librarian_hierarchies(librarian_client)
 # Returns: {dim_table: hierarchy_id, ...}
 ```
 
@@ -689,24 +689,24 @@ class PostgreSQLConnector(DataWarehouseConnector):
 }
 ```
 
-### 4.4 V3 Hierarchy Integration
+### 4.4 Librarian Hierarchy Integration
 
 ```python
 class HierarchyContextLoader:
-    """Load V3 hierarchies as dimensional context."""
+    """Load Librarian hierarchies as dimensional context."""
 
-    def __init__(self, v3_client: V3HierarchyClient):
-        self.v3_client = v3_client
+    def __init__(self, librarian_client: LibrarianHierarchyClient):
+        self.librarian_client = librarian_client
 
     def load_hierarchy_as_dimension(self, hierarchy_id: str) -> DimensionContext:
         """
-        Load a V3 hierarchy as dimension context for NL understanding.
+        Load a Librarian hierarchy as dimension context for NL understanding.
 
         Example: P&L hierarchy becomes context for "show me revenue by department"
         - Revenue node has source mappings to GL accounts
         - Department levels define the drill path
         """
-        hierarchy = self.v3_client.get_hierarchy_tree(hierarchy_id)
+        hierarchy = self.librarian_client.get_hierarchy_tree(hierarchy_id)
 
         return DimensionContext(
             name=hierarchy['hierarchy_name'],
@@ -717,8 +717,8 @@ class HierarchyContextLoader:
         )
 
     def enrich_knowledgebase(self, project_id: str):
-        """Add all V3 hierarchies to the knowledgebase for NL understanding."""
-        hierarchies = self.v3_client.list_hierarchies(project_id)
+        """Add all Librarian hierarchies to the knowledgebase for NL understanding."""
+        hierarchies = self.librarian_client.list_hierarchies(project_id)
         for h in hierarchies:
             context = self.load_hierarchy_as_dimension(h['hierarchy_id'])
             self.knowledgebase.add_dimension(context)
@@ -813,12 +813,12 @@ services:
     volumes:
       - chroma_data:/chroma/chroma
 
-  # V4 Analytics Application (optional - can run locally)
+  # Researcher Analytics Application (optional - can run locally)
   analytics:
     build:
       context: .
       dockerfile: Dockerfile.analytics
-    container_name: databridge-analytics-v4
+    container_name: databridge-analytics-researcher
     environment:
       - DATABASE_URL=postgresql://analytics_user:analytics_pass@postgres:5432/analytics
       - CHROMA_HOST=chromadb
@@ -918,7 +918,7 @@ CREATE TABLE dim_account (
     is_balance_sheet BOOLEAN,
     is_debit_normal BOOLEAN,
     parent_account_id VARCHAR(50),
-    level_1 VARCHAR(100),                        -- Maps to V3 hierarchy
+    level_1 VARCHAR(100),                        -- Maps to Librarian hierarchy
     level_2 VARCHAR(100),
     level_3 VARCHAR(100),
     level_4 VARCHAR(100)
@@ -1120,7 +1120,7 @@ def generate_sales_data(
 
 ```bash
 # Start the sample environment
-cd v4/docker
+cd researcher/docker
 docker-compose up -d
 
 # Wait for PostgreSQL to be ready
@@ -1140,7 +1140,7 @@ UNION ALL
 SELECT 'fact_gl_transactions', COUNT(*) FROM fact_gl_transactions;
 "
 
-# Connect v4 to sample database
+# Connect Researcher to sample database
 export DATABASE_URL="postgresql://analytics_user:analytics_pass@localhost:5434/analytics"
 databridge-analytics catalog sync
 
@@ -1193,7 +1193,7 @@ databridge-analytics query "SELECT SUM(net_amount) FROM fact_sales WHERE date_ke
 ### Phase 5: Knowledgebase (Weeks 9-10)
 - Business glossary
 - Metric definitions
-- V3 hierarchy integration
+- Librarian hierarchy integration
 - Vector embeddings
 
 ### Phase 6: NL-to-SQL (Weeks 11-12)
@@ -1259,9 +1259,9 @@ find_nulls(connection_id, table)                 # Null analysis
 find_duplicates(connection_id, table, columns)   # Duplicate detection
 validate_referential_integrity(connection_id, schema)  # FK validation
 
-# V3 integration
-map_to_v3_hierarchy(connection_id, table, v3_project)  # Link to V3
-sync_dimension_from_v3(connection_id, v3_hierarchy)     # Import hierarchy
+# Librarian integration
+map_to_librarian_hierarchy(connection_id, table, librarian_project)  # Link to Librarian
+sync_dimension_from_librarian(connection_id, librarian_hierarchy)     # Import hierarchy
 ```
 
 ### 8.3 Query Tools (10 tools)
@@ -1560,17 +1560,17 @@ databridge-analytics kb metric calc prod-snowflake gross_margin \
     --dimensions region,product_category
 
 # ================================================
-# V3 INTEGRATION
+# Librarian INTEGRATION
 # ================================================
 
-# Link table to V3 hierarchy
-databridge-analytics v3 link prod-snowflake FACT_GL_TRANSACTIONS \
-    --v3-project my-hierarchy-project \
-    --v3-hierarchy pl-revenue
+# Link table to Librarian hierarchy
+databridge-analytics librarian link prod-snowflake FACT_GL_TRANSACTIONS \
+    --librarian-project my-hierarchy-project \
+    --librarian-hierarchy pl-revenue
 
-# Sync dimension from V3
-databridge-analytics v3 sync-dimension prod-snowflake \
-    --v3-hierarchy account-hierarchy \
+# Sync dimension from Librarian
+databridge-analytics librarian sync-dimension prod-snowflake \
+    --librarian-hierarchy account-hierarchy \
     --target-table dim_account
 
 # ================================================
@@ -1588,7 +1588,7 @@ databridge-analytics mcp serve
 
 ## Summary
 
-### V4 Capabilities
+### Researcher Capabilities
 
 | Capability | Description |
 |------------|-------------|
@@ -1597,7 +1597,7 @@ databridge-analytics mcp serve
 | **Query Pushdown** | Execute SQL on data warehouse, minimize data transfer |
 | **NL-to-SQL** | Translate natural language to optimized queries |
 | **Insight Generation** | Anomalies, trends, comparisons, summaries |
-| **Knowledgebase** | Business glossary, metrics, V3 integration |
+| **Knowledgebase** | Business glossary, metrics, Librarian integration |
 | **Multi-Warehouse** | Snowflake, Databricks, SQL Server, PostgreSQL |
 
 ### Tool Count

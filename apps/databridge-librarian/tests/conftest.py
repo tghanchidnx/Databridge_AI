@@ -1,5 +1,5 @@
 """
-Pytest configuration and shared fixtures for DataBridge AI V3 tests.
+Pytest configuration and shared fixtures for DataBridge AI Librarian tests.
 """
 
 import pytest

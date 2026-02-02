@@ -2,7 +2,7 @@
 
 ## Comprehensive Plan of Action
 
-**Version:** 3.0.0
+**Version:** 1.0.0
 **Target:** Pure Python Command-Line Interface
 **MCP Server Name:** Headless Databridge_AI - Python
 
@@ -28,7 +28,7 @@
 ## 1. Executive Summary
 
 ### 1.1 Purpose
-Create a **pure Python command-line application** that replicates all functionality of DataBridge AI v2, eliminating the need for:
+Create a **pure Python command-line application** that replicates all functionality of DataBridge AI Librarian, eliminating the need for:
 - React/TypeScript frontend
 - NestJS/Node.js backend
 - Docker containers
@@ -44,7 +44,7 @@ Create a **pure Python command-line application** that replicates all functional
 
 ### 1.3 Feature Parity Matrix
 
-| Feature | V2 (Web) | V3 (CLI) | Notes |
+| Feature | Librarian (Web) | Librarian (CLI) | Notes |
 |---------|----------|----------|-------|
 | Hierarchy Management | Web UI | CLI + MCP | Full CRUD support |
 | Data Reconciliation | API | CLI + MCP | Hash comparison, fuzzy matching |
@@ -95,7 +95,7 @@ Create a **pure Python command-line application** that replicates all functional
 ### 2.2 Directory Structure
 
 ```
-v3/
+librarian/
 ├── src/
 │   ├── __init__.py
 │   ├── main.py                      # Entry point
@@ -910,8 +910,8 @@ def run_server():
       "command": "python",
       "args": ["-m", "databridge.mcp.server"],
       "env": {
-        "DATABRIDGE_DB_PATH": "C:/Users/telha/Databridge_AI/v3/data/databridge.db",
-        "DATABRIDGE_DATA_DIR": "C:/Users/telha/Databridge_AI/v3/data"
+        "DATABRIDGE_DB_PATH": "C:/Users/telha/Databridge_AI/apps/databridge-librarian/data/databridge.db",
+        "DATABRIDGE_DATA_DIR": "C:/Users/telha/Databridge_AI/apps/databridge-librarian/data"
       }
     }
   }

@@ -71,7 +71,7 @@ CREATE TABLE dimensions.dim_account (
     is_debit_normal BOOLEAN NOT NULL,
     parent_account_id VARCHAR(20),
 
-    -- Hierarchy levels (for V3 integration)
+    -- Hierarchy levels (for Librarian integration)
     level_1 VARCHAR(100),                        -- e.g., "Total Revenue"
     level_2 VARCHAR(100),                        -- e.g., "Product Revenue"
     level_3 VARCHAR(100),                        -- e.g., "Hardware"
@@ -83,14 +83,14 @@ CREATE TABLE dimensions.dim_account (
     effective_from DATE,
     effective_to DATE,
 
-    -- V3 mapping reference
-    v3_hierarchy_id VARCHAR(255),
-    v3_hierarchy_node VARCHAR(255)
+    -- librarian mapping reference
+    librarian_hierarchy_id VARCHAR(255),
+    librarian_hierarchy_node VARCHAR(255)
 );
 
 CREATE INDEX idx_dim_account_type ON dimensions.dim_account(account_type);
 CREATE INDEX idx_dim_account_parent ON dimensions.dim_account(parent_account_id);
-CREATE INDEX idx_dim_account_v3 ON dimensions.dim_account(v3_hierarchy_id);
+CREATE INDEX idx_dim_account_librarian ON dimensions.dim_account(librarian_hierarchy_id);
 
 -- Cost Center Dimension
 CREATE TABLE dimensions.dim_cost_center (
@@ -104,9 +104,9 @@ CREATE TABLE dimensions.dim_cost_center (
     manager_name VARCHAR(255),
     is_active BOOLEAN DEFAULT TRUE,
 
-    -- V3 mapping reference
-    v3_hierarchy_id VARCHAR(255),
-    v3_hierarchy_node VARCHAR(255)
+    -- librarian mapping reference
+    librarian_hierarchy_id VARCHAR(255),
+    librarian_hierarchy_node VARCHAR(255)
 );
 
 CREATE INDEX idx_dim_cc_bu ON dimensions.dim_cost_center(business_unit);

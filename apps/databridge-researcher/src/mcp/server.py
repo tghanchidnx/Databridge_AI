@@ -1,5 +1,5 @@
 """
-MCP Server for DataBridge AI V4 - Analytics Engine.
+MCP Server for DataBridge AI Researcher - Analytics Engine.
 
 This server provides 37 MCP tools for:
 - Query Building (10 tools)
@@ -16,7 +16,7 @@ from .tools.knowledgebase import register_knowledgebase_tools
 from .tools.fpa import register_fpa_tools
 
 # Create the MCP server
-mcp = FastMCP("databridge-analytics-v4")
+mcp = FastMCP("databridge-analytics-researcher")
 
 
 def register_all_tools() -> None:

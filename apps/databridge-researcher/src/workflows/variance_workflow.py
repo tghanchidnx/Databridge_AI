@@ -1,5 +1,5 @@
 """
-Variance Analysis Workflow for DataBridge Analytics V4.
+Variance Analysis Workflow for DataBridge Analytics Researcher.
 
 Automates budget vs actual (BvA) and prior year variance analysis
 with commentary generation.

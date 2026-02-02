@@ -1,5 +1,5 @@
 """
-Monthly Close Workflow for DataBridge Analytics V4.
+Monthly Close Workflow for DataBridge Analytics Researcher.
 
 Automates the FP&A month-end close process including data validation,
 reconciliation, and period locking.

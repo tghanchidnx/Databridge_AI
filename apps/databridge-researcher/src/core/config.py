@@ -1,5 +1,5 @@
 """
-Configuration settings for DataBridge AI V4 Analytics Engine.
+Configuration settings for DataBridge AI Researcher Analytics Engine.
 
 Uses Pydantic Settings for environment-based configuration with nested settings
 for different warehouse types and feature configurations.
@@ -37,7 +37,7 @@ except ImportError:
         master_key: Optional[SecretStr] = Field(default=None)
 
 
-# V4-specific settings that extend shared ones
+# Researcher-specific settings that extend shared ones
 class SnowflakeSettings(BaseModel):
     """Snowflake connection settings."""
 
@@ -162,13 +162,13 @@ class VectorStoreSettings(BaseModel):
     """Vector store / RAG settings."""
 
     path: Path = Field(default=Path("./data/chroma"))
-    collection_prefix: str = Field(default="databridge_v4_")
+    collection_prefix: str = Field(default="databridge_researcher_")
     embedding_model: str = Field(default="all-MiniLM-L6-v2")
     embedding_dimension: int = Field(default=384)
 
 
-class V3IntegrationSettings(BaseModel):
-    """V3 Hierarchy Builder integration settings."""
+class LibrarianIntegrationSettings(BaseModel):
+    """Librarian Hierarchy Builder integration settings."""
 
     enabled: bool = Field(default=False)
     api_url: str = Field(default="http://localhost:8000")
@@ -178,9 +178,9 @@ class V3IntegrationSettings(BaseModel):
 
 class Settings(BaseAppSettings):
     """
-    V4 Analytics Engine application settings.
+    Researcher Analytics Engine application settings.
 
-    Extends BaseAppSettings from databridge-core with V4-specific settings.
+    Extends BaseAppSettings from databridge-core with Researcher-specific settings.
     """
 
     model_config = SettingsConfigDict(
@@ -192,7 +192,7 @@ class Settings(BaseAppSettings):
     )
 
     # Application settings
-    app_name: str = Field(default="DataBridge AI V4 - Analytics Engine")
+    app_name: str = Field(default="DataBridge AI Researcher - Analytics Engine")
     version: str = Field(default="4.0.0")
     env: str = Field(default="development")
     debug: bool = Field(default=False)
@@ -218,10 +218,10 @@ class Settings(BaseAppSettings):
     workflow: WorkflowSettings = Field(default_factory=WorkflowSettings)
     nlp: NLPSettings = Field(default_factory=NLPSettings)
     vector_store: VectorStoreSettings = Field(default_factory=VectorStoreSettings)
-    v3_integration: V3IntegrationSettings = Field(default_factory=V3IntegrationSettings)
+    librarian_integration: LibrarianIntegrationSettings = Field(default_factory=LibrarianIntegrationSettings)
 
     # MCP Server settings
-    mcp_server_name: str = Field(default="databridge-analytics-v4")
+    mcp_server_name: str = Field(default="databridge-analytics-researcher")
 
     def get_configured_connectors(self) -> List[str]:
         """Get list of configured connectors."""

@@ -1,5 +1,5 @@
 """
-Unit tests for V4 KnowledgeBaseStore.
+Unit tests for Researcher KnowledgeBaseStore.
 
 Tests knowledge base storage operations using ChromaDB.
 """
@@ -175,7 +175,7 @@ class TestKnowledgeBaseStoreInit:
         store = KnowledgeBaseStore(persist_directory="/tmp/test")
 
         name = store._get_collection_name(KBCollectionType.BUSINESS_GLOSSARY)
-        assert name == "databridge_v4_kb_business_glossary"
+        assert name == "databridge_researcher_kb_business_glossary"
 
     def test_generate_id_deterministic(self, mock_chromadb):
         """Test ID generation is deterministic."""
@@ -374,11 +374,11 @@ class TestKnowledgeBaseStoreOperations:
         _, mock_client, _ = mock_chromadb
 
         mock_collection1 = MagicMock()
-        mock_collection1.name = "databridge_v4_kb_business_glossary"
+        mock_collection1.name = "databridge_researcher_kb_business_glossary"
         mock_collection1.count.return_value = 20
 
         mock_collection2 = MagicMock()
-        mock_collection2.name = "databridge_v4_kb_metric_definitions"
+        mock_collection2.name = "databridge_researcher_kb_metric_definitions"
         mock_collection2.count.return_value = 15
 
         mock_client.list_collections.return_value = [mock_collection1, mock_collection2]

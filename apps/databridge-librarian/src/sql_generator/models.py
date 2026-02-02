@@ -65,7 +65,7 @@ except ImportError:
 
 
 # =============================================================================
-# V3-SPECIFIC ENUMS (not in shared library)
+# LIBRARIAN-SPECIFIC ENUMS (not in shared library)
 # =============================================================================
 
 
@@ -108,7 +108,7 @@ class GeneratedView(Base):
     VW_1 tier auto-generated views.
 
     Created from hierarchy definitions and source mappings.
-    These views form the foundation for dynamic tables in V4.
+    These views form the foundation for dynamic tables in Researcher.
     """
 
     __tablename__ = "generated_views"

@@ -1,4 +1,4 @@
--- DataBridge Analytics V4 - Sample Star Schema
+-- DataBridge Analytics Researcher - Sample Star Schema
 -- Creates a dimensional model for FP&A analytics
 
 -- =============================================================================
@@ -212,5 +212,5 @@ CREATE INDEX IF NOT EXISTS idx_fact_sales_product ON analytics.fact_sales(produc
 -- =============================================================================
 DO $$
 BEGIN
-    RAISE NOTICE 'DataBridge Analytics V4 schema created successfully';
+    RAISE NOTICE 'DataBridge Analytics Researcher schema created successfully';
 END $$;

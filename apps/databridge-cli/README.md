@@ -5,8 +5,8 @@ Unified command-line interface for DataBridge AI platform.
 ## Overview
 
 DataBridge CLI provides a single entry point for accessing both:
-- **Hierarchy Builder (V3)** - hierarchy management, mappings, formulas
-- **Analytics Engine (V4)** - connectors, queries, dynamic tables
+- **Hierarchy Builder (Librarian)** - hierarchy management, mappings, formulas
+- **Analytics Engine (Researcher)** - connectors, queries, dynamic tables
 
 ## Installation
 
@@ -14,11 +14,11 @@ DataBridge CLI provides a single entry point for accessing both:
 # Install CLI only
 pip install databridge-cli
 
-# Install with V3 Hierarchy Builder
-pip install databridge-cli[v3]
+# Install with Librarian Hierarchy Builder
+pip install databridge-cli[librarian]
 
-# Install with V4 Analytics Engine
-pip install databridge-cli[v4]
+# Install with Researcher Analytics Engine
+pip install databridge-cli[researcher]
 
 # Install with both
 pip install databridge-cli[all]
@@ -33,12 +33,12 @@ databridge --help
 # Show version info
 databridge version
 
-# V3 Hierarchy Builder commands
+# Librarian Hierarchy Builder commands
 databridge hierarchy --help
 databridge hierarchy project list
 databridge hierarchy create "My Project"
 
-# V4 Analytics Engine commands
+# Researcher Analytics Engine commands
 databridge analytics --help
 databridge analytics connect list
 databridge analytics query "Show me top 10 customers"
@@ -50,13 +50,13 @@ databridge analytics query "Show me top 10 customers"
 databridge
 ├── version                   # Show version info
 ├── info                      # Show platform info
-├── hierarchy                 # V3 Hierarchy Builder
+├── hierarchy                 # Librarian Hierarchy Builder
 │   ├── project              # Project management
 │   ├── hierarchy            # Hierarchy operations
 │   ├── mapping              # Source mappings
 │   ├── formula              # Formula rules
 │   └── deploy               # Deployment
-└── analytics                # V4 Analytics Engine
+└── analytics                # Researcher Analytics Engine
     ├── connect              # Connector management
     ├── query                # Query execution
     ├── dynamic              # Dynamic tables

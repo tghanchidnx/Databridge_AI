@@ -1,1 +1,1 @@
-"""Unit tests for V4 knowledgebase module."""
+"""Unit tests for Researcher knowledgebase module."""

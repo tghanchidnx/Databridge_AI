@@ -1,1 +1,1 @@
-"""Tests for DataBridge AI V4 Analytics Engine."""
+"""Tests for DataBridge AI Researcher Analytics Engine."""

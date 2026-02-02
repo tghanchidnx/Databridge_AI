@@ -48,7 +48,7 @@ To support this rich data model, a dual-database approach is recommended:
     *   **Purpose:** To store the structured event logs. This allows for fast, indexed querying on fields like `user_id`, `organization_id`, `event_type`, and `timestamp`. This is the "factual" memory of what happened, when, and by whom.
 
 2.  **Semantic Storage (Vector Database):**
-    *   **Technology:** The existing vector database used by the V4 analytics engine.
+    *   **Technology:** The existing vector database used by the Researcher analytics engine.
     *   **Purpose:** To store embeddings of the textual content from the `payload` and `ai_reasoning` fields. This enables powerful semantic search over the history, allowing the AI (or users) to ask questions like, "What were we discussing last week about revenue recognition?" or "Find all past sessions where we mapped source data from the 'Enertia' system."
 
 ---

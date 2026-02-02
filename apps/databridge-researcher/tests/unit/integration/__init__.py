@@ -1,1 +1,1 @@
-"""Unit tests for V4 integration module."""
+"""Unit tests for Researcher integration module."""

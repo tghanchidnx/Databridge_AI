@@ -1,5 +1,5 @@
 """
-RAG (Retrieval Augmented Generation) pipeline for DataBridge AI V3.
+RAG (Retrieval Augmented Generation) pipeline for DataBridge AI Librarian.
 
 Provides semantic search and context retrieval for hierarchy understanding.
 """

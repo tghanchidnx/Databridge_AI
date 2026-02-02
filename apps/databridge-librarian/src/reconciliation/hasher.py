@@ -1,5 +1,5 @@
 """
-Hash Comparer for DataBridge AI V3.
+Hash Comparer for DataBridge AI Librarian.
 
 Provides hash-based data comparison for reconciliation.
 """

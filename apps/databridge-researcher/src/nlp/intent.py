@@ -1,5 +1,5 @@
 """
-Intent Classifier for DataBridge AI V4 Analytics Engine.
+Intent Classifier for DataBridge AI Researcher Analytics Engine.
 
 Classifies natural language queries into structured intents
 for SQL generation.

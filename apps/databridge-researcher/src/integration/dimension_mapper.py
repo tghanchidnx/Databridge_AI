@@ -1,7 +1,7 @@
 """
-Dimension Mapper for DataBridge Analytics V4.
+Dimension Mapper for DataBridge Analytics Researcher.
 
-Maps V3 Hierarchy structures to V4 dimension attributes for analytics.
+Maps Librarian Hierarchy structures to Researcher dimension attributes for analytics.
 """
 
 from dataclasses import dataclass, field
@@ -9,7 +9,7 @@ from typing import Optional, List, Dict, Any, Callable
 from enum import Enum
 import logging
 
-from .v3_client import V3Hierarchy, V3Mapping
+from .librarian_client import LibrarianHierarchy, LibrarianMapping
 
 
 logger = logging.getLogger(__name__)
@@ -137,7 +137,7 @@ class DimensionMapperResult:
 
 class DimensionMapper:
     """
-    Maps V3 hierarchies to V4 dimension structures.
+    Maps Librarian hierarchies to Researcher dimension structures.
 
     Provides:
     - Hierarchy to dimension conversion
@@ -177,15 +177,15 @@ class DimensionMapper:
 
     def map_hierarchy(
         self,
-        hierarchy: V3Hierarchy,
-        mappings: Optional[List[V3Mapping]] = None,
+        hierarchy: LibrarianHierarchy,
+        mappings: Optional[List[LibrarianMapping]] = None,
         dimension_type: Optional[DimensionType] = None,
     ) -> DimensionMapperResult:
         """
-        Map a V3 hierarchy to a V4 dimension.
+        Map a Librarian hierarchy to a Researcher dimension.
 
         Args:
-            hierarchy: V3 hierarchy to map.
+            hierarchy: Librarian hierarchy to map.
             mappings: Optional source mappings.
             dimension_type: Optional explicit dimension type.
 
@@ -247,16 +247,16 @@ class DimensionMapper:
 
     def map_hierarchy_tree(
         self,
-        hierarchies: List[V3Hierarchy],
+        hierarchies: List[LibrarianHierarchy],
         root_name: str,
         dimension_type: Optional[DimensionType] = None,
-        mappings_by_hierarchy: Optional[Dict[str, List[V3Mapping]]] = None,
+        mappings_by_hierarchy: Optional[Dict[str, List[LibrarianMapping]]] = None,
     ) -> DimensionMapperResult:
         """
         Map a hierarchy tree to a dimension with members.
 
         Args:
-            hierarchies: List of V3 hierarchies forming the tree.
+            hierarchies: List of Librarian hierarchies forming the tree.
             root_name: Name for the dimension (typically root hierarchy name).
             dimension_type: Optional explicit dimension type.
             mappings_by_hierarchy: Mappings keyed by hierarchy_id.
@@ -330,7 +330,7 @@ class DimensionMapper:
             dimension = Dimension(
                 name=root_name,
                 dimension_type=dim_type,
-                description=f"Dimension from V3 hierarchy tree: {root_name}",
+                description=f"Dimension from Librarian hierarchy tree: {root_name}",
                 attributes=attributes,
                 members=members,
                 hierarchy_id=root_hierarchy.hierarchy_id,
@@ -354,14 +354,14 @@ class DimensionMapper:
 
     def map_hierarchies_to_dimensions(
         self,
-        hierarchies: List[V3Hierarchy],
+        hierarchies: List[LibrarianHierarchy],
         group_by: str = "project_id",
     ) -> DimensionMapperResult:
         """
         Map multiple hierarchies to multiple dimensions.
 
         Args:
-            hierarchies: List of V3 hierarchies.
+            hierarchies: List of Librarian hierarchies.
             group_by: How to group hierarchies into dimensions.
 
         Returns:
@@ -369,7 +369,7 @@ class DimensionMapper:
         """
         try:
             # Group hierarchies
-            groups: Dict[str, List[V3Hierarchy]] = {}
+            groups: Dict[str, List[LibrarianHierarchy]] = {}
             for h in hierarchies:
                 if group_by == "project_id":
                     key = h.project_id
@@ -460,7 +460,7 @@ class DimensionMapper:
 
         return self.default_dimension_type
 
-    def _create_level_attributes(self, hierarchy: V3Hierarchy) -> List[DimensionAttribute]:
+    def _create_level_attributes(self, hierarchy: LibrarianHierarchy) -> List[DimensionAttribute]:
         """Create dimension attributes from hierarchy levels."""
         attributes = []
 

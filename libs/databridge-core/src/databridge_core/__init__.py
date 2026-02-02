@@ -1,8 +1,8 @@
 """
 DataBridge Core - Shared utilities for DataBridge AI platform.
 
-This library provides common functionality used by both V3 (Hierarchy Builder)
-and V4 (Analytics Engine) applications:
+This library provides common functionality used by both Librarian (Librarian)
+and Researcher (Researcher) applications:
 
 - config: Configuration and settings management
 - database: SQLAlchemy session management and base connectors

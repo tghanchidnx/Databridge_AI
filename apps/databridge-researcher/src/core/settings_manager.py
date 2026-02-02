@@ -1,5 +1,5 @@
 """
-Settings Manager for DataBridge Analytics V4.
+Settings Manager for DataBridge Analytics Researcher.
 
 Provides persistent settings management with JSON file storage,
 complementing the environment-based Pydantic settings.

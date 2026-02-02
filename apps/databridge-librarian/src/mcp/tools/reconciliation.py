@@ -1,5 +1,5 @@
 """
-MCP Tools for Data Reconciliation in DataBridge AI V3.
+MCP Tools for Data Reconciliation in DataBridge AI Librarian.
 
 Provides 20 tools for loading, profiling, comparing, and reconciling data.
 """

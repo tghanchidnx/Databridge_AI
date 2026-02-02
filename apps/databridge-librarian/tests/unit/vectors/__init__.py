@@ -1,1 +1,1 @@
-"""Unit tests for V3 vectors module."""
+"""Unit tests for Librarian vectors module."""

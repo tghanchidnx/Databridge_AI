@@ -374,7 +374,7 @@ CREATE TABLE dim_cost_center_state_override (
 - Create CSV files for DataBridge import
 
 **Phase 2: Hierarchy Creation** (1 day)
-- Create projects in DataBridge V3
+- Create projects in DataBridge Librarian
 - Import GL hierarchy (~300 accounts)
 - Import Corp hierarchy (~30 corps)
 - Import Billing hierarchy (~150 categories)
@@ -459,7 +459,7 @@ ORDER BY acctdate DESC;
 ### Long-term (quarterly)
 10. **Add formula groups** for calculated metrics (Net AU Val, Impl Price)
 11. **Integrate with budgeting** hierarchies
-12. **Build variance analysis** using DataBridge V4 insights
+12. **Build variance analysis** using DataBridge Researcher insights
 
 ---
 

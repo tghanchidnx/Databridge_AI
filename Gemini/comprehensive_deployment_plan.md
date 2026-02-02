@@ -15,18 +15,18 @@ The following phases are designed to build out this dual-mode capability progres
 **Goal:** To establish a robust foundation for ingesting and understanding metadata from diverse source systems, forming the basis for automated data modeling.
 
 ### Features & Implementation
-1.  **Pluggable Source Connector Framework (V3):**
+1.  **Pluggable Source Connector Framework (Librarian):**
     *   Develop a Python-based framework with a unified interface (`BaseConnector`) for metadata extraction.
     *   Implement initial connectors for:
         *   **Databases (JDBC/ODBC):** Read schemas, tables, columns, and primary/foreign keys.
         *   **File Formats:** Implement parsers for `.xlsx`, `.csv`, and `.parquet` to infer schemas and data types.
         *   **PDF/Text (LLM-Powered):** Enhance existing OCR to use an LLM to identify and extract tabular data from unstructured financial reports.
-2.  **Semantic Analyzer Module (V3):**
+2.  **Semantic Analyzer Module (Librarian):**
     *   Build a new module that uses heuristics (e.g., column name patterns like `_ID`, `_DATE`) and an LLM for deeper analysis.
     *   **Entity Detection:** Train or prompt the model to recognize the specified entities: "Employee," "Customer," "Vendor," "Cost Center," "Assets," "Equipment," "Inventory," "Location," "Department," "Product," "Company/Corp," "Date," and "Chart of Accounts."
     *   **Dimension Classifier:** Implement logic to group "Employee," "Customer," and "Vendor" under a "Business Associate" dimension. Add a classifier to detect potential Slowly Changing Dimension (SCD) types based on the presence of `start_date`/`end_date` or `version` columns.
     *   **Relationship Inferencer:** Develop an algorithm that suggests potential joins based on column name similarity, data type matching, and value distribution analysis.
-3.  **Interactive Refinement Tools (V3 CLI/MCP):**
+3.  **Interactive Refinement Tools (Librarian CLI/MCP):**
     *   Create new CLI commands (`databridge source review`, `databridge source link`, `databridge source merge`) and corresponding MCP tools.
     *   These tools will present the inferred model to the user and allow them to confirm/reject joins, rename entities, and define merge operations (e.g., `CUST_ID` + `CustomerNumber` -> `customer_id`).
 
@@ -44,8 +44,8 @@ The following phases are designed to build out this dual-mode capability progres
 
 ### Testing Strategy
 *   **Regression Tests:**
-    *   Ensure existing V3 CSV import functionality still works.
-    *   Verify that V4 can still connect to its original data sources for the FP&A workflow.
+    *   Ensure existing Librarian CSV import functionality still works.
+    *   Verify that Researcher can still connect to its original data sources for the FP&A workflow.
 *   **New Feature Tests:**
     *   Unit tests for each connector (e.g., `test_snowflake_connector_get_schema`).
     *   Integration test to run the Semantic Analyzer on a test database and validate the generated canonical model against an expected output.
@@ -65,26 +65,26 @@ The following phases are designed to build out this dual-mode capability progres
 **Goal:** To translate the user-approved canonical model into a concrete, multi-layered Snowflake data warehouse design, generating either basic SQL scripts or a complete, version-controlled dbt project.
 
 ### Features & Implementation
-1.  **Advanced Hierarchy Management (V3):**
-    *   Modify the `Hierarchy` model in V3 to support two types: `GROUPING` and `XREF`.
+1.  **Advanced Hierarchy Management (Librarian):**
+    *   Modify the `Hierarchy` model in Librarian to support two types: `GROUPING` and `XREF`.
     *   The `XREF` hierarchy will be the central metadata artifact linking all dimensions and facts.
-2.  **Warehouse Modeler Module (V3):**
+2.  **Warehouse Modeler Module (Librarian):**
     *   Implement the core logic for designing the Snowflake objects.
     *   **Base Fact Logic:** Create logic to generate the `Fact_Financial_Actuals` table, identifying measures and dimensional keys from the canonical model. Acknowledge the "pre-fact processing" concept by allowing this module to source from views (which can be created manually for now).
     *   **Hierarchy-to-Object Logic:** Implement the specific generation pipeline for a given hierarchy (`MyReport`):
-        1.  `TBL_0_MyReport`: Create a table from the V3 hierarchy data.
+        1.  `TBL_0_MyReport`: Create a table from the Librarian hierarchy data.
         2.  `VW_1_MyReport`: Generate a view that unnests the hierarchy mappings.
         3.  `DT_2_MyReport`: Generate the `CREATE DYNAMIC TABLE` statement that joins all dimensions at their lowest grain, using the view above.
         4.  `DT_3A_MyReport`: Generate the DDL for the pre-aggregation DT, including `GROUP BY` clauses and aggregation functions (`SUM`, `AVG`).
         5.  `DT_3_MyReport`: Generate the DDL that unions `DT_3A` with the transactional data, grouped by user-selected "fact-based details" (e.g., invoice number, transaction ID).
-3.  **DDL & dbt Project Generator (V3):**
+3.  **DDL & dbt Project Generator (Librarian):**
     *   Create a template-based generator (e.g., using Jinja2) with two output modes:
         *   **Basic Mode:** Produces a dependency-ordered list of `.sql` files containing `CREATE TABLE`, `CREATE VIEW`, etc., statements.
         *   **Advanced Mode (dbt):** Generates a complete dbt project structure, including:
             *   `.sql` files for each model (dimensions, facts, dynamic tables) in the `models/` directory.
             *   `.yml` schema files in the `models/` directory defining sources, columns, data types, and tests (e.g., `not_null`, `unique`).
             *   A `dbt_project.yml` file configured for the user's Snowflake target.
-4.  **GitHub Project Scaffolding (Optional, V3):**
+4.  **GitHub Project Scaffolding (Optional, Librarian):**
     *   **Action:** Create a new set of tools to initialize a GitHub repository for the user's data warehouse project.
     *   **Details:** The tool will, with user permission (OAuth):
         *   Create a new private GitHub repository.
@@ -106,7 +106,7 @@ The following phases are designed to build out this dual-mode capability progres
 
 ### Testing Strategy
 *   **Regression Tests:**
-    *   Verify that creating a simple V3 "grouping" hierarchy for the FP&A workflow has not been broken.
+    *   Verify that creating a simple Librarian "grouping" hierarchy for the FP&A workflow has not been broken.
     *   Ensure the "Basic Mode" SQL script generation still works as expected.
 *   **New Feature Tests:**
     *   Unit test the dbt project generator to ensure all necessary files (`.sql`, `.yml`, `dbt_project.yml`) are created correctly.
@@ -127,16 +127,16 @@ The following phases are designed to build out this dual-mode capability progres
 **Goal:** To automate the execution of the generated model, either by running SQL directly for simple projects or by orchestrating a dbt project for robust, version-controlled deployments.
 
 ### Features & Implementation
-1.  **Dual-Mode Deployment Orchestrator (V3):**
+1.  **Dual-Mode Deployment Orchestrator (Librarian):**
     *   Enhance the workflow engine to support two distinct deployment strategies:
         *   **Basic Mode:** Manages a direct pipeline: `connect -> begin_transaction -> execute_ddl -> execute_etl -> commit_transaction -> disconnect`. This is suitable for users without dbt/Git.
         *   **Advanced Mode (dbt):** The orchestrator's role shifts to that of a Git and dbt client. The pipeline becomes: `git_commit -> git_push -> (optional) trigger_dbt_run`.
     *   Implement robust error handling and logging for both modes.
-2.  **Dual-Mode ETL Generator Module (V3):**
+2.  **Dual-Mode ETL Generator Module (Librarian):**
     *   This module will now generate transformations based on the chosen mode:
         *   **Basic Mode:** Generates `INSERT INTO ... SELECT ...` statements for direct execution, suitable for simpler, non-versioned transformations.
         *   **Advanced Mode (dbt):** Generates `.sql` files within the dbt project's `models/` directory. It will produce models for staging, intermediate transformations, and the final dimension/fact tables, leveraging dbt features like sources, refs, and macros.
-3.  **Deployment CLI/MCP Tools (V3):**
+3.  **Deployment CLI/MCP Tools (Librarian):**
     *   Enhance the `databridge model deploy` command.
     *   If a dbt project is detected, the command will automatically use the Advanced Mode workflow (commit, push, and optionally trigger a run).
     *   Add flags to control Git and dbt behavior, such as `--no-push` or `--dbt-target <target_name>`.
@@ -157,7 +157,7 @@ The following phases are designed to build out this dual-mode capability progres
 
 ### Testing Strategy
 *   **Regression Tests:**
-    *   Ensure the original V3 `deploy` command (if it had different functionality) still works as expected. The "Basic Mode" should cover this.
+    *   Ensure the original Librarian `deploy` command (if it had different functionality) still works as expected. The "Basic Mode" should cover this.
 *   **New Feature Tests:**
     *   Integration test for the "Advanced Mode" that:
         1.  Generates a dbt project.
@@ -181,20 +181,20 @@ The following phases are designed to build out this dual-mode capability progres
 **Goal:** To create a seamless, end-to-end experience, from natural language prompt to a fully validated and version-controlled data warehouse.
 
 ### Features & Implementation
-1.  **Automated V4 Knowledge Base Sync (V3 -> V4):**
-    *   Implement an event-driven notification (e.g., using Redis Pub/Sub) or a simple webhook that V3 calls upon successful deployment or a successful `dbt run`.
-    *   Enhance V4 with a listener that, upon receiving a notification, automatically runs its metadata extraction process on the appropriate Snowflake schema (or dbt target).
-2.  **dbt-Aware Validation Suite (V4):**
+1.  **Automated Researcher Knowledge Base Sync (Librarian -> Researcher):**
+    *   Implement an event-driven notification (e.g., using Redis Pub/Sub) or a simple webhook that Librarian calls upon successful deployment or a successful `dbt run`.
+    *   Enhance Researcher with a listener that, upon receiving a notification, automatically runs its metadata extraction process on the appropriate Snowflake schema (or dbt target).
+2.  **dbt-Aware Validation Suite (Researcher):**
     *   Develop a standard suite of post-deployment validation steps.
-    *   If a dbt project is used, enhance the V4 validation command (`databridge analytics validate`) to trigger `dbt test` and parse the results, providing a user-friendly summary of data quality tests.
+    *   If a dbt project is used, enhance the Researcher validation command (`databridge analytics validate`) to trigger `dbt test` and parse the results, providing a user-friendly summary of data quality tests.
     *   For both modes, continue to support direct validation queries (row counts, null checks, etc.).
-3.  **High-Level Orchestration MCP Tools (V3/V4):**
+3.  **High-Level Orchestration MCP Tools (Librarian/Researcher):**
     *   Create a new set of "workflow" tools that abstract the entire process.
     *   `workflow_start_dw_creation(source_config)`: Kicks off Phase 1.
     *   `workflow_get_proposed_model(workflow_id)`: Returns the canonical model for review.
     *   `workflow_approve_model(workflow_id, approved_model, use_dbt: bool, github_repo: str = None)`: Triggers Phase 2 and 3, with parameters to select the desired workflow.
     *   `workflow_get_deployment_status(workflow_id)`: Checks the status of the deployment.
-4.  **Natural Language Interface (Gemini + V4):**
+4.  **Natural Language Interface (Gemini + Researcher):**
     *   Train Gemini (by providing examples) to use the new workflow tools and to ask the user clarifying questions to guide them through the process. For example: "I have designed the data warehouse schema. Would you like me to deploy it directly, or create a version-controlled dbt project in a new GitHub repository for you?"
 
 ### Documentation Plan
@@ -213,11 +213,11 @@ The following phases are designed to build out this dual-mode capability progres
     5.  **Key Step:** Show Gemini asking: "Deploy directly to Snowflake (Basic) or create a version-controlled dbt project in GitHub (Advanced)?"
     6.  User types: "Advanced, create a new repo named `my-company-datamart`".
     7.  Show the deployment logs, including `git push` and `dbt build` commands.
-    8.  End with Gemini confirming the deployment and validation success, and then immediately using the V4 NL-to-SQL to query the new warehouse.
+    8.  End with Gemini confirming the deployment and validation success, and then immediately using the Researcher NL-to-SQL to query the new warehouse.
 
 ### Testing Strategy
 *   **Regression Tests:**
-    *   Run the original `e2e_test.py` script to ensure the basic FP&A query workflow in V4 still functions correctly against a manually configured data source.
+    *   Run the original `e2e_test.py` script to ensure the basic FP&A query workflow in Researcher still functions correctly against a manually configured data source.
 *   **New Feature Tests:**
     *   A full end-to-end integration test that invokes the `workflow_start_dw_creation` tool with the `use_dbt=True` flag and checks that a valid dbt project is created and pushed to a mock Git server.
 *   **User Acceptance Testing (UAT) Guide:**

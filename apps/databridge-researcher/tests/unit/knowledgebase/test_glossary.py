@@ -1,5 +1,5 @@
 """
-Unit tests for V4 glossary module.
+Unit tests for Researcher glossary module.
 
 Tests business glossary, metric definitions, and FP&A concepts.
 """

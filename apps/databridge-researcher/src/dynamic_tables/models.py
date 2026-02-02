@@ -207,7 +207,7 @@ class IntermediateAggregation(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     dynamic_table_id: str  # Reference to DT_2
 
-    # Hierarchy reference (from V3)
+    # Hierarchy reference (from Librarian)
     hierarchy_id: Optional[str] = None
     hierarchy_name: Optional[str] = None
 
@@ -281,7 +281,7 @@ class OutputTable(BaseModel):
     source_tables: List[Dict[str, Any]] = Field(default_factory=list)
     # Format: [{"name": "DT_REVENUE", "alias": "r", "database": "...", "schema": "..."}]
 
-    # Formula group (from V3)
+    # Formula group (from Librarian)
     formula_group_id: Optional[str] = None
     formula_group_name: Optional[str] = None
 

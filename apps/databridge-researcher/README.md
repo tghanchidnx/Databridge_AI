@@ -1,12 +1,12 @@
-# DataBridge Analytics (V4)
+# DataBridge Researcher
 
 ## Headless FP&A Analytics Engine
 
-V4 is the analytics companion to V3 (Hierarchy Builder). Together they form a complete Financial Planning & Analysis platform.
+Researcher is the analytics companion to Librarian (Hierarchy Builder). Together they form a complete Financial Planning & Analysis platform.
 
-### Relationship to V3
+### Relationship to Librarian
 
-| V3: Hierarchy Builder | V4: Analytics Engine |
+| Librarian: Hierarchy Builder | Researcher: Analytics Engine |
 |----------------------|---------------------|
 | Build P&L hierarchies | Query fact data against hierarchies |
 | Define cost center structures | Analyze GL by cost center |
@@ -17,7 +17,7 @@ V4 is the analytics companion to V3 (Hierarchy Builder). Together they form a co
 
 - **Multi-Source Connectivity**: Snowflake, Databricks, SQL Server, PostgreSQL
 - **Compute Pushdown**: Execute analysis on the data warehouse, not locally
-- **V3 Integration**: Use V3 hierarchies as dimensional context
+- **Librarian Integration**: Use Librarian hierarchies as dimensional context
 - **NL-to-SQL**: Natural language queries without SQL knowledge
 - **FP&A Workflows**: Close, variance, forecast, reporting automation
 
@@ -28,7 +28,7 @@ V4 is the analytics companion to V3 (Hierarchy Builder). Together they form a co
 ### 1. Start Docker Sample Environment
 
 ```bash
-cd v4/docker
+cd researcher/docker
 docker-compose up -d
 
 # Wait for database to initialize
@@ -66,7 +66,7 @@ cp .env.example .env
 pip install -r requirements.txt
 
 # Add connection
-databridge-analytics connect add postgresql \
+databridge researcher connect add postgresql \
     --name sample-dw \
     --host localhost \
     --port 5434 \
@@ -74,10 +74,10 @@ databridge-analytics connect add postgresql \
     --user dw_admin
 
 # Sync metadata catalog
-databridge-analytics catalog sync sample-dw
+databridge researcher catalog sync sample-dw
 
 # Run analysis
-databridge-analytics query ask sample-dw "What was total revenue by quarter in 2024?"
+databridge researcher query ask sample-dw "What was total revenue by quarter in 2024?"
 ```
 
 ---
@@ -114,10 +114,10 @@ databridge-analytics query ask sample-dw "What was total revenue by quarter in 2
 ```json
 {
   "mcpServers": {
-    "databridge-analytics": {
+    "databridge-researcher": {
       "command": "python",
-      "args": ["-m", "databridge_analytics.mcp.server"],
-      "cwd": "C:\\Users\\telha\\Databridge_AI\\v4"
+      "args": ["-m", "databridge_researcher.mcp.server"],
+      "cwd": "C:\\Users\\telha\\Databridge_AI\\researcher"
     }
   }
 }
@@ -129,7 +129,7 @@ databridge-analytics query ask sample-dw "What was total revenue by quarter in 2
 - **Analysis** (12): Schema detection, profiling, quality scoring
 - **Query** (10): SQL execution, NL-to-SQL, query building
 - **Insights** (8): Anomalies, trends, comparisons, summaries
-- **Knowledgebase** (7): Business glossary, metrics, V3 integration
+- **Knowledgebase** (7): Business glossary, metrics, Librarian integration
 
 ---
 
@@ -156,5 +156,5 @@ databridge-analytics query ask sample-dw "What was total revenue by quarter in 2
 ---
 
 *Part of the DataBridge AI Platform*
-- V3: Hierarchy Builder
-- V4: Analytics Engine (this component)
+- Librarian: Hierarchy Builder
+- Researcher: Analytics Engine (this component)

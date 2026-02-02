@@ -1,5 +1,5 @@
 """
-Fuzzy Matcher for DataBridge AI V3.
+Fuzzy Matcher for DataBridge AI Librarian.
 
 Provides fuzzy string matching, deduplication, and record linkage using RapidFuzz.
 """

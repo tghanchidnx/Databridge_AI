@@ -1,6 +1,6 @@
 # DataBridge AI Deployment Guide
 
-This guide covers deploying DataBridge AI V3 (Hierarchy Builder) and V4 (Analytics Engine) to production environments.
+This guide covers deploying DataBridge AI Librarian (Hierarchy Builder) and Researcher (Analytics Engine) to production environments.
 
 ---
 
@@ -74,7 +74,7 @@ cd docker
 # Start infrastructure only (PostgreSQL, Redis, ChromaDB)
 docker-compose -f docker-compose.dev.yml up -d
 
-# Start all services including V3 and V4
+# Start all services including Librarian and Researcher
 docker-compose -f docker-compose.dev.yml --profile full up -d
 
 # View logs
@@ -143,12 +143,12 @@ REDIS_PORT=6379
 # ChromaDB
 CHROMADB_PORT=8001
 
-# V3 Configuration
+# Librarian Configuration
 V3_PORT=8000
 V3_ENCRYPTION_KEY=<32-byte-hex-key>
 V3_IMAGE=ghcr.io/databridge-ai/databridge-v3:latest
 
-# V4 Configuration
+# Researcher Configuration
 V4_PORT=8001
 V4_ENCRYPTION_KEY=<32-byte-hex-key>
 V4_IMAGE=ghcr.io/databridge-ai/databridge-v4:latest
@@ -179,19 +179,19 @@ openssl rand -base64 24 | tr -dc 'a-zA-Z0-9' | head -c 24
 | POSTGRES_PASSWORD | Database password | (required) |
 | POSTGRES_DB | Database name | databridge_analytics |
 
-#### V3 Hierarchy Builder
+#### Librarian Hierarchy Builder
 | Variable | Description | Default |
 |----------|-------------|---------|
 | V3_ENCRYPTION_KEY | Fernet encryption key | (required) |
 | CHROMADB_HOST | ChromaDB hostname | chromadb |
 | REDIS_URL | Redis connection URL | redis://redis:6379/0 |
 
-#### V4 Analytics Engine
+#### Researcher Analytics Engine
 | Variable | Description | Default |
 |----------|-------------|---------|
 | V4_ENCRYPTION_KEY | API key encryption | (required) |
 | POSTGRESQL_HOST | PostgreSQL hostname | postgres |
-| V3_API_URL | V3 service URL | http://databridge-v3:8000 |
+| LIBRARIAN_API_URL | Librarian service URL | http://databridge-librarian:8000 |
 | NOTION_API_KEY | Notion API key | (optional) |
 
 ---
@@ -215,7 +215,7 @@ openssl rand -base64 24 | tr -dc 'a-zA-Z0-9' | head -c 24
 - [ ] Start services in correct order
 - [ ] Verify health checks pass
 - [ ] Test API connectivity
-- [ ] Verify V3-V4 integration
+- [ ] Verify Librarian-Researcher integration
 
 ### Post-Deployment
 
@@ -242,7 +242,7 @@ openssl rand -base64 24 | tr -dc 'a-zA-Z0-9' | head -c 24
 │                      Internal Network                            │
 │                                                                  │
 │  ┌──────────────────┐    ┌──────────────────┐                   │
-│  │   DataBridge V3  │◄───│   DataBridge V4  │                   │
+│  │   DataBridge Librarian  │◄───│   DataBridge Researcher  │                   │
 │  │  (Port 8000)     │    │   (Port 8001)    │                   │
 │  │  Hierarchy       │    │   Analytics      │                   │
 │  └────────┬─────────┘    └──────┬───────────┘                   │
@@ -269,8 +269,8 @@ openssl rand -base64 24 | tr -dc 'a-zA-Z0-9' | head -c 24
 | PostgreSQL | 5432 | 5432 | Analytics database |
 | Redis | 6379 | 6379 | Cache and sessions |
 | ChromaDB | 8000 | 8001 | Vector embeddings |
-| V3 Hierarchy | 8000 | 8000 | MCP server |
-| V4 Analytics | 8001 | 8001 | MCP server |
+| Librarian Hierarchy | 8000 | 8000 | MCP server |
+| Researcher Analytics | 8001 | 8001 | MCP server |
 
 ---
 
@@ -279,10 +279,10 @@ openssl rand -base64 24 | tr -dc 'a-zA-Z0-9' | head -c 24
 ### Health Check Endpoints
 
 ```bash
-# V3 Hierarchy Builder
+# Librarian Hierarchy Builder
 curl http://localhost:8000/health
 
-# V4 Analytics Engine
+# Researcher Analytics Engine
 curl http://localhost:8001/health
 
 # ChromaDB
@@ -339,7 +339,7 @@ python docker/scripts/deploy.py backup --env prod --output /backups
 |------|-------------|
 | postgres_TIMESTAMP.sql.gz | PostgreSQL full dump |
 | redis_TIMESTAMP.rdb | Redis snapshot |
-| v3_databridge_TIMESTAMP.db | V3 SQLite database |
+| librarian_databridge_TIMESTAMP.db | Librarian SQLite database |
 | backup_TIMESTAMP.json | Backup manifest |
 
 ### Restoring from Backup
@@ -374,8 +374,8 @@ python docker/scripts/deploy.py backup --env prod --output /backups
 2. **Firewall Rules**
    ```bash
    # Allow only required ports
-   ufw allow 8000/tcp  # V3 (or use reverse proxy)
-   ufw allow 8001/tcp  # V4 (or use reverse proxy)
+   ufw allow 8000/tcp  # Librarian (or use reverse proxy)
+   ufw allow 8001/tcp  # Researcher (or use reverse proxy)
    ```
 
 ### TLS/SSL (Recommended)
@@ -404,7 +404,7 @@ server {
 ### API Key Management
 
 ```bash
-# Generate API key via V4 service
+# Generate API key via Researcher service
 curl -X POST http://localhost:8001/api/keys/generate \
   -H "Content-Type: application/json" \
   -d '{"description": "Production API Key", "scopes": ["read", "write"]}'
@@ -491,8 +491,8 @@ find /backups -mtime +30 -delete
 | Service | Log Location |
 |---------|--------------|
 | Docker containers | `docker logs <container>` |
-| V3 Application | `/app/logs/v3.log` (in container) |
-| V4 Application | `/app/logs/v4.log` (in container) |
+| Librarian Application | `/app/logs/librarian.log` (in container) |
+| Researcher Application | `/app/logs/researcher.log` (in container) |
 | PostgreSQL | `docker logs databridge-postgres-prod` |
 
 ### Support

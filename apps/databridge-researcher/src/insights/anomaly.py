@@ -1,5 +1,5 @@
 """
-Anomaly Detection for DataBridge AI V4 Analytics Engine.
+Anomaly Detection for DataBridge AI Researcher Analytics Engine.
 
 Provides statistical anomaly detection using Z-score and IQR methods.
 """

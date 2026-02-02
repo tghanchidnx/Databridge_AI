@@ -1,1 +1,1 @@
-"""Integration tests for DataBridge Analytics V4."""
+"""Integration tests for DataBridge Analytics Researcher."""

@@ -1,5 +1,5 @@
 """
-FP&A MCP Tools for DataBridge Analytics V4.
+FP&A MCP Tools for DataBridge Analytics Researcher.
 
 Provides 12 tools for FP&A workflow automation:
 - Close tools (4): sync_period_data, validate_close_readiness, reconcile_subledger_to_gl, lock_period

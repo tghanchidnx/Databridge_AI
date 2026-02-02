@@ -1,5 +1,5 @@
 """
-Embedding generation for DataBridge AI V3.
+Embedding generation for DataBridge AI Librarian.
 
 Provides embedding generation using sentence-transformers or other providers.
 """

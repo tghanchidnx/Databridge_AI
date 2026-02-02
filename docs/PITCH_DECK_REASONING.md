@@ -172,7 +172,7 @@ We synthesized market data from multiple sources to triangulate estimates:
    - Comprehensive functionality
    - Moat through feature depth
 
-3. **Two versions (V3 + V4)** shows:
+3. **Two versions (Librarian + Researcher)** shows:
    - Active development
    - Roadmap execution
    - Platform evolution

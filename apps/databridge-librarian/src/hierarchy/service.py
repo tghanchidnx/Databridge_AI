@@ -1,5 +1,5 @@
 """
-Hierarchy Service for DataBridge AI V3.
+Hierarchy Service for DataBridge AI Librarian.
 
 Provides CRUD operations for projects, hierarchies, and source mappings.
 """

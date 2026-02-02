@@ -308,7 +308,7 @@ class TestGenerateSortOrders:
         assert result["method_used"] in ["financial", "alphabetical", "numeric", "numeric_prefix"]
 
 
-class TestMergeWithV3Hierarchy:
+class TestMergeWithLibrarianHierarchy:
     """Tests for merge_with_librarian_hierarchy tool."""
 
     def test_merge_not_found(self):

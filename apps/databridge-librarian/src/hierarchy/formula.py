@@ -1,5 +1,5 @@
 """
-Formula Engine for DataBridge AI V3.
+Formula Engine for DataBridge AI Librarian.
 
 Handles hierarchy calculations including SUM, SUBTRACT, MULTIPLY, DIVIDE, and PERCENT.
 """

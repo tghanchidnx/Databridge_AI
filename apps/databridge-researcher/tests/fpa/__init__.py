@@ -1,1 +1,1 @@
-"""FP&A scenario tests for DataBridge Analytics V4."""
+"""FP&A scenario tests for DataBridge Analytics Researcher."""

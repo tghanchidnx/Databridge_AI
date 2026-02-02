@@ -1,5 +1,5 @@
 """
-Variance Analysis for DataBridge AI V4 Analytics Engine.
+Variance Analysis for DataBridge AI Researcher Analytics Engine.
 
 Provides budget vs actual (BvA) variance analysis with decomposition.
 """

@@ -1,7 +1,7 @@
 """
-Configuration management for DataBridge AI V3 using Pydantic Settings.
+Configuration management for DataBridge AI Librarian using Pydantic Settings.
 
-Extends the shared BaseAppSettings from databridge-core with V3-specific settings.
+Extends the shared BaseAppSettings from databridge-core with Librarian-specific settings.
 """
 
 from pathlib import Path
@@ -116,9 +116,9 @@ class BackendSyncSettings(BaseSettings):
 
 class Settings(BaseAppSettings):
     """
-    V3 Hierarchy Builder application settings.
+    Librarian Hierarchy Builder application settings.
 
-    Extends BaseAppSettings from databridge-core with V3-specific settings.
+    Extends BaseAppSettings from databridge-core with Librarian-specific settings.
     """
 
     model_config = SettingsConfigDict(
@@ -130,7 +130,7 @@ class Settings(BaseAppSettings):
 
     # Application metadata
     app_name: str = Field(
-        default="DataBridge AI V3 - Hierarchy Builder",
+        default="DataBridge AI Librarian - Hierarchy Builder",
         description="Application name",
     )
     version: str = Field(
@@ -154,7 +154,7 @@ class Settings(BaseAppSettings):
 
     # MCP Server settings
     mcp_server_name: str = Field(
-        default="databridge-hierarchy-v3",
+        default="databridge-hierarchy-librarian",
         description="MCP server name",
     )
 

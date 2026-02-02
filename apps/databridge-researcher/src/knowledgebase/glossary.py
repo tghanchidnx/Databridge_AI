@@ -1,5 +1,5 @@
 """
-Business Glossary and Metric Definitions for DataBridge Analytics V4.
+Business Glossary and Metric Definitions for DataBridge Analytics Researcher.
 
 Pre-built definitions for common FP&A and accounting terms.
 """

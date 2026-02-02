@@ -1,6 +1,6 @@
 {
-  "version": "4.0.0",
-  "description": "DataBridge Analytics V4 Knowledge Base Index",
+  "version": "1.0.0",
+  "description": "DataBridge Researcher Knowledge Base Index",
   "collections": [
     {
       "id": "business_glossary",

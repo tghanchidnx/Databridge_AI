@@ -1,7 +1,7 @@
 """
 Unified configuration settings for DataBridge AI platform.
 
-Provides base settings classes that can be extended by V3 and V4 applications.
+Provides base settings classes that can be extended by Librarian and Researcher applications.
 Uses Pydantic Settings for environment-based configuration.
 """
 
@@ -14,7 +14,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class DatabaseSettings(BaseModel):
-    """SQLite database configuration (used by V3)."""
+    """SQLite database configuration (used by Librarian)."""
 
     path: Path = Field(
         default=Path("data/databridge.db"),
@@ -180,7 +180,7 @@ class BaseAppSettings(BaseSettings):
     """
     Base application settings shared by all DataBridge applications.
 
-    Extend this class in V3 and V4 to add app-specific settings.
+    Extend this class in Librarian and Researcher to add app-specific settings.
     """
 
     model_config = SettingsConfigDict(

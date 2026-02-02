@@ -1,7 +1,7 @@
 """
 Tests for Dimension Mapper.
 
-Tests the mapping of V3 hierarchies to V4 dimension structures.
+Tests the mapping of Librarian hierarchies to Researcher dimension structures.
 """
 
 import pytest
@@ -15,7 +15,7 @@ from src.integration.dimension_mapper import (
     DimensionMember,
     DimensionMapperResult,
 )
-from src.integration.v3_client import V3Hierarchy, V3Mapping
+from src.integration.librarian_client import LibrarianHierarchy, LibrarianMapping
 
 
 class TestDimensionType:
@@ -361,7 +361,7 @@ class TestDimensionMapper:
 
     def test_map_hierarchy_basic(self):
         """Test mapping a basic hierarchy."""
-        hierarchy = V3Hierarchy(
+        hierarchy = LibrarianHierarchy(
             hierarchy_id="h-123",
             project_id="p-123",
             hierarchy_name="GL Accounts",
@@ -377,7 +377,7 @@ class TestDimensionMapper:
 
     def test_map_hierarchy_with_explicit_type(self):
         """Test mapping with explicit dimension type."""
-        hierarchy = V3Hierarchy(
+        hierarchy = LibrarianHierarchy(
             hierarchy_id="h-123",
             project_id="p-123",
             hierarchy_name="Custom Hierarchy",
@@ -392,7 +392,7 @@ class TestDimensionMapper:
 
     def test_map_hierarchy_with_mappings(self):
         """Test mapping hierarchy with source mappings."""
-        hierarchy = V3Hierarchy(
+        hierarchy = LibrarianHierarchy(
             hierarchy_id="h-123",
             project_id="p-123",
             hierarchy_name="Accounts",
@@ -400,7 +400,7 @@ class TestDimensionMapper:
         )
 
         mappings = [
-            V3Mapping(
+            LibrarianMapping(
                 hierarchy_id="h-123",
                 mapping_index=0,
                 source_database="prod",
@@ -419,21 +419,21 @@ class TestDimensionMapper:
     def test_map_hierarchy_tree(self):
         """Test mapping a hierarchy tree."""
         hierarchies = [
-            V3Hierarchy(
+            LibrarianHierarchy(
                 hierarchy_id="h-1",
                 project_id="p-1",
                 hierarchy_name="Root",
                 parent_id=None,
                 levels={"level_1": "Total"},
             ),
-            V3Hierarchy(
+            LibrarianHierarchy(
                 hierarchy_id="h-2",
                 project_id="p-1",
                 hierarchy_name="Child 1",
                 parent_id="h-1",
                 levels={"level_1": "Total", "level_2": "C1"},
             ),
-            V3Hierarchy(
+            LibrarianHierarchy(
                 hierarchy_id="h-3",
                 project_id="p-1",
                 hierarchy_name="Child 2",
@@ -452,14 +452,14 @@ class TestDimensionMapper:
     def test_map_hierarchy_tree_leaf_detection(self):
         """Test that leaf members are correctly identified."""
         hierarchies = [
-            V3Hierarchy(
+            LibrarianHierarchy(
                 hierarchy_id="h-1",
                 project_id="p-1",
                 hierarchy_name="Root",
                 parent_id=None,
                 levels={},
             ),
-            V3Hierarchy(
+            LibrarianHierarchy(
                 hierarchy_id="h-2",
                 project_id="p-1",
                 hierarchy_name="Leaf",
@@ -490,13 +490,13 @@ class TestDimensionMapper:
     def test_map_hierarchies_to_dimensions(self):
         """Test mapping multiple hierarchies to dimensions."""
         hierarchies = [
-            V3Hierarchy(
+            LibrarianHierarchy(
                 hierarchy_id="h-1",
                 project_id="p-1",
                 hierarchy_name="Accounts",
                 levels={},
             ),
-            V3Hierarchy(
+            LibrarianHierarchy(
                 hierarchy_id="h-2",
                 project_id="p-2",
                 hierarchy_name="Regions",
@@ -543,7 +543,7 @@ class TestDimensionMapper:
 
     def test_create_level_attributes(self):
         """Test creating attributes from hierarchy levels."""
-        hierarchy = V3Hierarchy(
+        hierarchy = LibrarianHierarchy(
             hierarchy_id="h-1",
             project_id="p-1",
             hierarchy_name="Test",

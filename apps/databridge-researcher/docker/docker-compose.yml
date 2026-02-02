@@ -4,7 +4,7 @@ version: '3.8'
 # DataBridge Analytics - Sample Data Environment
 # ============================================
 # This creates a self-contained financial data warehouse
-# for testing and development of V4 analytics capabilities.
+# for testing and development of Researcher analytics capabilities.
 #
 # Start:  docker-compose up -d
 # Stop:   docker-compose down

@@ -1,5 +1,5 @@
 """
-Audit logging for DataBridge AI V3.
+Audit logging for DataBridge AI Librarian.
 
 Provides comprehensive audit trail without storing PII.
 """

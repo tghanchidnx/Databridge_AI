@@ -1,4 +1,4 @@
-# Dimension Modeling Enhancements for V3 & V4
+# Dimension Modeling Enhancements for Librarian & Researcher
 
 ## Executive Summary
 
@@ -13,7 +13,7 @@ Cost centers, accounts, and organizational structures change over time. Without 
 
 ### Enhancement: SCD Type 2 Support
 
-**V3 Changes (Hierarchy Builder):**
+**Librarian Changes (Hierarchy Builder):**
 ```sql
 -- Add versioning columns to hierarchy tables
 ALTER TABLE hierarchies ADD COLUMN effective_from DATE NOT NULL DEFAULT CURRENT_DATE;
@@ -22,7 +22,7 @@ ALTER TABLE hierarchies ADD COLUMN is_current BOOLEAN DEFAULT TRUE;
 ALTER TABLE hierarchies ADD COLUMN version_number INTEGER DEFAULT 1;
 ```
 
-**V4 Changes (Analytics Engine):**
+**Researcher Changes (Analytics Engine):**
 ```sql
 -- Dimension tables with SCD Type 2
 CREATE TABLE dimensions.dim_cost_center_scd2 (
@@ -72,7 +72,7 @@ Different source systems use different identifiers and hierarchies for the same 
 
 ### Enhancement: Cross-System Dimension Conformance
 
-**V3 Changes:**
+**Librarian Changes:**
 ```python
 # New table: dimension_conformance
 class DimensionConformance(Base):
@@ -97,7 +97,7 @@ class DimensionConformance(Base):
     validated_at = Column(DateTime)
 ```
 
-**V4 Schema Addition:**
+**Researcher Schema Addition:**
 ```sql
 -- Conformed dimension mapping table
 CREATE TABLE metadata.conformed_dimension_map (
@@ -144,7 +144,7 @@ The same dimension is used multiple ways in a fact table. Date appears as transa
 
 ### Enhancement: Dimension Role Support
 
-**V4 Schema:**
+**Researcher Schema:**
 ```sql
 -- Role-playing dimension views
 CREATE VIEW dimensions.dim_date_transaction AS
@@ -209,7 +209,7 @@ Not all dimension members have the same depth. One product line might have 5 lev
 
 ### Enhancement: Flexible Hierarchy Depth
 
-**V3 Enhancement:**
+**Librarian Enhancement:**
 ```python
 # Support for ragged hierarchies
 class HierarchyNode(Base):
@@ -237,7 +237,7 @@ class HierarchyNode(Base):
     is_leaf = Column(Boolean, default=False)
 ```
 
-**V4 Dimension Pattern:**
+**Researcher Dimension Pattern:**
 ```sql
 -- Closure table for efficient hierarchy queries
 CREATE TABLE dimensions.dim_account_closure (
@@ -272,7 +272,7 @@ A single GL transaction might allocate to multiple cost centers. A journal entry
 
 ### Enhancement: Allocation Bridge Tables
 
-**V4 Schema:**
+**Researcher Schema:**
 ```sql
 -- Bridge table for multi-cost-center allocation
 CREATE TABLE dimensions.bridge_gl_cost_center (
@@ -326,7 +326,7 @@ Some dimension attributes change frequently (customer credit status, employee sa
 
 ### Enhancement: Mini-Dimension Pattern
 
-**V4 Schema:**
+**Researcher Schema:**
 ```sql
 -- Main customer dimension (slowly changing)
 CREATE TABLE dimensions.dim_customer (
@@ -376,7 +376,7 @@ Some dimensional attributes exist only in the fact table (invoice number, PO num
 
 ### Enhancement: Degenerate Dimension Metadata
 
-**V4 Metadata:**
+**Researcher Metadata:**
 ```sql
 -- Register degenerate dimensions for AI understanding
 CREATE TABLE metadata.degenerate_dimensions (
@@ -412,7 +412,7 @@ Many low-cardinality flags and indicators clutter fact tables (is_recurring, is_
 
 ### Enhancement: Consolidated Flag Dimensions
 
-**V4 Schema:**
+**Researcher Schema:**
 ```sql
 -- Junk dimension for GL posting flags
 CREATE TABLE dimensions.dim_gl_flags (
@@ -472,7 +472,7 @@ Planning and forecasting need multiple "what-if" versions of dimension hierarchi
 
 ### Enhancement: Scenario-Based Dimension Versions
 
-**V3 Enhancement:**
+**Librarian Enhancement:**
 ```python
 class HierarchyScenario(Base):
     __tablename__ = 'hierarchy_scenarios'
@@ -499,7 +499,7 @@ class HierarchyScenario(Base):
     hierarchy_delta = Column(JSON)
 ```
 
-**V4 Support:**
+**Researcher Support:**
 ```sql
 -- Scenario dimension for fact tables
 CREATE TABLE dimensions.dim_scenario (
@@ -540,7 +540,7 @@ Business users don't think in terms of tables and columns. They think in busines
 
 ### Enhancement: Business Semantic Layer
 
-**V4 Metadata:**
+**Researcher Metadata:**
 ```sql
 -- Business metrics catalog
 CREATE TABLE metadata.business_metrics (
@@ -600,7 +600,7 @@ INSERT INTO metadata.business_metrics VALUES
 ## Implementation Priority
 
 ### Phase 1: Foundation (Weeks 1-2)
-1. SCD Type 2 support in V3 and V4
+1. SCD Type 2 support in Librarian and Researcher
 2. Conformed dimension framework
 3. Basic semantic layer
 
@@ -623,7 +623,7 @@ INSERT INTO metadata.business_metrics VALUES
 
 ## MCP Tool Summary
 
-### New V3 Tools (8)
+### New Librarian Tools (8)
 | Tool | Category |
 |------|----------|
 | `create_dimension_version` | SCD |
@@ -635,7 +635,7 @@ INSERT INTO metadata.business_metrics VALUES
 | `create_hierarchy_scenario` | Scenarios |
 | `compare_scenarios` | Scenarios |
 
-### New V4 Tools (10)
+### New Researcher Tools (10)
 | Tool | Category |
 |------|----------|
 | `get_dimension_history` | SCD |
@@ -653,7 +653,7 @@ INSERT INTO metadata.business_metrics VALUES
 
 ## Benefits Summary
 
-| Enhancement | V3 Benefit | V4 Benefit |
+| Enhancement | Librarian Benefit | Researcher Benefit |
 |-------------|------------|------------|
 | SCD Type 2 | Historical hierarchy tracking | Point-in-time analysis |
 | Conformed Dimensions | Cross-system mapping | Unified analytics |

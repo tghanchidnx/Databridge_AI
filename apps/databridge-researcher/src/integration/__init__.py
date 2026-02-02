@@ -1,19 +1,19 @@
 """
-Integration module for DataBridge Analytics V4.
+Integration module for DataBridge Analytics Researcher.
 
-Handles integration with V3 Hierarchy Builder:
-- V3HierarchyClient for fetching hierarchy structures
-- DimensionMapper for mapping V3 hierarchies to V4 dimensions
+Handles integration with Librarian Hierarchy Builder:
+- LibrarianHierarchyClient for fetching hierarchy structures
+- DimensionMapper for mapping Librarian hierarchies to Researcher dimensions
 - Shared configuration and credentials
 """
 
-from .v3_client import (
-    V3HierarchyClient,
-    V3ConnectionMode,
-    V3Project,
-    V3Hierarchy,
-    V3Mapping,
-    V3ClientResult,
+from .librarian_client import (
+    LibrarianHierarchyClient,
+    LibrarianConnectionMode,
+    LibrarianProject,
+    LibrarianHierarchy,
+    LibrarianMapping,
+    LibrarianClientResult,
 )
 
 from .dimension_mapper import (
@@ -26,13 +26,13 @@ from .dimension_mapper import (
 )
 
 __all__ = [
-    # V3 Client
-    "V3HierarchyClient",
-    "V3ConnectionMode",
-    "V3Project",
-    "V3Hierarchy",
-    "V3Mapping",
-    "V3ClientResult",
+    # Librarian Client
+    "LibrarianHierarchyClient",
+    "LibrarianConnectionMode",
+    "LibrarianProject",
+    "LibrarianHierarchy",
+    "LibrarianMapping",
+    "LibrarianClientResult",
     # Dimension Mapper
     "DimensionMapper",
     "DimensionType",

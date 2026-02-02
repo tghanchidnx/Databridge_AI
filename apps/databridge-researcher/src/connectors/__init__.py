@@ -1,5 +1,5 @@
 """
-Database Connectors module for DataBridge Analytics V4.
+Database Connectors module for DataBridge Analytics Researcher.
 
 Provides unified interface for connecting to various data warehouses:
 - Snowflake

@@ -1,5 +1,5 @@
 # ============================================
-# DataBridge V3 - Development Dependencies
+# DataBridge Librarian - Development Dependencies
 # ============================================
 # Install: pip install -r requirements-dev.txt
 # ============================================

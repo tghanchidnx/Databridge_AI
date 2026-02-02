@@ -1,4 +1,4 @@
-"""Core module for DataBridge AI V4 Analytics Engine."""
+"""Core module for DataBridge AI Researcher Analytics Engine."""
 
 from .config import Settings, get_settings
 

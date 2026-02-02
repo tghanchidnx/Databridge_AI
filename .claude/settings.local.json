@@ -85,7 +85,14 @@
       "Bash(tail:*)",
       "Bash(git mv:*)",
       "Bash(git commit:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "mcp__DNX_Hierarchy_Manager__list_financial_templates",
+      "mcp__DNX_Hierarchy_Manager__list_available_skills",
+      "mcp__DNX_Hierarchy_Manager__list_hierarchy_projects",
+      "mcp__DNX_Hierarchy_Manager__get_workflow",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(git push:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

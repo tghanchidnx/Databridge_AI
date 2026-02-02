@@ -1,5 +1,5 @@
 """
-Notion Sync Service for DataBridge Analytics V4.
+Notion Sync Service for DataBridge Analytics Researcher.
 
 Syncs documentation, hierarchy structures, and project data to Notion.
 """

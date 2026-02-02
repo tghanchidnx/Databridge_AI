@@ -1,8 +1,8 @@
 """
 DataBridge Models - Shared data models for DataBridge AI platform.
 
-This library provides common data models used by both V3 (Hierarchy Builder)
-and V4 (Analytics Engine) applications:
+This library provides common data models used by both Librarian (Librarian)
+and Researcher (Researcher) applications:
 
 - base: SQLAlchemy declarative base and common mixins
 - enums: Shared enumerations (SQLDialect, TableStatus, etc.)

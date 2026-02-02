@@ -1,6 +1,6 @@
 # Manual End-to-End Test Guide for DataBridge AI
 
-This guide walks you through a complete end-to-end workflow to test the functionality of the DataBridge AI platform, from creating a hierarchy in V3 to analyzing data with it in V4.
+This guide walks you through a complete end-to-end workflow to test the functionality of the DataBridge AI platform, from creating a hierarchy in Librarian to analyzing data with it in Researcher.
 
 **Prerequisites:**
 *   You have installed the necessary dependencies for both the `v3` and `v4` applications.
@@ -9,7 +9,7 @@ This guide walks you through a complete end-to-end workflow to test the function
 
 ---
 
-## Part 1: V3 - Hierarchy Setup and Management
+## Part 1: Librarian - Hierarchy Setup and Management
 
 In this part, we will use the `v3` application to create a project, import our P&L hierarchy, and map it to our general ledger accounts.
 
@@ -76,21 +76,21 @@ python v3/src/main.py mapping list 11
 
 ---
 
-## Part 2: V4 - Data Analysis
+## Part 2: Researcher - Data Analysis
 
-With the hierarchy set up in V3, we can now use the V4 analytics engine to query our transactional data. V4's "compute pushdown" will simulate connecting to a database and running queries. For this test, we will point it to our CSV file.
+With the hierarchy set up in Librarian, we can now use the Researcher analytics engine to query our transactional data. Researcher's "compute pushdown" will simulate connecting to a database and running queries. For this test, we will point it to our CSV file.
 
-*Note: The V4 application is designed to connect to data warehouses. For this test, we assume a connector that can query CSV files directly (like one using DuckDB or Polars) is available or that the data is loaded into a local test database (e.g., the sample PostgreSQL DB from the `v4/docker` environment).*
+*Note: The Researcher application is designed to connect to data warehouses. For this test, we assume a connector that can query CSV files directly (like one using DuckDB or Polars) is available or that the data is loaded into a local test database (e.g., the sample PostgreSQL DB from the `v4/docker` environment).*
 
 ### Step 1: Set up a "Database" Connection
 
-First, configure a connection in V4 that points to our sample data. In a real-world test, you would load `e2e_transactions.csv` into a database and connect to it. For this manual guide, we will assume a connection named `e2e_db` has been configured to read from our CSV files.
+First, configure a connection in Researcher that points to our sample data. In a real-world test, you would load `e2e_transactions.csv` into a database and connect to it. For this manual guide, we will assume a connection named `e2e_db` has been configured to read from our CSV files.
 
-*(This step is illustrative, as a CSV connector might not be a default feature. If using the provided Docker environment, you would use `psql` or `pgAdmin` to load the CSVs into the `databridge-analytics-db` and then connect V4 to that).*
+*(This step is illustrative, as a CSV connector might not be a default feature. If using the provided Docker environment, you would use `psql` or `pgAdmin` to load the CSVs into the `databridge-analytics-db` and then connect Researcher to that).*
 
 ### Step 2: Run an Analytical Query
 
-Now, let's ask a business question using the V4 natural language query interface. This query will use the hierarchy from V3 to aggregate the data from `e2e_transactions.csv`.
+Now, let's ask a business question using the Researcher natural language query interface. This query will use the hierarchy from Librarian to aggregate the data from `e2e_transactions.csv`.
 
 **Question:** "What was our total Product Revenue in January 2024?"
 
@@ -102,12 +102,12 @@ python v4/src/main.py query ask e2e_db "What was our total Product Revenue in Ja
 
 ### How This Works End-to-End:
 
-1.  The V4 `query ask` command parses the question.
+1.  The Researcher `query ask` command parses the question.
 2.  It identifies "Product Revenue" as a business term.
-3.  It queries the V3 knowledge base (or a synced version of it) to understand what "Product Revenue" means. It finds that "Product Revenue" corresponds to hierarchy ID `11`.
+3.  It queries the Librarian knowledge base (or a synced version of it) to understand what "Product Revenue" means. It finds that "Product Revenue" corresponds to hierarchy ID `11`.
 4.  It then finds the mappings for hierarchy ID `11`, which are `account_id` `4000` and `4010`.
 5.  It identifies "January 2024" as a time filter.
-6.  V4's query engine constructs a SQL query that it "pushes down" to the connected data source (`e2e_db`). The query will look something like this:
+6.  Researcher's query engine constructs a SQL query that it "pushes down" to the connected data source (`e2e_db`). The query will look something like this:
     ```sql
     SELECT SUM(amount)
     FROM transactions
@@ -129,4 +129,4 @@ The CLI should display a result like:
 
 ---
 
-This completes the end-to-end test, demonstrating that a hierarchy created and managed in V3 can be seamlessly used to perform meaningful, context-aware analysis in V4.
+This completes the end-to-end test, demonstrating that a hierarchy created and managed in Librarian can be seamlessly used to perform meaningful, context-aware analysis in Researcher.

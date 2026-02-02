@@ -1,5 +1,5 @@
 """
-MCP Tools for Insights and Analysis in DataBridge AI V4.
+MCP Tools for Insights and Analysis in DataBridge AI Researcher.
 
 Provides 8 tools for anomaly detection, trend analysis, and variance analysis.
 """

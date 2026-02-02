@@ -1,1 +1,1 @@
-"""Unit tests for V4 FP&A workflows module."""
+"""Unit tests for Researcher FP&A workflows module."""

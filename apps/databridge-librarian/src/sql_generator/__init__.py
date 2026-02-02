@@ -1,5 +1,5 @@
 """
-SQL Generator Module for DataBridge AI V3.
+SQL Generator Module for DataBridge AI Librarian.
 
 This module provides services for:
 - Pattern detection (fact/dimension/bridge classification)
@@ -8,7 +8,7 @@ This module provides services for:
 - Data lineage tracking with NetworkX
 
 Architecture:
-    TBL_0 (Source) -> VW_1 (Views) -> [V4: DT_2 -> DT_3A -> DT_3]
+    TBL_0 (Source) -> VW_1 (Views) -> [Researcher: DT_2 -> DT_3A -> DT_3]
 """
 
 # Import models (always available)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Runner script for DataBridge V4 MCP Server - Analytics Engine.
+Runner script for DataBridge Researcher MCP Server - Analytics Engine.
 
 Registers 37 MCP tools:
 - Query tools (10)
@@ -16,14 +16,14 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 
 # Set up the path correctly
-v4_root = Path(__file__).parent
-sys.path.insert(0, str(v4_root))
-os.chdir(v4_root)
+researcher_root = Path(__file__).parent
+sys.path.insert(0, str(researcher_root))
+os.chdir(researcher_root)
 
 from fastmcp import FastMCP
 
 # Create the MCP server
-mcp = FastMCP("databridge-analytics-v4")
+mcp = FastMCP("databridge-analytics-researcher")
 
 # Import services
 try:
@@ -43,9 +43,9 @@ try:
     from src.knowledgebase.glossary import BusinessGlossary
     from src.knowledgebase.store import KnowledgeStore
     from src.core.settings_manager import SettingsManager
-    from src.integration.v3_client import V3HierarchyClient
+    from src.integration.librarian_client import LibrarianHierarchyClient
     from src.integration.dimension_mapper import DimensionMapper
-    print("All V4 modules imported successfully!")
+    print("All Researcher modules imported successfully!")
 
     # Dynamic Tables imports
     from src.dynamic_tables.builder import DynamicTableBuilderService, get_dynamic_table_builder
@@ -446,10 +446,10 @@ def list_available_metrics() -> Dict[str, Any]:
 
 @mcp.tool()
 def health_check() -> Dict[str, Any]:
-    """Check if the V4 Analytics server is healthy."""
+    """Check if the Researcher Analytics server is healthy."""
     return {
         "status": "healthy",
-        "server": "databridge-analytics-v4",
+        "server": "databridge-analytics-researcher",
         "version": "4.0.0",
         "modules": ["query", "insights", "fpa", "knowledgebase"],
         "timestamp": datetime.now().isoformat()
@@ -457,9 +457,9 @@ def health_check() -> Dict[str, Any]:
 
 @mcp.tool()
 def get_server_info() -> Dict[str, Any]:
-    """Get information about the V4 server configuration."""
+    """Get information about the Researcher server configuration."""
     return {
-        "server": "databridge-analytics-v4",
+        "server": "databridge-analytics-researcher",
         "version": "4.0.0",
         "tools_count": 52,
         "supported_dialects": ["postgresql", "snowflake", "tsql", "spark"],
@@ -695,7 +695,7 @@ def create_intermediate_aggregation(
         dynamic_table_id: Source DT_2 table ID
         dimensions: List of dimension columns to group by
         measures: List of measures (column, function, alias)
-        hierarchy_id: Optional V3 hierarchy ID
+        hierarchy_id: Optional Librarian hierarchy ID
         precedence_groups: List of precedence groups
 
     Returns:
@@ -841,7 +841,7 @@ def create_output_table(
         target_schema: Target schema
         dialect: SQL dialect
         description: Description
-        formula_group_id: Optional V3 formula group ID
+        formula_group_id: Optional Librarian formula group ID
 
     Returns:
         Created output table info
@@ -991,7 +991,7 @@ def list_dynamic_tables(project_id: str = None) -> Dict[str, Any]:
 
 
 print("=" * 60)
-print("DataBridge V4 Analytics Engine MCP Server")
+print("DataBridge Researcher Analytics Engine MCP Server")
 print("=" * 60)
 print("Tools registered: 52 (37 original + 15 Dynamic Tables)")
 print("Modules: query, insights, fpa, knowledgebase, dynamic_tables")

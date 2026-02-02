@@ -1,5 +1,5 @@
 """
-Vector Store implementation using ChromaDB for DataBridge AI V3.
+Vector Store implementation using ChromaDB for DataBridge AI Librarian.
 
 Provides persistent vector storage for hierarchies, mappings, and concepts.
 """
@@ -98,7 +98,7 @@ class VectorStore:
     """
 
     # Default collection prefix
-    COLLECTION_PREFIX = "databridge_v3_"
+    COLLECTION_PREFIX = "databridge_librarian_"
 
     def __init__(
         self,

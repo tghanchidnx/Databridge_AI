@@ -1,8 +1,10 @@
 """
-DataBridge AI V3 CLI Application.
+DataBridge AI Librarian CLI Application.
 
 A pure Python CLI for building and managing financial hierarchies.
 """
+
+from typing import List, Optional
 
 import typer
 from rich.console import Console
@@ -56,7 +58,7 @@ def main(
     ),
 ):
     """
-    DataBridge AI V3 - Headless Financial Hierarchy Builder.
+    DataBridge AI Librarian - Headless Financial Hierarchy Builder.
 
     Build and manage hierarchical data structures for financial reporting.
     Includes 92 MCP tools for AI integration.
@@ -566,6 +568,535 @@ def skill_domains():
         console.print(f"  • {domain}")
 
 
+# Source commands (Phase 1.3 - Interactive Refinement)
+source_app = typer.Typer(
+    name="source",
+    help="Manage source data models and mappings.",
+    no_args_is_help=True,
+)
+app.add_typer(source_app, name="source")
+
+
+@source_app.command("list")
+def source_list():
+    """List all source models."""
+    from src.source import SourceModelStore
+
+    store = SourceModelStore()
+    models = store.list_models()
+
+    if not models:
+        console.print("[yellow]No source models found.[/yellow]")
+        console.print("[dim]Use 'databridge source analyze' to create one.[/dim]")
+        return
+
+    table = Table(title="Source Models")
+    table.add_column("ID", style="cyan", no_wrap=True)
+    table.add_column("Name", style="green")
+    table.add_column("Status", style="blue")
+    table.add_column("Tables", style="magenta", justify="right")
+    table.add_column("Entities", style="yellow", justify="right")
+    table.add_column("Updated", style="dim")
+
+    for m in models:
+        status_style = {
+            "draft": "yellow",
+            "reviewed": "blue",
+            "approved": "green",
+        }.get(m.status, "white")
+
+        table.add_row(
+            m.id[:8],
+            m.name,
+            f"[{status_style}]{m.status}[/{status_style}]",
+            str(len(m.tables)),
+            str(len(m.entities)),
+            m.updated_at.strftime("%Y-%m-%d %H:%M"),
+        )
+
+    console.print(table)
+
+
+@source_app.command("analyze")
+def source_analyze(
+    connection_name: str = typer.Argument(..., help="Connection name to analyze"),
+    database: str = typer.Option(None, "--database", "-d", help="Database to analyze"),
+    schema: str = typer.Option(None, "--schema", "-s", help="Schema to analyze"),
+    name: str = typer.Option(None, "--name", "-n", help="Model name"),
+):
+    """Analyze a database connection and create a source model."""
+    from src.core.database import session_scope, Connection, init_database
+    from src.source import SourceModelStore, SourceAnalyzer
+
+    init_database()
+
+    # Find connection
+    with session_scope() as session:
+        conn = session.query(Connection).filter(
+            Connection.name.ilike(f"%{connection_name}%")
+        ).first()
+
+        if not conn:
+            console.print(f"[red]Connection not found: {connection_name}[/red]")
+            raise typer.Exit(1)
+
+        if conn.connection_type != "snowflake":
+            console.print(f"[yellow]Note: Only Snowflake is fully supported. Found: {conn.connection_type}[/yellow]")
+
+        console.print(f"[dim]Connecting to {conn.name}...[/dim]")
+
+        # Create adapter based on connection type
+        if conn.connection_type == "snowflake":
+            from src.connections.adapters import SnowflakeAdapter
+
+            adapter = SnowflakeAdapter(
+                host=conn.host,
+                database=database or conn.database,
+                username=conn.username,
+                password=conn.password_encrypted,  # TODO: decrypt
+                extra_config=conn.extra_config or {},
+            )
+        else:
+            console.print(f"[red]Unsupported connection type: {conn.connection_type}[/red]")
+            raise typer.Exit(1)
+
+        # Run analysis
+        console.print(f"[dim]Analyzing schema...[/dim]")
+
+        try:
+            with adapter:
+                analyzer = SourceAnalyzer(adapter)
+                model = analyzer.analyze_schema(
+                    database=database or conn.database,
+                    schema=schema,
+                    name=name or f"Analysis of {conn.name}",
+                )
+
+                # Save the model
+                store = SourceModelStore()
+                store.save_model(model)
+
+                console.print(Panel(
+                    f"""[green]Analysis complete![/green]
+
+Model ID: [cyan]{model.id}[/cyan]
+Tables: {len(model.tables)}
+Entities: {len(model.entities)}
+Relationships: {len(model.relationships)}
+
+Use [bold]databridge source review {model.id[:8]}[/bold] to review the model.""",
+                    title="Source Analysis",
+                    border_style="green",
+                ))
+
+        except Exception as e:
+            console.print(f"[red]Analysis failed: {e}[/red]")
+            raise typer.Exit(1)
+
+
+@source_app.command("discover")
+def source_discover(
+    connection_type: str = typer.Option("snowflake", "--type", "-t", help="Connection type (snowflake)"),
+    account: str = typer.Option(..., "--account", "-a", help="Account/host identifier"),
+    username: str = typer.Option(..., "--username", "-u", help="Database username"),
+    password: str = typer.Option(None, "--password", "-p", help="Password (prompts if not provided)"),
+    database: str = typer.Option(..., "--database", "-d", help="Database to scan"),
+    schema: str = typer.Option(None, "--schema", "-s", help="Schema to scan (optional)"),
+    warehouse: str = typer.Option(None, "--warehouse", "-w", help="Snowflake warehouse"),
+    name: str = typer.Option(None, "--name", "-n", help="Model name"),
+    include_views: bool = typer.Option(True, "--include-views/--no-views", help="Include views"),
+):
+    """
+    Run full source discovery on a database.
+
+    Scans the schema, analyzes tables, infers entities and relationships,
+    and creates a canonical source model ready for review.
+
+    Example:
+        databridge source discover -a myorg.snowflakecomputing.com -u user -d ANALYTICS -s RAW
+    """
+    from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
+    from src.source import SourceDiscoveryService, DiscoveryConfig, DiscoveryProgress
+
+    # Prompt for password if not provided
+    if not password:
+        import getpass
+        password = getpass.getpass(f"Password for {username}: ")
+
+    if not password:
+        console.print("[red]Password is required[/red]")
+        raise typer.Exit(1)
+
+    # Create adapter
+    if connection_type.lower() == "snowflake":
+        try:
+            from src.connections.adapters import SnowflakeAdapter
+
+            adapter = SnowflakeAdapter(
+                account=account,
+                username=username,
+                password=password,
+                warehouse=warehouse or "",
+                database=database,
+                schema=schema or "",
+            )
+        except ImportError:
+            console.print("[red]Snowflake adapter not available. Install snowflake-connector-python.[/red]")
+            raise typer.Exit(1)
+    else:
+        console.print(f"[red]Unsupported connection type: {connection_type}[/red]")
+        raise typer.Exit(1)
+
+    # Configure discovery
+    config = DiscoveryConfig(include_views=include_views)
+    service = SourceDiscoveryService(config=config)
+
+    # Progress display
+    console.print(f"\n[bold]Source Discovery[/bold]")
+    console.print(f"Target: {account} / {database}" + (f" / {schema}" if schema else ""))
+    console.print()
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+        console=console,
+    ) as progress:
+        task = progress.add_task("Initializing...", total=100)
+
+        def on_progress(p: DiscoveryProgress):
+            progress.update(
+                task,
+                completed=int(p.overall_progress * 100),
+                description=f"{p.phase.value.replace('_', ' ').title()}...",
+            )
+
+        service.set_progress_callback(on_progress)
+
+        result = service.discover(
+            adapter=adapter,
+            database=database,
+            schema=schema,
+            model_name=name or f"Discovery of {database}" + (f".{schema}" if schema else ""),
+        )
+
+    # Show results
+    if result.status == "completed":
+        console.print(Panel(
+            f"""[green]Discovery complete![/green]
+
+Model ID: [cyan]{result.model_id}[/cyan]
+Duration: {result.duration_seconds:.1f}s
+
+[bold]Summary:[/bold]
+  Tables discovered: {result.tables_discovered}
+  Columns discovered: {result.columns_discovered}
+  Entities inferred: {result.entities_inferred}
+  Relationships inferred: {result.relationships_inferred}
+
+[bold]Quality:[/bold]
+  High confidence entities: {result.high_confidence_entities}
+  Low confidence entities: {result.low_confidence_entities}
+  Tables needing review: {len(result.tables_needing_review)}
+
+Use [bold]databridge source review {result.model_id[:8]}[/bold] to review the model.""",
+            title="Source Discovery",
+            border_style="green",
+        ))
+
+        if result.warnings:
+            console.print("\n[yellow]Warnings:[/yellow]")
+            for w in result.warnings:
+                console.print(f"  • {w}")
+    else:
+        console.print(Panel(
+            f"""[red]Discovery failed![/red]
+
+{chr(10).join(result.errors)}""",
+            title="Source Discovery",
+            border_style="red",
+        ))
+        raise typer.Exit(1)
+
+
+@source_app.command("review")
+def source_review(
+    model_id: str = typer.Argument(..., help="Model ID to review"),
+):
+    """Review an analyzed source model."""
+    from src.source import SourceModelStore
+
+    store = SourceModelStore()
+
+    # Find model by partial ID
+    models = store.list_models()
+    model = next((m for m in models if m.id.startswith(model_id)), None)
+
+    if not model:
+        console.print(f"[red]Model not found: {model_id}[/red]")
+        raise typer.Exit(1)
+
+    # Show model summary
+    status_colors = {"draft": "yellow", "reviewed": "blue", "approved": "green"}
+    status_color = status_colors.get(model.status, "white")
+
+    console.print(Panel(
+        f"""[bold]{model.name}[/bold]
+
+Status: [{status_color}]{model.status}[/{status_color}]
+Connection: {model.connection_name or "(none)"}
+Created: {model.created_at.strftime("%Y-%m-%d %H:%M")}
+Updated: {model.updated_at.strftime("%Y-%m-%d %H:%M")}""",
+        title=f"Source Model: {model.id[:8]}",
+        border_style="blue",
+    ))
+
+    # Show approval progress
+    progress = model.approval_progress
+    console.print(f"\n[bold]Approval Progress:[/bold] {progress['overall_progress']:.0%}")
+    console.print(f"  Entities: {progress['entities']['approved']}/{progress['entities']['total']} approved")
+    console.print(f"  Relationships: {progress['relationships']['approved']}/{progress['relationships']['total']} approved")
+
+    # Show tables
+    if model.tables:
+        console.print(f"\n[bold]Tables ({len(model.tables)}):[/bold]")
+        table = Table()
+        table.add_column("Table", style="cyan")
+        table.add_column("Type", style="blue")
+        table.add_column("Entity", style="green")
+        table.add_column("Columns", justify="right")
+        table.add_column("Confidence", justify="right")
+
+        for t in model.tables[:10]:  # Show first 10
+            table.add_row(
+                t.name,
+                t.table_type,
+                t.effective_entity_type.value if t.effective_entity_type else "-",
+                str(len(t.columns)),
+                f"{t.confidence:.0%}" if t.confidence else "-",
+            )
+
+        if len(model.tables) > 10:
+            table.add_row("[dim]...[/dim]", "", "", "", "")
+
+        console.print(table)
+
+    # Show entities
+    if model.entities:
+        console.print(f"\n[bold]Entities ({len(model.entities)}):[/bold]")
+        for e in model.entities:
+            status = "[green]✓[/green]" if e.approved else "[red]✗[/red]" if e.rejected else "[yellow]?[/yellow]"
+            console.print(f"  {status} {e.name} ({e.entity_type.value}) - {len(e.source_tables)} table(s)")
+
+    # Show relationships
+    if model.relationships:
+        console.print(f"\n[bold]Relationships ({len(model.relationships)}):[/bold]")
+        for r in model.relationships[:5]:
+            status = "[green]✓[/green]" if r.approved else "[red]✗[/red]" if r.rejected else "[yellow]?[/yellow]"
+            console.print(f"  {status} {r.source_entity} → {r.target_entity} ({r.relationship_type.value})")
+
+        if len(model.relationships) > 5:
+            console.print(f"  [dim]... and {len(model.relationships) - 5} more[/dim]")
+
+    console.print(f"\n[dim]Use 'databridge source link' to define joins, 'databridge source merge' to consolidate columns.[/dim]")
+
+
+@source_app.command("link")
+def source_link(
+    model_id: str = typer.Argument(..., help="Model ID"),
+    source: str = typer.Option(..., "--source", "-s", help="Source table/entity"),
+    target: str = typer.Option(..., "--target", "-t", help="Target table/entity"),
+    source_col: str = typer.Option(..., "--source-col", "-sc", help="Source column"),
+    target_col: str = typer.Option(..., "--target-col", "-tc", help="Target column"),
+    relationship_type: str = typer.Option("many_to_one", "--type", help="Relationship type"),
+):
+    """Define a join between two tables/entities."""
+    from src.source import SourceModelStore
+    from src.source.models import RelationshipType
+
+    store = SourceModelStore()
+
+    # Find model
+    models = store.list_models()
+    model = next((m for m in models if m.id.startswith(model_id)), None)
+
+    if not model:
+        console.print(f"[red]Model not found: {model_id}[/red]")
+        raise typer.Exit(1)
+
+    # Parse relationship type
+    try:
+        rel_type = RelationshipType(relationship_type)
+    except ValueError:
+        console.print(f"[red]Invalid relationship type: {relationship_type}[/red]")
+        console.print(f"[dim]Valid types: {', '.join(t.value for t in RelationshipType)}[/dim]")
+        raise typer.Exit(1)
+
+    # Add relationship
+    rel = model.add_relationship(
+        source=source,
+        target=target,
+        source_columns=[source_col],
+        target_columns=[target_col],
+        relationship_type=rel_type,
+        confidence=1.0,
+        inferred_by="user",
+    )
+
+    store.save_model(model)
+
+    console.print(f"[green]Created relationship:[/green] {rel.name}")
+    console.print(f"  {source}.{source_col} → {target}.{target_col}")
+    console.print(f"  Type: {rel_type.value}")
+
+
+@source_app.command("merge")
+def source_merge(
+    model_id: str = typer.Argument(..., help="Model ID"),
+    canonical_name: str = typer.Option(..., "--name", "-n", help="Canonical column name"),
+    columns: List[str] = typer.Option(..., "--column", "-c", help="Source columns to merge (can specify multiple)"),
+    description: str = typer.Option("", "--description", "-d", help="Description"),
+):
+    """Merge multiple source columns into one canonical column."""
+    from src.source import SourceModelStore
+
+    store = SourceModelStore()
+
+    # Find model
+    models = store.list_models()
+    model = next((m for m in models if m.id.startswith(model_id)), None)
+
+    if not model:
+        console.print(f"[red]Model not found: {model_id}[/red]")
+        raise typer.Exit(1)
+
+    # Add column merge
+    merge = model.add_column_merge(
+        canonical_name=canonical_name,
+        source_columns=list(columns),
+        description=description,
+    )
+
+    store.save_model(model)
+
+    console.print(f"[green]Created column merge:[/green] {canonical_name}")
+    for col in columns:
+        console.print(f"  ← {col}")
+
+
+@source_app.command("approve")
+def source_approve(
+    model_id: str = typer.Argument(..., help="Model ID"),
+    entity: str = typer.Option(None, "--entity", "-e", help="Entity name to approve"),
+    relationship: str = typer.Option(None, "--relationship", "-r", help="Relationship ID to approve"),
+    all_flag: bool = typer.Option(False, "--all", "-a", help="Approve all pending items"),
+):
+    """Approve entities or relationships in a model."""
+    from src.source import SourceModelStore
+
+    store = SourceModelStore()
+
+    # Find model
+    models = store.list_models()
+    model = next((m for m in models if m.id.startswith(model_id)), None)
+
+    if not model:
+        console.print(f"[red]Model not found: {model_id}[/red]")
+        raise typer.Exit(1)
+
+    approved_count = 0
+
+    if all_flag:
+        for e in model.entities:
+            if not e.approved and not e.rejected:
+                e.approved = True
+                approved_count += 1
+        for r in model.relationships:
+            if not r.approved and not r.rejected:
+                r.approved = True
+                approved_count += 1
+        console.print(f"[green]Approved {approved_count} items[/green]")
+
+    elif entity:
+        if model.approve_entity(entity):
+            console.print(f"[green]Approved entity: {entity}[/green]")
+        else:
+            console.print(f"[red]Entity not found: {entity}[/red]")
+            raise typer.Exit(1)
+
+    elif relationship:
+        if model.approve_relationship(relationship):
+            console.print(f"[green]Approved relationship: {relationship}[/green]")
+        else:
+            console.print(f"[red]Relationship not found: {relationship}[/red]")
+            raise typer.Exit(1)
+
+    else:
+        console.print("[yellow]Specify --entity, --relationship, or --all[/yellow]")
+        raise typer.Exit(1)
+
+    store.save_model(model)
+
+
+@source_app.command("rename")
+def source_rename(
+    model_id: str = typer.Argument(..., help="Model ID"),
+    old_name: str = typer.Option(..., "--from", help="Current entity name"),
+    new_name: str = typer.Option(..., "--to", help="New entity name"),
+):
+    """Rename an entity in a source model."""
+    from src.source import SourceModelStore
+
+    store = SourceModelStore()
+
+    # Find model
+    models = store.list_models()
+    model = next((m for m in models if m.id.startswith(model_id)), None)
+
+    if not model:
+        console.print(f"[red]Model not found: {model_id}[/red]")
+        raise typer.Exit(1)
+
+    if model.rename_entity(old_name, new_name):
+        store.save_model(model)
+        console.print(f"[green]Renamed entity: {old_name} → {new_name}[/green]")
+    else:
+        console.print(f"[red]Entity not found: {old_name}[/red]")
+        raise typer.Exit(1)
+
+
+@source_app.command("delete")
+def source_delete(
+    model_id: str = typer.Argument(..., help="Model ID to delete"),
+    force: bool = typer.Option(False, "--force", "-f", help="Skip confirmation"),
+):
+    """Delete a source model."""
+    from src.source import SourceModelStore
+
+    store = SourceModelStore()
+
+    # Find model
+    models = store.list_models()
+    model = next((m for m in models if m.id.startswith(model_id)), None)
+
+    if not model:
+        console.print(f"[red]Model not found: {model_id}[/red]")
+        raise typer.Exit(1)
+
+    if not force:
+        confirm = typer.confirm(f"Delete model '{model.name}'?")
+        if not confirm:
+            console.print("[yellow]Cancelled[/yellow]")
+            raise typer.Exit(0)
+
+    if store.delete_model(model.id):
+        console.print(f"[green]Deleted model: {model.name}[/green]")
+    else:
+        console.print(f"[red]Failed to delete model[/red]")
+        raise typer.Exit(1)
+
+
 # MCP commands
 mcp_app = typer.Typer(
     name="mcp",
@@ -596,7 +1127,7 @@ def init_command():
     init_database()
 
     console.print(Panel(
-        f"""[green]DataBridge AI V3 initialized successfully![/green]
+        f"""[green]DataBridge AI Librarian initialized successfully![/green]
 
 Database: {settings.database.path}
 Data directory: {settings.data.dir}

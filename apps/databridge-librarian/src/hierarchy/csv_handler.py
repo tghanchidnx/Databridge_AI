@@ -1,5 +1,5 @@
 """
-CSV Handler for DataBridge AI V3.
+CSV Handler for DataBridge AI Librarian.
 
 Provides import and export of hierarchy and mapping CSV files.
 Supports both current and legacy CSV formats.

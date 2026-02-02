@@ -1,5 +1,5 @@
 """
-Data Loader for DataBridge AI V3.
+Data Loader for DataBridge AI Librarian.
 
 Provides unified loading from CSV, JSON, Excel, and SQL sources.
 """

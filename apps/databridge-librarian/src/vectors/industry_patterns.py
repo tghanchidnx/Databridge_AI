@@ -1,5 +1,5 @@
 """
-Industry Patterns for DataBridge AI V3.
+Industry Patterns for DataBridge AI Librarian.
 
 Pre-built patterns for common industries including hierarchy structures,
 typical metrics, and best practices.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Runner script for DataBridge V3 MCP Server.
+Runner script for DataBridge Librarian MCP Server.
 
 Registers all 92 MCP tools across modules:
 - Project tools (5)
@@ -15,14 +15,14 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any
 
 # Set up the path correctly
-v3_root = Path(__file__).parent
-sys.path.insert(0, str(v3_root))
-os.chdir(v3_root)
+librarian_root = Path(__file__).parent
+sys.path.insert(0, str(librarian_root))
+os.chdir(librarian_root)
 
 from fastmcp import FastMCP
 
 # Create the MCP server
-mcp = FastMCP("databridge-v3")
+mcp = FastMCP("databridge-librarian")
 
 # Import services
 from src.hierarchy.service import HierarchyService, DuplicateError, ProjectNotFoundError
@@ -442,7 +442,7 @@ def health_check() -> Dict[str, Any]:
     """Check if the MCP server is healthy."""
     return {
         "status": "healthy",
-        "server": "databridge-v3",
+        "server": "databridge-librarian",
         "version": "3.0.0",
         "modules": ["hierarchy", "reconciliation", "vectors"]
     }
@@ -1015,7 +1015,7 @@ def analyze_impact(
 
 
 print("=" * 60)
-print("DataBridge V3 MCP Server")
+print("DataBridge Librarian MCP Server")
 print("=" * 60)
 print(f"Tools registered: 57+ (45 original + 12 SQL Generator)")
 print("Modules: hierarchy, reconciliation, vectors, sql_generator")

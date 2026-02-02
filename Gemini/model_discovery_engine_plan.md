@@ -47,7 +47,7 @@ This plan assumes the unified monorepo architecture, with the new engine being b
         *   **Nodes:** Represent SQL concepts: `Table`, `Column`, `Function` (e.g., `SUM`), `Operator` (e.g., `LIKE`), `Literal` (e.g., 'Capex'), `Query`.
         *   **Edges:** Represent relationships: `JOINS_TO`, `SELECTS_FROM`, `HAS_COLUMN`, `FILTERS_ON`, `GROUPS_BY`, `CALLS_FUNCTION`.
 3.  **Vector Embedding for Semantics:**
-    *   **Action:** While building the graph, use the existing vector embedding model (from V4) to create embeddings for table and column names.
+    *   **Action:** While building the graph, use the existing vector embedding model (from Researcher) to create embeddings for table and column names.
     *   **Details:** Store these vectors as properties on the `Table` and `Column` nodes in the graph. This will be crucial in the next phase for identifying semantically similar concepts (e.g., recognizing that `cust_id` and `customer_number` are likely the same entity).
 
 ### MCP Tool Updates
@@ -96,7 +96,7 @@ This plan assumes the unified monorepo architecture, with the new engine being b
 
 ### Features & Implementation
 1.  **Hierarchy Project Generator (`libs/databridge-discovery/generator.py`):**
-    *   **Action:** Create a service that uses the V3 application's internal API/services to perform the final generation.
+    *   **Action:** Create a service that uses the Librarian application's internal API/services to perform the final generation.
     *   **Workflow:**
         1.  Create a new DataBridge Project.
         2.  For each approved hierarchy, create a new `GROUPING` hierarchy.
@@ -118,9 +118,9 @@ This plan assumes the unified monorepo architecture, with the new engine being b
 *   **User Guide:** The output of the documentation generator *is* the user guide for the new asset. Add a section explaining how to access and use this auto-generated documentation.
 
 ### Testing
-*   **Integration Tests:** A full end-to-end test for the discovery engine. It will start with the SQL/CSV, run all the new MCP tools in sequence, and finally use the V3 API to verify that a project and hierarchy with the correct structure were actually created in the database.
+*   **Integration Tests:** A full end-to-end test for the discovery engine. It will start with the SQL/CSV, run all the new MCP tools in sequence, and finally use the Librarian API to verify that a project and hierarchy with the correct structure were actually created in the database.
 *   **UAT:**
     1.  "Run `discovery_commit_hierarchy` on the 'gl' hierarchy you approved in the previous phase."
     2.  "Does it return a new project ID?"
-    3.  "Now, using the standard V3 commands (`databridge hierarchy list <new_project_id>`), can you see the newly created hierarchy?"
+    3.  "Now, using the standard Librarian commands (`databridge hierarchy list <new_project_id>`), can you see the newly created hierarchy?"
     4.  "Run `discovery_generate_docs` on the new project. Is the generated documentation clear and accurate?"

@@ -1,5 +1,5 @@
 """
-External integrations module for DataBridge Analytics V4.
+External integrations module for DataBridge Analytics Researcher.
 
 Provides integrations with external services:
 - Notion: Documentation sync

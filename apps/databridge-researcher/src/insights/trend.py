@@ -1,5 +1,5 @@
 """
-Trend Analysis for DataBridge AI V4 Analytics Engine.
+Trend Analysis for DataBridge AI Researcher Analytics Engine.
 
 Provides trend detection and analysis for time series data.
 """

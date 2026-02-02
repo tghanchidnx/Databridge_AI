@@ -2,7 +2,7 @@
 """
 DataBridge AI Deployment Script
 
-Handles deployment of DataBridge AI V3 and V4 services using Docker Compose.
+Handles deployment of DataBridge AI Librarian and Researcher services using Docker Compose.
 Supports development, staging, and production environments.
 
 Usage:
@@ -41,11 +41,11 @@ COMPOSE_FILES = {
     "prod": DOCKER_DIR / "docker-compose.prod.yml",
 }
 
-SERVICES = ["postgres", "chromadb", "redis", "databridge-v3", "databridge-v4"]
+SERVICES = ["postgres", "chromadb", "redis", "databridge-librarian", "databridge-researcher"]
 
 HEALTH_CHECK_ENDPOINTS = {
-    "databridge-v3": {"port": 8000, "path": "/health"},
-    "databridge-v4": {"port": 8001, "path": "/health"},
+    "databridge-librarian": {"port": 8000, "path": "/health"},
+    "databridge-researcher": {"port": 8001, "path": "/health"},
     "postgres": {"port": 5432, "type": "tcp"},
     "redis": {"port": 6379, "type": "tcp"},
     "chromadb": {"port": 8000, "path": "/api/v1/heartbeat"},
@@ -103,8 +103,8 @@ class Deployer:
 
         print("\n✅ Services started successfully!")
         print("\nService URLs:")
-        print("  - V3 Hierarchy Builder: http://localhost:8000")
-        print("  - V4 Analytics Engine:  http://localhost:8001")
+        print("  - Librarian Hierarchy Builder: http://localhost:8000")
+        print("  - Researcher Analytics Engine:  http://localhost:8001")
         print("  - PostgreSQL:           localhost:5432")
         print("  - ChromaDB:             http://localhost:8001")
         print("  - Redis:                localhost:6379")

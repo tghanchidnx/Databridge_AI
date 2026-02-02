@@ -42,11 +42,11 @@ class DynamicTableBuilderService:
         # In-memory storage for stateless operation
         self._tables: Dict[str, DynamicTable] = {}
 
-        # Set up Jinja2 template environment (use V3 templates)
-        v3_template_dir = Path(__file__).parent.parent.parent.parent / "v3" / "src" / "sql_generator" / "templates"
-        if v3_template_dir.exists():
+        # Set up Jinja2 template environment (use Librarian templates)
+        librarian_template_dir = Path(__file__).parent.parent.parent.parent / "librarian" / "src" / "sql_generator" / "templates"
+        if librarian_template_dir.exists():
             self._env = Environment(
-                loader=FileSystemLoader(str(v3_template_dir)),
+                loader=FileSystemLoader(str(librarian_template_dir)),
                 autoescape=select_autoescape(default=False),
                 trim_blocks=True,
                 lstrip_blocks=True,

@@ -1,4 +1,4 @@
-"""MCP tools for DataBridge AI V3."""
+"""MCP tools for DataBridge AI Librarian."""
 
 from .project import register_project_tools
 from .hierarchy import register_hierarchy_tools

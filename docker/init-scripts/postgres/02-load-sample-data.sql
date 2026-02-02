@@ -1,4 +1,4 @@
--- DataBridge Analytics V4 - Sample Data
+-- DataBridge Analytics Researcher - Sample Data
 -- Loads sample data for development and testing
 
 -- =============================================================================

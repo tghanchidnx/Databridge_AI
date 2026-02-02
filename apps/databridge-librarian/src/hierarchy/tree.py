@@ -1,5 +1,5 @@
 """
-Tree operations for DataBridge AI V3.
+Tree operations for DataBridge AI Librarian.
 
 Provides tree building and navigation utilities for hierarchies.
 """

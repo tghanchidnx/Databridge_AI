@@ -1,5 +1,5 @@
 """
-Unit tests for the V4 configuration module.
+Unit tests for the Researcher configuration module.
 """
 
 import pytest
@@ -17,7 +17,7 @@ class TestSettings:
 
         settings = Settings()
 
-        assert settings.app_name == "DataBridge AI V4 - Analytics Engine"
+        assert settings.app_name == "DataBridge AI Researcher - Analytics Engine"
         assert settings.version == "4.0.0"
         assert settings.env == "development"
         assert settings.debug is False
@@ -157,14 +157,14 @@ class TestSettings:
         settings = VectorStoreSettings()
 
         assert settings.path == Path("./data/chroma")
-        assert settings.collection_prefix == "databridge_v4_"
+        assert settings.collection_prefix == "databridge_researcher_"
         assert settings.embedding_model == "all-MiniLM-L6-v2"
 
-    def test_v3_integration_settings_defaults(self):
-        """Test default V3 integration settings."""
-        from src.core.config import V3IntegrationSettings
+    def test_librarian_integration_settings_defaults(self):
+        """Test default Librarian integration settings."""
+        from src.core.config import LibrarianIntegrationSettings
 
-        settings = V3IntegrationSettings()
+        settings = LibrarianIntegrationSettings()
 
         assert settings.api_url == "http://localhost:8000"
         assert settings.timeout_seconds == 30

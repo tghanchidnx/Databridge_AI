@@ -1,24 +1,24 @@
-# Prompt and Plan of Action for Unifying DataBridge V3 & V4
+# Prompt and Plan of Action for Unifying DataBridge Librarian & Researcher
 
-This document contains a detailed prompt for an AI assistant and a corresponding plan of action to unify the `v3` and `v4` applications into a single, cohesive monorepo.
+This document contains a detailed prompt for an AI assistant and a corresponding plan of action to unify the `librarian` and `researcher` applications into a single, cohesive monorepo.
 
 ---
 
 ## AI Prompt for Unification
 
-"Hello! Your task is to refactor the DataBridge AI platform by unifying the existing `v3` and `v4` applications into a single, streamlined monorepo. The goal is to reduce code duplication, improve maintainability, and create a more cohesive developer and user experience.
+"Hello! Your task is to refactor the DataBridge AI platform by unifying the existing `librarian` and `researcher` applications into a single, streamlined monorepo. The goal is to reduce code duplication, improve maintainability, and create a more cohesive developer and user experience.
 
 Please follow these key requirements:
 
-1.  **Create a Monorepo Structure:** Establish a new directory structure with `apps` and `libs` folders. The `v3` and `v4` applications will be moved into the `apps` folder, and shared code will be extracted into libraries within the `libs` folder.
+1.  **Create a Monorepo Structure:** Establish a new directory structure with `apps` and `libs` folders. The `librarian` and `researcher` applications will be moved into the `apps` folder, and shared code will be extracted into libraries within the `libs` folder.
 
-2.  **Extract Shared Libraries:** Identify and move duplicated code from `v3` and `v4` into new shared libraries. This includes:
+2.  **Extract Shared Libraries:** Identify and move duplicated code from `librarian` and `researcher` into new shared libraries. This includes:
     *   **`databridge-core`:** For database connectors, MCP server utilities, shared CLI helpers, and configuration models.
     *   **`databridge-models`:** For shared SQLAlchemy and Pydantic models.
 
-3.  **Refactor Applications:** Modify the `v3` and `v4` applications to remove the extracted code and instead use the new shared libraries as dependencies.
+3.  **Refactor Applications:** Modify the `librarian` and `researcher` applications to remove the extracted code and instead use the new shared libraries as dependencies.
 
-4.  **Unify the Command-Line Interface (CLI):** Merge the two separate CLIs (`databridge` and `databridge-analytics`) into a single entry point named `databridge`. The commands from `v3` and `v4` should be organized under logical subcommands (e.g., `databridge hierarchy ...`, `databridge analytics ...`).
+4.  **Unify the Command-Line Interface (CLI):** Merge the two separate CLIs (`databridge` and `databridge-analytics`) into a single entry point named `databridge`. The commands from `librarian` and `researcher` should be organized under logical subcommands (e.g., `databridge hierarchy ...`, `databridge analytics ...`).
 
 5.  **Update the CI/CD Pipeline:** Refactor the existing GitHub Actions workflows (`ci.yml` and `release.yml`) to work with the new monorepo structure. Use matrix strategies to reduce duplication in the CI pipeline.
 
@@ -42,8 +42,8 @@ This plan breaks down the unification process into six distinct phases.
     *   Create a root-level `pyproject.toml` to manage the workspace (e.g., using Poetry or a similar tool).
 
 2.  **Move Applications:**
-    *   Move the entire contents of the `v3` directory into `apps/databridge-v3`.
-    *   Move the entire contents of the `v4` directory into `apps/databridge-v4`.
+    *   Move the entire contents of the `librarian` directory into `apps/databridge-librarian`.
+    *   Move the entire contents of the `researcher` directory into `apps/databridge-researcher`.
 
 3.  **Create Shared Library Scaffolds:**
     *   Create `libs/databridge-core` with a `pyproject.toml` and a `src/databridge_core` directory.
@@ -57,12 +57,12 @@ This plan breaks down the unification process into six distinct phases.
 **Goal:** Consolidate shared, non-domain-specific code into the `databridge-core` library.
 
 1.  **Connection Management:**
-    *   Identify the common database connection logic in `v3/src/connections` and `v4/src/connectors`.
+    *   Identify the common database connection logic in `librarian/src/connections` and `researcher/src/connectors`.
     *   Move the generic connector interface and specific implementations (Snowflake, PostgreSQL, etc.) into `libs/databridge-core/src/databridge_core/connections`.
-    *   Refactor them to be agnostic of V3 or V4.
+    *   Refactor them to be agnostic of Librarian or Researcher.
 
 2.  **MCP Server Utilities:**
-    *   Move the FastMCP server setup and utility functions (e.g., tool registration helpers) from `v3/src/mcp` and `v4/src/mcp` into `libs/databridge-core/src/databridge_core/mcp`.
+    *   Move the FastMCP server setup and utility functions (e.g., tool registration helpers) from `librarian/src/mcp` and `researcher/src/mcp` into `libs/databridge-core/src/databridge_core/mcp`.
 
 3.  **CLI Helpers:**
     *   Extract shared CLI utilities, such as `rich` table formatters, console objects, and common validators, into `libs/databridge-core/src/databridge_core/cli`.
@@ -72,21 +72,21 @@ This plan breaks down the unification process into six distinct phases.
 
 ### Phase 3: Application Refactoring
 
-**Goal:** Modify the V3 and V4 applications to depend on the new shared libraries.
+**Goal:** Modify the Librarian and Researcher applications to depend on the new shared libraries.
 
 1.  **Update Dependencies:**
-    *   In `apps/databridge-v3/pyproject.toml`, add `databridge-core` and `databridge-models` as local, editable dependencies.
-    *   In `apps/databridge-v4/pyproject.toml`, do the same.
+    *   In `apps/databridge-librarian/pyproject.toml`, add `databridge-core` and `databridge-models` as local, editable dependencies.
+    *   In `apps/databridge-researcher/pyproject.toml`, do the same.
 
-2.  **Refactor V3:**
+2.  **Refactor Librarian:**
     *   Delete the `src/connections`, `src/mcp`, and other duplicated directories that have been moved.
-    *   Update all imports in the V3 codebase to reference the shared libraries (e.g., `from databridge_core.connections import ...`).
-    *   Run V3 tests to ensure no functionality is broken.
+    *   Update all imports in the Librarian codebase to reference the shared libraries (e.g., `from databridge_core.connections import ...`).
+    *   Run Librarian tests to ensure no functionality is broken.
 
-3.  **Refactor V4:**
+3.  **Refactor Researcher:**
     *   Delete the `src/connectors`, `src/mcp`, and other duplicated code.
     *   Update all imports to use the shared libraries.
-    *   Run V4 tests to ensure no functionality is broken.
+    *   Run Researcher tests to ensure no functionality is broken.
 
 ### Phase 4: CLI Unification
 
@@ -94,20 +94,20 @@ This plan breaks down the unification process into six distinct phases.
 
 1.  **Create a New CLI Entry Point:**
     *   Create a new application or directory, e.g., `apps/databridge-cli`, that will serve as the main entry point.
-    *   This new app will depend on both `databridge-v3` and `databridge-v4`.
+    *   This new app will depend on both `databridge-librarian` and `databridge-researcher`.
 
 2.  **Merge Typer Apps:**
-    *   Modify the main `typer` app in the new CLI to import and mount the Typer apps from V3 and V4 as subcommands.
+    *   Modify the main `typer` app in the new CLI to import and mount the Typer apps from Librarian and Researcher as subcommands.
     *   Example:
         ```python
         # in databridge-cli/main.py
         import typer
-        from databridge_v3.cli.app import app as v3_app
-        from databridge_v4.cli.app import app as v4_app
+        from databridge_librarian.cli.app import app as librarian_app
+        from databridge_researcher.cli.app import app as researcher_app
 
         main_app = typer.Typer(name="databridge")
-        main_app.add_typer(v3_app, name="hierarchy")
-        main_app.add_typer(v4_app, name="analytics")
+        main_app.add_typer(librarian_app, name="hierarchy")
+        main_app.add_typer(researcher_app, name="analytics")
 
         if __name__ == "__main__":
             main_app()
@@ -122,12 +122,12 @@ This plan breaks down the unification process into six distinct phases.
 
 1.  **Refactor `ci.yml`:**
     *   Modify the file paths to reflect the new `apps/` and `libs/` structure.
-    *   Use a **matrix strategy** to run linting and testing jobs across `[v3, v4]`, eliminating duplicated job definitions.
+    *   Use a **matrix strategy** to run linting and testing jobs across `[librarian, researcher]`, eliminating duplicated job definitions.
     *   Add a new job to lint and test the shared libraries in `libs/`.
     *   Ensure that coverage reports are still generated and uploaded correctly for each application.
 
 2.  **Refactor `release.yml`:**
-    *   Update the Docker build contexts to point to `apps/databridge-v3` and `apps/databridge-v4`.
+    *   Update the Docker build contexts to point to `apps/databridge-librarian` and `apps/databridge-researcher`.
     *   Ensure that Docker images are still built and tagged correctly.
     *   Update the changelog generation script to correctly detect changes within the `apps/` and `libs/` directories.
 
@@ -136,7 +136,7 @@ This plan breaks down the unification process into six distinct phases.
 **Goal:** Clean up, document the new structure, and validate the final result.
 
 1.  **Remove Old Files:**
-    *   Delete the original `v3` and `v4` directories from the root.
+    *   Delete the original `librarian` and `researcher` directories from the root.
     *   Clean up any redundant configuration files.
 
 2.  **Update Documentation:**

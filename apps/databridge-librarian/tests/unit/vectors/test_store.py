@@ -1,5 +1,5 @@
 """
-Unit tests for V3 VectorStore.
+Unit tests for Librarian VectorStore.
 
 Tests vector storage operations using ChromaDB.
 """
@@ -160,10 +160,10 @@ class TestVectorStoreInit:
         store = VectorStore(persist_directory="/tmp/test")
 
         name = store._get_collection_name(CollectionType.HIERARCHIES)
-        assert name == "databridge_v3_hierarchies"
+        assert name == "databridge_librarian_hierarchies"
 
         name = store._get_collection_name("custom")
-        assert name == "databridge_v3_custom"
+        assert name == "databridge_librarian_custom"
 
     def test_generate_id_deterministic(self, mock_chromadb):
         """Test ID generation is deterministic."""
@@ -200,7 +200,7 @@ class TestVectorStoreOperations:
         _, mock_client = mock_chromadb
 
         mock_collection = MagicMock()
-        mock_collection.name = "databridge_v3_hierarchies"
+        mock_collection.name = "databridge_librarian_hierarchies"
         mock_collection.count.return_value = 10
         mock_collection.metadata = {}
         mock_client.list_collections.return_value = [mock_collection]
@@ -210,7 +210,7 @@ class TestVectorStoreOperations:
 
         assert result.success is True
         assert len(result.data) == 1
-        assert result.data[0]["name"] == "databridge_v3_hierarchies"
+        assert result.data[0]["name"] == "databridge_librarian_hierarchies"
 
     def test_upsert_documents(self, mock_chromadb):
         """Test upserting documents."""
@@ -248,7 +248,7 @@ class TestVectorStoreOperations:
         mock_client.get_collection.return_value = mock_collection
 
         store = VectorStore(persist_directory="/tmp/test")
-        store._collections["databridge_v3_hierarchies"] = mock_collection
+        store._collections["databridge_librarian_hierarchies"] = mock_collection
 
         result = store.search(
             CollectionType.HIERARCHIES,
@@ -285,7 +285,7 @@ class TestVectorStoreOperations:
         mock_client.get_collection.return_value = mock_collection
 
         store = VectorStore(persist_directory="/tmp/test")
-        store._collections["databridge_v3_hierarchies"] = mock_collection
+        store._collections["databridge_librarian_hierarchies"] = mock_collection
 
         result = store.get_by_id(CollectionType.HIERARCHIES, ["doc1"])
 
@@ -301,7 +301,7 @@ class TestVectorStoreOperations:
         mock_client.get_collection.return_value = mock_collection
 
         store = VectorStore(persist_directory="/tmp/test")
-        store._collections["databridge_v3_hierarchies"] = mock_collection
+        store._collections["databridge_librarian_hierarchies"] = mock_collection
 
         result = store.delete_documents(
             CollectionType.HIERARCHIES,
@@ -319,7 +319,7 @@ class TestVectorStoreOperations:
         mock_client.get_collection.return_value = mock_collection
 
         store = VectorStore(persist_directory="/tmp/test")
-        store._collections["databridge_v3_hierarchies"] = mock_collection
+        store._collections["databridge_librarian_hierarchies"] = mock_collection
 
         result = store.delete_documents(
             CollectionType.HIERARCHIES,
@@ -337,7 +337,7 @@ class TestVectorStoreOperations:
         mock_client.get_collection.return_value = mock_collection
 
         store = VectorStore(persist_directory="/tmp/test")
-        store._collections["databridge_v3_hierarchies"] = mock_collection
+        store._collections["databridge_librarian_hierarchies"] = mock_collection
 
         result = store.delete_documents(CollectionType.HIERARCHIES)
 
@@ -349,13 +349,13 @@ class TestVectorStoreOperations:
         _, mock_client = mock_chromadb
 
         mock_collection = MagicMock()
-        mock_collection.name = "databridge_v3_hierarchies"
+        mock_collection.name = "databridge_librarian_hierarchies"
         mock_collection.count.return_value = 100
         mock_collection.metadata = {"description": "Test"}
         mock_client.get_collection.return_value = mock_collection
 
         store = VectorStore(persist_directory="/tmp/test")
-        store._collections["databridge_v3_hierarchies"] = mock_collection
+        store._collections["databridge_librarian_hierarchies"] = mock_collection
 
         result = store.get_collection_stats(CollectionType.HIERARCHIES)
 
@@ -367,12 +367,12 @@ class TestVectorStoreOperations:
         _, mock_client = mock_chromadb
 
         store = VectorStore(persist_directory="/tmp/test")
-        store._collections["databridge_v3_hierarchies"] = MagicMock()
+        store._collections["databridge_librarian_hierarchies"] = MagicMock()
 
         result = store.delete_collection(CollectionType.HIERARCHIES)
 
         assert result.success is True
-        assert "databridge_v3_hierarchies" not in store._collections
+        assert "databridge_librarian_hierarchies" not in store._collections
 
     def test_reset_store(self, mock_chromadb):
         """Test resetting the entire store."""

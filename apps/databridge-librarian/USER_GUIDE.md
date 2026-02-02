@@ -10,8 +10,8 @@
 ### Installation
 
 ```bash
-# Navigate to v3 directory
-cd C:\Users\telha\Databridge_AI\v3
+# Navigate to librarian directory
+cd C:\Users\telha\Databridge_AI\librarian
 
 # Create virtual environment
 python -m venv venv
@@ -286,9 +286,9 @@ Edit your Claude Desktop configuration file:
         "-m",
         "databridge.mcp.server"
       ],
-      "cwd": "C:\\Users\\telha\\Databridge_AI\\v3",
+      "cwd": "C:\\Users\\telha\\Databridge_AI\\librarian",
       "env": {
-        "DATABRIDGE_DB_PATH": "C:\\Users\\telha\\Databridge_AI\\v3\\data\\databridge.db"
+        "DATABRIDGE_DB_PATH": "C:\\Users\\telha\\Databridge_AI\\librarian\\data\\databridge.db"
       }
     }
   }

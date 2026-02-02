@@ -2,7 +2,7 @@
 DataBridge Core Database Module.
 
 Provides SQLAlchemy session management and database utilities
-for both V3 and V4 applications.
+for both Librarian and Researcher applications.
 """
 
 from databridge_core.database.session import (

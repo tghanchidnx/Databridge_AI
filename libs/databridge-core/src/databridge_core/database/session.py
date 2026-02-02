@@ -2,7 +2,7 @@
 SQLAlchemy session management for DataBridge AI platform.
 
 Provides database connection management, session handling, and common utilities
-that can be used by both V3 and V4 applications.
+that can be used by both Librarian and Researcher applications.
 """
 
 from contextlib import contextmanager

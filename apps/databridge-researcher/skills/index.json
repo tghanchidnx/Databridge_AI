@@ -1,6 +1,6 @@
 {
-  "version": "4.0.0",
-  "description": "DataBridge Analytics V4 Skills Registry",
+  "version": "1.0.0",
+  "description": "DataBridge Researcher Skills Registry",
   "skills": [
     {
       "id": "fpa-close-analyst",

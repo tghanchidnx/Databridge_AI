@@ -1,5 +1,5 @@
 """
-Forecast Workflow for DataBridge Analytics V4.
+Forecast Workflow for DataBridge Analytics Researcher.
 
 Automates rolling forecast updates and scenario modeling.
 """

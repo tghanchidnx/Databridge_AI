@@ -65,7 +65,7 @@ For variance analysis:
 - `identify_variance_drivers` - Top N drivers
 
 For context:
-- `get_hierarchy_tree` - Understand reporting structure (from V3)
+- `get_hierarchy_tree` - Understand reporting structure (from Librarian)
 - `get_table_context` - Business definitions from knowledgebase
 
 For output:

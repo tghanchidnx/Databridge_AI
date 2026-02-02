@@ -1,5 +1,5 @@
 """
-Knowledge Base Store for DataBridge Analytics V4.
+Knowledge Base Store for DataBridge Analytics Researcher.
 
 ChromaDB-based storage for business glossary, metrics, and query patterns.
 """
@@ -99,7 +99,7 @@ class KBResult:
 
 class KnowledgeBaseStore:
     """
-    ChromaDB-based knowledge base for DataBridge Analytics V4.
+    ChromaDB-based knowledge base for DataBridge Analytics Researcher.
 
     Manages:
     - Business glossary terms
@@ -109,7 +109,7 @@ class KnowledgeBaseStore:
     - FP&A concepts
     """
 
-    COLLECTION_PREFIX = "databridge_v4_kb_"
+    COLLECTION_PREFIX = "databridge_researcher_kb_"
 
     def __init__(
         self,

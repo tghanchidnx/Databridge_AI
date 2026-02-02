@@ -1,5 +1,5 @@
 """
-SQL Query Builder for DataBridge AI V4 Analytics Engine.
+SQL Query Builder for DataBridge AI Researcher Analytics Engine.
 
 Provides a fluent interface for building SQL queries with dialect support.
 """
@@ -343,6 +343,183 @@ class QueryBuilder:
         self._parameters[end_param] = end
         self._where_conditions.append(WhereCondition(
             condition=f"{column} BETWEEN :{start_param} AND :{end_param}",
+            connector="AND",
+        ))
+        return self
+
+    def where_equals(
+        self,
+        column: str,
+        value: Any,
+        param_name: Optional[str] = None,
+    ) -> "QueryBuilder":
+        """
+        Add a parameterized WHERE column = value condition.
+
+        This is the safe way to add equality conditions - values are
+        always parameterized to prevent SQL injection.
+
+        Args:
+            column: Column name.
+            value: Value to compare (will be parameterized).
+            param_name: Optional parameter name (auto-generated if not provided).
+
+        Returns:
+            Self for chaining.
+        """
+        if param_name is None:
+            # Generate unique parameter name
+            param_name = f"p_{column.replace('.', '_')}_{len(self._parameters)}"
+
+        self._parameters[param_name] = value
+        self._where_conditions.append(WhereCondition(
+            condition=f"{column} = :{param_name}",
+            connector="AND",
+        ))
+        return self
+
+    def where_not_equals(
+        self,
+        column: str,
+        value: Any,
+        param_name: Optional[str] = None,
+    ) -> "QueryBuilder":
+        """
+        Add a parameterized WHERE column != value condition.
+
+        Args:
+            column: Column name.
+            value: Value to compare (will be parameterized).
+            param_name: Optional parameter name.
+
+        Returns:
+            Self for chaining.
+        """
+        if param_name is None:
+            param_name = f"p_{column.replace('.', '_')}_{len(self._parameters)}"
+
+        self._parameters[param_name] = value
+        self._where_conditions.append(WhereCondition(
+            condition=f"{column} != :{param_name}",
+            connector="AND",
+        ))
+        return self
+
+    def where_greater_than(
+        self,
+        column: str,
+        value: Any,
+        param_name: Optional[str] = None,
+        or_equal: bool = False,
+    ) -> "QueryBuilder":
+        """
+        Add a parameterized WHERE column > value condition.
+
+        Args:
+            column: Column name.
+            value: Value to compare (will be parameterized).
+            param_name: Optional parameter name.
+            or_equal: If True, use >= instead of >.
+
+        Returns:
+            Self for chaining.
+        """
+        if param_name is None:
+            param_name = f"p_{column.replace('.', '_')}_{len(self._parameters)}"
+
+        operator = ">=" if or_equal else ">"
+        self._parameters[param_name] = value
+        self._where_conditions.append(WhereCondition(
+            condition=f"{column} {operator} :{param_name}",
+            connector="AND",
+        ))
+        return self
+
+    def where_less_than(
+        self,
+        column: str,
+        value: Any,
+        param_name: Optional[str] = None,
+        or_equal: bool = False,
+    ) -> "QueryBuilder":
+        """
+        Add a parameterized WHERE column < value condition.
+
+        Args:
+            column: Column name.
+            value: Value to compare (will be parameterized).
+            param_name: Optional parameter name.
+            or_equal: If True, use <= instead of <.
+
+        Returns:
+            Self for chaining.
+        """
+        if param_name is None:
+            param_name = f"p_{column.replace('.', '_')}_{len(self._parameters)}"
+
+        operator = "<=" if or_equal else "<"
+        self._parameters[param_name] = value
+        self._where_conditions.append(WhereCondition(
+            condition=f"{column} {operator} :{param_name}",
+            connector="AND",
+        ))
+        return self
+
+    def where_like(
+        self,
+        column: str,
+        pattern: str,
+        param_name: Optional[str] = None,
+    ) -> "QueryBuilder":
+        """
+        Add a parameterized WHERE column LIKE pattern condition.
+
+        Args:
+            column: Column name.
+            pattern: LIKE pattern (will be parameterized).
+            param_name: Optional parameter name.
+
+        Returns:
+            Self for chaining.
+        """
+        if param_name is None:
+            param_name = f"p_{column.replace('.', '_')}_{len(self._parameters)}"
+
+        self._parameters[param_name] = pattern
+        self._where_conditions.append(WhereCondition(
+            condition=f"{column} LIKE :{param_name}",
+            connector="AND",
+        ))
+        return self
+
+    def where_is_null(self, column: str) -> "QueryBuilder":
+        """
+        Add a WHERE column IS NULL condition.
+
+        Args:
+            column: Column name.
+
+        Returns:
+            Self for chaining.
+        """
+        self._where_conditions.append(WhereCondition(
+            condition=f"{column} IS NULL",
+            connector="AND",
+        ))
+        return self
+
+    def where_is_not_null(self, column: str) -> "QueryBuilder":
+        """
+        Add a WHERE column IS NOT NULL condition.
+
+        Args:
+            column: Column name.
+
+        Returns:
+            Self for chaining.
+        """
+        self._where_conditions.append(WhereCondition(
+            condition=f"{column} IS NOT NULL",
             connector="AND",
         ))
         return self

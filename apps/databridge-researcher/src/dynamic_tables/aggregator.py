@@ -38,10 +38,10 @@ class AggregationService:
         self._aggregations: Dict[str, IntermediateAggregation] = {}
 
         # Set up Jinja2 template environment
-        v3_template_dir = Path(__file__).parent.parent.parent.parent / "v3" / "src" / "sql_generator" / "templates"
-        if v3_template_dir.exists():
+        librarian_template_dir = Path(__file__).parent.parent.parent.parent / "librarian" / "src" / "sql_generator" / "templates"
+        if librarian_template_dir.exists():
             self._env = Environment(
-                loader=FileSystemLoader(str(v3_template_dir)),
+                loader=FileSystemLoader(str(librarian_template_dir)),
                 autoescape=select_autoescape(default=False),
                 trim_blocks=True,
                 lstrip_blocks=True,
@@ -65,7 +65,7 @@ class AggregationService:
             dynamic_table_id: Source DT_2 table ID
             dimensions: List of dimension columns to group by
             measures: List of measure definitions (column, function, alias)
-            hierarchy_id: Optional hierarchy ID from V3
+            hierarchy_id: Optional Librarian hierarchy ID
             hierarchy_name: Optional hierarchy name
             precedence_groups: List of precedence groups (default [1])
 

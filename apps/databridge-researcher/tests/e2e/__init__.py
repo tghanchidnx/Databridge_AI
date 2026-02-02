@@ -1,1 +1,1 @@
-"""End-to-end tests for DataBridge Analytics V4."""
+"""End-to-end tests for DataBridge Analytics Researcher."""

@@ -1,4 +1,4 @@
-"""MCP tools for DataBridge AI V4 Analytics Engine."""
+"""MCP tools for DataBridge AI Researcher Analytics Engine."""
 
 from .query import register_query_tools
 from .insights import register_insights_tools

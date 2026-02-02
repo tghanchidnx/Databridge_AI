@@ -1,1 +1,1 @@
-"""Test suite for DataBridge AI V3."""
+"""Test suite for DataBridge AI Librarian."""

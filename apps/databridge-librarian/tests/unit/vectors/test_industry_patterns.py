@@ -1,5 +1,5 @@
 """
-Unit tests for V3 industry patterns.
+Unit tests for Librarian industry patterns.
 
 Tests pre-built hierarchy patterns for various industries.
 """

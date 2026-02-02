@@ -1,11 +1,11 @@
 """
-V3 Hierarchy Client for DataBridge Analytics V4.
+Librarian Hierarchy Client for DataBridge Analytics Researcher.
 
-Provides access to V3 Hierarchy Builder data for integrated FP&A workflows.
+Provides access to Librarian Hierarchy Builder data for integrated FP&A workflows.
 """
 
 from dataclasses import dataclass, field
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 from enum import Enum
 import logging
 
@@ -19,15 +19,15 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class V3ConnectionMode(str, Enum):
-    """Connection mode for V3 access."""
-    HTTP = "http"  # Via V3 API/MCP server
+class LibrarianConnectionMode(str, Enum):
+    """Connection mode for Librarian access."""
+    HTTP = "http"  # Via Librarian API/MCP server
     DIRECT = "direct"  # Direct database access
 
 
 @dataclass
-class V3Project:
-    """V3 Project representation."""
+class LibrarianProject:
+    """Librarian Project representation."""
 
     id: str
     name: str
@@ -51,8 +51,8 @@ class V3Project:
 
 
 @dataclass
-class V3Hierarchy:
-    """V3 Hierarchy representation."""
+class LibrarianHierarchy:
+    """Librarian Hierarchy representation."""
 
     hierarchy_id: str
     hierarchy_name: str
@@ -100,8 +100,8 @@ class V3Hierarchy:
 
 
 @dataclass
-class V3Mapping:
-    """V3 Source Mapping representation."""
+class LibrarianMapping:
+    """Librarian Source Mapping representation."""
 
     hierarchy_id: str
     mapping_index: int
@@ -141,8 +141,8 @@ class V3Mapping:
 
 
 @dataclass
-class V3ClientResult:
-    """Result from V3 client operations."""
+class LibrarianClientResult:
+    """Result from Librarian client operations."""
 
     success: bool
     message: str = ""
@@ -159,9 +159,9 @@ class V3ClientResult:
         }
 
 
-class V3HierarchyClient:
+class LibrarianHierarchyClient:
     """
-    Client for accessing V3 Hierarchy Builder data.
+    Client for accessing Librarian Hierarchy Builder data.
 
     Provides:
     - Project listing and retrieval
@@ -173,15 +173,15 @@ class V3HierarchyClient:
     def __init__(
         self,
         base_url: Optional[str] = None,
-        mode: V3ConnectionMode = V3ConnectionMode.HTTP,
+        mode: LibrarianConnectionMode = LibrarianConnectionMode.HTTP,
         timeout: float = 30.0,
         cache_enabled: bool = True,
     ):
         """
-        Initialize the V3 client.
+        Initialize the Librarian client.
 
         Args:
-            base_url: V3 API base URL (for HTTP mode).
+            base_url: Librarian API base URL (for HTTP mode).
             mode: Connection mode (HTTP or DIRECT).
             timeout: Request timeout in seconds.
             cache_enabled: Whether to cache responses.
@@ -229,12 +229,12 @@ class V3HierarchyClient:
 
     # ==================== Project Operations ====================
 
-    def list_projects(self) -> V3ClientResult:
+    def list_projects(self) -> LibrarianClientResult:
         """
-        List all V3 projects.
+        List all Librarian projects.
 
         Returns:
-            V3ClientResult with list of V3Project objects.
+            LibrarianClientResult with list of LibrarianProject objects.
         """
         cache_key = self._cache_key("list_projects")
         cached = self._get_cached(cache_key)
@@ -242,14 +242,14 @@ class V3HierarchyClient:
             return cached
 
         try:
-            if self.mode == V3ConnectionMode.HTTP:
+            if self.mode == LibrarianConnectionMode.HTTP:
                 client = self._get_http_client()
                 response = client.get("/api/projects")
                 response.raise_for_status()
                 data = response.json()
 
                 projects = [
-                    V3Project(
+                    LibrarianProject(
                         id=p.get("id", p.get("project_id", "")),
                         name=p.get("name", p.get("project_name", "")),
                         description=p.get("description", ""),
@@ -261,14 +261,14 @@ class V3HierarchyClient:
                     for p in data.get("projects", data if isinstance(data, list) else [])
                 ]
 
-                result = V3ClientResult(
+                result = LibrarianClientResult(
                     success=True,
                     message=f"Found {len(projects)} projects",
                     data=[p.to_dict() for p in projects],
                 )
             else:
                 # Direct mode - would use SQLAlchemy
-                result = V3ClientResult(
+                result = LibrarianClientResult(
                     success=False,
                     errors=["Direct mode not implemented"],
                 )
@@ -278,21 +278,21 @@ class V3HierarchyClient:
 
         except Exception as e:
             logger.error(f"Failed to list projects: {e}")
-            return V3ClientResult(
+            return LibrarianClientResult(
                 success=False,
                 message=f"Failed to list projects: {str(e)}",
                 errors=[str(e)],
             )
 
-    def get_project(self, project_id: str) -> V3ClientResult:
+    def get_project(self, project_id: str) -> LibrarianClientResult:
         """
-        Get a specific V3 project.
+        Get a specific Librarian project.
 
         Args:
             project_id: Project identifier.
 
         Returns:
-            V3ClientResult with V3Project.
+            LibrarianClientResult with LibrarianProject.
         """
         cache_key = self._cache_key("get_project", project_id=project_id)
         cached = self._get_cached(cache_key)
@@ -300,13 +300,13 @@ class V3HierarchyClient:
             return cached
 
         try:
-            if self.mode == V3ConnectionMode.HTTP:
+            if self.mode == LibrarianConnectionMode.HTTP:
                 client = self._get_http_client()
                 response = client.get(f"/api/projects/{project_id}")
                 response.raise_for_status()
                 data = response.json()
 
-                project = V3Project(
+                project = LibrarianProject(
                     id=data.get("id", data.get("project_id", "")),
                     name=data.get("name", data.get("project_name", "")),
                     description=data.get("description", ""),
@@ -316,13 +316,13 @@ class V3HierarchyClient:
                     updated_at=data.get("updated_at"),
                 )
 
-                result = V3ClientResult(
+                result = LibrarianClientResult(
                     success=True,
                     message="Project found",
                     data=project.to_dict(),
                 )
             else:
-                result = V3ClientResult(
+                result = LibrarianClientResult(
                     success=False,
                     errors=["Direct mode not implemented"],
                 )
@@ -332,7 +332,7 @@ class V3HierarchyClient:
 
         except Exception as e:
             logger.error(f"Failed to get project: {e}")
-            return V3ClientResult(
+            return LibrarianClientResult(
                 success=False,
                 message=f"Failed to get project: {str(e)}",
                 errors=[str(e)],
@@ -344,7 +344,7 @@ class V3HierarchyClient:
         self,
         project_id: str,
         parent_id: Optional[str] = None,
-    ) -> V3ClientResult:
+    ) -> LibrarianClientResult:
         """
         List hierarchies for a project.
 
@@ -353,7 +353,7 @@ class V3HierarchyClient:
             parent_id: Optional parent hierarchy ID to filter.
 
         Returns:
-            V3ClientResult with list of V3Hierarchy objects.
+            LibrarianClientResult with list of LibrarianHierarchy objects.
         """
         cache_key = self._cache_key("list_hierarchies", project_id=project_id, parent_id=parent_id or "")
         cached = self._get_cached(cache_key)
@@ -361,7 +361,7 @@ class V3HierarchyClient:
             return cached
 
         try:
-            if self.mode == V3ConnectionMode.HTTP:
+            if self.mode == LibrarianConnectionMode.HTTP:
                 client = self._get_http_client()
                 params = {}
                 if parent_id:
@@ -375,13 +375,13 @@ class V3HierarchyClient:
                     self._parse_hierarchy(h) for h in data.get("hierarchies", data if isinstance(data, list) else [])
                 ]
 
-                result = V3ClientResult(
+                result = LibrarianClientResult(
                     success=True,
                     message=f"Found {len(hierarchies)} hierarchies",
                     data=[h.to_dict() for h in hierarchies],
                 )
             else:
-                result = V3ClientResult(
+                result = LibrarianClientResult(
                     success=False,
                     errors=["Direct mode not implemented"],
                 )
@@ -391,13 +391,13 @@ class V3HierarchyClient:
 
         except Exception as e:
             logger.error(f"Failed to list hierarchies: {e}")
-            return V3ClientResult(
+            return LibrarianClientResult(
                 success=False,
                 message=f"Failed to list hierarchies: {str(e)}",
                 errors=[str(e)],
             )
 
-    def get_hierarchy(self, hierarchy_id: str) -> V3ClientResult:
+    def get_hierarchy(self, hierarchy_id: str) -> LibrarianClientResult:
         """
         Get a specific hierarchy.
 
@@ -405,7 +405,7 @@ class V3HierarchyClient:
             hierarchy_id: Hierarchy identifier.
 
         Returns:
-            V3ClientResult with V3Hierarchy.
+            LibrarianClientResult with LibrarianHierarchy.
         """
         cache_key = self._cache_key("get_hierarchy", hierarchy_id=hierarchy_id)
         cached = self._get_cached(cache_key)
@@ -413,7 +413,7 @@ class V3HierarchyClient:
             return cached
 
         try:
-            if self.mode == V3ConnectionMode.HTTP:
+            if self.mode == LibrarianConnectionMode.HTTP:
                 client = self._get_http_client()
                 response = client.get(f"/api/hierarchies/{hierarchy_id}")
                 response.raise_for_status()
@@ -421,13 +421,13 @@ class V3HierarchyClient:
 
                 hierarchy = self._parse_hierarchy(data)
 
-                result = V3ClientResult(
+                result = LibrarianClientResult(
                     success=True,
                     message="Hierarchy found",
                     data=hierarchy.to_dict(),
                 )
             else:
-                result = V3ClientResult(
+                result = LibrarianClientResult(
                     success=False,
                     errors=["Direct mode not implemented"],
                 )
@@ -437,7 +437,7 @@ class V3HierarchyClient:
 
         except Exception as e:
             logger.error(f"Failed to get hierarchy: {e}")
-            return V3ClientResult(
+            return LibrarianClientResult(
                 success=False,
                 message=f"Failed to get hierarchy: {str(e)}",
                 errors=[str(e)],
@@ -448,7 +448,7 @@ class V3HierarchyClient:
         project_id: str,
         root_id: Optional[str] = None,
         max_depth: int = 10,
-    ) -> V3ClientResult:
+    ) -> LibrarianClientResult:
         """
         Get hierarchy tree structure.
 
@@ -458,7 +458,7 @@ class V3HierarchyClient:
             max_depth: Maximum depth to traverse.
 
         Returns:
-            V3ClientResult with tree structure.
+            LibrarianClientResult with tree structure.
         """
         cache_key = self._cache_key(
             "get_hierarchy_tree",
@@ -471,7 +471,7 @@ class V3HierarchyClient:
             return cached
 
         try:
-            if self.mode == V3ConnectionMode.HTTP:
+            if self.mode == LibrarianConnectionMode.HTTP:
                 client = self._get_http_client()
                 params = {"max_depth": max_depth}
                 if root_id:
@@ -481,13 +481,13 @@ class V3HierarchyClient:
                 response.raise_for_status()
                 data = response.json()
 
-                result = V3ClientResult(
+                result = LibrarianClientResult(
                     success=True,
                     message="Tree retrieved",
                     data=data,
                 )
             else:
-                result = V3ClientResult(
+                result = LibrarianClientResult(
                     success=False,
                     errors=["Direct mode not implemented"],
                 )
@@ -497,7 +497,7 @@ class V3HierarchyClient:
 
         except Exception as e:
             logger.error(f"Failed to get hierarchy tree: {e}")
-            return V3ClientResult(
+            return LibrarianClientResult(
                 success=False,
                 message=f"Failed to get hierarchy tree: {str(e)}",
                 errors=[str(e)],
@@ -508,7 +508,7 @@ class V3HierarchyClient:
     def get_mappings(
         self,
         hierarchy_id: str,
-    ) -> V3ClientResult:
+    ) -> LibrarianClientResult:
         """
         Get source mappings for a hierarchy.
 
@@ -516,7 +516,7 @@ class V3HierarchyClient:
             hierarchy_id: Hierarchy identifier.
 
         Returns:
-            V3ClientResult with list of V3Mapping objects.
+            LibrarianClientResult with list of LibrarianMapping objects.
         """
         cache_key = self._cache_key("get_mappings", hierarchy_id=hierarchy_id)
         cached = self._get_cached(cache_key)
@@ -524,14 +524,14 @@ class V3HierarchyClient:
             return cached
 
         try:
-            if self.mode == V3ConnectionMode.HTTP:
+            if self.mode == LibrarianConnectionMode.HTTP:
                 client = self._get_http_client()
                 response = client.get(f"/api/hierarchies/{hierarchy_id}/mappings")
                 response.raise_for_status()
                 data = response.json()
 
                 mappings = [
-                    V3Mapping(
+                    LibrarianMapping(
                         hierarchy_id=m.get("hierarchy_id", hierarchy_id),
                         mapping_index=m.get("mapping_index", i),
                         source_database=m.get("source_database", ""),
@@ -545,13 +545,13 @@ class V3HierarchyClient:
                     for i, m in enumerate(data.get("mappings", data if isinstance(data, list) else []))
                 ]
 
-                result = V3ClientResult(
+                result = LibrarianClientResult(
                     success=True,
                     message=f"Found {len(mappings)} mappings",
                     data=[m.to_dict() for m in mappings],
                 )
             else:
-                result = V3ClientResult(
+                result = LibrarianClientResult(
                     success=False,
                     errors=["Direct mode not implemented"],
                 )
@@ -561,13 +561,13 @@ class V3HierarchyClient:
 
         except Exception as e:
             logger.error(f"Failed to get mappings: {e}")
-            return V3ClientResult(
+            return LibrarianClientResult(
                 success=False,
                 message=f"Failed to get mappings: {str(e)}",
                 errors=[str(e)],
             )
 
-    def get_all_mappings(self, project_id: str) -> V3ClientResult:
+    def get_all_mappings(self, project_id: str) -> LibrarianClientResult:
         """
         Get all mappings for a project.
 
@@ -575,7 +575,7 @@ class V3HierarchyClient:
             project_id: Project identifier.
 
         Returns:
-            V3ClientResult with all mappings grouped by hierarchy.
+            LibrarianClientResult with all mappings grouped by hierarchy.
         """
         cache_key = self._cache_key("get_all_mappings", project_id=project_id)
         cached = self._get_cached(cache_key)
@@ -583,19 +583,19 @@ class V3HierarchyClient:
             return cached
 
         try:
-            if self.mode == V3ConnectionMode.HTTP:
+            if self.mode == LibrarianConnectionMode.HTTP:
                 client = self._get_http_client()
                 response = client.get(f"/api/projects/{project_id}/mappings")
                 response.raise_for_status()
                 data = response.json()
 
-                result = V3ClientResult(
+                result = LibrarianClientResult(
                     success=True,
                     message="Mappings retrieved",
                     data=data,
                 )
             else:
-                result = V3ClientResult(
+                result = LibrarianClientResult(
                     success=False,
                     errors=["Direct mode not implemented"],
                 )
@@ -605,7 +605,7 @@ class V3HierarchyClient:
 
         except Exception as e:
             logger.error(f"Failed to get all mappings: {e}")
-            return V3ClientResult(
+            return LibrarianClientResult(
                 success=False,
                 message=f"Failed to get all mappings: {str(e)}",
                 errors=[str(e)],
@@ -613,8 +613,8 @@ class V3HierarchyClient:
 
     # ==================== Helper Methods ====================
 
-    def _parse_hierarchy(self, data: Dict[str, Any]) -> V3Hierarchy:
-        """Parse hierarchy data into V3Hierarchy object."""
+    def _parse_hierarchy(self, data: Dict[str, Any]) -> LibrarianHierarchy:
+        """Parse hierarchy data into LibrarianHierarchy object."""
         # Extract levels
         levels = {}
         for i in range(1, 11):
@@ -622,7 +622,7 @@ class V3HierarchyClient:
             if level_key in data and data[level_key]:
                 levels[level_key] = data[level_key]
 
-        return V3Hierarchy(
+        return LibrarianHierarchy(
             hierarchy_id=data.get("hierarchy_id", data.get("id", "")),
             hierarchy_name=data.get("hierarchy_name", data.get("name", "")),
             project_id=data.get("project_id", ""),

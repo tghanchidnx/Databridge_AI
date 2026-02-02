@@ -1,5 +1,5 @@
 """
-Metadata Catalog module for DataBridge Analytics V4.
+Metadata Catalog module for DataBridge Analytics Researcher.
 
 Manages schema metadata extraction and cataloging:
 - Database/schema/table/column discovery

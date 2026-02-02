@@ -1,7 +1,7 @@
 """
 SQLAlchemy base classes and mixins for DataBridge AI platform.
 
-Provides common database model functionality used across V3 and V4 applications.
+Provides common database model functionality used across Librarian and Researcher applications.
 """
 
 from datetime import datetime

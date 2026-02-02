@@ -8,17 +8,17 @@
 
 ## Executive Summary
 
-Security scans were performed on both V3 (Hierarchy Builder) and V4 (Analytics Engine) codebases. No critical vulnerabilities were found. All flagged items are either false positives or acceptable risks with documented mitigations.
+Security scans were performed on both Librarian (Hierarchy Builder) and Researcher (Analytics Engine) codebases. No critical vulnerabilities were found. All flagged items are either false positives or acceptable risks with documented mitigations.
 
 | Codebase | Lines of Code | High | Medium | Low |
 |----------|---------------|------|--------|-----|
-| V3       | 9,436         | 3    | 1      | 4   |
-| V4       | 10,303        | 0    | 3      | 1   |
+| Librarian | 9,436         | 3    | 1      | 4   |
+| Researcher | 10,303        | 0    | 3      | 1   |
 | **Total**| **19,739**    | **3**| **4**  | **5**|
 
 ---
 
-## V3 Findings
+## Librarian Findings
 
 ### HIGH: Weak Hash Algorithms (B324)
 
@@ -64,7 +64,7 @@ result = eval(eval_expr)  # Safe due to character filtering
 
 ---
 
-## V4 Findings
+## Researcher Findings
 
 ### MEDIUM: Possible SQL Injection (B608)
 
@@ -143,10 +143,10 @@ query = f"SELECT * FROM {full_name}"  # nosec B608 - identifiers from trusted ca
 ## Scan Commands
 
 ```bash
-# V3 Scan
+# Librarian Scan
 bandit -r v3/src/ -f txt --severity-level medium
 
-# V4 Scan
+# Researcher Scan
 bandit -r v4/src/ -f txt --severity-level medium
 
 # Full JSON report

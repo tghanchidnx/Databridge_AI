@@ -1,5 +1,5 @@
 """
-Data Reconciliation Module for DataBridge AI V3.
+Data Reconciliation Module for DataBridge AI Librarian.
 
 Provides tools for loading, profiling, comparing, and reconciling data from multiple sources.
 """

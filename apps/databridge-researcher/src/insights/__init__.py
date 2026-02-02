@@ -1,4 +1,4 @@
-"""Insights module for DataBridge AI V4 Analytics Engine."""
+"""Insights module for DataBridge AI Researcher Analytics Engine."""
 
 from .anomaly import AnomalyDetector, AnomalyResult, Anomaly
 from .trend import TrendAnalyzer, TrendResult, TrendDirection

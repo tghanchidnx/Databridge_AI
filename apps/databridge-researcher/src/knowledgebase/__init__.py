@@ -1,5 +1,5 @@
 """
-Knowledge Base module for DataBridge Analytics V4.
+Knowledge Base module for DataBridge Analytics Researcher.
 
 RAG pipeline and vector embeddings:
 - ChromaDB vector store integration

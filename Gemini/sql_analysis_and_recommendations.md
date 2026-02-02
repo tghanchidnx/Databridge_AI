@@ -51,7 +51,7 @@ The differences between the queries lie in how they slice and dice the final, pr
 
 The core recommendation is to **externalize the business logic from the `CASE` statements into dedicated hierarchy and mapping tables**. This moves the logic from the *query* layer to the *data* layer, which is more flexible, maintainable, and scalable.
 
-I propose creating the following new tables, which can be managed by the **DataBridge V3 Hierarchy Builder**:
+I propose creating the following new tables, which can be managed by the **DataBridge Librarian Hierarchy Builder**:
 
 ### 3.1. `dim_gl_hierarchy`
 This table will replace the giant `CASE` statement that maps `account_code` to financial reporting lines.
@@ -146,4 +146,4 @@ GROUP BY
 1.  **Maintainability:** If a new account `501-200` needs to be added to 'Oil Sales', you simply **insert one row** into the `dim_gl_hierarchy` table. You do **not** have to find and edit every single query where the logic is hardcoded.
 2.  **Consistency:** All queries are guaranteed to use the exact same business logic because the logic lives in the data, not in the query.
 3.  **Performance:** The database query optimizer can create much better execution plans using joins on indexed keys instead of scanning massive `CASE` statements.
-4.  **Empowerment:** Business users and financial analysts can manage their own hierarchies using a tool like **DataBridge V3** without needing a SQL developer to update complex queries. This is the core value proposition of the DataBridge platform.
+4.  **Empowerment:** Business users and financial analysts can manage their own hierarchies using a tool like **DataBridge Librarian** without needing a SQL developer to update complex queries. This is the core value proposition of the DataBridge platform.

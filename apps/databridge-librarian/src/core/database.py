@@ -1,5 +1,5 @@
 """
-SQLAlchemy database models and session management for DataBridge AI V3.
+SQLAlchemy database models and session management for DataBridge AI Librarian.
 
 This module defines all ORM models and provides database connection management.
 Uses shared Base from databridge-models when available.
@@ -159,6 +159,12 @@ class Hierarchy(Base):
     calculation_flag = Column(Boolean, default=False)
     active_flag = Column(Boolean, default=True)
     is_leaf_node = Column(Boolean, default=False)
+
+    # Hierarchy type classification
+    hierarchy_type = Column(String(50), default="standard")  # standard, grouping, xref, calculation, allocation
+
+    # Aggregation configuration
+    aggregation_method = Column(String(50), default="sum")  # sum, avg, min, max, count
 
     # JSON configuration fields
     source_mappings = Column(JSON, default=list)

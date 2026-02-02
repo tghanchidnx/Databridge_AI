@@ -1,5 +1,5 @@
 """
-Entity Extractor for DataBridge AI V4 Analytics Engine.
+Entity Extractor for DataBridge AI Researcher Analytics Engine.
 
 Extracts database entities (tables, columns, values) from natural language queries
 by matching against a metadata catalog.

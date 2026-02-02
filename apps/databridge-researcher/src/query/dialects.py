@@ -1,5 +1,5 @@
 """
-SQL Dialects for DataBridge AI V4 Analytics Engine.
+SQL Dialects for DataBridge AI Researcher Analytics Engine.
 
 Provides dialect-specific SQL generation for:
 - Snowflake

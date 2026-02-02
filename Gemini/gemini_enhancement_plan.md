@@ -1,29 +1,29 @@
 # Gemini's Enhancement Plan for DataBridge AI
 
-This document outlines a detailed plan to enhance the DataBridge AI platform to fulfill its new primary purpose: **automated data warehouse creation**. This plan focuses on augmenting the existing V3 and V4 architecture to support this new functionality while keeping the current FP&A workflows intact.
+This document outlines a detailed plan to enhance the DataBridge AI platform to fulfill its new primary purpose: **automated data warehouse creation**. This plan focuses on augmenting the existing Librarian and Researcher architecture to support this new functionality while keeping the current FP&A workflows intact.
 
 The plan is divided into five phases:
 1.  **Source Intelligence & Schema Analysis**
 2.  **Data Model & DDL Generation**
 3.  **Snowflake Deployment & Execution Engine**
 4.  **Hierarchy-Driven Data Flow**
-5.  **Validation, Usability & V4 Integration**
+5.  **Validation, Usability & Researcher Integration**
 
 ---
 
-### Phase 1: Source Intelligence & Schema Analysis (V3 Enhancement)
+### Phase 1: Source Intelligence & Schema Analysis (Librarian Enhancement)
 
-**Goal:** Enhance V3 to ingest and understand various data sources beyond simple CSVs, and to infer relationships and data types automatically.
+**Goal:** Enhance Librarian to ingest and understand various data sources beyond simple CSVs, and to infer relationships and data types automatically.
 
 *   **1.1. Create a "Source Connector" Framework:**
-    *   **Action:** In V3, develop a pluggable connector framework for ingesting metadata from different sources.
+    *   **Action:** In Librarian, develop a pluggable connector framework for ingesting metadata from different sources.
     *   **Details:** Create connectors for:
         *   **Databases:** Read schemas, tables, columns, and foreign keys from accounting systems (e.g., via JDBC).
         *   **File Formats:** Parse structured files like `.xlsx`, `.csv`, and `.parquet` to infer schemas.
-        *   **Financial Reports:** Use LLM-powered text extraction (building on the existing V3 OCR capability) to identify tables and data points from unstructured `.pdf` reports.
+        *   **Financial Reports:** Use LLM-powered text extraction (building on the existing Librarian OCR capability) to identify tables and data points from unstructured `.pdf` reports.
 
 *   **1.2. Develop the "Semantic Analyzer" Module:**
-    *   **Action:** Create a new module in V3 that analyzes the metadata collected by the connectors.
+    *   **Action:** Create a new module in Librarian that analyzes the metadata collected by the connectors.
     *   **Details:** This module will use a combination of heuristics and an LLM to:
         *   **Identify Entities:** Detect common business entities like ("Employee," "Customer," "Vendor,") -> "Business Associate," "Cost Center," "Assets," "Equipment," "Inventory,"  "Location," "Department,"  "Product," "Company/Corp," multiple "Date," and "Chart of Accounts."
         *   **Classify Data:** Tag columns as measures (e.g., amount, quantity) or dimensions (e.g., region, department) and SCD Dimensions.
@@ -31,7 +31,7 @@ The plan is divided into five phases:
         *   **Propose a Canonical Model:** Generate a high-level entity-relationship diagram as an intermediate representation.
 
 *   **1.3. User Interaction for Refinement:**
-    *   **Action:** Create a new set of CLI/MCP tools in V3 for users to review and refine the aoutomatically generated model.
+    *   **Action:** Create a new set of CLI/MCP tools in Librarian for users to review and refine the aoutomatically generated model.
     *   **Details:** Users should be able to:
         *   Confirm or reject suggested relationships.
         *   Rename entities and attributes.
@@ -39,12 +39,12 @@ The plan is divided into five phases:
 
 ---
 
-### Phase 2: Data Model & DDL Generation (V3 Enhancement)
+### Phase 2: Data Model & DDL Generation (Librarian Enhancement)
 
 **Goal:** Translate the refined canonical model from Phase 1 into a concrete Snowflake data warehouse design, including DDL (Data Definition Language).
 
 *   **2.1. Create the "Warehouse Modeler" Module:**
-    *   **Action:** Build a new module in V3 responsible for designing the target Snowflake schema.
+    *   **Action:** Build a new module in Librarian responsible for designing the target Snowflake schema.
     *   **Details:** This module will take the user-approved model and:
         *   Design standard "common" dimensions (e.g., `DIM_DATE` (there can be multiple date dimensions that should all be dertivateive of the 
     `DIM_DATE` dimension), `DIM_CHART_OF_ACCOUNTS`, `DIM_VENDOR`).
@@ -67,12 +67,12 @@ The plan is divided into five phases:
 
 ---
 
-### Phase 3: Snowflake Deployment & Execution Engine (V3 Enhancement)
+### Phase 3: Snowflake Deployment & Execution Engine (Librarian Enhancement)
 
-**Goal:** Enhance V3's existing deployment capabilities to execute the generated DDL and populate the new data warehouse.
+**Goal:** Enhance Librarian's existing deployment capabilities to execute the generated DDL and populate the new data warehouse.
 
 *   **3.1. Create the "Deployment Orchestrator":**
-    *   **Action:** Build a robust workflow engine in V3 to manage the deployment process.
+    *   **Action:** Build a robust workflow engine in Librarian to manage the deployment process.
     *   **Details:** This orchestrator will handle:
         *   Connecting to the target Snowflake environment.
         *   Executing the DDL scripts in the correct order.
@@ -88,38 +88,38 @@ The plan is divided into five phases:
 
 ---
 
-### Phase 4: Hierarchy-Driven Data Flow (V3 & V4 Integration)
+### Phase 4: Hierarchy-Driven Data Flow (Librarian & Researcher Integration)
 
 **Goal:** Solidify the "hierarchy dimension" as the central component that governs data structure and user queries.
 
-*   **4.1. Enhance V3 Hierarchy Management:**
-    *   **Action:** Add a new "Data Model" tab or view within a V3 project.
+*   **4.1. Enhance Librarian Hierarchy Management:**
+    *   **Action:** Add a new "Data Model" tab or view within a Librarian project.
     *   **Details:** This view will show the generated data warehouse schema and visually link each table and column back to the hierarchy nodes that defined them. This creates a clear data lineage trail.
 
-*   **4.2. Enhance V4 Knowledge Base Integration:**
-    *   **Action:** When a new data warehouse is deployed by V3, it should automatically notify V4.
-    *   **Details:** V4 will then automatically:
+*   **4.2. Enhance Researcher Knowledge Base Integration:**
+    *   **Action:** When a new data warehouse is deployed by Librarian, it should automatically notify Researcher.
+    *   **Details:** Researcher will then automatically:
         *   Connect to the new Snowflake schema.
         *   Ingest the entire schema, including the new dynamic fact tables and common dimensions, into its knowledge base.
         *   Link the business terms in its glossary directly to the newly created tables and columns, using the hierarchy dimension as the "source of truth."
 
 ---
 
-### Phase 5: Validation, Usability & V4 Integration
+### Phase 5: Validation, Usability & Researcher Integration
 
-**Goal:** Use the V4 engine to validate the new warehouse and make the entire process accessible via natural language.
+**Goal:** Use the Researcher engine to validate the new warehouse and make the entire process accessible via natural language.
 
-*   **5.1. Automated Data Validation with V4:**
-    *   **Action:** After V3 deploys the warehouse, automatically trigger a suite of validation queries using the V4 engine.
-    *   **Details:** V4 can run queries like:
+*   **5.1. Automated Data Validation with Researcher:**
+    *   **Action:** After Librarian deploys the warehouse, automatically trigger a suite of validation queries using the Researcher engine.
+    *   **Details:** Researcher can run queries like:
         *   "Count rows in `DT_2` and compare against the source table."
         *   "Check for null foreign keys in the fact tables."
         *   "Show me the sum of `amount` grouped by the new `hierarchy_level_1`."
     *   A summary report will be generated to confirm the success of the deployment.
 
 *   **5.2. Natural Language Orchestration:**
-    *   **Action:** Expose the new functionality through high-level MCP tools that V4 can use.
+    *   **Action:** Expose the new functionality through high-level MCP tools that Researcher can use.
     *   **Details:** This will allow the user to initiate the entire workflow with a single prompt to Gemini, for example:
         > "Here are my Excel-based financial reports for the last quarter (attach files). Analyze them, propose a Snowflake data warehouse schema, and once I approve it, build and populate it for me."
 
-    *   The AI would then use the new tools from V3 and V4 to orchestrate the entire process, asking for user confirmation at key steps (like schema approval). This makes the powerful warehouse creation capability accessible to a much wider audience.
+    *   The AI would then use the new tools from Librarian and Researcher to orchestrate the entire process, asking for user confirmation at key steps (like schema approval). This makes the powerful warehouse creation capability accessible to a much wider audience.

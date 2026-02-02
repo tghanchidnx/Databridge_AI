@@ -1,5 +1,5 @@
 """
-Unit tests for V3 Embedder classes.
+Unit tests for Librarian Embedder classes.
 
 Tests embedding generation and hierarchy text conversion.
 """

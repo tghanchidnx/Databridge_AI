@@ -2,7 +2,7 @@
 
 ## Vision: Unified FP&A Platform
 
-V3 + V4 together create a complete **Financial Planning & Analysis** workflow:
+Librarian + Researcher together create a complete **Financial Planning & Analysis** workflow:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -19,7 +19,7 @@ V3 + V4 together create a complete **Financial Planning & Analysis** workflow:
 │                          │                │                                 │
 │                          ▼                ▼                                 │
 │              ┌──────────────────────────────────────────┐                  │
-│              │           V4: ANALYTICS ENGINE           │                  │
+│              │           Researcher: ANALYTICS ENGINE           │                  │
 │              │                                          │                  │
 │              │  • Connect to financial sources          │                  │
 │              │  • Extract metadata & schemas            │                  │
@@ -31,7 +31,7 @@ V3 + V4 together create a complete **Financial Planning & Analysis** workflow:
 │                                │ (Hierarchies)                              │
 │                                │                                            │
 │              ┌─────────────────┴────────────────────────┐                  │
-│              │           V3: HIERARCHY BUILDER          │                  │
+│              │           Librarian: HIERARCHY BUILDER          │                  │
 │              │                                          │                  │
 │              │  • P&L Hierarchy (Revenue, Expenses)     │                  │
 │              │  • Balance Sheet Structure               │                  │
@@ -115,14 +115,14 @@ V3 + V4 together create a complete **Financial Planning & Analysis** workflow:
 
 ---
 
-## 2. V3 + V4 Integration: The FP&A Workflow
+## 2. Librarian + Researcher Integration: The FP&A Workflow
 
 ### 2.1 Hierarchy-Driven Analysis
 
-V3 hierarchies define **how** data is organized for analysis:
+Librarian hierarchies define **how** data is organized for analysis:
 
 ```
-V3 Hierarchy: P&L Revenue Structure
+Librarian Hierarchy: P&L Revenue Structure
 ├── Total Revenue
 │   ├── Product Revenue
 │   │   ├── Hardware
@@ -138,7 +138,7 @@ V3 Hierarchy: P&L Revenue Structure
 │           └── [Source Mapping: GL 4900]
 ```
 
-V4 uses this hierarchy to:
+Researcher uses this hierarchy to:
 1. **Structure queries** - Group GL accounts by hierarchy nodes
 2. **Calculate rollups** - Sum child nodes to parents
 3. **Apply formulas** - Calculate Gross Profit, Operating Income, etc.
@@ -147,10 +147,10 @@ V4 uses this hierarchy to:
 ### 2.2 Multi-Source Reconciliation
 
 ```python
-# V4 reconciles data across sources using V3 hierarchy as the structure
+# Researcher reconciles data across sources using Librarian hierarchy as the structure
 
 class FPAReconciler:
-    """Reconcile GL to operational sources using V3 hierarchy."""
+    """Reconcile GL to operational sources using Librarian hierarchy."""
 
     def reconcile_revenue(
         self,
@@ -162,10 +162,10 @@ class FPAReconciler:
         """
         Reconcile GL revenue to operational revenue (e.g., production × price).
 
-        Uses V3 hierarchy to map GL accounts to operational metrics.
+        Uses Librarian hierarchy to map GL accounts to operational metrics.
         """
-        # Get V3 hierarchy structure
-        hierarchy = self.v3_client.get_hierarchy_tree(hierarchy_id)
+        # Get Librarian hierarchy structure
+        hierarchy = self.librarian_client.get_hierarchy_tree(hierarchy_id)
 
         # Query GL for booked revenue
         gl_revenue = self.query_gl_by_hierarchy(
@@ -206,7 +206,7 @@ class FPAReconciler:
 │                                                                             │
 │  DAY 1-2: Data Collection                                                   │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ V4: sync_sources()                                                   │   │
+│  │ Researcher: sync_sources()                                                   │   │
 │  │   • Extract GL trial balance                                         │   │
 │  │   • Pull budget/forecast from EPM                                    │   │
 │  │   • Load operational actuals                                         │   │
@@ -215,8 +215,8 @@ class FPAReconciler:
 │                                                                             │
 │  DAY 3-4: Reconciliation                                                    │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ V4: reconcile_close()                                                │   │
-│  │   • GL to subledger tie-out (using V3 account hierarchy)             │   │
+│  │ Researcher: reconcile_close()                                                │   │
+│  │   • GL to subledger tie-out (using Librarian account hierarchy)             │   │
 │  │   • Intercompany eliminations                                        │   │
 │  │   • Revenue recognition review                                       │   │
 │  │   • Flag exceptions for investigation                                │   │
@@ -224,8 +224,8 @@ class FPAReconciler:
 │                                                                             │
 │  DAY 5-6: Variance Analysis                                                 │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ V4: analyze_variances()                                              │   │
-│  │   • Actual vs. Budget (using V3 P&L hierarchy)                       │   │
+│  │ Researcher: analyze_variances()                                              │   │
+│  │   • Actual vs. Budget (using Librarian P&L hierarchy)                       │   │
 │  │   • Actual vs. Prior Year                                            │   │
 │  │   • Actual vs. Forecast                                              │   │
 │  │   • Decompose into price/volume/mix drivers                          │   │
@@ -233,7 +233,7 @@ class FPAReconciler:
 │                                                                             │
 │  DAY 7-8: Commentary & Reporting                                            │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ V4: generate_commentary()                                            │   │
+│  │ Researcher: generate_commentary()                                            │   │
 │  │   • Auto-generate variance explanations                              │   │
 │  │   • Build management report package                                  │   │
 │  │   • Create executive summary                                         │   │
@@ -242,7 +242,7 @@ class FPAReconciler:
 │                                                                             │
 │  DAY 9-10: Forecast Update                                                  │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ V4: update_forecast()                                                │   │
+│  │ Researcher: update_forecast()                                                │   │
 │  │   • Apply actuals to YTD                                             │   │
 │  │   • Reforecast remaining periods                                     │   │
 │  │   • Model scenarios (upside/downside)                                │   │
@@ -260,7 +260,7 @@ class FPAReconciler:
 
 ```python
 class VarianceAnalyzer:
-    """Comprehensive variance analysis using V3 hierarchies."""
+    """Comprehensive variance analysis using Librarian hierarchies."""
 
     def analyze_budget_variance(
         self,
@@ -274,7 +274,7 @@ class VarianceAnalyzer:
         Perform Budget vs. Actual analysis at each hierarchy level.
 
         Args:
-            hierarchy_id: V3 P&L or Balance Sheet hierarchy
+            hierarchy_id: Librarian P&L or Balance Sheet hierarchy
             actuals_table: GL fact table
             budget_table: Budget fact table
             period: Period to analyze (e.g., "2024-01")
@@ -283,9 +283,9 @@ class VarianceAnalyzer:
         Returns:
             VarianceReport with node-level variances and drill-down
         """
-        hierarchy = self.v3_client.get_hierarchy_tree(hierarchy_id)
+        hierarchy = self.librarian_client.get_hierarchy_tree(hierarchy_id)
 
-        # Build queries using V3 source mappings
+        # Build queries using Librarian source mappings
         actual_query = self.build_hierarchy_query(
             hierarchy, actuals_table, period, dimensions
         )
@@ -354,7 +354,7 @@ class VarianceAnalyzer:
 
 ```python
 class ForecastEngine:
-    """Maintain rolling forecasts using V3 hierarchies."""
+    """Maintain rolling forecasts using Librarian hierarchies."""
 
     def update_rolling_forecast(
         self,
@@ -372,7 +372,7 @@ class ForecastEngine:
         - trend_forward: Apply recent trends to future periods
         - driver_based: Recalculate based on updated drivers
         """
-        hierarchy = self.v3_client.get_hierarchy_tree(hierarchy_id)
+        hierarchy = self.librarian_client.get_hierarchy_tree(hierarchy_id)
 
         # Get YTD actuals
         ytd_actuals = self.query_ytd_actuals(hierarchy, actuals_table, current_period)
@@ -451,7 +451,7 @@ class OperationalMetricsIntegrator:
         - "avg_price_per_bbl" → "Revenue.Oil Sales" (price driver)
         - "operating_hours" → "Expenses.Direct Labor" (driver)
         """
-        hierarchy = self.v3_client.get_hierarchy_tree(financial_hierarchy_id)
+        hierarchy = self.librarian_client.get_hierarchy_tree(financial_hierarchy_id)
         ops_data = self.query_operational_data(ops_table)
 
         mapped = {}
@@ -482,7 +482,7 @@ class OperationalMetricsIntegrator:
 
         Example: Revenue per BOE, Cost per Unit, LOE per Well
         """
-        hierarchy = self.v3_client.get_hierarchy_tree(hierarchy_id)
+        hierarchy = self.librarian_client.get_hierarchy_tree(hierarchy_id)
         volume = self.query_total_volume(volume_source, volume_column)
 
         unit_metrics = {}
@@ -554,7 +554,7 @@ def generate_close_checklist(period: str) -> str:
     """
     Generate close checklist with completion status.
 
-    Uses V3 hierarchy to organize by account area.
+    Uses Librarian hierarchy to organize by account area.
     """
 ```
 
@@ -569,7 +569,7 @@ def analyze_budget_variance(
     materiality_threshold: float = 10000
 ) -> str:
     """
-    Analyze budget vs. actual variance using V3 hierarchy.
+    Analyze budget vs. actual variance using Librarian hierarchy.
 
     Returns variance at each hierarchy level with drill-down.
     """
@@ -615,7 +615,7 @@ def generate_variance_commentary(
     """
     Generate natural language variance commentary.
 
-    Uses V3 hierarchy structure for organized narrative.
+    Uses Librarian hierarchy structure for organized narrative.
     """
 ```
 
@@ -940,17 +940,17 @@ CREATE TABLE fact_operating_costs (
 ## 6. End-to-End Example: Monthly Close Workflow
 
 ```python
-# Complete monthly close workflow using V3 + V4
+# Complete monthly close workflow using Librarian + Researcher
 
 # 1. SYNC DATA SOURCES
-sync_result = await v4.sync_period_data(
+sync_result = await researcher.sync_period_data(
     period="2024-12",
     sources=["gl", "budget", "forecast", "operations"]
 )
 # Synced 15,234 GL transactions, 500 budget lines, 12,000 production records
 
 # 2. VALIDATE CLOSE READINESS
-validation = await v4.validate_close_readiness(period="2024-12")
+validation = await researcher.validate_close_readiness(period="2024-12")
 # Status: 3 items require attention
 # - AR subledger: $45K difference (timing)
 # - Intercompany: Entity 103 unbalanced by $12K
@@ -958,13 +958,13 @@ validation = await v4.validate_close_readiness(period="2024-12")
 
 # 3. RECONCILE SUBLEDGERS
 for subledger in ["AR", "AP", "FA", "Inventory"]:
-    recon = await v4.reconcile_subledger_to_gl(
+    recon = await researcher.reconcile_subledger_to_gl(
         subledger=subledger,
         period="2024-12"
     )
 
-# 4. ANALYZE VARIANCES (Using V3 P&L Hierarchy)
-variance_report = await v4.analyze_budget_variance(
+# 4. ANALYZE VARIANCES (Using Librarian P&L Hierarchy)
+variance_report = await researcher.analyze_budget_variance(
     hierarchy_id="pl-hierarchy-2024",
     period="2024-12",
     dimensions=["region", "product_line"]
@@ -974,7 +974,7 @@ variance_report = await v4.analyze_budget_variance(
 # Net Income: $2.5M actual vs $2.3M budget (+8.7%)
 
 # 5. IDENTIFY DRIVERS
-drivers = await v4.identify_variance_drivers(
+drivers = await researcher.identify_variance_drivers(
     hierarchy_id="pl-hierarchy-2024",
     period="2024-12",
     top_n=5
@@ -985,7 +985,7 @@ drivers = await v4.identify_variance_drivers(
 # 3. Marketing Expense: -$95K (campaign deferred to January)
 
 # 6. GENERATE COMMENTARY
-commentary = await v4.generate_variance_commentary(
+commentary = await researcher.generate_variance_commentary(
     hierarchy_id="pl-hierarchy-2024",
     period="2024-12",
     style="executive"
@@ -996,7 +996,7 @@ commentary = await v4.generate_variance_commentary(
 #  $280K higher labor costs due to overtime..."
 
 # 7. UPDATE FORECAST
-forecast_update = await v4.update_rolling_forecast(
+forecast_update = await researcher.update_rolling_forecast(
     hierarchy_id="pl-hierarchy-2024",
     current_period="2024-12",
     method="replace_actuals"
@@ -1007,7 +1007,7 @@ forecast_update = await v4.update_rolling_forecast(
 # - Change: +$700K (+2.5%)
 
 # 8. GENERATE BOARD PACKAGE
-board_package = await v4.generate_board_package(
+board_package = await researcher.generate_board_package(
     period="2024-12",
     sections=["financial_summary", "kpis", "outlook", "risks"]
 )
@@ -1017,4 +1017,4 @@ board_package = await v4.generate_board_package(
 
 ---
 
-This enhanced workflow shows how **V3 hierarchies structure the analysis** while **V4 executes the FP&A process** against actual financial and operational data from multiple source systems.
+This enhanced workflow shows how **Librarian hierarchies structure the analysis** while **Researcher executes the FP&A process** against actual financial and operational data from multiple source systems.

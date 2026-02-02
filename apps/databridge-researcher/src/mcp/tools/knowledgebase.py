@@ -1,5 +1,5 @@
 """
-MCP Tools for Knowledge Base operations in DataBridge Analytics V4.
+MCP Tools for Knowledge Base operations in DataBridge Analytics Researcher.
 
 Provides tools for business glossary, metric definitions, and FP&A concepts.
 """

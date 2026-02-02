@@ -2,7 +2,7 @@
 Audit trail logging for DataBridge AI platform.
 
 Provides a centralized audit logging system for tracking actions
-across both V3 and V4 applications.
+across both Librarian and Researcher applications.
 """
 
 import csv

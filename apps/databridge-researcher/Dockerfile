@@ -1,5 +1,5 @@
 # ============================================
-# DataBridge V4 - Analytics Engine
+# DataBridge Researcher - Analytics Engine
 # Multi-stage Dockerfile for production deployment
 # ============================================
 
@@ -56,7 +56,7 @@ ARG BUILD_DATE
 ARG VCS_REF
 
 # Labels following OCI image spec
-LABEL org.opencontainers.image.title="DataBridge V4 - Analytics Engine" \
+LABEL org.opencontainers.image.title="DataBridge Researcher - Analytics Engine" \
       org.opencontainers.image.description="Headless FP&A analytics platform with NL-to-SQL, insights, and workflow automation" \
       org.opencontainers.image.version="${VERSION}" \
       org.opencontainers.image.created="${BUILD_DATE}" \

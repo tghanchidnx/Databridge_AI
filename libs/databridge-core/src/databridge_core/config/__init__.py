@@ -1,7 +1,7 @@
 """
 DataBridge Core Configuration Module.
 
-Provides base configuration classes and utilities for both V3 and V4 applications.
+Provides base configuration classes and utilities for both Librarian and Researcher applications.
 """
 
 from databridge_core.config.settings import (

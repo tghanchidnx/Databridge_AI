@@ -102,470 +102,950 @@
 
 ### Architecture Overview
 
+
+
 ```
+
 ┌─────────────────────────────────────────────────────────────────────┐
+
 │                         DATABRIDGE AI                               │
+
 ├─────────────────────────────────────────────────────────────────────┤
+
 │                                                                     │
+
 │  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐             │
+
 │  │   Claude    │    │   VS Code   │    │  Any MCP    │             │
+
 │  │   Desktop   │    │   Copilot   │    │   Client    │             │
+
 │  └──────┬──────┘    └──────┬──────┘    └──────┬──────┘             │
+
 │         │                  │                  │                     │
+
 │         └──────────────────┼──────────────────┘                     │
+
 │                            │                                        │
+
 │                    ┌───────▼───────┐                                │
+
 │                    │  MCP Protocol │                                │
+
 │                    └───────┬───────┘                                │
+
 │                            │                                        │
+
 │  ┌─────────────────────────┼─────────────────────────┐             │
+
 │  │                         │                         │             │
+
 │  │  ┌──────────────────────▼──────────────────────┐  │             │
+
 │  │  │           DATABRIDGE MCP SERVER             │  │             │
+
 │  │  ├─────────────────────────────────────────────┤  │             │
-│  │  │  V3: 92 Tools              V4: 52 Tools     │  │             │
+
+│  │  │  Librarian: 92 Tools         Researcher: 52 Tools     │  │
+
 │  │  │  ─────────────             ─────────────    │  │             │
+
 │  │  │  • Hierarchy Builder       • NL-to-SQL      │  │             │
+
 │  │  │  • Reconciliation          • Multi-Warehouse│  │             │
+
 │  │  │  • Vector Embeddings       • Analytics      │  │             │
+
 │  │  │  • Templates/Skills        • Advanced RAG   │  │             │
+
 │  │  └─────────────────────────────────────────────┘  │             │
+
 │  │                         │                         │             │
+
 │  │  ┌──────────────────────▼──────────────────────┐  │             │
+
 │  │  │              COMPUTE PUSHDOWN               │  │             │
+
 │  │  │   (SQL executed in your warehouse)          │  │             │
+
 │  │  └─────────────────────────────────────────────┘  │             │
+
 │  │                         │                         │             │
+
 │  └─────────────────────────┼─────────────────────────┘             │
+
 │                            │                                        │
+
 │         ┌──────────────────┼──────────────────┐                     │
+
 │         │                  │                  │                     │
+
 │  ┌──────▼──────┐    ┌──────▼──────┐    ┌──────▼──────┐             │
+
 │  │  Snowflake  │    │  BigQuery   │    │  Databricks │             │
+
 │  └─────────────┘    └─────────────┘    └─────────────┘             │
+
 │                                                                     │
+
 └─────────────────────────────────────────────────────────────────────┘
+
 ```
+
+
 
 ### Key Capabilities
 
+
+
 | Module | Tools | Description |
+
 |--------|-------|-------------|
+
 | **Data Reconciliation** | 38 | Hash comparison, fuzzy matching, orphan detection, OCR/PDF extraction |
+
 | **Hierarchy Builder** | 38 | Multi-level hierarchies (15 levels), source mappings, formula groups |
+
 | **Templates & Skills** | 16 | Pre-built templates, AI expertise, client knowledge base |
-| **V4 Analytics** | 52 | NL-to-SQL, vector search, multi-warehouse federation |
+
+| **Researcher Analytics** | 52 | NL-to-SQL, vector search, multi-warehouse federation |
+
+
 
 ---
+
+
 
 # Slide 5: Why Now
 
+
+
 ## Perfect Storm of Market Forces
+
+
 
 ### 1. MCP Protocol Explosion (2024-2025)
 
+
+
 ```
+
 MCP Ecosystem Growth
+
 ─────────────────────────────────────────────────────
+
 2024 Q4:  ████████████████ 97M+ NPM downloads
+
           ████████████████ 90%+ enterprise adoption intent
+
           ████████████████ 1,000+ MCP servers in ecosystem
+
 ─────────────────────────────────────────────────────
+
 ```
+
+
 
 **Anthropic's Model Context Protocol** is becoming the standard for AI tool integration. DataBridge is **MCP-native from day one**—not retrofitted.
 
+
+
 ### 2. AI in FP&A: Fastest Growing Segment
 
+
+
 | Market | 2024 | 2034 | CAGR |
+
 |--------|------|------|------|
+
 | AI in FP&A | $240M | $4.8B | **34.8%** |
+
 | Generative AI (Finance) | - | - | **30-40%** |
+
+
 
 ### 3. Data Warehouse Consolidation
 
+
+
 - **80%** of mid-market companies consolidating to Snowflake/BigQuery/Databricks
+
 - Finance teams want to query warehouses **directly**—not through IT
+
 - **Compute pushdown** means no data movement, instant scale
+
+
 
 ### 4. Remote Finance Teams
 
+
+
 - Post-COVID: Finance teams are distributed
+
 - Need **collaborative, cloud-native** tools
+
 - Excel over email is finally dying
 
+
+
 ---
+
+
 
 # Slide 6: Market Size
 
+
+
 ## TAM / SAM / SOM
 
+
+
 ```
+
 ┌─────────────────────────────────────────────────────────────────┐
+
 │                                                                 │
+
 │                          ┌─────────┐                            │
+
 │                         /           \                           │
-│                        /   TAM: $15B+ \                         │
+
+│                        /   TAM: 
+5B+ \                         │
+
 │                       /    by 2030     \                        │
+
 │                      /                  \                       │
+
 │                     /   ┌───────────┐    \                      │
+
 │                    /   /             \    \                     │
+
 │                   /   /   SAM: $3B    \    \                    │
+
 │                  /   /   Mid-market    \    \                   │
-│                 /   /   Cloud DW        \    \                  │
+
+│                 /   /   Cloud DW        \    \                 │
+
 │                /   /                     \    \                 │
+
 │               /   /    ┌───────────┐      \    \                │
+
 │              /   /    /             \      \    \               │
+
 │             /   /    /  SOM: $30M    \      \    \              │
+
 │            /   /    /   Year 3        \      \    \             │
+
 │           /   /    /   500 customers   \      \    \            │
+
 │          /   /    /                     \      \    \           │
+
 │         /   /    └───────────────────────┘      \    \          │
+
 │        /   └─────────────────────────────────────┘    \         │
+
 │       └────────────────────────────────────────────────┘        │
+
 │                                                                 │
+
 └─────────────────────────────────────────────────────────────────┘
+
 ```
+
+
 
 ### Market Breakdown
 
+
+
 | Segment | 2024 | 2030+ | Growth Driver |
+
 |---------|------|-------|---------------|
+
 | Reconciliation Software | $2.5B | $6.5B | Automation demand |
-| FP&A Software | $4-5B | $10-25B | Cloud migration |
+
+| FP&A Software | $4-5B | 
+0-25B | Cloud migration |
+
 | AI in Finance | $240M | $4.8B | GenAI adoption |
-| **Combined TAM** | **$7-8B** | **$15-36B** | |
+
+| **Combined TAM** | **$7-8B** | **
+5-36B** | |
+
+
 
 ### Our Beachhead: Mid-Market ($50M-$500M Revenue)
 
+
+
 - **63,000+** companies in US alone
+
 - Underserved by enterprise tools (too expensive)
+
 - Outgrown spreadsheets (too complex)
+
 - **$3B SAM** = mid-market with cloud data warehouses
+
+
 
 ### Year 3 Target: $30M ARR
 
+
+
 - **500 customers** × **$60K average ACV**
+
 - Land with one use case (reconciliation OR hierarchy)
+
 - Expand to full platform
 
+
+
 ---
+
+
 
 # Slide 7: Business Model
 
+
+
 ## Usage-Based SaaS + Marketplace
+
+
 
 ### Pricing Tiers
 
+
+
 | Tier | Monthly | Annual | Target Customer |
+
 |------|---------|--------|-----------------|
+
 | **Starter** | $499 | $4,990 | Small teams, single use case |
+
 | **Professional** | $2,499 | $24,990 | Growing finance teams |
+
 | **Enterprise** | $5,000+ | $50,000+ | Large organizations, custom |
+
 | **Template Marketplace** | Per-template | $500-$5,000 | Industry-specific needs |
+
+
 
 ### Revenue Streams
 
+
+
 ```
+
 ┌─────────────────────────────────────────────────────────────────┐
+
 │                    REVENUE MIX (Year 3)                         │
+
 ├─────────────────────────────────────────────────────────────────┤
+
 │                                                                 │
+
 │  SaaS Subscriptions     ████████████████████████████████  70%   │
+
 │                                                                 │
+
 │  Template/Skill Sales   ████████████                      15%   │
+
 │                                                                 │
+
 │  Professional Services  ████████                          10%   │
+
 │                                                                 │
+
 │  Support & Training     ████                               5%   │
+
 │                                                                 │
+
 └─────────────────────────────────────────────────────────────────┘
+
 ```
+
+
 
 ### Unit Economics Targets
 
+
+
 | Metric | Target | Industry Benchmark |
+
 |--------|--------|-------------------|
+
 | **Gross Margin** | 80%+ | 75% (SaaS) |
+
 | **CAC Payback** | <12 months | 15-18 months |
+
 | **Net Revenue Retention** | 120%+ | 110% |
+
 | **LTV:CAC** | >3:1 | 3:1 |
 
+
+
 ---
+
+
 
 # Slide 8: Competition
 
+
+
 ## Competitive Positioning
+
+
 
 ### The Market Landscape
 
+
+
 ```
+
                             FULL PLATFORM
+
                                  ▲
+
                                  │
+
          Anaplan ●               │               ● Workday Adaptive
+
                                  │
+
          Planful ●               │
+
                                  │
+
     ─────────────────────────────┼─────────────────────────────────
+
     LEGACY                       │                     AI-NATIVE
+
     ARCHITECTURE                 │                   ARCHITECTURE
+
                                  │
+
          BlackLine ●             │
+
                                  │           ◆ DATABRIDGE AI
+
          FloQast ●               │
+
                                  │
+
          Trintech ●              │
+
                                  │
+
                                  ▼
+
                           POINT SOLUTION
+
 ```
+
+
 
 ### Competitive Matrix
 
+
+
 | Capability | DataBridge | BlackLine | Anaplan | FloQast |
+
 |------------|------------|-----------|---------|---------|
+
 | MCP-Native | ✅ | ❌ | ❌ | ❌ |
+
 | Natural Language Queries | ✅ | ❌ | ❌ | ❌ |
+
 | Compute Pushdown | ✅ | ❌ | ❌ | ❌ |
+
 | Industry Templates | ✅ (20) | Limited | Limited | Limited |
+
 | Implementation Time | Minutes | 3-6 months | 6-12 months | 1-3 months |
-| Starting Price | $499/mo | $50K+/yr | $100K+/yr | $20K+/yr |
+
+| Starting Price | $499/mo | $50K+/yr | 
+00K+/yr | $20K+/yr |
+
 | Works in Claude/VS Code | ✅ | ❌ | ❌ | ❌ |
+
+
 
 ### Our 5 Unfair Advantages
 
+
+
 1. **MCP-Native**: First mover in the MCP ecosystem for finance
+
 2. **Compute Pushdown**: No data movement, scales with customer's warehouse
+
 3. **Vector RAG**: Semantic understanding of financial data and hierarchies
+
 4. **Industry Templates**: 20 ready-to-use templates, 7 AI skills
+
 5. **Zero DevOps**: Deploy in minutes, not months
 
+
+
 ---
+
+
 
 # Slide 9: Go-to-Market
 
+
+
 ## Land and Expand Strategy
+
+
 
 ### Phase 1: Vertical Beachheads (Months 1-12)
 
+
+
 ```
+
 ┌─────────────────────────────────────────────────────────────────┐
+
 │                     PHASE 1: BEACHHEADS                         │
+
 ├─────────────────────────────────────────────────────────────────┤
+
 │                                                                 │
+
 │   OIL & GAS                        SAAS COMPANIES               │
+
 │   ─────────                        ─────────────                │
+
 │   • LOS reconciliation             • ARR/MRR tracking           │
+
 │   • JIB partner billing            • Cohort analysis            │
+
 │   • Reserve reporting              • Revenue recognition        │
+
 │                                                                 │
+
 │   WHY: High pain, complex          WHY: Data-native,            │
+
 │   hierarchies, budget exists       fast adopters                │
+
 │                                                                 │
+
 │   TEMPLATES:                       TEMPLATES:                   │
+
 │   • oil_gas_los                    • saas_pl                    │
+
 │   • upstream_oil_gas_pl            • standard_pl                │
+
 │   • upstream_field_hierarchy       • department_hierarchy       │
+
 │                                                                 │
+
 └─────────────────────────────────────────────────────────────────┘
+
 ```
+
+
 
 ### Phase 2: Platform Expansion (Months 12-24)
 
+
+
 - Expand within accounts (reconciliation → FP&A → reporting)
+
 - Add manufacturing and transportation verticals
+
 - Launch template marketplace
+
 - Partner with Snowflake/Databricks
+
+
 
 ### Phase 3: Enterprise & International (Months 24-36)
 
+
+
 - Enterprise sales team
+
 - SOC 2 Type II, ISO 27001
+
 - International expansion (UK, Canada, Australia)
+
 - Strategic partnerships (Big 4, system integrators)
+
+
 
 ### GTM Channels
 
+
+
 | Channel | Investment | Expected Contribution |
+
 |---------|------------|----------------------|
+
 | **Content/SEO** | $200K | 30% of leads |
+
 | **MCP Marketplace** | $50K | 25% of leads |
-| **Partner (Snowflake, etc.)** | $150K | 20% of leads |
+
+| **Partner (Snowflake, etc.)** | 
+50K | 20% of leads |
+
 | **Direct Sales** | $400K | 15% of leads |
-| **Events/Community** | $100K | 10% of leads |
+
+| **Events/Community** | 
+00K | 10% of leads |
+
+
 
 ---
+
+
 
 # Slide 10: Traction
 
+
+
 ## Current State & Milestones
+
+
 
 ### What We've Built
 
+
+
 ```
+
 ┌─────────────────────────────────────────────────────────────────┐
+
 │                     PRODUCT TRACTION                            │
+
 ├─────────────────────────────────────────────────────────────────┤
+
 │                                                                 │
+
 │   144 MCP TOOLS                                                 │
+
 │   ████████████████████████████████████████████████████  100%    │
+
 │                                                                 │
+
 │   20 INDUSTRY TEMPLATES                                         │
+
 │   ████████████████████████████████████████████████████  100%    │
+
 │                                                                 │
+
 │   7 AI SKILLS                                                   │
+
 │   ████████████████████████████████████████████████████  100%    │
+
 │                                                                 │
-│   V3 CORE ENGINE                                                │
+
+│   Librarian CORE ENGINE                                         │
+
 │   ████████████████████████████████████████████████████  100%    │
+
 │                                                                 │
-│   V4 ANALYTICS (BETA)                                           │
+
+│   Researcher ANALYTICS (BETA)                                   │
+
 │   ████████████████████████████████████░░░░░░░░░░░░░░░░  60%     │
+
 │                                                                 │
+
 │   FRONTEND DASHBOARD                                            │
+
 │   ████████████████████████████████████████████░░░░░░░░  80%     │
+
 │                                                                 │
+
 └─────────────────────────────────────────────────────────────────┘
+
 ```
+
+
 
 ### Milestones Achieved
 
+
+
 | Milestone | Status | Date |
+
 |-----------|--------|------|
-| V3 MCP Server (92 tools) | ✅ Complete | Q4 2024 |
+
+| Librarian MCP Server (92 tools) | ✅ Complete | Q4 2024 |
+
 | Template Library (20) | ✅ Complete | Q4 2024 |
+
 | Skills Framework (7) | ✅ Complete | Q4 2024 |
+
 | React Dashboard | ✅ Complete | Q1 2025 |
-| V4 Analytics Engine | 🔄 In Progress | Q1 2025 |
+
+| Researcher Analytics Engine | 🔄 In Progress | Q1 2025 |
+
 | Snowflake Integration | ✅ Complete | Q4 2024 |
+
+
 
 ### Near-Term Milestones (Next 6 Months)
 
+
+
 | Milestone | Target | Metric |
+
 |-----------|--------|--------|
+
 | Design Partners | Q2 2025 | 5 paid pilots |
-| V4 GA Release | Q2 2025 | Feature complete |
+
+| Researcher GA Release | Q2 2025 | Feature complete |
+
 | First Production Customer | Q3 2025 | $50K+ ACV |
+
 | MCP Marketplace Listing | Q2 2025 | Top 10 finance tools |
 
+
+
 ---
+
+
 
 # Slide 11: Team
 
+
+
 ## Founders & Advisors
+
+
 
 ### Core Team
 
+
+
 ```
+
 ┌─────────────────────────────────────────────────────────────────┐
+
 │                         FOUNDING TEAM                           │
+
 ├─────────────────────────────────────────────────────────────────┤
+
 │                                                                 │
+
 │   [FOUNDER 1]                    [FOUNDER 2]                    │
+
 │   CEO / Product                  CTO / Engineering              │
+
 │   ─────────────                  ─────────────────              │
+
 │   • [Background]                 • [Background]                 │
+
 │   • [Relevant experience]        • [Relevant experience]        │
+
 │   • [Domain expertise]           • [Technical expertise]        │
+
 │                                                                 │
+
 ├─────────────────────────────────────────────────────────────────┤
+
 │                                                                 │
+
 │   WHY THIS TEAM WINS:                                           │
+
 │   • Deep finance domain expertise                               │
+
 │   • Technical AI/ML background                                  │
+
 │   • Previous startup experience                                 │
+
 │   • Network in target verticals                                 │
+
 │                                                                 │
+
 └─────────────────────────────────────────────────────────────────┘
+
 ```
+
+
 
 ### Advisory Board Targets
 
+
+
 | Role | Target Profile | Status |
+
 |------|----------------|--------|
+
 | **Finance Expert** | Former CFO, mid-market company | Recruiting |
+
 | **Oil & Gas** | VP Finance at E&P company | Recruiting |
+
 | **AI/ML** | Former Anthropic/OpenAI engineer | Recruiting |
+
 | **GTM** | VP Sales at SaaS company | Recruiting |
+
+
 
 ### Hiring Plan (Post-Seed)
 
+
+
 | Role | Timeline | Priority |
+
 |------|----------|----------|
+
 | Senior Full-Stack Engineer | Month 1-2 | P0 |
+
 | Solutions Engineer | Month 2-3 | P0 |
+
 | Customer Success Manager | Month 3-4 | P1 |
+
 | Sales Development Rep | Month 4-5 | P1 |
+
 | Account Executive | Month 5-6 | P1 |
 
+
+
 ---
+
+
 
 # Slide 12: The Ask
 
+
+
 ## Seed Round: $2M
+
+
 
 ### Use of Funds
 
+
+
 ```
+
 ┌─────────────────────────────────────────────────────────────────┐
+
 │                     USE OF FUNDS ($2M)                          │
+
 ├─────────────────────────────────────────────────────────────────┤
+
 │                                                                 │
-│  Engineering (60%)          ████████████████████████  $1.2M     │
+
+│  Engineering (60%)          ████████████████████████  
+.2M     │
+
 │  • 3 engineers × 18 months                                      │
+
 │  • Infrastructure & tools                                       │
+
 │                                                                 │
+
 │  Sales & Marketing (25%)    ██████████               $500K      │
+
 │  • 2 sales hires                                                │
+
 │  • Content & events                                             │
+
 │  • Partner development                                          │
+
 │                                                                 │
+
 │  Operations (10%)           ████                     $200K      │
+
 │  • Legal, compliance                                            │
+
 │  • SOC 2 certification                                          │
+
 │                                                                 │
-│  Reserve (5%)               ██                       $100K      │
+
+│  Reserve (5%)               ██                       
+00K      │
+
 │  • Contingency                                                  │
+
 │                                                                 │
+
 └─────────────────────────────────────────────────────────────────┘
+
 ```
+
+
 
 ### Key Metrics to Prove (18-Month Runway)
 
+
+
 | Metric | Target | Purpose |
+
 |--------|--------|---------|
+
 | **Paying Customers** | 25+ | Product-market fit |
+
 | **ARR** | $500K+ | Revenue traction |
+
 | **Net Retention** | 110%+ | Expansion potential |
+
 | **Design Partners** | 10 | Enterprise validation |
+
+
 
 ### Why Invest Now
 
-1. **Early in $15B+ market** with 34.8% CAGR in AI/FP&A
+
+
+1. **Early in 
+5B+ market** with 34.8% CAGR in AI/FP&A
+
 2. **MCP first-mover advantage** before market crowds
+
 3. **Product exists** — not a PowerPoint company
+
 4. **Capital efficient** — 18+ month runway to Series A metrics
+
+
 
 ### Exit Potential
 
+
+
 | Exit Type | Comp Range | Potential Acquirers |
+
 |-----------|------------|---------------------|
+
 | Strategic Acquisition | $50M-$200M | Snowflake, Databricks, Workday |
+
 | Growth Equity → IPO | $500M+ | Continuing as independent |
-| PE Rollup | $100M-$300M | Vista, Thoma Bravo |
+
+| PE Rollup | 
+00M-$300M | Vista, Thoma Bravo |
+
+
 
 ---
+
+
 
 # Contact
 
+
+
 **DataBridge AI**
 
+
+
 Email: contact@databridge.ai
+
 Website: www.databridge.ai
+
+
 
 *Finance Reconciliation That Speaks Your Language*
 
+
+
 ---
 
+
+
 *Deck created January 2025*
+
+

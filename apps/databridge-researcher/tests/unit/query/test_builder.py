@@ -347,3 +347,166 @@ class TestQueryToDict:
         assert "parameters" in result
         assert "columns" in result
         assert "tables" in result
+
+
+class TestParameterizedWhere:
+    """Tests for parameterized WHERE methods (SQL injection prevention)."""
+
+    def test_where_equals(self):
+        """Test parameterized WHERE column = value."""
+        query = (QueryBuilder()
+            .select("*")
+            .from_table("sales")
+            .where_equals("status", "active")
+            .build())
+
+        # Value should be in parameters, not SQL
+        assert "status = :p_status" in query.sql
+        assert query.parameters["p_status_0"] == "active"
+        assert "'active'" not in query.sql  # No raw value in SQL
+
+    def test_where_equals_with_custom_param_name(self):
+        """Test where_equals with custom parameter name."""
+        query = (QueryBuilder()
+            .select("*")
+            .from_table("sales")
+            .where_equals("status", "active", param_name="my_status")
+            .build())
+
+        assert ":my_status" in query.sql
+        assert query.parameters["my_status"] == "active"
+
+    def test_where_not_equals(self):
+        """Test parameterized WHERE column != value."""
+        query = (QueryBuilder()
+            .select("*")
+            .from_table("sales")
+            .where_not_equals("status", "deleted")
+            .build())
+
+        assert "status != :p_status" in query.sql
+        assert query.parameters["p_status_0"] == "deleted"
+
+    def test_where_greater_than(self):
+        """Test parameterized WHERE column > value."""
+        query = (QueryBuilder()
+            .select("*")
+            .from_table("sales")
+            .where_greater_than("amount", 100)
+            .build())
+
+        assert "amount > :p_amount" in query.sql
+        assert query.parameters["p_amount_0"] == 100
+
+    def test_where_greater_than_or_equal(self):
+        """Test parameterized WHERE column >= value."""
+        query = (QueryBuilder()
+            .select("*")
+            .from_table("sales")
+            .where_greater_than("amount", 100, or_equal=True)
+            .build())
+
+        assert "amount >= :p_amount" in query.sql
+
+    def test_where_less_than(self):
+        """Test parameterized WHERE column < value."""
+        query = (QueryBuilder()
+            .select("*")
+            .from_table("sales")
+            .where_less_than("amount", 1000)
+            .build())
+
+        assert "amount < :p_amount" in query.sql
+        assert query.parameters["p_amount_0"] == 1000
+
+    def test_where_less_than_or_equal(self):
+        """Test parameterized WHERE column <= value."""
+        query = (QueryBuilder()
+            .select("*")
+            .from_table("sales")
+            .where_less_than("amount", 1000, or_equal=True)
+            .build())
+
+        assert "amount <= :p_amount" in query.sql
+
+    def test_where_like(self):
+        """Test parameterized WHERE column LIKE pattern."""
+        query = (QueryBuilder()
+            .select("*")
+            .from_table("customers")
+            .where_like("name", "John%")
+            .build())
+
+        assert "name LIKE :p_name" in query.sql
+        assert query.parameters["p_name_0"] == "John%"
+
+    def test_where_is_null(self):
+        """Test WHERE column IS NULL."""
+        query = (QueryBuilder()
+            .select("*")
+            .from_table("sales")
+            .where_is_null("deleted_at")
+            .build())
+
+        assert "deleted_at IS NULL" in query.sql
+
+    def test_where_is_not_null(self):
+        """Test WHERE column IS NOT NULL."""
+        query = (QueryBuilder()
+            .select("*")
+            .from_table("sales")
+            .where_is_not_null("created_at")
+            .build())
+
+        assert "created_at IS NOT NULL" in query.sql
+
+    def test_multiple_parameterized_conditions(self):
+        """Test multiple parameterized WHERE conditions."""
+        query = (QueryBuilder()
+            .select("*")
+            .from_table("sales")
+            .where_equals("status", "active")
+            .where_greater_than("amount", 100)
+            .where_less_than("amount", 1000)
+            .build())
+
+        assert "status = :p_status_0" in query.sql
+        assert "amount > :p_amount_1" in query.sql
+        assert "amount < :p_amount_2" in query.sql
+        assert query.parameters["p_status_0"] == "active"
+        assert query.parameters["p_amount_1"] == 100
+        assert query.parameters["p_amount_2"] == 1000
+
+    def test_parameterized_with_qualified_column(self):
+        """Test parameterized WHERE with qualified column name."""
+        query = (QueryBuilder()
+            .select("*")
+            .from_table("sales", alias="s")
+            .where_equals("s.status", "active")
+            .build())
+
+        assert "s.status = :p_s_status" in query.sql
+        assert query.parameters["p_s_status_0"] == "active"
+
+    def test_where_in_parameterized(self):
+        """Test WHERE IN with parameterized values."""
+        query = (QueryBuilder()
+            .select("*")
+            .from_table("sales")
+            .where_in("status", ["active", "pending"], "statuses")
+            .build())
+
+        assert "status IN (:statuses)" in query.sql
+        assert query.parameters["statuses"] == ["active", "pending"]
+
+    def test_where_between_parameterized(self):
+        """Test WHERE BETWEEN with parameterized values."""
+        query = (QueryBuilder()
+            .select("*")
+            .from_table("sales")
+            .where_between("amount", 100, 1000, "min_amount", "max_amount")
+            .build())
+
+        assert "amount BETWEEN :min_amount AND :max_amount" in query.sql
+        assert query.parameters["min_amount"] == 100
+        assert query.parameters["max_amount"] == 1000

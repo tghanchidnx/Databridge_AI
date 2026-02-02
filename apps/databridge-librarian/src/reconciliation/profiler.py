@@ -1,5 +1,5 @@
 """
-Data Profiler for DataBridge AI V3.
+Data Profiler for DataBridge AI Librarian.
 
 Provides comprehensive data profiling and quality analysis.
 """

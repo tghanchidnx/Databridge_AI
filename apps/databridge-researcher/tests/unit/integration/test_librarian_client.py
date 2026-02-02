@@ -1,29 +1,29 @@
 """
-Tests for V3 Hierarchy Client.
+Tests for Librarian Hierarchy Client.
 
-Tests the integration client for connecting to V3 Hierarchy Builder.
+Tests the integration client for connecting to Librarian Hierarchy Builder.
 """
 
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
 
-from src.integration.v3_client import (
-    V3HierarchyClient,
-    V3ConnectionMode,
-    V3Project,
-    V3Hierarchy,
-    V3Mapping,
-    V3ClientResult,
+from src.integration.librarian_client import (
+    LibrarianHierarchyClient,
+    LibrarianConnectionMode,
+    LibrarianProject,
+    LibrarianHierarchy,
+    LibrarianMapping,
+    LibrarianClientResult,
 )
 
 
-class TestV3Project:
-    """Tests for V3Project dataclass."""
+class TestLibrarianProject:
+    """Tests for LibrarianProject dataclass."""
 
-    def test_v3_project_creation(self):
-        """Test creating a V3 project."""
-        project = V3Project(
+    def test_librarian_project_creation(self):
+        """Test creating a Librarian project."""
+        project = LibrarianProject(
             id="test-123",
             name="Test Project",
             description="A test project",
@@ -33,9 +33,9 @@ class TestV3Project:
         assert project.name == "Test Project"
         assert project.description == "A test project"
 
-    def test_v3_project_to_dict(self):
-        """Test V3 project to dictionary conversion."""
-        project = V3Project(
+    def test_librarian_project_to_dict(self):
+        """Test Librarian project to dictionary conversion."""
+        project = LibrarianProject(
             id="test-123",
             name="Test Project",
             description="Test description",
@@ -49,9 +49,9 @@ class TestV3Project:
         assert result["description"] == "Test description"
         assert "created_at" in result
 
-    def test_v3_project_defaults(self):
-        """Test V3 project default values."""
-        project = V3Project(
+    def test_librarian_project_defaults(self):
+        """Test Librarian project default values."""
+        project = LibrarianProject(
             id="p1",
             name="P1",
         )
@@ -61,12 +61,12 @@ class TestV3Project:
         assert project.client_name == ""
 
 
-class TestV3Hierarchy:
-    """Tests for V3Hierarchy dataclass."""
+class TestLibrarianHierarchy:
+    """Tests for LibrarianHierarchy dataclass."""
 
-    def test_v3_hierarchy_creation(self):
-        """Test creating a V3 hierarchy."""
-        hierarchy = V3Hierarchy(
+    def test_librarian_hierarchy_creation(self):
+        """Test creating a Librarian hierarchy."""
+        hierarchy = LibrarianHierarchy(
             hierarchy_id="h-123",
             project_id="p-123",
             hierarchy_name="Test Hierarchy",
@@ -78,9 +78,9 @@ class TestV3Hierarchy:
         assert hierarchy.hierarchy_name == "Test Hierarchy"
         assert hierarchy.levels["level_1"] == "Root"
 
-    def test_v3_hierarchy_get_depth(self):
+    def test_librarian_hierarchy_get_depth(self):
         """Test getting hierarchy depth."""
-        hierarchy = V3Hierarchy(
+        hierarchy = LibrarianHierarchy(
             hierarchy_id="h-123",
             project_id="p-123",
             hierarchy_name="Test",
@@ -93,9 +93,9 @@ class TestV3Hierarchy:
 
         assert hierarchy.get_depth() == 3
 
-    def test_v3_hierarchy_get_depth_empty(self):
+    def test_librarian_hierarchy_get_depth_empty(self):
         """Test getting depth with empty levels."""
-        hierarchy = V3Hierarchy(
+        hierarchy = LibrarianHierarchy(
             hierarchy_id="h-123",
             project_id="p-123",
             hierarchy_name="Test",
@@ -104,9 +104,9 @@ class TestV3Hierarchy:
 
         assert hierarchy.get_depth() == 0
 
-    def test_v3_hierarchy_to_dict(self):
+    def test_librarian_hierarchy_to_dict(self):
         """Test hierarchy to dictionary conversion."""
-        hierarchy = V3Hierarchy(
+        hierarchy = LibrarianHierarchy(
             hierarchy_id="h-123",
             project_id="p-123",
             hierarchy_name="Test",
@@ -121,9 +121,9 @@ class TestV3Hierarchy:
         assert result["parent_id"] == "h-parent"
         assert result["sort_order"] == 5
 
-    def test_v3_hierarchy_get_level_path(self):
+    def test_librarian_hierarchy_get_level_path(self):
         """Test getting level path."""
-        hierarchy = V3Hierarchy(
+        hierarchy = LibrarianHierarchy(
             hierarchy_id="h-123",
             project_id="p-123",
             hierarchy_name="Test",
@@ -134,9 +134,9 @@ class TestV3Hierarchy:
 
         assert path == "Root > Child > Leaf"
 
-    def test_v3_hierarchy_get_level_path_custom_separator(self):
+    def test_librarian_hierarchy_get_level_path_custom_separator(self):
         """Test getting level path with custom separator."""
-        hierarchy = V3Hierarchy(
+        hierarchy = LibrarianHierarchy(
             hierarchy_id="h-123",
             project_id="p-123",
             hierarchy_name="Test",
@@ -148,12 +148,12 @@ class TestV3Hierarchy:
         assert path == "A / B"
 
 
-class TestV3Mapping:
-    """Tests for V3Mapping dataclass."""
+class TestLibrarianMapping:
+    """Tests for LibrarianMapping dataclass."""
 
-    def test_v3_mapping_creation(self):
-        """Test creating a V3 mapping."""
-        mapping = V3Mapping(
+    def test_librarian_mapping_creation(self):
+        """Test creating a Librarian mapping."""
+        mapping = LibrarianMapping(
             hierarchy_id="h-123",
             mapping_index=0,
             source_database="prod_db",
@@ -166,9 +166,9 @@ class TestV3Mapping:
         assert mapping.mapping_index == 0
         assert mapping.source_database == "prod_db"
 
-    def test_v3_mapping_get_full_path(self):
+    def test_librarian_mapping_get_full_path(self):
         """Test getting full source path."""
-        mapping = V3Mapping(
+        mapping = LibrarianMapping(
             hierarchy_id="h-123",
             mapping_index=0,
             source_database="prod_db",
@@ -181,9 +181,9 @@ class TestV3Mapping:
 
         assert path == "prod_db.finance.gl_accounts.account_id"
 
-    def test_v3_mapping_to_dict(self):
+    def test_librarian_mapping_to_dict(self):
         """Test mapping to dictionary conversion."""
-        mapping = V3Mapping(
+        mapping = LibrarianMapping(
             hierarchy_id="h-123",
             mapping_index=1,
             source_database="db",
@@ -200,12 +200,12 @@ class TestV3Mapping:
         assert result["precedence_group"] == 2
 
 
-class TestV3ClientResult:
-    """Tests for V3ClientResult dataclass."""
+class TestLibrarianClientResult:
+    """Tests for LibrarianClientResult dataclass."""
 
     def test_result_success(self):
         """Test successful result."""
-        result = V3ClientResult(
+        result = LibrarianClientResult(
             success=True,
             message="Operation completed",
         )
@@ -216,7 +216,7 @@ class TestV3ClientResult:
 
     def test_result_failure(self):
         """Test failed result."""
-        result = V3ClientResult(
+        result = LibrarianClientResult(
             success=False,
             message="Operation failed",
             errors=["Error 1", "Error 2"],
@@ -227,7 +227,7 @@ class TestV3ClientResult:
 
     def test_result_to_dict(self):
         """Test result to dictionary conversion."""
-        result = V3ClientResult(
+        result = LibrarianClientResult(
             success=True,
             message="Done",
             data={"key": "value"},
@@ -241,7 +241,7 @@ class TestV3ClientResult:
     def test_result_with_data(self):
         """Test result with data."""
         project_data = {"id": "p1", "name": "Test"}
-        result = V3ClientResult(
+        result = LibrarianClientResult(
             success=True,
             data=project_data,
         )
@@ -249,37 +249,37 @@ class TestV3ClientResult:
         assert result.data["id"] == "p1"
 
 
-class TestV3HierarchyClient:
-    """Tests for V3HierarchyClient."""
+class TestLibrarianHierarchyClient:
+    """Tests for LibrarianHierarchyClient."""
 
     def test_client_initialization_http_mode(self):
         """Test client initialization in HTTP mode."""
-        client = V3HierarchyClient(
-            mode=V3ConnectionMode.HTTP,
+        client = LibrarianHierarchyClient(
+            mode=LibrarianConnectionMode.HTTP,
             base_url="http://localhost:8000",
         )
 
-        assert client.mode == V3ConnectionMode.HTTP
+        assert client.mode == LibrarianConnectionMode.HTTP
         assert client.base_url == "http://localhost:8000"
 
     def test_client_initialization_direct_mode(self):
         """Test client initialization in direct mode."""
-        client = V3HierarchyClient(
-            mode=V3ConnectionMode.DIRECT,
+        client = LibrarianHierarchyClient(
+            mode=LibrarianConnectionMode.DIRECT,
         )
 
-        assert client.mode == V3ConnectionMode.DIRECT
+        assert client.mode == LibrarianConnectionMode.DIRECT
 
     def test_client_defaults(self):
         """Test client default values."""
-        client = V3HierarchyClient()
+        client = LibrarianHierarchyClient()
 
         assert client.base_url == "http://localhost:8000"
-        assert client.mode == V3ConnectionMode.HTTP
+        assert client.mode == LibrarianConnectionMode.HTTP
         assert client.timeout == 30.0
         assert client.cache_enabled is True
 
-    @patch("src.integration.v3_client.httpx.Client")
+    @patch("src.integration.librarian_client.httpx.Client")
     def test_list_projects_http(self, mock_client_class):
         """Test listing projects via HTTP."""
         mock_client = MagicMock()
@@ -296,8 +296,8 @@ class TestV3HierarchyClient:
         mock_response.raise_for_status = Mock()
         mock_client.get.return_value = mock_response
 
-        client = V3HierarchyClient(
-            mode=V3ConnectionMode.HTTP,
+        client = LibrarianHierarchyClient(
+            mode=LibrarianConnectionMode.HTTP,
             base_url="http://localhost:8000",
         )
 
@@ -306,15 +306,15 @@ class TestV3HierarchyClient:
         assert result.success is True
         assert len(result.data) == 2
 
-    @patch("src.integration.v3_client.httpx.Client")
+    @patch("src.integration.librarian_client.httpx.Client")
     def test_list_projects_http_error(self, mock_client_class):
         """Test handling HTTP error when listing projects."""
         mock_client = MagicMock()
         mock_client_class.return_value = mock_client
         mock_client.get.side_effect = Exception("Connection refused")
 
-        client = V3HierarchyClient(
-            mode=V3ConnectionMode.HTTP,
+        client = LibrarianHierarchyClient(
+            mode=LibrarianConnectionMode.HTTP,
             base_url="http://localhost:8000",
         )
 
@@ -323,7 +323,7 @@ class TestV3HierarchyClient:
         assert result.success is False
         assert len(result.errors) > 0
 
-    @patch("src.integration.v3_client.httpx.Client")
+    @patch("src.integration.librarian_client.httpx.Client")
     def test_get_project_http(self, mock_client_class):
         """Test getting a project via HTTP."""
         mock_client = MagicMock()
@@ -338,8 +338,8 @@ class TestV3HierarchyClient:
         mock_response.raise_for_status = Mock()
         mock_client.get.return_value = mock_response
 
-        client = V3HierarchyClient(
-            mode=V3ConnectionMode.HTTP,
+        client = LibrarianHierarchyClient(
+            mode=LibrarianConnectionMode.HTTP,
             base_url="http://localhost:8000",
         )
 
@@ -349,7 +349,7 @@ class TestV3HierarchyClient:
         assert result.data["id"] == "p1"
         assert result.data["name"] == "Project 1"
 
-    @patch("src.integration.v3_client.httpx.Client")
+    @patch("src.integration.librarian_client.httpx.Client")
     def test_list_hierarchies_http(self, mock_client_class):
         """Test listing hierarchies via HTTP."""
         mock_client = MagicMock()
@@ -366,8 +366,8 @@ class TestV3HierarchyClient:
         mock_response.raise_for_status = Mock()
         mock_client.get.return_value = mock_response
 
-        client = V3HierarchyClient(
-            mode=V3ConnectionMode.HTTP,
+        client = LibrarianHierarchyClient(
+            mode=LibrarianConnectionMode.HTTP,
             base_url="http://localhost:8000",
         )
 
@@ -376,7 +376,7 @@ class TestV3HierarchyClient:
         assert result.success is True
         assert len(result.data) == 2
 
-    @patch("src.integration.v3_client.httpx.Client")
+    @patch("src.integration.librarian_client.httpx.Client")
     def test_get_hierarchy_http(self, mock_client_class):
         """Test getting a hierarchy via HTTP."""
         mock_client = MagicMock()
@@ -392,8 +392,8 @@ class TestV3HierarchyClient:
         mock_response.raise_for_status = Mock()
         mock_client.get.return_value = mock_response
 
-        client = V3HierarchyClient(
-            mode=V3ConnectionMode.HTTP,
+        client = LibrarianHierarchyClient(
+            mode=LibrarianConnectionMode.HTTP,
             base_url="http://localhost:8000",
         )
 
@@ -402,7 +402,7 @@ class TestV3HierarchyClient:
         assert result.success is True
         assert result.data["hierarchy_id"] == "h1"
 
-    @patch("src.integration.v3_client.httpx.Client")
+    @patch("src.integration.librarian_client.httpx.Client")
     def test_get_hierarchy_tree_http(self, mock_client_class):
         """Test getting hierarchy tree via HTTP."""
         mock_client = MagicMock()
@@ -417,8 +417,8 @@ class TestV3HierarchyClient:
         mock_response.raise_for_status = Mock()
         mock_client.get.return_value = mock_response
 
-        client = V3HierarchyClient(
-            mode=V3ConnectionMode.HTTP,
+        client = LibrarianHierarchyClient(
+            mode=LibrarianConnectionMode.HTTP,
             base_url="http://localhost:8000",
         )
 
@@ -426,7 +426,7 @@ class TestV3HierarchyClient:
 
         assert result.success is True
 
-    @patch("src.integration.v3_client.httpx.Client")
+    @patch("src.integration.librarian_client.httpx.Client")
     def test_get_mappings_http(self, mock_client_class):
         """Test getting mappings via HTTP."""
         mock_client = MagicMock()
@@ -449,8 +449,8 @@ class TestV3HierarchyClient:
         mock_response.raise_for_status = Mock()
         mock_client.get.return_value = mock_response
 
-        client = V3HierarchyClient(
-            mode=V3ConnectionMode.HTTP,
+        client = LibrarianHierarchyClient(
+            mode=LibrarianConnectionMode.HTTP,
             base_url="http://localhost:8000",
         )
 
@@ -461,15 +461,15 @@ class TestV3HierarchyClient:
 
     def test_caching_enabled(self):
         """Test that caching is enabled by default."""
-        client = V3HierarchyClient(
-            mode=V3ConnectionMode.HTTP,
+        client = LibrarianHierarchyClient(
+            mode=LibrarianConnectionMode.HTTP,
             base_url="http://localhost:8000",
             cache_enabled=True,
         )
 
         assert client.cache_enabled is True
 
-    @patch("src.integration.v3_client.httpx.Client")
+    @patch("src.integration.librarian_client.httpx.Client")
     def test_response_caching(self, mock_client_class):
         """Test that responses are cached."""
         mock_client = MagicMock()
@@ -480,8 +480,8 @@ class TestV3HierarchyClient:
         mock_response.raise_for_status = Mock()
         mock_client.get.return_value = mock_response
 
-        client = V3HierarchyClient(
-            mode=V3ConnectionMode.HTTP,
+        client = LibrarianHierarchyClient(
+            mode=LibrarianConnectionMode.HTTP,
             base_url="http://localhost:8000",
             cache_enabled=True,
         )
@@ -498,15 +498,15 @@ class TestV3HierarchyClient:
         # HTTP should only be called once due to caching
         assert mock_client.get.call_count == 1
 
-    @patch("src.integration.v3_client.httpx.Client")
+    @patch("src.integration.librarian_client.httpx.Client")
     def test_connection_error_handling(self, mock_client_class):
         """Test handling connection errors."""
         mock_client = MagicMock()
         mock_client_class.return_value = mock_client
         mock_client.get.side_effect = Exception("Connection refused")
 
-        client = V3HierarchyClient(
-            mode=V3ConnectionMode.HTTP,
+        client = LibrarianHierarchyClient(
+            mode=LibrarianConnectionMode.HTTP,
             base_url="http://localhost:8000",
         )
 
@@ -517,7 +517,7 @@ class TestV3HierarchyClient:
 
     def test_clear_cache(self):
         """Test clearing the cache."""
-        client = V3HierarchyClient()
+        client = LibrarianHierarchyClient()
         client._cache["test_key"] = "test_value"
 
         client.clear_cache()
@@ -526,7 +526,7 @@ class TestV3HierarchyClient:
 
     def test_cache_key_generation(self):
         """Test cache key generation."""
-        client = V3HierarchyClient()
+        client = LibrarianHierarchyClient()
 
         key = client._cache_key("operation", param1="value1", param2="value2")
 
@@ -535,13 +535,13 @@ class TestV3HierarchyClient:
         assert "param2=value2" in key
 
 
-class TestV3HierarchyClientDirectMode:
-    """Tests for V3HierarchyClient in direct mode."""
+class TestLibrarianHierarchyClientDirectMode:
+    """Tests for LibrarianHierarchyClient in direct mode."""
 
     def test_direct_mode_returns_error(self):
         """Test that direct mode methods return appropriate error messages."""
-        client = V3HierarchyClient(
-            mode=V3ConnectionMode.DIRECT,
+        client = LibrarianHierarchyClient(
+            mode=LibrarianConnectionMode.DIRECT,
         )
 
         # Direct mode should return error since it's not implemented
@@ -552,7 +552,7 @@ class TestV3HierarchyClientDirectMode:
 
     def test_direct_mode_get_project(self):
         """Test get_project in direct mode."""
-        client = V3HierarchyClient(mode=V3ConnectionMode.DIRECT)
+        client = LibrarianHierarchyClient(mode=LibrarianConnectionMode.DIRECT)
 
         result = client.get_project("p1")
 
@@ -560,7 +560,7 @@ class TestV3HierarchyClientDirectMode:
 
     def test_direct_mode_list_hierarchies(self):
         """Test list_hierarchies in direct mode."""
-        client = V3HierarchyClient(mode=V3ConnectionMode.DIRECT)
+        client = LibrarianHierarchyClient(mode=LibrarianConnectionMode.DIRECT)
 
         result = client.list_hierarchies("p1")
 

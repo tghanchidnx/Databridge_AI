@@ -145,24 +145,23 @@ Skills are organized by **domain** with industry specializations.
 
 ## 🛠 Tech Stack
 
-### V2 Architecture (Current)
-- **Frontend:** React + TypeScript + Vite + Tailwind CSS (Docker: port 8443/8080)
-- **Backend:** NestJS + TypeScript + MySQL (Docker: port 3002)
+### Librarian/Researcher Architecture (Current)
+- **Frontend:** React + TypeScript + Vite + Tailwind CSS (Docker: port 8000)
+- **Backend:** NestJS + TypeScript + MySQL (Docker: port 8001)
 - **MCP Server:** Python 3.10+ + FastMCP
 - **Data Engine:** Pandas, SQLAlchemy, RapidFuzz
 - **Database:** MySQL 8.0 (Docker: port 3308)
 - **Cache:** Redis 7 (Docker: port 6381)
 
-### V2 Service Ports
+### Librarian/Researcher Service Ports
 | Service | Port | Container |
 |---------|------|-----------|
-| Frontend HTTPS | 8443 | databridge-frontend-v2 |
-| Frontend HTTP | 8080 | databridge-frontend-v2 |
-| Backend API | 3002 | databridge-backend-v2 |
+| Frontend | 8000 | databridge-librarian |
+| Backend | 8001 | databridge-researcher |
 | MySQL | 3308 | databridge-mysql-v2 |
 | Redis | 6381 | databridge-redis-v2 |
 
-### V2 API Keys
+### Librarian/Researcher API Keys
 - `v2-dev-key-1` - Primary development key
 - `v2-dev-key-2` - Secondary development key
 
@@ -195,7 +194,7 @@ C:\Users\telha\Databridge_AI\
 4. **Living Docs:** After adding/modifying a tool, run the `update_manifest` tool to keep `docs/MANIFEST.md` current.
 5. **Review Lessons Learned:** Before making changes, review `docs/LESSONS_LEARNED.md` for common pitfalls.
 
-## 🔄 V2 Development Workflow
+## 🔄 Librarian/Researcher Development Workflow
 
 ### Before Making Frontend Changes
 1. Check if running in Docker: `docker ps | grep frontend`
@@ -208,7 +207,7 @@ C:\Users\telha\Databridge_AI\
 - **Tree not showing children**: Check `parentId` references `hierarchyId`, not `id`
 - **Hover effects not working**: Ensure parent has `group` class, rebuild Docker
 - **AI changes not applying**: Check `data.changes` from backend response
-- **API calls failing**: Verify correct port (3002 for V2) and API key
+- **API calls failing**: Verify correct port (8001 for Researcher) and API key
 
 ### Quick Commands
 ```bash
@@ -222,7 +221,7 @@ cd v2 && docker-compose build frontend-v2 --no-cache && docker-compose up -d fro
 docker logs databridge-frontend-v2 --tail 50
 
 # Test backend
-curl http://localhost:3002/api/health
+curl http://localhost:8001/api/health
 ```
 
 ## ⚠️ Safety Guardrails

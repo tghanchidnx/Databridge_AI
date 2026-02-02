@@ -73,13 +73,13 @@ services:
       - databridge-network
 
   # =============================================================================
-  # DataBridge V3 - Hierarchy Builder
+  # DataBridge Librarian - Hierarchy Builder
   # =============================================================================
-  databridge-v3:
+  databridge-librarian:
     build:
-      context: ../v3
-      dockerfile: ../docker/Dockerfile.v3
-    container_name: databridge-v3
+      context: ../apps/databridge-librarian
+      dockerfile: ../../docker/Dockerfile.librarian
+    container_name: databridge-librarian
     restart: unless-stopped
     environment:
       - DATABRIDGE_ENV=development
@@ -90,12 +90,12 @@ services:
       - CHROMADB_PORT=8000
       - REDIS_URL=redis://redis:6379/0
     ports:
-      - "${V3_PORT:-8000}:8000"
+      - "${LIBRARIAN_PORT:-8000}:8000"
     volumes:
-      - ../v3/src:/app/src:ro
-      - ../v3/skills:/app/skills:ro
-      - ../v3/templates:/app/templates:ro
-      - v3_data:/app/data
+      - ../apps/databridge-librarian/src:/app/src:ro
+      - ../skills:/app/skills:ro
+      - ../templates:/app/templates:ro
+      - librarian_data:/app/data
     depends_on:
       chromadb:
         condition: service_healthy
@@ -107,13 +107,13 @@ services:
       - full
 
   # =============================================================================
-  # DataBridge V4 - Analytics Engine
+  # DataBridge Researcher - Analytics Engine
   # =============================================================================
-  databridge-v4:
+  databridge-researcher:
     build:
-      context: ../v4
-      dockerfile: ../docker/Dockerfile.v4
-    container_name: databridge-v4
+      context: ../apps/databridge-researcher
+      dockerfile: ../../docker/Dockerfile.researcher
+    container_name: databridge-researcher
     restart: unless-stopped
     environment:
       - DATABRIDGE_ENV=development
@@ -123,16 +123,16 @@ services:
       - POSTGRESQL_DATABASE=databridge_analytics
       - POSTGRESQL_USER=postgres
       - POSTGRESQL_PASSWORD=postgres
-      - V3_API_URL=http://databridge-v3:8000
+      - LIBRARIAN_API_URL=http://databridge-librarian:8000
       - CHROMADB_PATH=http://chromadb:8000
       - REDIS_URL=redis://redis:6379/1
     ports:
-      - "${V4_PORT:-8002}:8000"
+      - "${RESEARCHER_PORT:-8002}:8000"
     volumes:
-      - ../v4/src:/app/src:ro
-      - ../v4/skills:/app/skills:ro
-      - ../v4/knowledgebase:/app/knowledgebase:ro
-      - v4_data:/app/data
+      - ../apps/databridge-researcher/src:/app/src:ro
+      - ../skills:/app/skills:ro
+      - ../knowledgebase:/app/knowledgebase:ro
+      - researcher_data:/app/data
     depends_on:
       postgres:
         condition: service_healthy
@@ -163,7 +163,7 @@ volumes:
     name: databridge-chromadb-data
   redis_data:
     name: databridge-redis-data
-  v3_data:
-    name: databridge-v3-data
-  v4_data:
-    name: databridge-v4-data
+  librarian_data:
+    name: databridge-librarian-data
+  researcher_data:
+    name: databridge-researcher-data

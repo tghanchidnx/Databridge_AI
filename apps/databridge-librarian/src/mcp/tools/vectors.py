@@ -1,5 +1,5 @@
 """
-MCP Tools for Vector Store operations in DataBridge AI V3.
+MCP Tools for Vector Store operations in DataBridge AI Librarian.
 
 Provides tools for semantic search, embeddings, and RAG operations.
 """
@@ -57,7 +57,7 @@ def register_vector_tools(mcp) -> None:
         List all vector collections in the store.
 
         Returns a list of collections with their names, document counts,
-        and metadata. Collections are prefixed with 'databridge_v3_'.
+        and metadata. Collections are prefixed with 'databridge_librarian_'.
 
         Returns:
             Dictionary with:
