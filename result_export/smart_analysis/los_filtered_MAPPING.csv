@@ -1,0 +1,560 @@
+HIERARCHY_ID,HIERARCHY_NAME,PARENT_HIERARCHY,SOURCE_COLUMN,CONDITION_TYPE,CONDITION_VALUE,MAPPED_VALUE
+ACCTCODE_640-992,640-992,acctcode,account_code,ILIKE,%COPAS%,640-992
+ADJBILLCAT_PAC990,PAC990,adjbillcat,transaction_description,=,641-990,PAC990
+ADJBILLCAT_NLOE990,NLOE990,adjbillcat,transaction_description,IN,641-990,NLOE990
+ADJBILLCAT_NLOE990,NLOE990,adjbillcat,transaction_description,IN,640-990,NLOE990
+"STATE_NULL
+________WHEN_PROPS.C","NULL
+        WHEN props.cost_center_state IN (",state,cost_center_state,ILIKE,%UNKNOWN%,"NULL
+        WHEN props.cost_center_state IN ("
+"STATE_NULL
+________WHEN_PROPS.C","NULL
+        WHEN props.cost_center_state IN (",state,cost_center_state,ILIKE,%N/A%,"NULL
+        WHEN props.cost_center_state IN ("
+"PRODUCTID_NULL
+________ELSE_ENTRIES","NULL
+        ELSE entries.product_code",productid,product_code,=,N/A,"NULL
+        ELSE entries.product_code"
+GL_CASH,Cash,gl,account_code,ILIKE,101%,Cash
+GL_AFFILIATE_AR,Affiliate AR,gl,account_code,ILIKE,125%,Affiliate AR
+GL_AR,AR,gl,account_code,ILIKE,11%,AR
+GL_AR,AR,gl,account_code,ILIKE,12%,AR
+GL_PREPAID_EXPENSES,Prepaid Expenses,gl,account_code,ILIKE,13%,Prepaid Expenses
+GL_INVENTORY,Inventory,gl,account_code,ILIKE,14%,Inventory
+GL_OTHER_CURRENT_ASSETS,Other Current Assets,gl,account_code,ILIKE,15%,Other Current Assets
+GL_OTHER_CURRENT_ASSETS,Other Current Assets,gl,account_code,ILIKE,16%,Other Current Assets
+GL_DERIVATIVE_ASSETS,Derivative Assets,gl,account_code,ILIKE,17%,Derivative Assets
+GL_DEFERRED_TAX_ASSETS,Deferred Tax Assets,gl,account_code,ILIKE,18%,Deferred Tax Assets
+GL_CAPEX,Capex,gl,account_code,IN,205-102,Capex
+GL_CAPEX,Capex,gl,account_code,IN,205-106,Capex
+GL_CAPEX,Capex,gl,account_code,IN,205-112,Capex
+GL_CAPEX,Capex,gl,account_code,IN,205-116,Capex
+GL_CAPEX,Capex,gl,account_code,IN,205-117,Capex
+GL_CAPEX,Capex,gl,account_code,IN,205-152,Capex
+GL_CAPEX,Capex,gl,account_code,IN,205-190,Capex
+GL_CAPEX,Capex,gl,account_code,IN,205-202,Capex
+GL_CAPEX,Capex,gl,account_code,IN,205-206,Capex
+GL_CAPEX,Capex,gl,account_code,IN,205-252,Capex
+GL_CAPEX,Capex,gl,account_code,IN,205-990,Capex
+GL_CAPEX,Capex,gl,account_code,IN,210-110,Capex
+GL_CAPEX,Capex,gl,account_code,IN,210-140,Capex
+GL_CAPEX,Capex,gl,account_code,IN,210-990,Capex
+GL_CAPEX,Capex,gl,account_code,IN,215-110,Capex
+GL_CAPEX,Capex,gl,account_code,IN,215-990,Capex
+GL_CAPEX,Capex,gl,account_code,IN,220-110,Capex
+GL_CAPEX,Capex,gl,account_code,IN,220-990,Capex
+GL_CAPEX,Capex,gl,account_code,IN,225-110,Capex
+GL_CAPEX,Capex,gl,account_code,IN,225-140,Capex
+GL_CAPEX,Capex,gl,account_code,IN,225-990,Capex
+GL_CAPEX,Capex,gl,account_code,IN,230-110,Capex
+GL_CAPEX,Capex,gl,account_code,IN,230-140,Capex
+GL_CAPEX,Capex,gl,account_code,IN,230-990,Capex
+GL_CAPEX,Capex,gl,account_code,IN,232-200,Capex
+GL_CAPEX,Capex,gl,account_code,IN,232-210,Capex
+GL_CAPEX,Capex,gl,account_code,IN,235-105,Capex
+GL_CAPEX,Capex,gl,account_code,IN,235-110,Capex
+GL_CAPEX,Capex,gl,account_code,IN,235-115,Capex
+GL_CAPEX,Capex,gl,account_code,IN,235-116,Capex
+GL_CAPEX,Capex,gl,account_code,IN,235-120,Capex
+GL_CAPEX,Capex,gl,account_code,IN,235-250,Capex
+GL_CAPEX,Capex,gl,account_code,IN,235-275,Capex
+GL_CAPEX,Capex,gl,account_code,IN,240-110,Capex
+GL_CAPEX,Capex,gl,account_code,IN,240-140,Capex
+GL_CAPEX,Capex,gl,account_code,IN,240-990,Capex
+GL_CAPEX,Capex,gl,account_code,IN,242-150,Capex
+GL_CAPEX,Capex,gl,account_code,IN,242-160,Capex
+GL_CAPEX,Capex,gl,account_code,IN,244-110,Capex
+GL_CAPEX,Capex,gl,account_code,IN,244-140,Capex
+GL_CAPEX,Capex,gl,account_code,IN,244-410,Capex
+GL_CAPEX,Capex,gl,account_code,IN,244-440,Capex
+GL_CAPEX,Capex,gl,account_code,IN,244-560,Capex
+GL_CAPEX,Capex,gl,account_code,IN,244-590,Capex
+GL_CAPEX,Capex,gl,account_code,IN,244-610,Capex
+GL_CAPEX,Capex,gl,account_code,IN,244-640,Capex
+GL_CAPEX,Capex,gl,account_code,IN,244-990,Capex
+GL_CAPEX,Capex,gl,account_code,IN,244-995,Capex
+GL_CAPEX,Capex,gl,account_code,IN,244-998,Capex
+GL_CAPEX,Capex,gl,account_code,IN,245-202,Capex
+GL_CAPEX,Capex,gl,account_code,IN,245-206,Capex
+GL_CAPEX,Capex,gl,account_code,IN,245-227,Capex
+GL_CAPEX,Capex,gl,account_code,IN,245-252,Capex
+GL_CAPEX,Capex,gl,account_code,IN,245-302,Capex
+GL_CAPEX,Capex,gl,account_code,IN,245-306,Capex
+GL_CAPEX,Capex,gl,account_code,IN,245-402,Capex
+GL_CAPEX,Capex,gl,account_code,IN,245-412,Capex
+GL_CAPEX,Capex,gl,account_code,IN,245-602,Capex
+GL_CAPEX,Capex,gl,account_code,IN,245-902,Capex
+GL_CAPEX,Capex,gl,account_code,IN,245-906,Capex
+GL_CAPEX,Capex,gl,account_code,IN,246-312,Capex
+GL_CAPEX,Capex,gl,account_code,IN,246-346,Capex
+GL_CAPEX,Capex,gl,account_code,IN,246-322,Capex
+GL_CAPEX,Capex,gl,account_code,IN,246-316,Capex
+GL_OTHER_ASSETS,Other Assets,gl,account_code,ILIKE,25%,Other Assets
+GL_OTHER_ASSETS,Other Assets,gl,account_code,ILIKE,26%,Other Assets
+GL_OTHER_ASSETS,Other Assets,gl,account_code,ILIKE,27%,Other Assets
+GL_OTHER_ASSETS,Other Assets,gl,account_code,ILIKE,28%,Other Assets
+GL_ACCUMULATED_DD&A,Accumulated DD&A,gl,account_code,ILIKE,29%,Accumulated DD&A
+GL_AP,AP,gl,account_code,ILIKE,30%,AP
+GL_AP,AP,gl,account_code,ILIKE,31%,AP
+GL_AP,AP,gl,account_code,ILIKE,32%,AP
+GL_AP,AP,gl,account_code,ILIKE,33%,AP
+GL_AP,AP,gl,account_code,ILIKE,34%,AP
+GL_TOTAL_DEBT,Total Debt,gl,account_code,ILIKE,35%,Total Debt
+GL_TOTAL_DEBT,Total Debt,gl,account_code,ILIKE,45%,Total Debt
+GL_OTHER_CURRENT_LIABILITIES,Other Current Liabilities,gl,account_code,ILIKE,36%,Other Current Liabilities
+GL_OTHER_CURRENT_LIABILITIES,Other Current Liabilities,gl,account_code,ILIKE,37%,Other Current Liabilities
+GL_OTHER_CURRENT_LIABILITIES,Other Current Liabilities,gl,account_code,ILIKE,38%,Other Current Liabilities
+GL_OTHER_LIABILITIES,Other Liabilities,gl,account_code,ILIKE,44%,Other Liabilities
+GL_OTHER_LIABILITIES,Other Liabilities,gl,account_code,ILIKE,46%,Other Liabilities
+GL_OTHER_LIABILITIES,Other Liabilities,gl,account_code,ILIKE,47%,Other Liabilities
+GL_OTHER_LIABILITIES,Other Liabilities,gl,account_code,ILIKE,48%,Other Liabilities
+GL_EQUITY,Equity,gl,account_code,ILIKE,49%,Equity
+GL_OIL_SALES,Oil Sales,gl,account_code,ILIKE,501%,Oil Sales
+GL_GAS_SALES,Gas Sales,gl,account_code,ILIKE,502%,Gas Sales
+GL_GAS_SALES,Gas Sales,gl,account_code,ILIKE,510%,Gas Sales
+GL_NGL_SALES,NGL Sales,gl,account_code,ILIKE,503%,NGL Sales
+GL_NGL_SALES,NGL Sales,gl,account_code,ILIKE,512%,NGL Sales
+GL_NGL_SALES,NGL Sales,gl,account_code,ILIKE,513%,NGL Sales
+GL_OTHER_INCOME,Other Income,gl,account_code,ILIKE,504%,Other Income
+GL_OTHER_INCOME,Other Income,gl,account_code,ILIKE,520%,Other Income
+GL_OTHER_INCOME,Other Income,gl,account_code,ILIKE,570%,Other Income
+GL_OTHER_INCOME,Other Income,gl,account_code,ILIKE,590-100,Other Income
+GL_OTHER_INCOME,Other Income,gl,account_code,ILIKE,590-110,Other Income
+GL_OTHER_INCOME,Other Income,gl,account_code,ILIKE,590-410,Other Income
+GL_OTHER_INCOME,Other Income,gl,account_code,ILIKE,590-510,Other Income
+GL_OTHER_INCOME,Other Income,gl,account_code,ILIKE,590-900,Other Income
+GL_CASHOUTS,Cashouts,gl,account_code,ILIKE,514%,Cashouts
+GL_CASHOUTS,Cashouts,gl,account_code,ILIKE,519%,Cashouts
+GL_CASHOUTS,Cashouts,gl,account_code,ILIKE,518-120,Cashouts
+GL_CASHOUTS,Cashouts,gl,account_code,ILIKE,590-710,Cashouts
+GL_CASHOUTS,Cashouts,gl,account_code,ILIKE,674%,Cashouts
+GL_CASHOUTS,Cashouts,gl,account_code,ILIKE,695%,Cashouts
+GL_SERVICE_REVENUE,Service Revenue,gl,account_code,IN,515-100,Service Revenue
+GL_SERVICE_REVENUE,Service Revenue,gl,account_code,IN,515-990,Service Revenue
+GL_GATHERING_FEES,Gathering Fees,gl,account_code,IN,515-110,Gathering Fees
+GL_GATHERING_FEES,Gathering Fees,gl,account_code,IN,515-199,Gathering Fees
+GL_GATHERING_FEES,Gathering Fees,gl,account_code,IN,610-110,Gathering Fees
+GL_GATHERING_FEES,Gathering Fees,gl,account_code,IN,610-120,Gathering Fees
+GL_GATHERING_FEES,Gathering Fees,gl,account_code,IN,610-130,Gathering Fees
+GL_COMPRESSION_FEES,Compression Fees,gl,account_code,IN,515-120,Compression Fees
+GL_COMPRESSION_FEES,Compression Fees,gl,account_code,IN,613-110,Compression Fees
+GL_COMPRESSION_FEES,Compression Fees,gl,account_code,IN,613-120,Compression Fees
+GL_TREATING_FEES,Treating Fees,gl,account_code,IN,515-130,Treating Fees
+GL_TREATING_FEES,Treating Fees,gl,account_code,IN,515-140,Treating Fees
+GL_TREATING_FEES,Treating Fees,gl,account_code,IN,612-110,Treating Fees
+GL_TREATING_FEES,Treating Fees,gl,account_code,IN,612-120,Treating Fees
+GL_TREATING_FEES,Treating Fees,gl,account_code,IN,614-110,Treating Fees
+GL_TREATING_FEES,Treating Fees,gl,account_code,IN,614-120,Treating Fees
+GL_TREATING_FEES,Treating Fees,gl,account_code,IN,619-990,Treating Fees
+GL_CAPITAL_RECOVERY_FEES,Capital Recovery Fees,gl,account_code,IN,515-210,Capital Recovery Fees
+GL_CAPITAL_RECOVERY_FEES,Capital Recovery Fees,gl,account_code,IN,610-210,Capital Recovery Fees
+GL_CAPITAL_RECOVERY_FEES,Capital Recovery Fees,gl,account_code,IN,610-220,Capital Recovery Fees
+GL_DEMAND_FEES,Demand Fees,gl,account_code,=,517-110,Demand Fees
+GL_TRANSPORTATION_FEES,Transportation Fees,gl,account_code,ILIKE,517%,Transportation Fees
+GL_TRANSPORTATION_FEES,Transportation Fees,gl,account_code,ILIKE,611-210,Transportation Fees
+GL_TRANSPORTATION_FEES,Transportation Fees,gl,account_code,ILIKE,611-220,Transportation Fees
+GL_TRANSPORTATION_FEES,Transportation Fees,gl,account_code,ILIKE,613-130,Transportation Fees
+GL_TRANSPORTATION_FEES,Transportation Fees,gl,account_code,ILIKE,613-140,Transportation Fees
+GL_TRANSPORTATION_FEES,Transportation Fees,gl,account_code,ILIKE,619-110,Transportation Fees
+GL_TRANSPORTATION_FEES,Transportation Fees,gl,account_code,ILIKE,619-120,Transportation Fees
+GL_TRANSPORTATION_FEES,Transportation Fees,gl,account_code,ILIKE,619-275,Transportation Fees
+GL_TRANSPORTATION_FEES,Transportation Fees,gl,account_code,ILIKE,619-991,Transportation Fees
+GL_GAS_SALES,Gas Sales,gl,account_code,ILIKE,518%,Gas Sales
+GL_SERVICE_INCOME,Service Income,gl,account_code,=,530-100,Service Income
+GL_SAND_SALES,Sand Sales,gl,account_code,IN,530-110,Sand Sales
+GL_SAND_SALES,Sand Sales,gl,account_code,IN,530-111,Sand Sales
+GL_SAND_SALES,Sand Sales,gl,account_code,IN,530-990,Sand Sales
+GL_RENTAL_INCOME,Rental Income,gl,account_code,IN,515-205,Rental Income
+GL_RENTAL_INCOME,Rental Income,gl,account_code,IN,530-120,Rental Income
+GL_RENTAL_INCOME,Rental Income,gl,account_code,IN,530-140,Rental Income
+GL_RENTAL_INCOME,Rental Income,gl,account_code,IN,530-720,Rental Income
+GL_RENTAL_INCOME,Rental Income,gl,account_code,IN,530-990,Rental Income
+GL_RENTAL_INCOME,Rental Income,gl,account_code,IN,530-991,Rental Income
+GL_RENTAL_INCOME,Rental Income,gl,account_code,IN,530-993,Rental Income
+GL_RENTAL_INCOME,Rental Income,gl,account_code,IN,590-310,Rental Income
+GL_WATER_INCOME,Water Income,gl,account_code,IN,530-150,Water Income
+GL_WATER_INCOME,Water Income,gl,account_code,IN,530-994,Water Income
+GL_WATER_INCOME,Water Income,gl,account_code,IN,590-620,Water Income
+GL_SWD_INCOME,SWD Income,gl,account_code,IN,530-160,SWD Income
+GL_SWD_INCOME,SWD Income,gl,account_code,IN,530-995,SWD Income
+GL_SWD_INCOME,SWD Income,gl,account_code,IN,590-610,SWD Income
+GL_CONSULTING_INCOME,Consulting Income,gl,account_code,IN,530-170,Consulting Income
+GL_CONSULTING_INCOME,Consulting Income,gl,account_code,IN,530-996,Consulting Income
+GL_FUEL_INCOME,Fuel Income,gl,account_code,IN,530-180,Fuel Income
+GL_FUEL_INCOME,Fuel Income,gl,account_code,IN,530-997,Fuel Income
+GL_COPAS,COPAS,gl,account_code,IN,590-210,COPAS
+GL_COPAS,COPAS,gl,account_code,IN,590-211,COPAS
+GL_COPAS,COPAS,gl,account_code,IN,590-990,COPAS
+GL_COPAS,COPAS,gl,account_code,IN,640-992,COPAS
+GL_COMPRESSOR_RECOVERY_INCOM,Compressor Recovery Income,gl,account_code,=,590-555,Compressor Recovery Income
+GL_RIG_TERMINATION_PENALTIES,Rig Termination Penalties,gl,account_code,=,590-850,Rig Termination Penalties
+GL_GATHERING_FEE_INCOME,Gathering Fee Income,gl,account_code,=,590-991,Gathering Fee Income
+GL_OIL_SEVERANCE_TAXES,Oil Severance Taxes,gl,account_code,IN,601-100,Oil Severance Taxes
+GL_OIL_SEVERANCE_TAXES,Oil Severance Taxes,gl,account_code,IN,601-110,Oil Severance Taxes
+GL_OIL_SEVERANCE_TAXES,Oil Severance Taxes,gl,account_code,IN,601-113,Oil Severance Taxes
+GL_OIL_SEVERANCE_TAXES,Oil Severance Taxes,gl,account_code,IN,601-120,Oil Severance Taxes
+GL_OIL_SEVERANCE_TAXES,Oil Severance Taxes,gl,account_code,IN,601-123,Oil Severance Taxes
+GL_OIL_SEVERANCE_TAXES,Oil Severance Taxes,gl,account_code,IN,601-275,Oil Severance Taxes
+GL_OIL_SEVERANCE_TAXES,Oil Severance Taxes,gl,account_code,IN,601-990,Oil Severance Taxes
+GL_GAS_SEVERANCE_TAXES,Gas Severance Taxes,gl,account_code,IN,602-100,Gas Severance Taxes
+GL_GAS_SEVERANCE_TAXES,Gas Severance Taxes,gl,account_code,IN,602-110,Gas Severance Taxes
+GL_GAS_SEVERANCE_TAXES,Gas Severance Taxes,gl,account_code,IN,602-113,Gas Severance Taxes
+GL_GAS_SEVERANCE_TAXES,Gas Severance Taxes,gl,account_code,IN,602-120,Gas Severance Taxes
+GL_GAS_SEVERANCE_TAXES,Gas Severance Taxes,gl,account_code,IN,602-123,Gas Severance Taxes
+GL_GAS_SEVERANCE_TAXES,Gas Severance Taxes,gl,account_code,IN,602-275,Gas Severance Taxes
+GL_GAS_SEVERANCE_TAXES,Gas Severance Taxes,gl,account_code,IN,602-990,Gas Severance Taxes
+GL_NGL_SEVERANCE_TAXES,NGL Severance Taxes,gl,account_code,IN,603-100,NGL Severance Taxes
+GL_NGL_SEVERANCE_TAXES,NGL Severance Taxes,gl,account_code,IN,603-110,NGL Severance Taxes
+GL_NGL_SEVERANCE_TAXES,NGL Severance Taxes,gl,account_code,IN,603-113,NGL Severance Taxes
+GL_NGL_SEVERANCE_TAXES,NGL Severance Taxes,gl,account_code,IN,603-120,NGL Severance Taxes
+GL_NGL_SEVERANCE_TAXES,NGL Severance Taxes,gl,account_code,IN,603-123,NGL Severance Taxes
+GL_NGL_SEVERANCE_TAXES,NGL Severance Taxes,gl,account_code,IN,603-275,NGL Severance Taxes
+GL_NGL_SEVERANCE_TAXES,NGL Severance Taxes,gl,account_code,IN,603-990,NGL Severance Taxes
+GL_AD_VALOREM_TAXES,Ad Valorem Taxes,gl,account_code,IN,601-112,Ad Valorem Taxes
+GL_AD_VALOREM_TAXES,Ad Valorem Taxes,gl,account_code,IN,601-122,Ad Valorem Taxes
+GL_AD_VALOREM_TAXES,Ad Valorem Taxes,gl,account_code,IN,602-112,Ad Valorem Taxes
+GL_AD_VALOREM_TAXES,Ad Valorem Taxes,gl,account_code,IN,602-122,Ad Valorem Taxes
+GL_AD_VALOREM_TAXES,Ad Valorem Taxes,gl,account_code,IN,603-112,Ad Valorem Taxes
+GL_AD_VALOREM_TAXES,Ad Valorem Taxes,gl,account_code,IN,603-122,Ad Valorem Taxes
+GL_AD_VALOREM_TAXES,Ad Valorem Taxes,gl,account_code,IN,640-120,Ad Valorem Taxes
+GL_AD_VALOREM_TAXES,Ad Valorem Taxes,gl,account_code,IN,640-991,Ad Valorem Taxes
+GL_OIL_CONSERVATION_TAXES,Oil Conservation Taxes,gl,account_code,IN,601-111,Oil Conservation Taxes
+GL_OIL_CONSERVATION_TAXES,Oil Conservation Taxes,gl,account_code,IN,601-121,Oil Conservation Taxes
+GL_GAS_CONSERVATION_TAXES,Gas Conservation Taxes,gl,account_code,IN,602-111,Gas Conservation Taxes
+GL_GAS_CONSERVATION_TAXES,Gas Conservation Taxes,gl,account_code,IN,602-121,Gas Conservation Taxes
+GL_NGL_CONSERVATION_TAXES,NGL Conservation Taxes,gl,account_code,IN,603-111,NGL Conservation Taxes
+GL_NGL_CONSERVATION_TAXES,NGL Conservation Taxes,gl,account_code,IN,603-121,NGL Conservation Taxes
+GL_COMMODITY_FEES,Commodity Fees,gl,account_code,=,611-110,Commodity Fees
+GL_NON-OP_FEES,Non-Op Fees,gl,account_code,ILIKE,611-120,Non-Op Fees
+GL_NON-OP_FEES,Non-Op Fees,gl,account_code,ILIKE,62%,Non-Op Fees
+GL_CONSULTING_EXPENSES,Consulting Expenses,gl,account_code,ILIKE,630-1%,Consulting Expenses
+GL_CONSULTING_EXPENSES,Consulting Expenses,gl,account_code,ILIKE,710-170,Consulting Expenses
+GL_CONSULTING_EXPENSES,Consulting Expenses,gl,account_code,ILIKE,710-996,Consulting Expenses
+GL_LEASE_OPERATING_EXPENSES,Lease Operating Expenses,gl,account_code,IN,640-110,Lease Operating Expenses
+GL_LEASE_OPERATING_EXPENSES,Lease Operating Expenses,gl,account_code,IN,640-100,Lease Operating Expenses
+GL_LEASE_OPERATING_EXPENSES,Lease Operating Expenses,gl,account_code,IN,640-275,Lease Operating Expenses
+GL_LEASE_OPERATING_EXPENSES,Lease Operating Expenses,gl,account_code,IN,640-300,Lease Operating Expenses
+GL_LEASE_OPERATING_EXPENSES,Lease Operating Expenses,gl,account_code,IN,640-990,Lease Operating Expenses
+GL_LEASE_OPERATING_EXPENSES,Lease Operating Expenses,gl,account_code,IN,641-110,Lease Operating Expenses
+GL_LEASE_OPERATING_EXPENSES,Lease Operating Expenses,gl,account_code,IN,641-100,Lease Operating Expenses
+GL_LEASE_OPERATING_EXPENSES,Lease Operating Expenses,gl,account_code,IN,641-990,Lease Operating Expenses
+GL_LEASEHOLD_EXPENSES,Leasehold Expenses,gl,account_code,ILIKE,642%,Leasehold Expenses
+GL_EXPLORATION_EXPENSES,Exploration Expenses,gl,account_code,ILIKE,645%,Exploration Expenses
+GL_THIRD_PARTY_FEES_PAID,Third Party Fees Paid,gl,account_code,ILIKE,650%,Third Party Fees Paid
+GL_THIRD_PARTY_FEES_PAID,Third Party Fees Paid,gl,account_code,ILIKE,660%,Third Party Fees Paid
+GL_THIRD_PARTY_FEES_PAID,Third Party Fees Paid,gl,account_code,ILIKE,667%,Third Party Fees Paid
+GL_THIRD_PARTY_FEES_PAID,Third Party Fees Paid,gl,account_code,ILIKE,668%,Third Party Fees Paid
+GL_MIDSTREAM_OPERATING_EXPEN,Midstream Operating Expenses,gl,account_code,ILIKE,665%,Midstream Operating Expenses
+GL_MIDSTREAM_OPERATING_EXPEN,Midstream Operating Expenses,gl,account_code,ILIKE,666%,Midstream Operating Expenses
+GL_MIDSTREAM_OPERATING_EXPEN,Midstream Operating Expenses,gl,account_code,ILIKE,669%,Midstream Operating Expenses
+GL_COST_OF_PURCHASED_GAS,Cost of Purchased Gas,gl,account_code,ILIKE,670%,Cost of Purchased Gas
+GL_COST_OF_PURCHASED_GAS,Cost of Purchased Gas,gl,account_code,ILIKE,680%,Cost of Purchased Gas
+GL_COST_OF_PURCHASED_GAS,Cost of Purchased Gas,gl,account_code,ILIKE,690%,Cost of Purchased Gas
+GL_COST_OF_PURCHASED_GAS,Cost of Purchased Gas,gl,account_code,ILIKE,691%,Cost of Purchased Gas
+GL_SAND_PURCHASES,Sand Purchases,gl,account_code,IN,700-100,Sand Purchases
+GL_SAND_PURCHASES,Sand Purchases,gl,account_code,IN,700-110,Sand Purchases
+GL_SAND_PURCHASES,Sand Purchases,gl,account_code,IN,700-800,Sand Purchases
+GL_SAND_PURCHASES,Sand Purchases,gl,account_code,IN,700-990,Sand Purchases
+GL_SAND_PURCHASES,Sand Purchases,gl,account_code,IN,701-100,Sand Purchases
+GL_SAND_PURCHASES,Sand Purchases,gl,account_code,IN,701-110,Sand Purchases
+GL_WATER_PURCHASES,Water Purchases,gl,account_code,IN,700-150,Water Purchases
+GL_WATER_PURCHASES,Water Purchases,gl,account_code,IN,700-994,Water Purchases
+GL_FUEL_PURCHASES,Fuel Purchases,gl,account_code,IN,700-180,Fuel Purchases
+GL_FUEL_PURCHASES,Fuel Purchases,gl,account_code,IN,700-997,Fuel Purchases
+GL_RENTAL_EXPENSES,Rental Expenses,gl,account_code,IN,710-100,Rental Expenses
+GL_RENTAL_EXPENSES,Rental Expenses,gl,account_code,IN,710-120,Rental Expenses
+GL_RENTAL_EXPENSES,Rental Expenses,gl,account_code,IN,710-140,Rental Expenses
+GL_RENTAL_EXPENSES,Rental Expenses,gl,account_code,IN,710-300,Rental Expenses
+GL_RENTAL_EXPENSES,Rental Expenses,gl,account_code,IN,710-301,Rental Expenses
+GL_RENTAL_EXPENSES,Rental Expenses,gl,account_code,IN,710-991,Rental Expenses
+GL_RENTAL_EXPENSES,Rental Expenses,gl,account_code,IN,710-992,Rental Expenses
+GL_RENTAL_EXPENSES,Rental Expenses,gl,account_code,IN,710-993,Rental Expenses
+GL_RENTAL_EXPENSES,Rental Expenses,gl,account_code,IN,720-120,Rental Expenses
+GL_RENTAL_EXPENSES,Rental Expenses,gl,account_code,IN,720-985,Rental Expenses
+GL_SAND_EXPENSES,Sand Expenses,gl,account_code,IN,710-110,Sand Expenses
+GL_SAND_EXPENSES,Sand Expenses,gl,account_code,IN,710-990,Sand Expenses
+GL_WATER_EXPENSES,Water Expenses,gl,account_code,IN,710-150,Water Expenses
+GL_WATER_EXPENSES,Water Expenses,gl,account_code,IN,710-994,Water Expenses
+GL_SWD_EXPENSES,SWD Expenses,gl,account_code,IN,710-160,SWD Expenses
+GL_SWD_EXPENSES,SWD Expenses,gl,account_code,IN,710-995,SWD Expenses
+GL_FUEL_EXPENSES,Fuel Expenses,gl,account_code,IN,710-180,Fuel Expenses
+GL_FUEL_EXPENSES,Fuel Expenses,gl,account_code,IN,710-997,Fuel Expenses
+GL_BAD_DEBT_EXPENSE,Bad Debt Expense,gl,account_code,=,960-100,Bad Debt Expense
+GL_OTHER_EXPENSES,Other Expenses,gl,account_code,=,965-200,Other Expenses
+LOS_MAP_CNOP,CNOP,los_map,account_billing_category_code,ILIKE,%CC85%,CNOP
+LOS_MAP_CNOP,CNOP,los_map,account_billing_category_code,ILIKE,%DC85%,CNOP
+LOS_MAP_CNOP,CNOP,los_map,account_billing_category_code,ILIKE,FC85%,CNOP
+LOS_MAP_CNOP,CNOP,los_map,account_billing_category_code,ILIKE,NICC%,CNOP
+LOS_MAP_CNOP,CNOP,los_map,account_billing_category_code,ILIKE,NIDC%,CNOP
+LOS_MAP_CACR,CACR,los_map,account_billing_category_code,ILIKE,%C990%,CACR
+LOS_MAP_CFRC,CFRC,los_map,account_billing_category_code,IN,ICC,CFRC
+LOS_MAP_CFRC,CFRC,los_map,account_billing_category_code,IN,TCC,CFRC
+LOS_MAP_CDRL,CDRL,los_map,account_billing_category_code,IN,IDC,CDRL
+LOS_MAP_CDRL,CDRL,los_map,account_billing_category_code,IN,TDC,CDRL
+LOS_MAP_LBR,LBR,los_map,account_billing_category_code,ILIKE,LOE10%,LBR
+LOS_MAP_LBR,LBR,los_map,account_billing_category_code,ILIKE,MOE10%,LBR
+LOS_MAP_OHD,OHD,los_map,account_billing_category_code,ILIKE,LOE11%,OHD
+LOS_MAP_OHD,OHD,los_map,account_billing_category_code,ILIKE,LOE320,OHD
+LOS_MAP_SVC,SVC,los_map,account_billing_category_code,ILIKE,LOE140,SVC
+LOS_MAP_SVC,SVC,los_map,account_billing_category_code,ILIKE,LOE160,SVC
+LOS_MAP_CHM,CHM,los_map,account_billing_category_code,ILIKE,LOE24%,CHM
+LOS_MAP_CHM,CHM,los_map,account_billing_category_code,ILIKE,LOE25%,CHM
+LOS_MAP_SWD,SWD,los_map,account_billing_category_code,IN,LOE273,SWD
+LOS_MAP_SWD,SWD,los_map,account_billing_category_code,IN,LOE274,SWD
+LOS_MAP_SWD,SWD,los_map,account_billing_category_code,IN,LOE275,SWD
+LOS_MAP_RNM,RNM,los_map,account_billing_category_code,IN,LOE295,RNM
+LOS_MAP_RNM,RNM,los_map,account_billing_category_code,IN,LOE300,RNM
+LOS_MAP_RNM,RNM,los_map,account_billing_category_code,IN,LOE301,RNM
+LOS_MAP_CMP,CMP,los_map,account_billing_category_code,IN,MOE555,CMP
+LOS_MAP_CMP,CMP,los_map,account_billing_category_code,IN,MOE556,CMP
+LOS_MAP_COPAS,COPAS,los_map,account_billing_category_code,ILIKE,LOE6%,COPAS
+LOS_MAP_SEV,SEV,los_map,account_billing_category_code,IN,LOE720,SEV
+LOS_MAP_SEV,SEV,los_map,account_billing_category_code,IN,LOE721,SEV
+LOS_MAP_ADV,ADV,los_map,account_billing_category_code,IN,LOE750,ADV
+LOS_MAP_ADV,ADV,los_map,account_billing_category_code,IN,LOE751,ADV
+LOS_MAP_ADV,ADV,los_map,account_billing_category_code,IN,NLOE750,ADV
+LOS_MAP_NLOE,NLOE,los_map,account_billing_category_code,ILIKE,LOE850,NLOE
+LOS_MAP_NLOE,NLOE,los_map,account_billing_category_code,ILIKE,LOE990,NLOE
+LOS_MAP_NLOE,NLOE,los_map,account_billing_category_code,ILIKE,NLOE%,NLOE
+LOS_MAP_ACCOUNT_BILLING_CATEGORY_,account_billing_category_type_code,los_map,account_billing_category_code,IN,PAC,account_billing_category_type_code
+LOS_MAP_ACCOUNT_BILLING_CATEGORY_,account_billing_category_type_code,los_map,account_billing_category_code,IN,WOX,account_billing_category_type_code
+LOS_MAP_ACCOUNT_BILLING_CATEGORY_,account_billing_category_type_code,los_map,account_billing_category_code,IN,MOX,account_billing_category_type_code
+"AU_OP_TRUE
+________ELSE_FALSE","TRUE
+        ELSE FALSE",AU_Op,cost_center_area_code,IN,AREA0100,"TRUE
+        ELSE FALSE"
+"AU_OP_TRUE
+________ELSE_FALSE","TRUE
+        ELSE FALSE",AU_Op,cost_center_area_code,IN,AREA0200,"TRUE
+        ELSE FALSE"
+"AU_OP_TRUE
+________ELSE_FALSE","TRUE
+        ELSE FALSE",AU_Op,cost_center_area_code,IN,AREA0220,"TRUE
+        ELSE FALSE"
+"A3_OP_TRUE
+________ELSE_FALSE","TRUE
+        ELSE FALSE",A3_Op,cost_center_area_code,IN,AREA0210,"TRUE
+        ELSE FALSE"
+"A3_OP_TRUE
+________ELSE_FALSE","TRUE
+        ELSE FALSE",A3_Op,cost_center_area_code,IN,AREA0320,"TRUE
+        ELSE FALSE"
+"A3_OP_TRUE
+________ELSE_FALSE","TRUE
+        ELSE FALSE",A3_Op,cost_center_area_code,IN,AREA0440,"TRUE
+        ELSE FALSE"
+FUND_A3,A3,fund,corp_code,IN,551,A3
+FUND_A3,A3,fund,corp_code,IN,561,A3
+FUND_A3,A3,fund,corp_code,IN,565,A3
+FUND_A3,A3,fund,corp_code,IN,578,A3
+FUND_A3,A3,fund,corp_code,IN,586,A3
+FUND_A3,A3,fund,corp_code,IN,587,A3
+FUND_A3,A3,fund,corp_code,IN,588,A3
+FUND_A3,A3,fund,corp_code,IN,598,A3
+FUND_A3,A3,fund,corp_code,IN,702,A3
+FUND_A3,A3,fund,corp_code,IN,755,A3
+FUND_AU,AU,fund,corp_code,IN,410,AU
+FUND_AU,AU,fund,corp_code,IN,420,AU
+FUND_AU,AU,fund,corp_code,IN,550,AU
+FUND_AU,AU,fund,corp_code,IN,560,AU
+FUND_AU,AU,fund,corp_code,IN,580,AU
+FUND_AU,AU,fund,corp_code,IN,585,AU
+FUND_AU,AU,fund,corp_code,IN,586,AU
+FUND_AU,AU,fund,corp_code,IN,590,AU
+FUND_AU,AU,fund,corp_code,IN,595,AU
+FUND_AU,AU,fund,corp_code,IN,599,AU
+FUND_AU,AU,fund,corp_code,IN,600,AU
+FUND_AU,AU,fund,corp_code,IN,650,AU
+FUND_AU,AU,fund,corp_code,IN,700,AU
+FUND_AU,AU,fund,corp_code,IN,701,AU
+FUND_AU,AU,fund,corp_code,IN,750,AU
+FUND_AU,AU,fund,corp_code,IN,751,AU
+FUND_4HC,4HC,fund,corp_code,IN,012,4HC
+FUND_4HC,4HC,fund,corp_code,IN,043,4HC
+FUND_4HC,4HC,fund,corp_code,IN,049,4HC
+FUND_4HC,4HC,fund,corp_code,IN,052,4HC
+SEGMENT_UPSTREAM,Upstream,Segment,corp_code,IN,12,Upstream
+SEGMENT_UPSTREAM,Upstream,Segment,corp_code,IN,43,Upstream
+SEGMENT_UPSTREAM,Upstream,Segment,corp_code,IN,44,Upstream
+SEGMENT_UPSTREAM,Upstream,Segment,corp_code,IN,540,Upstream
+SEGMENT_UPSTREAM,Upstream,Segment,corp_code,IN,550,Upstream
+SEGMENT_UPSTREAM,Upstream,Segment,corp_code,IN,551,Upstream
+SEGMENT_UPSTREAM,Upstream,Segment,corp_code,IN,560,Upstream
+SEGMENT_UPSTREAM,Upstream,Segment,corp_code,IN,561,Upstream
+SEGMENT_UPSTREAM,Upstream,Segment,corp_code,IN,565,Upstream
+SEGMENT_UPSTREAM,Upstream,Segment,corp_code,IN,650,Upstream
+SEGMENT_UPSTREAM,Upstream,Segment,corp_code,IN,750,Upstream
+SEGMENT_UPSTREAM,Upstream,Segment,corp_code,IN,751,Upstream
+SEGMENT_UPSTREAM,Upstream,Segment,corp_code,IN,755,Upstream
+SEGMENT_MIDSTREAM,Midstream,Segment,corp_code,IN,41,Midstream
+SEGMENT_MIDSTREAM,Midstream,Segment,corp_code,IN,410,Midstream
+SEGMENT_MIDSTREAM,Midstream,Segment,corp_code,IN,578,Midstream
+SEGMENT_MIDSTREAM,Midstream,Segment,corp_code,IN,580,Midstream
+SEGMENT_MIDSTREAM,Midstream,Segment,corp_code,IN,585,Midstream
+SEGMENT_MIDSTREAM,Midstream,Segment,corp_code,IN,586,Midstream
+SEGMENT_MIDSTREAM,Midstream,Segment,corp_code,IN,587,Midstream
+SEGMENT_MIDSTREAM,Midstream,Segment,corp_code,IN,588,Midstream
+SEGMENT_MIDSTREAM,Midstream,Segment,corp_code,IN,590,Midstream
+SEGMENT_MIDSTREAM,Midstream,Segment,corp_code,IN,595,Midstream
+SEGMENT_SERVICES,Services,Segment,corp_code,BETWEEN,700,Services
+SEGMENT_SERVICES,Services,Segment,corp_code,BETWEEN,702,Services
+"AU_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0",AU_Stake,corp_code,IN,550,"1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0"
+"AU_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0",AU_Stake,corp_code,IN,560,"1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0"
+"AU_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0",AU_Stake,corp_code,IN,580,"1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0"
+"AU_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0",AU_Stake,corp_code,IN,585,"1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0"
+"AU_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0",AU_Stake,corp_code,IN,590,"1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0"
+"AU_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0",AU_Stake,corp_code,IN,595,"1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0"
+"AU_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0",AU_Stake,corp_code,IN,599,"1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0"
+"AU_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0",AU_Stake,corp_code,IN,600,"1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0"
+"AU_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0",AU_Stake,corp_code,IN,650,"1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0"
+"AU_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0",AU_Stake,corp_code,IN,700,"1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0"
+"AU_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0",AU_Stake,corp_code,IN,701,"1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0"
+"AU_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0",AU_Stake,corp_code,IN,750,"1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0"
+"AU_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0",AU_Stake,corp_code,IN,751,"1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0"
+"A3_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (578, 587) THEN 0.9
+        WHEN corp_code = 586 THEN 0.675
+        ELSE 0",A3_Stake,corp_code,IN,551,"1
+        WHEN corp_code IN (578, 587) THEN 0.9
+        WHEN corp_code = 586 THEN 0.675
+        ELSE 0"
+"A3_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (578, 587) THEN 0.9
+        WHEN corp_code = 586 THEN 0.675
+        ELSE 0",A3_Stake,corp_code,IN,561,"1
+        WHEN corp_code IN (578, 587) THEN 0.9
+        WHEN corp_code = 586 THEN 0.675
+        ELSE 0"
+"A3_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (578, 587) THEN 0.9
+        WHEN corp_code = 586 THEN 0.675
+        ELSE 0",A3_Stake,corp_code,IN,565,"1
+        WHEN corp_code IN (578, 587) THEN 0.9
+        WHEN corp_code = 586 THEN 0.675
+        ELSE 0"
+"A3_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (578, 587) THEN 0.9
+        WHEN corp_code = 586 THEN 0.675
+        ELSE 0",A3_Stake,corp_code,IN,587,"1
+        WHEN corp_code IN (578, 587) THEN 0.9
+        WHEN corp_code = 586 THEN 0.675
+        ELSE 0"
+"A3_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (578, 587) THEN 0.9
+        WHEN corp_code = 586 THEN 0.675
+        ELSE 0",A3_Stake,corp_code,IN,598,"1
+        WHEN corp_code IN (578, 587) THEN 0.9
+        WHEN corp_code = 586 THEN 0.675
+        ELSE 0"
+"A3_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (578, 587) THEN 0.9
+        WHEN corp_code = 586 THEN 0.675
+        ELSE 0",A3_Stake,corp_code,IN,702,"1
+        WHEN corp_code IN (578, 587) THEN 0.9
+        WHEN corp_code = 586 THEN 0.675
+        ELSE 0"
+"A3_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (578, 587) THEN 0.9
+        WHEN corp_code = 586 THEN 0.675
+        ELSE 0",A3_Stake,corp_code,IN,755,"1
+        WHEN corp_code IN (578, 587) THEN 0.9
+        WHEN corp_code = 586 THEN 0.675
+        ELSE 0"

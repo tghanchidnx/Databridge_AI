@@ -1,0 +1,125 @@
+HIERARCHY_ID,HIERARCHY_NAME,PARENT_ID,SOURCE_COLUMN,IS_LEAF_NODE
+ACCTCODE,acctcode,,account_code,false
+ACCTCODE_640-992,640-992,ACCTCODE,account_code,true
+ADJBILLCAT,adjbillcat,,transaction_description,false
+ADJBILLCAT_NLOE990,NLOE990,ADJBILLCAT,transaction_description,true
+ADJBILLCAT_PAC990,PAC990,ADJBILLCAT,transaction_description,true
+STATE,state,,cost_center_state,false
+"STATE_NULL
+________WHEN_PROPS.C","NULL
+        WHEN props.cost_center_state IN (",STATE,cost_center_state,true
+PRODUCTID,productid,,product_code,false
+"PRODUCTID_NULL
+________ELSE_ENTRIES","NULL
+        ELSE entries.product_code",PRODUCTID,product_code,true
+GL,gl,,account_code,false
+GL_ACCUMULATED_DD&A,Accumulated DD&A,GL,account_code,true
+GL_CASHOUTS,Cashouts,GL,account_code,true
+GL_AD_VALOREM_TAXES,Ad Valorem Taxes,GL,account_code,true
+GL_TRANSPORTATION_FEES,Transportation Fees,GL,account_code,true
+GL_FUEL_PURCHASES,Fuel Purchases,GL,account_code,true
+GL_THIRD_PARTY_FEES_PAID,Third Party Fees Paid,GL,account_code,true
+GL_SAND_PURCHASES,Sand Purchases,GL,account_code,true
+GL_DERIVATIVE_ASSETS,Derivative Assets,GL,account_code,true
+GL_TOTAL_DEBT,Total Debt,GL,account_code,true
+GL_SERVICE_INCOME,Service Income,GL,account_code,true
+GL_WATER_INCOME,Water Income,GL,account_code,true
+GL_COMPRESSION_FEES,Compression Fees,GL,account_code,true
+GL_OTHER_LIABILITIES,Other Liabilities,GL,account_code,true
+GL_OTHER_INCOME,Other Income,GL,account_code,true
+GL_NGL_CONSERVATION_TAXES,NGL Conservation Taxes,GL,account_code,true
+GL_BAD_DEBT_EXPENSE,Bad Debt Expense,GL,account_code,true
+GL_RENTAL_INCOME,Rental Income,GL,account_code,true
+GL_RENTAL_EXPENSES,Rental Expenses,GL,account_code,true
+GL_DEMAND_FEES,Demand Fees,GL,account_code,true
+GL_SWD_EXPENSES,SWD Expenses,GL,account_code,true
+GL_INVENTORY,Inventory,GL,account_code,true
+GL_GATHERING_FEES,Gathering Fees,GL,account_code,true
+GL_LEASE_OPERATING_EXPENSES,Lease Operating Expenses,GL,account_code,true
+GL_AR,AR,GL,account_code,true
+GL_NGL_SEVERANCE_TAXES,NGL Severance Taxes,GL,account_code,true
+GL_CAPEX,Capex,GL,account_code,true
+GL_OIL_SALES,Oil Sales,GL,account_code,true
+GL_OTHER_CURRENT_ASSETS,Other Current Assets,GL,account_code,true
+GL_GATHERING_FEE_INCOME,Gathering Fee Income,GL,account_code,true
+GL_DEFERRED_TAX_ASSETS,Deferred Tax Assets,GL,account_code,true
+GL_OIL_CONSERVATION_TAXES,Oil Conservation Taxes,GL,account_code,true
+GL_SAND_SALES,Sand Sales,GL,account_code,true
+GL_EQUITY,Equity,GL,account_code,true
+GL_CAPITAL_RECOVERY_FEES,Capital Recovery Fees,GL,account_code,true
+GL_RIG_TERMINATION_PENALTIES,Rig Termination Penalties,GL,account_code,true
+GL_GAS_CONSERVATION_TAXES,Gas Conservation Taxes,GL,account_code,true
+GL_WATER_EXPENSES,Water Expenses,GL,account_code,true
+GL_OIL_SEVERANCE_TAXES,Oil Severance Taxes,GL,account_code,true
+GL_AFFILIATE_AR,Affiliate AR,GL,account_code,true
+GL_TREATING_FEES,Treating Fees,GL,account_code,true
+GL_AP,AP,GL,account_code,true
+GL_CASH,Cash,GL,account_code,true
+GL_SWD_INCOME,SWD Income,GL,account_code,true
+GL_CONSULTING_INCOME,Consulting Income,GL,account_code,true
+GL_EXPLORATION_EXPENSES,Exploration Expenses,GL,account_code,true
+GL_OTHER_ASSETS,Other Assets,GL,account_code,true
+GL_COMPRESSOR_RECOVERY_INCOM,Compressor Recovery Income,GL,account_code,true
+GL_GAS_SEVERANCE_TAXES,Gas Severance Taxes,GL,account_code,true
+GL_COPAS,COPAS,GL,account_code,true
+GL_SAND_EXPENSES,Sand Expenses,GL,account_code,true
+GL_OTHER_EXPENSES,Other Expenses,GL,account_code,true
+GL_CONSULTING_EXPENSES,Consulting Expenses,GL,account_code,true
+GL_SERVICE_REVENUE,Service Revenue,GL,account_code,true
+GL_FUEL_INCOME,Fuel Income,GL,account_code,true
+GL_FUEL_EXPENSES,Fuel Expenses,GL,account_code,true
+GL_PREPAID_EXPENSES,Prepaid Expenses,GL,account_code,true
+GL_NGL_SALES,NGL Sales,GL,account_code,true
+GL_NON-OP_FEES,Non-Op Fees,GL,account_code,true
+GL_LEASEHOLD_EXPENSES,Leasehold Expenses,GL,account_code,true
+GL_COMMODITY_FEES,Commodity Fees,GL,account_code,true
+GL_WATER_PURCHASES,Water Purchases,GL,account_code,true
+GL_MIDSTREAM_OPERATING_EXPEN,Midstream Operating Expenses,GL,account_code,true
+GL_OTHER_CURRENT_LIABILITIES,Other Current Liabilities,GL,account_code,true
+GL_COST_OF_PURCHASED_GAS,Cost of Purchased Gas,GL,account_code,true
+GL_GAS_SALES,Gas Sales,GL,account_code,true
+LOS_MAP,los_map,,account_billing_category_code,false
+LOS_MAP_ACCOUNT_BILLING_CATEGORY_,account_billing_category_type_code,LOS_MAP,account_billing_category_code,true
+LOS_MAP_COPAS,COPAS,LOS_MAP,account_billing_category_code,true
+LOS_MAP_LBR,LBR,LOS_MAP,account_billing_category_code,true
+LOS_MAP_CACR,CACR,LOS_MAP,account_billing_category_code,true
+LOS_MAP_OHD,OHD,LOS_MAP,account_billing_category_code,true
+LOS_MAP_SEV,SEV,LOS_MAP,account_billing_category_code,true
+LOS_MAP_CDRL,CDRL,LOS_MAP,account_billing_category_code,true
+LOS_MAP_CHM,CHM,LOS_MAP,account_billing_category_code,true
+LOS_MAP_CNOP,CNOP,LOS_MAP,account_billing_category_code,true
+LOS_MAP_RNM,RNM,LOS_MAP,account_billing_category_code,true
+LOS_MAP_NLOE,NLOE,LOS_MAP,account_billing_category_code,true
+LOS_MAP_SWD,SWD,LOS_MAP,account_billing_category_code,true
+LOS_MAP_CMP,CMP,LOS_MAP,account_billing_category_code,true
+LOS_MAP_ADV,ADV,LOS_MAP,account_billing_category_code,true
+LOS_MAP_SVC,SVC,LOS_MAP,account_billing_category_code,true
+LOS_MAP_CFRC,CFRC,LOS_MAP,account_billing_category_code,true
+AU_OP,AU_Op,,cost_center_area_code,false
+"AU_OP_TRUE
+________ELSE_FALSE","TRUE
+        ELSE FALSE",AU_OP,cost_center_area_code,true
+A3_OP,A3_Op,,cost_center_area_code,false
+"A3_OP_TRUE
+________ELSE_FALSE","TRUE
+        ELSE FALSE",A3_OP,cost_center_area_code,true
+FUND,fund,,corp_code,false
+FUND_A3,A3,FUND,corp_code,true
+FUND_AU,AU,FUND,corp_code,true
+FUND_4HC,4HC,FUND,corp_code,true
+SEGMENT,Segment,,corp_code,false
+SEGMENT_UPSTREAM,Upstream,SEGMENT,corp_code,true
+SEGMENT_SERVICES,Services,SEGMENT,corp_code,true
+SEGMENT_MIDSTREAM,Midstream,SEGMENT,corp_code,true
+AU_STAKE,AU_Stake,,corp_code,false
+"AU_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (410, 420) THEN 0.9
+        WHEN corp_code = 586 THEN 0.225
+        ELSE 0",AU_STAKE,corp_code,true
+A3_STAKE,A3_Stake,,corp_code,false
+"A3_STAKE_1
+________WHEN_CORP_CODE_","1
+        WHEN corp_code IN (578, 587) THEN 0.9
+        WHEN corp_code = 586 THEN 0.675
+        ELSE 0",A3_STAKE,corp_code,true

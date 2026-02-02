@@ -1,0 +1,13 @@
+HIERARCHY_NAME,SOURCE_COLUMN,TOTAL_MAPPINGS,HAS_ELSE,IS_FILTERED
+acctcode,account_code,1,Yes,No
+adjbillcat,transaction_description,2,Yes,No
+state,cost_center_state,1,Yes,No
+productid,product_code,1,Yes,No
+gl,account_code,66,No,Yes
+los_map,account_billing_category_code,16,No,No
+AU_Op,cost_center_area_code,1,Yes,No
+A3_Op,cost_center_area_code,1,Yes,No
+fund,corp_code,3,Yes,No
+Segment,corp_code,3,Yes,No
+AU_Stake,corp_code,1,Yes,No
+A3_Stake,corp_code,1,Yes,No

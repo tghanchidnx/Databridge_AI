@@ -1,13 +1,15 @@
 # DataBridge AI: Project Configuration & Rules
 
 ## 🎯 Purpose
-A headless, MCP-native data reconciliation engine with **92 MCP tools** across three major modules:
+A headless, MCP-native data reconciliation engine with **98 MCP tools** across five major modules:
 
 1. **Data Reconciliation Engine** - Bridges messy sources (OCR/PDF/SQL) with structured comparison pipelines
 2. **Hierarchy Knowledge Base Builder** - Creates and manages hierarchical data structures for reporting systems
 3. **Templates, Skills & Knowledge Base** - Pre-built templates, AI expertise definitions, and client-specific knowledge
+4. **Git Automation** - Automated commits, PRs, and dbt project generation for CI/CD workflows
+5. **SQL Discovery** - Extract hierarchies from SQL CASE statements automatically
 
-## 🔧 Available Tool Categories (92 Tools)
+## 🔧 Available Tool Categories (96 Tools)
 
 ### Data Reconciliation (38 tools)
 - **Data Loading**: `load_csv`, `load_json`, `query_database`
@@ -68,6 +70,97 @@ A headless, MCP-native data reconciliation engine with **92 MCP tools** across t
 - **Skills**: `list_available_skills`, `get_skill_details`, `get_skill_prompt`
 - **Knowledge Base**: `list_client_profiles`, `get_client_knowledge`, `update_client_knowledge`, `create_client_profile`, `add_client_custom_prompt`
 - **Documentation**: `list_application_documentation`, `get_application_documentation`, `get_user_guide_section`
+
+### Git Automation (4 tools)
+- **Git Operations**: `commit_dbt_project`, `create_deployment_pr`, `commit_deployment_scripts`, `get_git_status`
+
+### SQL Discovery (2 tools)
+- **SQL to Hierarchy**: `sql_to_hierarchy` - Convert SQL CASE statements into hierarchies with mappings
+- **SQL Analysis**: `analyze_sql_for_hierarchies` - Analyze SQL to identify potential hierarchy structures
+
+#### SQL to Hierarchy Example
+```sql
+-- Input SQL with CASE statement
+SELECT
+  CASE
+    WHEN account_code LIKE '4%' THEN 'Revenue'
+    WHEN account_code LIKE '5%' THEN 'Cost of Goods Sold'
+    WHEN account_code LIKE '6%' THEN 'Operating Expenses'
+    ELSE 'Other'
+  END AS account_category
+FROM gl_transactions
+```
+
+**Tool call:**
+```python
+sql_to_hierarchy(
+    sql=sql,
+    project_id="my-project",
+    source_database="WAREHOUSE",
+    source_schema="FINANCE",
+    source_table="GL_TRANSACTIONS",
+    source_column="ACCOUNT_CODE"
+)
+```
+
+**Result:** Creates hierarchies with source mappings:
+| Hierarchy | Source Mapping |
+|-----------|----------------|
+| Revenue | ACCOUNT_CODE LIKE '4%' |
+| Cost of Goods Sold | ACCOUNT_CODE LIKE '5%' |
+| Operating Expenses | ACCOUNT_CODE LIKE '6%' |
+
+### Smart SQL Analyzer (2 tools) - **RECOMMENDED**
+The Smart SQL Analyzer properly processes SQL queries by respecting WHERE clause filters.
+
+- **`smart_analyze_sql`** - Full SQL analysis with query plan execution
+- **`parse_sql_query_plan`** - Preview query plan without executing
+
+**IMPORTANT**: Unlike basic CASE extraction, this tool:
+1. Parses WHERE clause filters (NOT IN, <>, NOT LIKE)
+2. APPLIES filters BEFORE generating mappings
+3. Excludes invalid GL categories and account codes
+4. Uses COA reference data with filter awareness
+
+**Example with WHERE Filtering:**
+```sql
+SELECT CASE WHEN account_code LIKE '8%' THEN 'G&A' ... END AS gl
+FROM gl_entries
+WHERE gl NOT IN ('Hedge Gains', 'DD&A', 'G&A')  -- G&A will be EXCLUDED
+  AND account_code NOT LIKE '242%'              -- 242-xxx accounts excluded
+```
+
+**Tool call:**
+```python
+smart_analyze_sql(
+    sql=sql,
+    coa_path="C:/data/DIM_ACCOUNT.csv",
+    output_dir="./result_export",
+    export_name="los_analysis"
+)
+```
+
+### Mapping Enrichment (5 tools)
+Configurable reference data enrichment for mapping exports.
+
+- **`configure_mapping_enrichment`** - Set up data sources with detail columns
+- **`get_enrichment_config`** - View current configuration
+- **`enrich_mapping_file`** - Expand mappings with reference data
+- **`get_available_columns_for_enrichment`** - List available columns
+- **`suggest_enrichment_after_hierarchy`** - AI prompt for enrichment
+
+**Configurable Detail Columns:**
+```python
+configure_mapping_enrichment(
+    project_id="my-project",
+    source_id="coa",
+    source_type="csv",
+    source_path="C:/data/DIM_ACCOUNT.csv",
+    table_name="DIM_ACCOUNT",
+    key_column="ACCOUNT_CODE",
+    detail_columns="ACCOUNT_ID,ACCOUNT_NAME,ACCOUNT_BILLING_CATEGORY_CODE"
+)
+```
 
 ### Auto-Sync Feature
 All hierarchy write operations (create, update, delete) **automatically sync** to the NestJS backend.

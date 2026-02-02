@@ -1,0 +1,84 @@
+{
+  "hierarchies": [
+    {
+      "name": "acctcode",
+      "mappings": 1,
+      "source_column": "account_code"
+    },
+    {
+      "name": "adjbillcat",
+      "mappings": 2,
+      "source_column": "transaction_description"
+    },
+    {
+      "name": "state",
+      "mappings": 1,
+      "source_column": "cost_center_state"
+    },
+    {
+      "name": "productid",
+      "mappings": 1,
+      "source_column": "product_code"
+    },
+    {
+      "name": "gl",
+      "mappings": 66,
+      "source_column": "account_code"
+    },
+    {
+      "name": "los_map",
+      "mappings": 16,
+      "source_column": "account_billing_category_code"
+    },
+    {
+      "name": "AU_Op",
+      "mappings": 1,
+      "source_column": "cost_center_area_code"
+    },
+    {
+      "name": "A3_Op",
+      "mappings": 1,
+      "source_column": "cost_center_area_code"
+    },
+    {
+      "name": "fund",
+      "mappings": 3,
+      "source_column": "corp_code"
+    },
+    {
+      "name": "Segment",
+      "mappings": 3,
+      "source_column": "corp_code"
+    },
+    {
+      "name": "AU_Stake",
+      "mappings": 1,
+      "source_column": "corp_code"
+    },
+    {
+      "name": "A3_Stake",
+      "mappings": 1,
+      "source_column": "corp_code"
+    }
+  ],
+  "excluded_gl_values": [
+    "Impairment Expense",
+    "Omit",
+    "Other Gains/Losses",
+    "DD&A",
+    "Unrealized Hedge Gains",
+    "Interest Income",
+    "Interest Hedge Gains",
+    "Hedge Gains",
+    "General & Administrative",
+    "Accretion Expense",
+    "Interest Expense"
+  ],
+  "excluded_account_codes": [
+    "570-115"
+  ],
+  "excluded_account_patterns": [
+    "242%"
+  ],
+  "total_coa_records": 1544
+}
