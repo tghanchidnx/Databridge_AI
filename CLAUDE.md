@@ -199,6 +199,35 @@ configure_mapping_enrichment(
 )
 ```
 
+### AI Orchestrator (16 tools)
+Multi-agent coordination with task queues, agent messaging, and event-driven workflows.
+
+**Task Management:**
+- **`submit_orchestrated_task`** - Submit a task to the job queue with priority and dependencies
+- **`get_task_status`** - Get task progress and checkpoints
+- **`list_orchestrator_tasks`** - List tasks with status filters
+- **`cancel_orchestrated_task`** - Cancel a pending or running task
+
+**Agent Registration:**
+- **`register_agent`** - Register an external agent with capabilities
+- **`list_registered_agents`** - List agents with health status
+- **`get_agent_details`** - Get agent info and capabilities
+
+**Agent Messaging (AI-Link):**
+- **`send_agent_message`** - Send message to another agent
+- **`get_agent_messages`** - Get messages for an agent
+- **`list_agent_conversations`** - List active conversations
+
+**Workflows:**
+- **`create_orchestrator_workflow`** - Create a multi-step workflow definition
+- **`execute_orchestrator_workflow`** - Start workflow execution
+- **`list_orchestrator_workflows`** - List available workflows
+- **`get_workflow_execution_status`** - Get execution progress
+
+**Events:**
+- **`publish_orchestrator_event`** - Publish event to Event Bus (Redis Pub/Sub)
+- **`get_orchestrator_health`** - Get orchestrator health status
+
 ### PlannerAgent - AI Workflow Planning (11 tools)
 AI-powered workflow planning using Claude to decompose complex requests into executable steps.
 
