@@ -20,11 +20,12 @@ A headless, MCP-native data reconciliation engine with **98 MCP tools** across f
 - **Transforms**: `transform_column`, `merge_sources`
 - **Workflow**: `save_workflow_step`, `get_workflow`, `clear_workflow`, `get_audit_log`
 
-### Hierarchy Knowledge Base (38 tools)
+### Hierarchy Knowledge Base (44 tools)
 - **Projects**: `create_hierarchy_project`, `list_hierarchy_projects`, `delete_hierarchy_project`
 - **Hierarchies**: `create_hierarchy`, `update_hierarchy`, `delete_hierarchy`, `get_hierarchy_tree`
 - **Mappings**: `add_source_mapping`, `remove_source_mapping`, `get_inherited_mappings`, `get_mapping_summary`, `get_mappings_by_precedence`
 - **Import/Export**: `export_hierarchy_csv`, `export_mapping_csv`, `import_hierarchy_csv`, `import_mapping_csv`, `export_project_json`
+- **Flexible Import**: `detect_hierarchy_format`, `configure_project_defaults`, `get_project_defaults`, `preview_import`, `import_flexible_hierarchy`, `export_hierarchy_simplified`
 - **Formulas**: `create_formula_group`, `add_formula_rule`, `list_formula_groups`
 - **Deployment**: `generate_hierarchy_scripts`, `push_hierarchy_to_snowflake`, `get_deployment_history`
 - **Backend Sync**: `sync_to_backend`, `sync_from_backend`, `configure_auto_sync`
@@ -32,6 +33,40 @@ A headless, MCP-native data reconciliation engine with **98 MCP tools** across f
 - **Connections**: `list_backend_connections`, `get_connection_databases`, `get_connection_tables`
 - **Schema Matching**: `compare_database_schemas`, `generate_merge_sql_script`
 - **Data Matching**: `compare_table_data`, `get_data_comparison_summary`
+
+#### Flexible Hierarchy Import System (Tiered)
+
+Supports four complexity tiers for creating hierarchies from various input formats:
+
+| Tier | Columns | Use Case | Auto-Generated |
+|------|---------|----------|----------------|
+| **Tier 1** | 2-3 (source_value, group_name) | Quick grouping, non-technical users | hierarchy_id, parent_id, flags, source_* |
+| **Tier 2** | 5-7 (hierarchy_name, parent_name, sort_order) | Basic hierarchies with parent-child | hierarchy_id, parent_id from name lookup |
+| **Tier 3** | 10-12 (explicit IDs, source info) | Full control without enterprise complexity | Minimal inference |
+| **Tier 4** | 28+ (LEVEL_1-10, all flags, formulas) | Enterprise - current full format | None |
+
+**Tier 1 Example (Ultra-Simple):**
+```csv
+source_value,group_name
+4100,Revenue
+4200,Revenue
+5100,COGS
+```
+
+**Tier 2 Example (Basic with Parents):**
+```csv
+hierarchy_name,parent_name,source_value,sort_order
+Revenue,,4%,1
+Product Revenue,Revenue,41%,2
+Service Revenue,Revenue,42%,3
+```
+
+**Tool Workflow:**
+1. `detect_hierarchy_format(content)` - Analyze input, detect tier
+2. `configure_project_defaults(project_id, database, schema, table, column)` - Set source defaults
+3. `preview_import(content, source_defaults)` - Preview without creating
+4. `import_flexible_hierarchy(project_id, content, source_defaults)` - Create hierarchies
+5. `export_hierarchy_simplified(project_id, target_tier)` - Export in simpler format
 
 #### CSV Import/Export Guidelines
 

@@ -1008,3 +1008,733 @@ class HierarchyService:
             "warnings": warnings,
             "hierarchy_count": len(hierarchies),
         }
+
+    # =========================================================================
+    # Property Management
+    # =========================================================================
+
+    def add_property(
+        self,
+        project_id: str,
+        hierarchy_id: str,
+        name: str,
+        value: Any,
+        category: str = "custom",
+        level: Optional[int] = None,
+        inherit: bool = True,
+        override_allowed: bool = True,
+        description: str = "",
+    ) -> Optional[Dict]:
+        """
+        Add a property to a hierarchy.
+
+        Args:
+            project_id: Project UUID
+            hierarchy_id: Hierarchy ID (slug)
+            name: Property name
+            value: Property value (any JSON-serializable type)
+            category: Property category (dimension, fact, filter, display, custom)
+            level: Specific level this applies to (None = hierarchy level)
+            inherit: Whether children inherit this property
+            override_allowed: Whether children can override
+            description: Property description
+
+        Returns:
+            Updated hierarchy dict or None if not found
+        """
+        hierarchy = self.get_hierarchy(project_id, hierarchy_id)
+        if not hierarchy:
+            return None
+
+        properties = hierarchy.get("properties", [])
+
+        # Check if property already exists
+        for prop in properties:
+            if prop.get("name") == name and prop.get("level") == level:
+                # Update existing property
+                prop["value"] = value
+                prop["category"] = category
+                prop["inherit"] = inherit
+                prop["override_allowed"] = override_allowed
+                prop["description"] = description
+                return self.update_hierarchy(project_id, hierarchy_id, {"properties": properties})
+
+        # Add new property
+        new_prop = {
+            "name": name,
+            "value": value,
+            "category": category,
+            "level": level,
+            "inherit": inherit,
+            "override_allowed": override_allowed,
+            "description": description,
+            "metadata": {},
+        }
+        properties.append(new_prop)
+
+        return self.update_hierarchy(project_id, hierarchy_id, {"properties": properties})
+
+    def update_property(
+        self,
+        project_id: str,
+        hierarchy_id: str,
+        name: str,
+        updates: Dict[str, Any],
+        level: Optional[int] = None,
+    ) -> Optional[Dict]:
+        """
+        Update an existing property on a hierarchy.
+
+        Args:
+            project_id: Project UUID
+            hierarchy_id: Hierarchy ID
+            name: Property name to update
+            updates: Dict of fields to update (value, category, inherit, etc.)
+            level: Level of the property (to disambiguate if same name at multiple levels)
+
+        Returns:
+            Updated hierarchy dict or None
+        """
+        hierarchy = self.get_hierarchy(project_id, hierarchy_id)
+        if not hierarchy:
+            return None
+
+        properties = hierarchy.get("properties", [])
+
+        for prop in properties:
+            if prop.get("name") == name and prop.get("level") == level:
+                prop.update(updates)
+                return self.update_hierarchy(project_id, hierarchy_id, {"properties": properties})
+
+        return None  # Property not found
+
+    def remove_property(
+        self,
+        project_id: str,
+        hierarchy_id: str,
+        name: str,
+        level: Optional[int] = None,
+    ) -> Optional[Dict]:
+        """
+        Remove a property from a hierarchy.
+
+        Args:
+            project_id: Project UUID
+            hierarchy_id: Hierarchy ID
+            name: Property name to remove
+            level: Level of the property (to disambiguate)
+
+        Returns:
+            Updated hierarchy dict or None
+        """
+        hierarchy = self.get_hierarchy(project_id, hierarchy_id)
+        if not hierarchy:
+            return None
+
+        properties = hierarchy.get("properties", [])
+        original_count = len(properties)
+
+        properties = [
+            p for p in properties
+            if not (p.get("name") == name and p.get("level") == level)
+        ]
+
+        if len(properties) < original_count:
+            return self.update_hierarchy(project_id, hierarchy_id, {"properties": properties})
+
+        return None  # Property not found
+
+    def get_properties(
+        self,
+        project_id: str,
+        hierarchy_id: str,
+        category: Optional[str] = None,
+        level: Optional[int] = None,
+    ) -> List[Dict]:
+        """
+        Get all properties for a hierarchy.
+
+        Args:
+            project_id: Project UUID
+            hierarchy_id: Hierarchy ID
+            category: Filter by category (optional)
+            level: Filter by level (optional)
+
+        Returns:
+            List of properties
+        """
+        hierarchy = self.get_hierarchy(project_id, hierarchy_id)
+        if not hierarchy:
+            return []
+
+        properties = hierarchy.get("properties", [])
+
+        if category:
+            properties = [p for p in properties if p.get("category") == category]
+
+        if level is not None:
+            properties = [p for p in properties if p.get("level") == level]
+
+        return properties
+
+    def get_inherited_properties(
+        self,
+        project_id: str,
+        hierarchy_uuid: str,
+        include_overridden: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Get all properties for a hierarchy including inherited from ancestors.
+
+        Properties are resolved with child values overriding parent values
+        (if override_allowed is True on the parent property).
+
+        Args:
+            project_id: Project UUID
+            hierarchy_uuid: Hierarchy UUID (id field)
+            include_overridden: Whether to include parent properties that were overridden
+
+        Returns:
+            Dict with:
+            - effective_properties: Final resolved properties
+            - own_properties: Properties defined on this hierarchy
+            - inherited_properties: Properties inherited from ancestors
+            - inheritance_chain: List of ancestor hierarchies
+        """
+        hierarchy = self.get_hierarchy_by_id(hierarchy_uuid)
+        if not hierarchy:
+            return {"error": "Hierarchy not found"}
+
+        # Build ancestor chain (from root to parent)
+        ancestors = []
+        current = hierarchy
+        while current.get("parent_id"):
+            parent = self.get_hierarchy_by_id(current["parent_id"])
+            if parent:
+                ancestors.insert(0, parent)  # Insert at beginning
+                current = parent
+            else:
+                break
+
+        # Collect own properties
+        own_properties = hierarchy.get("properties", [])
+
+        # Collect inherited properties (walking from root to immediate parent)
+        inherited_properties = []
+        for ancestor in ancestors:
+            for prop in ancestor.get("properties", []):
+                if prop.get("inherit", True):
+                    inherited_properties.append({
+                        **prop,
+                        "inherited_from_id": ancestor.get("id"),
+                        "inherited_from_name": ancestor.get("hierarchy_name"),
+                    })
+
+        # Resolve effective properties (child overrides parent)
+        effective = {}
+        overridden = []
+
+        # First, apply inherited properties
+        for prop in inherited_properties:
+            key = (prop.get("name"), prop.get("level"))
+            if prop.get("override_allowed", True):
+                effective[key] = prop
+            else:
+                # Cannot be overridden - this is final
+                effective[key] = {**prop, "locked": True}
+
+        # Then, apply own properties (may override)
+        for prop in own_properties:
+            key = (prop.get("name"), prop.get("level"))
+            if key in effective:
+                existing = effective[key]
+                if existing.get("locked"):
+                    # Cannot override - keep parent value
+                    overridden.append({
+                        "property": prop,
+                        "blocked_by": existing,
+                    })
+                else:
+                    if include_overridden:
+                        overridden.append({
+                            "property": existing,
+                            "overridden_by": prop,
+                        })
+                    effective[key] = prop
+            else:
+                effective[key] = prop
+
+        return {
+            "hierarchy_id": hierarchy.get("hierarchy_id"),
+            "hierarchy_name": hierarchy.get("hierarchy_name"),
+            "effective_properties": list(effective.values()),
+            "own_properties": own_properties,
+            "inherited_properties": inherited_properties,
+            "overridden": overridden if include_overridden else [],
+            "inheritance_chain": [
+                {"id": a.get("id"), "name": a.get("hierarchy_name")}
+                for a in ancestors
+            ],
+        }
+
+    def set_dimension_props(
+        self,
+        project_id: str,
+        hierarchy_id: str,
+        props: Dict[str, Any],
+    ) -> Optional[Dict]:
+        """
+        Set dimension properties for a hierarchy.
+
+        Args:
+            project_id: Project UUID
+            hierarchy_id: Hierarchy ID
+            props: Dimension properties dict with keys like:
+                - aggregation_type: SUM, AVG, COUNT, etc.
+                - display_format: Format string
+                - sort_behavior: alpha, numeric, custom
+                - drill_enabled: Boolean
+                - drill_path: List of hierarchy IDs
+                - grouping_enabled: Boolean
+                - totals_enabled: Boolean
+                - hierarchy_type: standard, ragged, parent-child, time
+                - all_member_name: Name for 'All' member
+                - default_member: Default member ID
+
+        Returns:
+            Updated hierarchy dict
+        """
+        return self.update_hierarchy(project_id, hierarchy_id, {"dimension_props": props})
+
+    def set_fact_props(
+        self,
+        project_id: str,
+        hierarchy_id: str,
+        props: Dict[str, Any],
+    ) -> Optional[Dict]:
+        """
+        Set fact/measure properties for a hierarchy.
+
+        Args:
+            project_id: Project UUID
+            hierarchy_id: Hierarchy ID
+            props: Fact properties dict with keys like:
+                - measure_type: additive, semi_additive, non_additive, derived
+                - aggregation_type: SUM, AVG, etc.
+                - time_balance: flow, first, last, average
+                - format_string: Number format
+                - decimal_places: Number of decimals
+                - currency_code: Currency code
+                - unit_of_measure: Unit string
+                - null_handling: zero, null, exclude
+                - negative_format: minus, parens, red
+                - calculation_formula: Formula string
+                - base_measure_ids: List of measure IDs
+
+        Returns:
+            Updated hierarchy dict
+        """
+        return self.update_hierarchy(project_id, hierarchy_id, {"fact_props": props})
+
+    def set_filter_props(
+        self,
+        project_id: str,
+        hierarchy_id: str,
+        props: Dict[str, Any],
+    ) -> Optional[Dict]:
+        """
+        Set filter properties for a hierarchy.
+
+        Args:
+            project_id: Project UUID
+            hierarchy_id: Hierarchy ID
+            props: Filter properties dict with keys like:
+                - filter_behavior: single, multi, range, cascading, search, hierarchy
+                - default_value: Default filter value
+                - default_to_all: Boolean
+                - allowed_values: List of allowed values
+                - excluded_values: List of excluded values
+                - cascading_parent_id: Parent filter hierarchy ID
+                - required: Boolean
+                - visible: Boolean
+                - search_enabled: Boolean
+                - show_all_option: Boolean
+                - max_selections: Max selections
+
+        Returns:
+            Updated hierarchy dict
+        """
+        return self.update_hierarchy(project_id, hierarchy_id, {"filter_props": props})
+
+    def set_display_props(
+        self,
+        project_id: str,
+        hierarchy_id: str,
+        props: Dict[str, Any],
+    ) -> Optional[Dict]:
+        """
+        Set display properties for a hierarchy.
+
+        Args:
+            project_id: Project UUID
+            hierarchy_id: Hierarchy ID
+            props: Display properties dict with keys like:
+                - color: Hex color or name
+                - background_color: Background color
+                - icon: Icon name or emoji
+                - tooltip: Hover text
+                - visible: Boolean
+                - collapsed_by_default: Boolean
+                - highlight_condition: Condition string
+                - custom_css_class: CSS class name
+                - display_order: Override order
+
+        Returns:
+            Updated hierarchy dict
+        """
+        return self.update_hierarchy(project_id, hierarchy_id, {"display_props": props})
+
+    def get_property_templates(self) -> List[Dict]:
+        """
+        Get built-in property templates.
+
+        Returns:
+            List of property template definitions
+        """
+        return [
+            {
+                "id": "financial_dimension",
+                "name": "Financial Dimension",
+                "description": "Standard configuration for financial reporting dimensions (GL accounts, cost centers)",
+                "category": "dimension",
+                "dimension_props": {
+                    "aggregation_type": "SUM",
+                    "drill_enabled": True,
+                    "grouping_enabled": True,
+                    "totals_enabled": True,
+                    "hierarchy_type": "standard",
+                    "all_member_name": "All",
+                },
+                "filter_props": {
+                    "filter_behavior": "multi",
+                    "default_to_all": True,
+                    "search_enabled": True,
+                    "show_all_option": True,
+                },
+                "tags": ["financial", "accounting", "dimension"],
+            },
+            {
+                "id": "time_dimension",
+                "name": "Time Dimension",
+                "description": "Configuration for time/date dimensions with period handling",
+                "category": "dimension",
+                "dimension_props": {
+                    "aggregation_type": "NONE",
+                    "drill_enabled": True,
+                    "hierarchy_type": "time",
+                    "sort_behavior": "natural",
+                },
+                "filter_props": {
+                    "filter_behavior": "range",
+                    "default_to_all": False,
+                    "required": True,
+                },
+                "tags": ["time", "date", "period", "dimension"],
+            },
+            {
+                "id": "additive_measure",
+                "name": "Additive Measure",
+                "description": "Standard additive measure that can be summed across all dimensions",
+                "category": "fact",
+                "fact_props": {
+                    "measure_type": "additive",
+                    "aggregation_type": "SUM",
+                    "decimal_places": 2,
+                    "null_handling": "zero",
+                    "negative_format": "minus",
+                },
+                "tags": ["measure", "fact", "additive"],
+            },
+            {
+                "id": "balance_measure",
+                "name": "Balance Measure (Semi-Additive)",
+                "description": "Balance-type measure that uses last value for time aggregation",
+                "category": "fact",
+                "fact_props": {
+                    "measure_type": "semi_additive",
+                    "aggregation_type": "SUM",
+                    "time_balance": "last",
+                    "decimal_places": 2,
+                    "null_handling": "null",
+                },
+                "tags": ["measure", "fact", "balance", "semi-additive"],
+            },
+            {
+                "id": "ratio_measure",
+                "name": "Ratio/Percentage Measure",
+                "description": "Non-additive measure for ratios and percentages",
+                "category": "fact",
+                "fact_props": {
+                    "measure_type": "non_additive",
+                    "aggregation_type": "NONE",
+                    "decimal_places": 2,
+                    "format_string": "0.00%",
+                    "null_handling": "null",
+                },
+                "tags": ["measure", "fact", "ratio", "percentage", "non-additive"],
+            },
+            {
+                "id": "currency_measure",
+                "name": "Currency Measure",
+                "description": "Monetary measure with currency formatting",
+                "category": "fact",
+                "fact_props": {
+                    "measure_type": "additive",
+                    "aggregation_type": "SUM",
+                    "decimal_places": 2,
+                    "format_string": "$#,##0.00",
+                    "negative_format": "parens",
+                    "null_handling": "zero",
+                },
+                "tags": ["measure", "fact", "currency", "money"],
+            },
+            {
+                "id": "cascading_filter",
+                "name": "Cascading Filter",
+                "description": "Filter that depends on parent filter selection",
+                "category": "filter",
+                "filter_props": {
+                    "filter_behavior": "cascading",
+                    "default_to_all": True,
+                    "search_enabled": True,
+                    "visible": True,
+                },
+                "tags": ["filter", "cascading", "dependent"],
+            },
+            {
+                "id": "required_filter",
+                "name": "Required Single-Select Filter",
+                "description": "Filter that requires exactly one selection",
+                "category": "filter",
+                "filter_props": {
+                    "filter_behavior": "single",
+                    "required": True,
+                    "default_to_all": False,
+                    "show_all_option": False,
+                },
+                "tags": ["filter", "required", "single"],
+            },
+            {
+                "id": "oil_gas_dimension",
+                "name": "Oil & Gas Operational Dimension",
+                "description": "Configuration for oil & gas operational hierarchies (wells, fields, assets)",
+                "category": "dimension",
+                "dimension_props": {
+                    "aggregation_type": "SUM",
+                    "drill_enabled": True,
+                    "grouping_enabled": True,
+                    "hierarchy_type": "standard",
+                },
+                "properties": [
+                    {"name": "asset_type", "value": "operational", "category": "custom", "inherit": True},
+                    {"name": "regulatory_reporting", "value": True, "category": "custom", "inherit": True},
+                ],
+                "tags": ["oil_gas", "operational", "upstream", "dimension"],
+            },
+            {
+                "id": "volume_measure",
+                "name": "Volume Measure (Oil & Gas)",
+                "description": "Volume measure with unit of measure support",
+                "category": "fact",
+                "fact_props": {
+                    "measure_type": "additive",
+                    "aggregation_type": "SUM",
+                    "decimal_places": 0,
+                    "unit_of_measure": "bbl",
+                    "null_handling": "zero",
+                },
+                "properties": [
+                    {"name": "convertible", "value": True, "category": "custom", "inherit": False},
+                    {"name": "conversion_factor", "value": 1.0, "category": "custom", "inherit": False},
+                ],
+                "tags": ["measure", "fact", "volume", "oil_gas"],
+            },
+        ]
+
+    def apply_property_template(
+        self,
+        project_id: str,
+        hierarchy_id: str,
+        template_id: str,
+        merge: bool = True,
+    ) -> Optional[Dict]:
+        """
+        Apply a property template to a hierarchy.
+
+        Args:
+            project_id: Project UUID
+            hierarchy_id: Hierarchy ID
+            template_id: Template ID to apply
+            merge: If True, merge with existing properties. If False, replace.
+
+        Returns:
+            Updated hierarchy dict or None
+        """
+        templates = self.get_property_templates()
+        template = next((t for t in templates if t["id"] == template_id), None)
+
+        if not template:
+            return {"error": f"Template '{template_id}' not found"}
+
+        updates = {"property_template_id": template_id}
+
+        # Apply dimension props
+        if "dimension_props" in template:
+            if merge:
+                hierarchy = self.get_hierarchy(project_id, hierarchy_id)
+                existing = hierarchy.get("dimension_props") or {}
+                updates["dimension_props"] = {**existing, **template["dimension_props"]}
+            else:
+                updates["dimension_props"] = template["dimension_props"]
+
+        # Apply fact props
+        if "fact_props" in template:
+            if merge:
+                hierarchy = self.get_hierarchy(project_id, hierarchy_id)
+                existing = hierarchy.get("fact_props") or {}
+                updates["fact_props"] = {**existing, **template["fact_props"]}
+            else:
+                updates["fact_props"] = template["fact_props"]
+
+        # Apply filter props
+        if "filter_props" in template:
+            if merge:
+                hierarchy = self.get_hierarchy(project_id, hierarchy_id)
+                existing = hierarchy.get("filter_props") or {}
+                updates["filter_props"] = {**existing, **template["filter_props"]}
+            else:
+                updates["filter_props"] = template["filter_props"]
+
+        # Apply display props
+        if "display_props" in template:
+            if merge:
+                hierarchy = self.get_hierarchy(project_id, hierarchy_id)
+                existing = hierarchy.get("display_props") or {}
+                updates["display_props"] = {**existing, **template["display_props"]}
+            else:
+                updates["display_props"] = template["display_props"]
+
+        # Apply custom properties
+        if "properties" in template:
+            hierarchy = self.get_hierarchy(project_id, hierarchy_id)
+            existing_props = hierarchy.get("properties", []) if merge else []
+            existing_names = {(p.get("name"), p.get("level")) for p in existing_props}
+
+            for prop in template["properties"]:
+                key = (prop.get("name"), prop.get("level"))
+                if key not in existing_names:
+                    existing_props.append(prop)
+
+            updates["properties"] = existing_props
+
+        return self.update_hierarchy(project_id, hierarchy_id, updates)
+
+    def bulk_set_property(
+        self,
+        project_id: str,
+        hierarchy_ids: List[str],
+        name: str,
+        value: Any,
+        category: str = "custom",
+        inherit: bool = True,
+    ) -> Dict[str, Any]:
+        """
+        Set a property on multiple hierarchies at once.
+
+        Args:
+            project_id: Project UUID
+            hierarchy_ids: List of hierarchy IDs
+            name: Property name
+            value: Property value
+            category: Property category
+            inherit: Whether children inherit
+
+        Returns:
+            Dict with success count and errors
+        """
+        successes = []
+        errors = []
+
+        for hier_id in hierarchy_ids:
+            result = self.add_property(
+                project_id=project_id,
+                hierarchy_id=hier_id,
+                name=name,
+                value=value,
+                category=category,
+                inherit=inherit,
+            )
+            if result:
+                successes.append(hier_id)
+            else:
+                errors.append(f"Failed to set property on '{hier_id}'")
+
+        return {
+            "success_count": len(successes),
+            "error_count": len(errors),
+            "successes": successes,
+            "errors": errors,
+        }
+
+    def get_properties_summary(self, project_id: str) -> Dict[str, Any]:
+        """
+        Get a summary of all properties used across a project.
+
+        Returns:
+            Dict with property usage statistics
+        """
+        hierarchies = self.list_hierarchies(project_id)
+
+        all_properties = []
+        by_category = {}
+        by_name = {}
+        hierarchies_with_props = 0
+
+        for h in hierarchies:
+            props = h.get("properties", [])
+            if props:
+                hierarchies_with_props += 1
+
+            for prop in props:
+                all_properties.append({
+                    "hierarchy_id": h.get("hierarchy_id"),
+                    "hierarchy_name": h.get("hierarchy_name"),
+                    **prop,
+                })
+
+                cat = prop.get("category", "custom")
+                if cat not in by_category:
+                    by_category[cat] = []
+                by_category[cat].append(prop)
+
+                name = prop.get("name")
+                if name not in by_name:
+                    by_name[name] = {"count": 0, "values": set(), "categories": set()}
+                by_name[name]["count"] += 1
+                by_name[name]["values"].add(str(prop.get("value")))
+                by_name[name]["categories"].add(cat)
+
+        # Convert sets to lists for JSON serialization
+        for name, info in by_name.items():
+            info["values"] = list(info["values"])
+            info["categories"] = list(info["categories"])
+
+        return {
+            "project_id": project_id,
+            "total_hierarchies": len(hierarchies),
+            "hierarchies_with_properties": hierarchies_with_props,
+            "total_properties": len(all_properties),
+            "by_category": {cat: len(props) for cat, props in by_category.items()},
+            "by_name": by_name,
+            "all_properties": all_properties,
+        }

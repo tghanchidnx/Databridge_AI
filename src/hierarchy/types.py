@@ -5,6 +5,207 @@ from datetime import datetime
 from enum import Enum
 
 
+class FormatTier(str, Enum):
+    """Hierarchy format complexity tiers for flexible import."""
+    TIER_1 = "tier_1"  # Ultra-simple: 2-3 columns (source_value, group_name)
+    TIER_2 = "tier_2"  # Basic: 5-7 columns with parent names
+    TIER_3 = "tier_3"  # Standard: 10-12 columns with explicit IDs
+    TIER_4 = "tier_4"  # Enterprise: 28+ columns with LEVEL_X
+
+
+class InputFormat(str, Enum):
+    """Supported input formats for flexible import."""
+    CSV = "csv"
+    EXCEL = "excel"
+    JSON = "json"
+    TEXT = "text"
+    AUTO = "auto"
+
+
+class ProjectDefaults(BaseModel):
+    """Default source information for a project (used in flexible import)."""
+    source_database: str = Field(default="", description="Default source database name")
+    source_schema: str = Field(default="", description="Default source schema name")
+    source_table: str = Field(default="", description="Default source table name")
+    source_column: str = Field(default="", description="Default source column name")
+
+    def is_complete(self) -> bool:
+        """Check if all source defaults are set."""
+        return all([
+            self.source_database,
+            self.source_schema,
+            self.source_table,
+            self.source_column,
+        ])
+
+    class Config:
+        extra = "allow"
+
+
+class PropertyCategory(str, Enum):
+    """Categories of hierarchy properties."""
+    DIMENSION = "dimension"      # Controls dimension building (aggregation, display, drill)
+    FACT = "fact"                # Controls fact/measure design (measure type, calculation)
+    FILTER = "filter"            # Controls filter behavior (default values, cascading)
+    DISPLAY = "display"          # Controls UI display (color, icon, format)
+    VALIDATION = "validation"    # Data validation rules
+    SECURITY = "security"        # Row-level security, access control
+    CUSTOM = "custom"            # User-defined properties
+
+
+class AggregationType(str, Enum):
+    """Aggregation types for dimensions and facts."""
+    SUM = "SUM"
+    AVG = "AVG"
+    COUNT = "COUNT"
+    COUNT_DISTINCT = "COUNT_DISTINCT"
+    MIN = "MIN"
+    MAX = "MAX"
+    FIRST = "FIRST"
+    LAST = "LAST"
+    NONE = "NONE"              # No aggregation (display only)
+    SEMI_ADDITIVE = "SEMI_ADDITIVE"  # For balance-type measures
+
+
+class MeasureType(str, Enum):
+    """Types of measures for fact properties."""
+    ADDITIVE = "additive"           # Can be summed across all dimensions
+    SEMI_ADDITIVE = "semi_additive" # Cannot be summed across time (e.g., balances)
+    NON_ADDITIVE = "non_additive"   # Cannot be summed (e.g., ratios, percentages)
+    DERIVED = "derived"             # Calculated from other measures
+    SNAPSHOT = "snapshot"           # Point-in-time values
+
+
+class TimeBalance(str, Enum):
+    """Time balance behavior for semi-additive measures."""
+    FLOW = "flow"                 # Sum over time (income, expenses)
+    BALANCE_FIRST = "first"       # First value in period
+    BALANCE_LAST = "last"         # Last value in period (typical for balances)
+    BALANCE_AVG = "average"       # Average over period
+
+
+class FilterBehavior(str, Enum):
+    """Filter behavior types."""
+    SINGLE_SELECT = "single"      # Single value selection
+    MULTI_SELECT = "multi"        # Multiple value selection
+    RANGE = "range"               # Range selection (dates, numbers)
+    CASCADING = "cascading"       # Dependent on parent filter
+    SEARCH = "search"             # Free-text search
+    HIERARCHY = "hierarchy"       # Tree-based selection
+
+
+class HierarchyProperty(BaseModel):
+    """
+    A property attached to a hierarchy node.
+
+    Properties control how dimensions are built, facts are designed,
+    and filters are configured. Properties can be inherited by children.
+    """
+    name: str = Field(..., description="Property name (e.g., 'aggregation_type', 'measure_type')")
+    value: Any = Field(..., description="Property value")
+    category: PropertyCategory = Field(PropertyCategory.CUSTOM, description="Property category")
+    level: Optional[int] = Field(None, description="Specific level this applies to (None = hierarchy level)")
+    inherit: bool = Field(True, description="Whether child hierarchies inherit this property")
+    override_allowed: bool = Field(True, description="Whether children can override this property")
+    description: Optional[str] = Field(None, description="Property description")
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+
+    class Config:
+        extra = "allow"
+
+
+class DimensionProperties(BaseModel):
+    """Pre-defined dimension property set."""
+    aggregation_type: AggregationType = Field(AggregationType.SUM, description="How to aggregate")
+    display_format: Optional[str] = Field(None, description="Display format string")
+    sort_behavior: str = Field("alpha", description="Sort: alpha, numeric, custom, natural")
+    drill_enabled: bool = Field(True, description="Allow drill-down")
+    drill_path: Optional[List[str]] = Field(None, description="Custom drill path hierarchy IDs")
+    grouping_enabled: bool = Field(True, description="Allow grouping in reports")
+    totals_enabled: bool = Field(True, description="Show totals for this dimension")
+    hierarchy_type: str = Field("standard", description="standard, ragged, parent-child, time")
+    all_member_name: Optional[str] = Field(None, description="Name for 'All' member")
+    default_member: Optional[str] = Field(None, description="Default member ID for queries")
+
+    class Config:
+        extra = "allow"
+
+
+class FactProperties(BaseModel):
+    """Pre-defined fact/measure property set."""
+    measure_type: MeasureType = Field(MeasureType.ADDITIVE, description="Measure type")
+    aggregation_type: AggregationType = Field(AggregationType.SUM, description="Default aggregation")
+    time_balance: Optional[TimeBalance] = Field(None, description="Time balance behavior")
+    format_string: Optional[str] = Field(None, description="Number format (e.g., '#,##0.00')")
+    decimal_places: int = Field(2, description="Decimal places for display")
+    currency_code: Optional[str] = Field(None, description="Currency code (e.g., 'USD')")
+    unit_of_measure: Optional[str] = Field(None, description="Unit (e.g., 'bbl', 'mcf', 'units')")
+    null_handling: str = Field("zero", description="How to handle nulls: zero, null, exclude")
+    negative_format: str = Field("minus", description="Negative display: minus, parens, red")
+    calculation_formula: Optional[str] = Field(None, description="SQL/expression for derived measures")
+    base_measure_ids: Optional[List[str]] = Field(None, description="IDs of measures used in calculation")
+
+    class Config:
+        extra = "allow"
+
+
+class FilterProperties(BaseModel):
+    """Pre-defined filter property set."""
+    filter_behavior: FilterBehavior = Field(FilterBehavior.MULTI_SELECT, description="Filter type")
+    default_value: Optional[Any] = Field(None, description="Default filter value")
+    default_to_all: bool = Field(True, description="Default to all values if no selection")
+    allowed_values: Optional[List[Any]] = Field(None, description="Restrict to these values")
+    excluded_values: Optional[List[Any]] = Field(None, description="Exclude these values")
+    cascading_parent_id: Optional[str] = Field(None, description="Parent filter hierarchy ID")
+    required: bool = Field(False, description="Filter selection required")
+    visible: bool = Field(True, description="Show in filter panel")
+    search_enabled: bool = Field(True, description="Enable search in filter")
+    show_all_option: bool = Field(True, description="Show 'All' option")
+    max_selections: Optional[int] = Field(None, description="Max selections for multi-select")
+
+    class Config:
+        extra = "allow"
+
+
+class DisplayProperties(BaseModel):
+    """Pre-defined display property set."""
+    color: Optional[str] = Field(None, description="Display color (hex or name)")
+    background_color: Optional[str] = Field(None, description="Background color")
+    icon: Optional[str] = Field(None, description="Icon name or emoji")
+    tooltip: Optional[str] = Field(None, description="Hover tooltip text")
+    visible: bool = Field(True, description="Visible in UI")
+    collapsed_by_default: bool = Field(False, description="Start collapsed in tree views")
+    highlight_condition: Optional[str] = Field(None, description="Condition for highlighting")
+    custom_css_class: Optional[str] = Field(None, description="Custom CSS class")
+    display_order: Optional[int] = Field(None, description="Override display order")
+
+    class Config:
+        extra = "allow"
+
+
+class PropertyTemplate(BaseModel):
+    """
+    Pre-defined property template for common configurations.
+
+    Templates allow quick application of standard property sets
+    to hierarchies (e.g., 'Financial Dimension', 'Time Dimension', 'Measure').
+    """
+    id: str = Field(..., description="Template ID")
+    name: str = Field(..., description="Template name")
+    description: Optional[str] = Field(None, description="Template description")
+    category: PropertyCategory = Field(..., description="Primary category")
+    properties: List[HierarchyProperty] = Field(default_factory=list, description="Properties in template")
+    dimension_props: Optional[DimensionProperties] = Field(None, description="Dimension properties")
+    fact_props: Optional[FactProperties] = Field(None, description="Fact properties")
+    filter_props: Optional[FilterProperties] = Field(None, description="Filter properties")
+    display_props: Optional[DisplayProperties] = Field(None, description="Display properties")
+    applicable_to: List[str] = Field(default_factory=list, description="Hierarchy types this applies to")
+    tags: List[str] = Field(default_factory=list, description="Tags for searching")
+
+    class Config:
+        extra = "allow"
+
+
 class FormulaOperation(str, Enum):
     """Supported formula operations."""
     SUM = "SUM"
@@ -188,6 +389,13 @@ class SmartHierarchy(BaseModel):
     mapping: List[SourceMapping] = Field(default_factory=list)
     formula_config: Optional[FormulaConfig] = None
     filter_config: Optional[FilterConfig] = None
+    # Property system - controls dimensions, facts, filters
+    properties: List["HierarchyProperty"] = Field(default_factory=list, description="Custom properties")
+    dimension_props: Optional["DimensionProperties"] = Field(None, description="Dimension configuration")
+    fact_props: Optional["FactProperties"] = Field(None, description="Fact/measure configuration")
+    filter_props: Optional["FilterProperties"] = Field(None, description="Filter configuration")
+    display_props: Optional["DisplayProperties"] = Field(None, description="Display configuration")
+    property_template_id: Optional[str] = Field(None, description="Applied property template ID")
     metadata: Optional[Dict[str, Any]] = None
     created_by: Optional[str] = None
     updated_by: Optional[str] = None

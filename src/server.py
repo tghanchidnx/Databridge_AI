@@ -1229,6 +1229,27 @@ except ImportError as e:
 
 
 # =============================================================================
+# Phase 14: AI Orchestrator Integration
+# =============================================================================
+
+# Register orchestrator tools for task management, agent registration, and messaging
+try:
+    try:
+        from src.orchestrator.mcp_tools import register_orchestrator_tools
+    except ImportError:
+        from orchestrator.mcp_tools import register_orchestrator_tools
+
+    orchestrator_client = register_orchestrator_tools(
+        mcp,
+        settings.nestjs_backend_url,
+        settings.nestjs_api_key
+    )
+    log_action("SYSTEM", "orchestrator_init", "AI Orchestrator tools registered")
+except ImportError as e:
+    print(f"Warning: Orchestrator module not loaded: {e}")
+
+
+# =============================================================================
 # Entry Point
 # =============================================================================
 

@@ -1336,4 +1336,1105 @@ def register_hierarchy_tools(mcp, data_dir: str = "data"):
         except Exception as e:
             return json.dumps({"error": str(e)})
 
+    # =========================================================================
+    # Flexible Import Tools (Tiered Hierarchy Creation)
+    # =========================================================================
+
+    # Import the flexible import service
+    try:
+        from .flexible_import import FlexibleImportService, FormatDetector, FormatTier
+        flexible_import_service = FlexibleImportService(service)
+        flexible_import_enabled = True
+    except ImportError as e:
+        logger.warning(f"Flexible import not available: {e}")
+        flexible_import_enabled = False
+
+    @mcp.tool()
+    def detect_hierarchy_format(content: str, filename: str = "") -> str:
+        """
+        Detect the format and tier of hierarchy input data.
+
+        Analyzes input content to determine:
+        - Input format (CSV, Excel, JSON, text)
+        - Complexity tier (tier_1 to tier_4)
+        - Parent relationship strategy
+        - Recommendations for import
+
+        Tiers:
+        - Tier 1: Ultra-simple (2-3 columns: source_value, group_name)
+        - Tier 2: Basic (5-7 columns with parent names)
+        - Tier 3: Standard (10-12 columns with explicit IDs)
+        - Tier 4: Enterprise (28+ columns with LEVEL_X)
+
+        Args:
+            content: Input data content (CSV, JSON, or plain text)
+            filename: Optional filename to help detect format from extension
+
+        Returns:
+            JSON with detected format, tier, columns, parent strategy,
+            sample data, and recommendations.
+
+        Example:
+            detect_hierarchy_format("source_value,group_name\\n4100,Revenue\\n5100,COGS")
+            -> {"format": "csv", "tier": "tier_1", "columns_found": ["source_value", "group_name"], ...}
+        """
+        if not flexible_import_enabled:
+            return json.dumps({"error": "Flexible import module not available"})
+
+        try:
+            analysis = FormatDetector.analyze(content, filename)
+            return json.dumps({
+                "status": "success",
+                **analysis,
+            }, default=str, indent=2)
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    def configure_project_defaults(
+        project_id: str,
+        source_database: str,
+        source_schema: str,
+        source_table: str,
+        source_column: str
+    ) -> str:
+        """
+        Configure default source information for a project.
+
+        These defaults are used during flexible import when source columns
+        are not specified in the input data. Essential for Tier 1 and Tier 2
+        imports where source info is not included.
+
+        Args:
+            project_id: Project UUID
+            source_database: Default database name (e.g., "WAREHOUSE")
+            source_schema: Default schema name (e.g., "FINANCE")
+            source_table: Default table name (e.g., "DIM_ACCOUNT")
+            source_column: Default column name (e.g., "ACCOUNT_CODE")
+
+        Returns:
+            JSON with configured defaults and completeness status.
+
+        Example:
+            configure_project_defaults(
+                project_id="abc-123",
+                source_database="WAREHOUSE",
+                source_schema="FINANCE",
+                source_table="DIM_ACCOUNT",
+                source_column="ACCOUNT_CODE"
+            )
+        """
+        if not flexible_import_enabled:
+            return json.dumps({"error": "Flexible import module not available"})
+
+        try:
+            # Verify project exists
+            project = service.get_project(project_id)
+            if not project:
+                return json.dumps({"error": f"Project '{project_id}' not found"})
+
+            defaults = flexible_import_service.configure_defaults(
+                project_id=project_id,
+                source_database=source_database,
+                source_schema=source_schema,
+                source_table=source_table,
+                source_column=source_column,
+            )
+
+            return json.dumps({
+                "status": "success",
+                "project_id": project_id,
+                "project_name": project.get("name"),
+                "defaults": defaults.to_dict(),
+                "is_complete": defaults.is_complete(),
+            }, default=str, indent=2)
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    def preview_import(
+        content: str,
+        format_type: str = "auto",
+        source_defaults: str = "{}",
+        limit: int = 10
+    ) -> str:
+        """
+        Preview hierarchy import without creating anything.
+
+        Shows what hierarchies and mappings would be created from the input
+        without actually persisting them. Use this to verify data before
+        committing to import.
+
+        Args:
+            content: Input data (CSV, JSON, or text)
+            format_type: Format hint ("auto", "csv", "json", "excel", "text")
+            source_defaults: JSON string of source defaults:
+                {"database": "X", "schema": "Y", "table": "Z", "column": "W"}
+            limit: Maximum rows to preview (default 10)
+
+        Returns:
+            JSON with detected format/tier, preview of hierarchies,
+            inferred fields, and source defaults status.
+
+        Example:
+            preview_import(
+                content="source_value,group_name\\n4100,Revenue",
+                source_defaults='{"database":"WAREHOUSE","schema":"FINANCE"}'
+            )
+        """
+        if not flexible_import_enabled:
+            return json.dumps({"error": "Flexible import module not available"})
+
+        try:
+            defaults_dict = json.loads(source_defaults) if source_defaults else {}
+
+            # Normalize keys
+            normalized_defaults = {
+                "source_database": defaults_dict.get("source_database") or defaults_dict.get("database", ""),
+                "source_schema": defaults_dict.get("source_schema") or defaults_dict.get("schema", ""),
+                "source_table": defaults_dict.get("source_table") or defaults_dict.get("table", ""),
+                "source_column": defaults_dict.get("source_column") or defaults_dict.get("column", ""),
+            }
+
+            preview = flexible_import_service.preview_import(
+                content=content,
+                format_type=format_type,
+                source_defaults=normalized_defaults,
+                limit=limit,
+            )
+
+            return json.dumps({
+                "status": "success",
+                **preview,
+            }, default=str, indent=2)
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    def import_flexible_hierarchy(
+        project_id: str,
+        content: str,
+        format_type: str = "auto",
+        source_defaults: str = "{}",
+        tier_hint: str = "auto"
+    ) -> str:
+        """
+        Import hierarchies from flexible format with auto-detection.
+
+        Supports four tiers of input complexity:
+        - Tier 1: Ultra-simple (source_value, group_name)
+        - Tier 2: Basic (hierarchy_name, parent_name, source_value, sort_order)
+        - Tier 3: Standard (explicit IDs, full source info)
+        - Tier 4: Enterprise (LEVEL_1-10, all flags, formulas)
+
+        Auto-infers missing fields based on tier and project defaults.
+
+        AUTO-SYNC: When enabled, created hierarchies sync to backend.
+
+        Args:
+            project_id: Target project UUID
+            content: Input data (CSV, JSON, or text)
+            format_type: Format hint ("auto", "csv", "json", "excel", "text")
+            source_defaults: JSON string of source defaults (overrides project defaults)
+            tier_hint: Tier hint ("auto", "tier_1", "tier_2", "tier_3", "tier_4")
+
+        Returns:
+            JSON with import results including:
+            - detected_format, detected_tier
+            - hierarchies_created, mappings_created
+            - created_hierarchies (list with IDs and names)
+            - inferred_fields (what was auto-generated)
+            - errors (if any)
+
+        Example:
+            # Tier 1 import
+            import_flexible_hierarchy(
+                project_id="abc-123",
+                content="source_value,group_name\\n4100,Revenue\\n4200,Revenue\\n5100,COGS",
+                source_defaults='{"database":"WAREHOUSE","schema":"FINANCE","table":"DIM_ACCOUNT","column":"ACCOUNT_CODE"}'
+            )
+
+            # Tier 2 import
+            import_flexible_hierarchy(
+                project_id="abc-123",
+                content="hierarchy_name,parent_name,source_value\\nRevenue,,4%\\nProduct Rev,Revenue,41%"
+            )
+        """
+        if not flexible_import_enabled:
+            return json.dumps({"error": "Flexible import module not available"})
+
+        try:
+            defaults_dict = json.loads(source_defaults) if source_defaults else {}
+
+            # Normalize keys
+            normalized_defaults = None
+            if defaults_dict:
+                normalized_defaults = {
+                    "source_database": defaults_dict.get("source_database") or defaults_dict.get("database", ""),
+                    "source_schema": defaults_dict.get("source_schema") or defaults_dict.get("schema", ""),
+                    "source_table": defaults_dict.get("source_table") or defaults_dict.get("table", ""),
+                    "source_column": defaults_dict.get("source_column") or defaults_dict.get("column", ""),
+                }
+
+            result = flexible_import_service.import_flexible(
+                project_id=project_id,
+                content=content,
+                format_type=format_type,
+                source_defaults=normalized_defaults,
+                tier_hint=tier_hint,
+            )
+
+            if "error" in result:
+                return json.dumps({"error": result["error"]})
+
+            # Auto-sync created hierarchies
+            if result.get("created_hierarchies"):
+                for h in result["created_hierarchies"]:
+                    _auto_sync_operation(
+                        operation="create_hierarchy",
+                        project_id=project_id,
+                        hierarchy_id=h.get("hierarchy_id"),
+                        data=h,
+                    )
+
+            return json.dumps({
+                "status": result.get("status", "success"),
+                **result,
+            }, default=str, indent=2)
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    def export_hierarchy_simplified(
+        project_id: str,
+        target_tier: str = "tier_2"
+    ) -> str:
+        """
+        Export project hierarchies in simplified format.
+
+        Converts hierarchies to a simpler tier format for:
+        - Sharing with non-technical users (Tier 1)
+        - Easy editing and re-import (Tier 2)
+        - Standard format with explicit IDs (Tier 3)
+
+        Args:
+            project_id: Project UUID
+            target_tier: Target format ("tier_1", "tier_2", "tier_3")
+                - tier_1: source_value, group_name (mappings only)
+                - tier_2: hierarchy_name, parent_name, source_value, sort_order
+                - tier_3: Standard with hierarchy_id, parent_id, flags
+
+        Returns:
+            JSON with:
+            - format: Target tier
+            - csv_content: Exported CSV data
+            - row_count: Number of data rows
+            - note: Usage guidance
+
+        Example:
+            export_hierarchy_simplified(project_id="abc-123", target_tier="tier_2")
+            -> CSV with hierarchy_name, parent_name, source_value, sort_order
+        """
+        if not flexible_import_enabled:
+            return json.dumps({"error": "Flexible import module not available"})
+
+        try:
+            # Verify project exists
+            project = service.get_project(project_id)
+            if not project:
+                return json.dumps({"error": f"Project '{project_id}' not found"})
+
+            result = flexible_import_service.export_simplified(
+                project_id=project_id,
+                target_tier=target_tier,
+            )
+
+            if "error" in result:
+                return json.dumps({"error": result["error"]})
+
+            return json.dumps({
+                "status": "success",
+                "project_id": project_id,
+                "project_name": project.get("name"),
+                **result,
+            }, default=str, indent=2)
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    def get_project_defaults(project_id: str) -> str:
+        """
+        Get configured source defaults for a project.
+
+        Returns the default source information that will be used
+        for Tier 1 and Tier 2 imports when source columns are not
+        specified in the input data.
+
+        Args:
+            project_id: Project UUID
+
+        Returns:
+            JSON with defaults and completeness status.
+        """
+        if not flexible_import_enabled:
+            return json.dumps({"error": "Flexible import module not available"})
+
+        try:
+            project = service.get_project(project_id)
+            if not project:
+                return json.dumps({"error": f"Project '{project_id}' not found"})
+
+            defaults = flexible_import_service.get_defaults(project_id)
+
+            if defaults:
+                return json.dumps({
+                    "status": "success",
+                    "project_id": project_id,
+                    "project_name": project.get("name"),
+                    "defaults": defaults.to_dict(),
+                    "is_complete": defaults.is_complete(),
+                }, default=str, indent=2)
+            else:
+                return json.dumps({
+                    "status": "success",
+                    "project_id": project_id,
+                    "project_name": project.get("name"),
+                    "defaults": None,
+                    "is_complete": False,
+                    "message": "No defaults configured. Use configure_project_defaults to set them.",
+                }, default=str, indent=2)
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    # =========================================================================
+    # Property Management Tools
+    # =========================================================================
+
+    @mcp.tool()
+    def add_hierarchy_property(
+        project_id: str,
+        hierarchy_id: str,
+        name: str,
+        value: str,
+        category: str = "custom",
+        level: str = "",
+        inherit: str = "true",
+        override_allowed: str = "true",
+        description: str = ""
+    ) -> str:
+        """
+        Add a property to a hierarchy node.
+
+        Properties control how dimensions are built, facts are designed,
+        and filters are configured. Properties can be inherited by children.
+
+        AUTO-SYNC: When enabled, automatically syncs to backend.
+
+        Args:
+            project_id: Project UUID
+            hierarchy_id: Hierarchy ID (slug)
+            name: Property name (e.g., 'aggregation_type', 'measure_type', 'color')
+            value: Property value (JSON string for complex values)
+            category: Property category:
+                - dimension: Controls dimension building
+                - fact: Controls fact/measure design
+                - filter: Controls filter behavior
+                - display: Controls UI display
+                - validation: Data validation rules
+                - security: Row-level security
+                - custom: User-defined
+            level: Specific level this applies to (empty = hierarchy level, number = specific LEVEL_X)
+            inherit: Whether children inherit this property ("true"/"false")
+            override_allowed: Whether children can override ("true"/"false")
+            description: Property description
+
+        Returns:
+            JSON with updated hierarchy and property details.
+
+        Examples:
+            # Add aggregation type
+            add_hierarchy_property(project_id, "REVENUE_1", "aggregation_type", "SUM", "dimension")
+
+            # Add measure type
+            add_hierarchy_property(project_id, "NET_INCOME", "measure_type", "derived", "fact")
+
+            # Add display color
+            add_hierarchy_property(project_id, "REVENUE_1", "color", "#22c55e", "display")
+
+            # Add custom property
+            add_hierarchy_property(project_id, "WELL_1", "regulatory_reporting", "true", "custom")
+        """
+        try:
+            # Parse value - try JSON first
+            try:
+                parsed_value = json.loads(value)
+            except (json.JSONDecodeError, TypeError):
+                # Keep as string if not valid JSON
+                parsed_value = value
+
+            # Parse level
+            parsed_level = int(level) if level and level.isdigit() else None
+
+            result = service.add_property(
+                project_id=project_id,
+                hierarchy_id=hierarchy_id,
+                name=name,
+                value=parsed_value,
+                category=category,
+                level=parsed_level,
+                inherit=inherit.lower() == "true",
+                override_allowed=override_allowed.lower() == "true",
+                description=description,
+            )
+
+            if not result:
+                return json.dumps({"error": f"Hierarchy '{hierarchy_id}' not found"})
+
+            # Auto-sync
+            sync_result = _auto_sync_operation(
+                operation="update_hierarchy",
+                project_id=project_id,
+                hierarchy_id=hierarchy_id,
+                data={"property_added": name},
+            )
+
+            return json.dumps({
+                "status": "success",
+                "property": {
+                    "name": name,
+                    "value": parsed_value,
+                    "category": category,
+                    "level": parsed_level,
+                    "inherit": inherit.lower() == "true",
+                },
+                "hierarchy_id": hierarchy_id,
+                "sync": sync_result,
+            }, default=str, indent=2)
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    def remove_hierarchy_property(
+        project_id: str,
+        hierarchy_id: str,
+        name: str,
+        level: str = ""
+    ) -> str:
+        """
+        Remove a property from a hierarchy.
+
+        AUTO-SYNC: When enabled, automatically syncs to backend.
+
+        Args:
+            project_id: Project UUID
+            hierarchy_id: Hierarchy ID
+            name: Property name to remove
+            level: Level of the property (empty = hierarchy level)
+
+        Returns:
+            JSON with status.
+        """
+        try:
+            parsed_level = int(level) if level and level.isdigit() else None
+
+            result = service.remove_property(
+                project_id=project_id,
+                hierarchy_id=hierarchy_id,
+                name=name,
+                level=parsed_level,
+            )
+
+            if not result:
+                return json.dumps({"error": f"Property '{name}' not found on '{hierarchy_id}'"})
+
+            sync_result = _auto_sync_operation(
+                operation="update_hierarchy",
+                project_id=project_id,
+                hierarchy_id=hierarchy_id,
+                data={"property_removed": name},
+            )
+
+            return json.dumps({
+                "status": "success",
+                "message": f"Property '{name}' removed",
+                "hierarchy_id": hierarchy_id,
+                "sync": sync_result,
+            }, default=str, indent=2)
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    def get_hierarchy_properties(
+        project_id: str,
+        hierarchy_id: str,
+        category: str = "",
+        include_inherited: str = "true"
+    ) -> str:
+        """
+        Get properties for a hierarchy, optionally including inherited properties.
+
+        Args:
+            project_id: Project UUID
+            hierarchy_id: Hierarchy ID (slug) or UUID
+            category: Filter by category (empty = all categories)
+            include_inherited: Include properties inherited from ancestors ("true"/"false")
+
+        Returns:
+            JSON with:
+            - own_properties: Properties defined on this hierarchy
+            - inherited_properties: Properties from ancestors (if include_inherited)
+            - effective_properties: Final resolved properties
+            - dimension_props, fact_props, filter_props, display_props: Type-specific props
+
+        Property Categories:
+            - dimension: aggregation_type, drill_enabled, sort_behavior, etc.
+            - fact: measure_type, time_balance, format_string, etc.
+            - filter: filter_behavior, default_value, cascading_parent_id, etc.
+            - display: color, icon, tooltip, visible, etc.
+            - custom: user-defined properties
+        """
+        try:
+            # Try to get by hierarchy_id first, then by UUID
+            hierarchy = service.get_hierarchy(project_id, hierarchy_id)
+            if not hierarchy:
+                hierarchy = service.get_hierarchy_by_id(hierarchy_id)
+
+            if not hierarchy:
+                return json.dumps({"error": f"Hierarchy '{hierarchy_id}' not found"})
+
+            hierarchy_uuid = hierarchy.get("id")
+
+            if include_inherited.lower() == "true":
+                result = service.get_inherited_properties(project_id, hierarchy_uuid)
+                if "error" in result:
+                    return json.dumps({"error": result["error"]})
+            else:
+                own_props = service.get_properties(
+                    project_id,
+                    hierarchy.get("hierarchy_id"),
+                    category=category if category else None,
+                )
+                result = {
+                    "hierarchy_id": hierarchy.get("hierarchy_id"),
+                    "hierarchy_name": hierarchy.get("hierarchy_name"),
+                    "own_properties": own_props,
+                    "effective_properties": own_props,
+                    "inherited_properties": [],
+                }
+
+            # Filter by category if specified
+            if category:
+                result["effective_properties"] = [
+                    p for p in result.get("effective_properties", [])
+                    if p.get("category") == category
+                ]
+
+            # Add type-specific props
+            result["dimension_props"] = hierarchy.get("dimension_props")
+            result["fact_props"] = hierarchy.get("fact_props")
+            result["filter_props"] = hierarchy.get("filter_props")
+            result["display_props"] = hierarchy.get("display_props")
+            result["property_template_id"] = hierarchy.get("property_template_id")
+
+            return json.dumps({
+                "status": "success",
+                **result,
+            }, default=str, indent=2)
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    def set_dimension_properties(
+        project_id: str,
+        hierarchy_id: str,
+        props: str
+    ) -> str:
+        """
+        Set dimension properties for a hierarchy.
+
+        Dimension properties control how the hierarchy behaves as a dimension
+        in reports and analytics.
+
+        AUTO-SYNC: When enabled, automatically syncs to backend.
+
+        Args:
+            project_id: Project UUID
+            hierarchy_id: Hierarchy ID
+            props: JSON string of dimension properties:
+                {
+                    "aggregation_type": "SUM",      // SUM, AVG, COUNT, MIN, MAX, NONE
+                    "display_format": null,         // Format string
+                    "sort_behavior": "alpha",       // alpha, numeric, custom, natural
+                    "drill_enabled": true,          // Allow drill-down
+                    "drill_path": null,             // Custom drill path hierarchy IDs
+                    "grouping_enabled": true,       // Allow grouping in reports
+                    "totals_enabled": true,         // Show totals
+                    "hierarchy_type": "standard",   // standard, ragged, parent-child, time
+                    "all_member_name": "All",       // Name for 'All' member
+                    "default_member": null          // Default member ID
+                }
+
+        Returns:
+            JSON with updated hierarchy.
+
+        Example:
+            set_dimension_properties(project_id, "ACCOUNT", '{"aggregation_type": "SUM", "drill_enabled": true}')
+        """
+        try:
+            props_dict = json.loads(props)
+
+            result = service.set_dimension_props(project_id, hierarchy_id, props_dict)
+
+            if not result:
+                return json.dumps({"error": f"Hierarchy '{hierarchy_id}' not found"})
+
+            sync_result = _auto_sync_operation(
+                operation="update_hierarchy",
+                project_id=project_id,
+                hierarchy_id=hierarchy_id,
+                data={"dimension_props_updated": True},
+            )
+
+            return json.dumps({
+                "status": "success",
+                "hierarchy_id": hierarchy_id,
+                "dimension_props": props_dict,
+                "sync": sync_result,
+            }, default=str, indent=2)
+        except json.JSONDecodeError as e:
+            return json.dumps({"error": f"Invalid JSON: {str(e)}"})
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    def set_fact_properties(
+        project_id: str,
+        hierarchy_id: str,
+        props: str
+    ) -> str:
+        """
+        Set fact/measure properties for a hierarchy.
+
+        Fact properties control how the hierarchy behaves as a measure
+        in reports and analytics.
+
+        AUTO-SYNC: When enabled, automatically syncs to backend.
+
+        Args:
+            project_id: Project UUID
+            hierarchy_id: Hierarchy ID
+            props: JSON string of fact properties:
+                {
+                    "measure_type": "additive",     // additive, semi_additive, non_additive, derived
+                    "aggregation_type": "SUM",      // SUM, AVG, COUNT, etc.
+                    "time_balance": null,           // flow, first, last, average (for semi-additive)
+                    "format_string": "#,##0.00",    // Number format
+                    "decimal_places": 2,            // Decimal places
+                    "currency_code": "USD",         // Currency code
+                    "unit_of_measure": null,        // Unit (bbl, mcf, units)
+                    "null_handling": "zero",        // zero, null, exclude
+                    "negative_format": "minus",     // minus, parens, red
+                    "calculation_formula": null,    // Formula for derived measures
+                    "base_measure_ids": null        // IDs of measures used in calculation
+                }
+
+        Returns:
+            JSON with updated hierarchy.
+
+        Examples:
+            # Additive measure (revenue, expenses)
+            set_fact_properties(project_id, "REVENUE", '{"measure_type": "additive", "aggregation_type": "SUM"}')
+
+            # Semi-additive balance (uses last value for time)
+            set_fact_properties(project_id, "BALANCE", '{"measure_type": "semi_additive", "time_balance": "last"}')
+
+            # Derived ratio
+            set_fact_properties(project_id, "MARGIN_PCT", '{"measure_type": "non_additive", "format_string": "0.00%"}')
+        """
+        try:
+            props_dict = json.loads(props)
+
+            result = service.set_fact_props(project_id, hierarchy_id, props_dict)
+
+            if not result:
+                return json.dumps({"error": f"Hierarchy '{hierarchy_id}' not found"})
+
+            sync_result = _auto_sync_operation(
+                operation="update_hierarchy",
+                project_id=project_id,
+                hierarchy_id=hierarchy_id,
+                data={"fact_props_updated": True},
+            )
+
+            return json.dumps({
+                "status": "success",
+                "hierarchy_id": hierarchy_id,
+                "fact_props": props_dict,
+                "sync": sync_result,
+            }, default=str, indent=2)
+        except json.JSONDecodeError as e:
+            return json.dumps({"error": f"Invalid JSON: {str(e)}"})
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    def set_filter_properties(
+        project_id: str,
+        hierarchy_id: str,
+        props: str
+    ) -> str:
+        """
+        Set filter properties for a hierarchy.
+
+        Filter properties control how the hierarchy behaves as a filter
+        in reports and dashboards.
+
+        AUTO-SYNC: When enabled, automatically syncs to backend.
+
+        Args:
+            project_id: Project UUID
+            hierarchy_id: Hierarchy ID
+            props: JSON string of filter properties:
+                {
+                    "filter_behavior": "multi",     // single, multi, range, cascading, search, hierarchy
+                    "default_value": null,          // Default filter value
+                    "default_to_all": true,         // Default to all values
+                    "allowed_values": null,         // Restrict to these values
+                    "excluded_values": null,        // Exclude these values
+                    "cascading_parent_id": null,    // Parent filter hierarchy ID
+                    "required": false,              // Selection required
+                    "visible": true,                // Show in filter panel
+                    "search_enabled": true,         // Enable search
+                    "show_all_option": true,        // Show 'All' option
+                    "max_selections": null          // Max selections for multi-select
+                }
+
+        Returns:
+            JSON with updated hierarchy.
+
+        Examples:
+            # Multi-select with search
+            set_filter_properties(project_id, "ACCOUNT", '{"filter_behavior": "multi", "search_enabled": true}')
+
+            # Cascading filter (depends on parent)
+            set_filter_properties(project_id, "WELL", '{"filter_behavior": "cascading", "cascading_parent_id": "FIELD_1"}')
+
+            # Required single-select
+            set_filter_properties(project_id, "PERIOD", '{"filter_behavior": "single", "required": true}')
+        """
+        try:
+            props_dict = json.loads(props)
+
+            result = service.set_filter_props(project_id, hierarchy_id, props_dict)
+
+            if not result:
+                return json.dumps({"error": f"Hierarchy '{hierarchy_id}' not found"})
+
+            sync_result = _auto_sync_operation(
+                operation="update_hierarchy",
+                project_id=project_id,
+                hierarchy_id=hierarchy_id,
+                data={"filter_props_updated": True},
+            )
+
+            return json.dumps({
+                "status": "success",
+                "hierarchy_id": hierarchy_id,
+                "filter_props": props_dict,
+                "sync": sync_result,
+            }, default=str, indent=2)
+        except json.JSONDecodeError as e:
+            return json.dumps({"error": f"Invalid JSON: {str(e)}"})
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    def set_display_properties(
+        project_id: str,
+        hierarchy_id: str,
+        props: str
+    ) -> str:
+        """
+        Set display properties for a hierarchy.
+
+        Display properties control how the hierarchy appears in the UI.
+
+        AUTO-SYNC: When enabled, automatically syncs to backend.
+
+        Args:
+            project_id: Project UUID
+            hierarchy_id: Hierarchy ID
+            props: JSON string of display properties:
+                {
+                    "color": "#22c55e",             // Display color
+                    "background_color": null,       // Background color
+                    "icon": null,                   // Icon name or emoji
+                    "tooltip": null,                // Hover tooltip
+                    "visible": true,                // Visible in UI
+                    "collapsed_by_default": false,  // Start collapsed
+                    "highlight_condition": null,    // Condition for highlighting
+                    "custom_css_class": null,       // Custom CSS class
+                    "display_order": null           // Override display order
+                }
+
+        Returns:
+            JSON with updated hierarchy.
+
+        Examples:
+            set_display_properties(project_id, "REVENUE", '{"color": "#22c55e", "icon": "dollar"}')
+            set_display_properties(project_id, "EXPENSES", '{"color": "#ef4444", "collapsed_by_default": true}')
+        """
+        try:
+            props_dict = json.loads(props)
+
+            result = service.set_display_props(project_id, hierarchy_id, props_dict)
+
+            if not result:
+                return json.dumps({"error": f"Hierarchy '{hierarchy_id}' not found"})
+
+            sync_result = _auto_sync_operation(
+                operation="update_hierarchy",
+                project_id=project_id,
+                hierarchy_id=hierarchy_id,
+                data={"display_props_updated": True},
+            )
+
+            return json.dumps({
+                "status": "success",
+                "hierarchy_id": hierarchy_id,
+                "display_props": props_dict,
+                "sync": sync_result,
+            }, default=str, indent=2)
+        except json.JSONDecodeError as e:
+            return json.dumps({"error": f"Invalid JSON: {str(e)}"})
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    def list_property_templates() -> str:
+        """
+        List available property templates.
+
+        Property templates provide pre-configured property sets for common
+        use cases like financial dimensions, time dimensions, measures, etc.
+
+        Returns:
+            JSON array of templates with:
+            - id: Template ID
+            - name: Template name
+            - description: Description
+            - category: Primary category (dimension, fact, filter)
+            - tags: Tags for searching
+
+        Available Templates:
+            - financial_dimension: Standard financial reporting dimensions
+            - time_dimension: Time/date dimensions with period handling
+            - additive_measure: Standard summable measures
+            - balance_measure: Semi-additive balance measures
+            - ratio_measure: Non-additive ratios/percentages
+            - currency_measure: Monetary measures
+            - cascading_filter: Dependent filters
+            - required_filter: Required single-select filters
+            - oil_gas_dimension: Oil & gas operational hierarchies
+            - volume_measure: Volume measures with units
+        """
+        try:
+            templates = service.get_property_templates()
+
+            return json.dumps({
+                "status": "success",
+                "total": len(templates),
+                "templates": [
+                    {
+                        "id": t["id"],
+                        "name": t["name"],
+                        "description": t.get("description"),
+                        "category": t.get("category"),
+                        "tags": t.get("tags", []),
+                    }
+                    for t in templates
+                ],
+            }, default=str, indent=2)
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    def get_property_template(template_id: str) -> str:
+        """
+        Get detailed information about a property template.
+
+        Args:
+            template_id: Template ID (e.g., "financial_dimension", "additive_measure")
+
+        Returns:
+            JSON with full template details including all properties.
+        """
+        try:
+            templates = service.get_property_templates()
+            template = next((t for t in templates if t["id"] == template_id), None)
+
+            if not template:
+                return json.dumps({"error": f"Template '{template_id}' not found"})
+
+            return json.dumps({
+                "status": "success",
+                "template": template,
+            }, default=str, indent=2)
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    def apply_property_template(
+        project_id: str,
+        hierarchy_id: str,
+        template_id: str,
+        merge: str = "true"
+    ) -> str:
+        """
+        Apply a property template to a hierarchy.
+
+        Templates provide pre-configured property sets for common use cases.
+        Use list_property_templates to see available templates.
+
+        AUTO-SYNC: When enabled, automatically syncs to backend.
+
+        Args:
+            project_id: Project UUID
+            hierarchy_id: Hierarchy ID
+            template_id: Template ID to apply
+            merge: If "true", merge with existing properties. If "false", replace.
+
+        Returns:
+            JSON with updated hierarchy and applied template info.
+
+        Examples:
+            # Apply financial dimension template
+            apply_property_template(project_id, "ACCOUNT", "financial_dimension")
+
+            # Apply measure template
+            apply_property_template(project_id, "REVENUE", "additive_measure")
+
+            # Apply time dimension (replace existing)
+            apply_property_template(project_id, "PERIOD", "time_dimension", "false")
+        """
+        try:
+            result = service.apply_property_template(
+                project_id=project_id,
+                hierarchy_id=hierarchy_id,
+                template_id=template_id,
+                merge=merge.lower() == "true",
+            )
+
+            if not result:
+                return json.dumps({"error": f"Hierarchy '{hierarchy_id}' not found"})
+
+            if "error" in result:
+                return json.dumps({"error": result["error"]})
+
+            sync_result = _auto_sync_operation(
+                operation="update_hierarchy",
+                project_id=project_id,
+                hierarchy_id=hierarchy_id,
+                data={"template_applied": template_id},
+            )
+
+            return json.dumps({
+                "status": "success",
+                "hierarchy_id": hierarchy_id,
+                "template_id": template_id,
+                "merge_mode": merge.lower() == "true",
+                "sync": sync_result,
+            }, default=str, indent=2)
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    def bulk_set_property(
+        project_id: str,
+        hierarchy_ids: str,
+        name: str,
+        value: str,
+        category: str = "custom",
+        inherit: str = "true"
+    ) -> str:
+        """
+        Set a property on multiple hierarchies at once.
+
+        AUTO-SYNC: When enabled, automatically syncs to backend.
+
+        Args:
+            project_id: Project UUID
+            hierarchy_ids: JSON array of hierarchy IDs (e.g., '["REVENUE_1", "COGS_1"]')
+            name: Property name
+            value: Property value
+            category: Property category
+            inherit: Whether children inherit
+
+        Returns:
+            JSON with success count and any errors.
+
+        Example:
+            bulk_set_property(
+                project_id,
+                '["REVENUE_1", "COGS_1", "EXPENSES_1"]',
+                "aggregation_type",
+                "SUM",
+                "dimension"
+            )
+        """
+        try:
+            ids_list = json.loads(hierarchy_ids)
+
+            # Parse value
+            try:
+                parsed_value = json.loads(value)
+            except (json.JSONDecodeError, TypeError):
+                parsed_value = value
+
+            result = service.bulk_set_property(
+                project_id=project_id,
+                hierarchy_ids=ids_list,
+                name=name,
+                value=parsed_value,
+                category=category,
+                inherit=inherit.lower() == "true",
+            )
+
+            return json.dumps({
+                "status": "success" if result["error_count"] == 0 else "partial",
+                **result,
+            }, default=str, indent=2)
+        except json.JSONDecodeError as e:
+            return json.dumps({"error": f"Invalid JSON for hierarchy_ids: {str(e)}"})
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    def get_properties_summary(project_id: str) -> str:
+        """
+        Get a summary of all properties used across a project.
+
+        Returns:
+            JSON with:
+            - total_hierarchies: Total hierarchy count
+            - hierarchies_with_properties: Count with properties
+            - total_properties: Total property count
+            - by_category: Property counts by category
+            - by_name: Property usage by name with unique values
+        """
+        try:
+            project = service.get_project(project_id)
+            if not project:
+                return json.dumps({"error": f"Project '{project_id}' not found"})
+
+            result = service.get_properties_summary(project_id)
+
+            return json.dumps({
+                "status": "success",
+                "project_name": project.get("name"),
+                **result,
+            }, default=str, indent=2)
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
     return service  # Return service for potential direct use
