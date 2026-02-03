@@ -101,9 +101,19 @@ def run_command(cmd: list, capture: bool = True, timeout: int = 60) -> tuple:
 
 
 def is_port_in_use(port: int) -> bool:
-    """Check if a port is in use."""
+    """Check if a port is in use (checks both IPv4 and IPv6)."""
+    # Try IPv4 first
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        return s.connect_ex(('localhost', port)) == 0
+        if s.connect_ex(('127.0.0.1', port)) == 0:
+            return True
+    # Try IPv6
+    try:
+        with socket.socket(socket.AF_INET6, socket.SOCK_STREAM) as s:
+            if s.connect_ex(('::1', port)) == 0:
+                return True
+    except (socket.error, OSError):
+        pass
+    return False
 
 
 def check_docker_running() -> bool:
@@ -249,14 +259,15 @@ def check_all_services_status():
     print(f"\n{Colors.CYAN}Application Services:{Colors.END}")
     print("-" * 60)
 
-    # MCP Server (check if fastmcp process is running)
-    mcp_running = False
-    code, stdout, _ = run_command(["tasklist", "/FI", "IMAGENAME eq python.exe"], timeout=5)
-    if "python" in stdout.lower():
-        # Could be MCP server, just mark as potentially running
-        mcp_running = True
-    icon = f"{Colors.YELLOW}[?]{Colors.END}" if mcp_running else f"{Colors.RED}[X]{Colors.END}"
-    print(f"  {icon} {'MCP Server':15} {'stdio':5}  {'Check manually (run --mcp)' if not mcp_running else 'Python process found'}")
+    # MCP Server (check if MCP Inspector is running on port 6274)
+    mcp_inspector_running = is_port_in_use(6274)
+    if mcp_inspector_running:
+        icon = f"{Colors.GREEN}[OK]{Colors.END}"
+        status = f"running (Inspector at http://localhost:6274)"
+    else:
+        icon = f"{Colors.RED}[X]{Colors.END}"
+        status = "not running (start with --all or --mcp)"
+    print(f"  {icon} {'MCP Server':15} Port {6274:5}  {status}")
 
     # Dashboard
     dashboard_running = is_port_in_use(5180)
@@ -317,34 +328,59 @@ def test_backend_endpoint():
 
 
 def start_mcp_server(background: bool = False):
-    """Start the Python MCP server."""
+    """Start the Python MCP server.
+
+    In background mode, uses fastmcp dev which provides a web UI at localhost:6274.
+    In foreground mode, runs interactively.
+    """
     print(f"\n{Colors.BLUE}Starting MCP Server...{Colors.END}")
 
     mcp_script = PROJECT_ROOT / "run_server.py"
-    if not mcp_script.exists():
-        print(f"{Colors.RED}MCP server script not found: {mcp_script}{Colors.END}")
+    server_module = PROJECT_ROOT / "src" / "server.py"
+
+    if not mcp_script.exists() and not server_module.exists():
+        print(f"{Colors.RED}MCP server script not found{Colors.END}")
         return None
 
+    # Check if fastmcp CLI is available
+    code, _, _ = run_command(["fastmcp", "--version"], timeout=5)
+    has_fastmcp = code == 0
+
     if background:
-        print(f"  Running in background mode...")
-        process = subprocess.Popen(
-            ["python", str(mcp_script)],
-            cwd=str(PROJECT_ROOT),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        running_processes.append(process)
-        print(f"  {Colors.GREEN}MCP Server started (PID: {process.pid}){Colors.END}")
-        return process
+        if has_fastmcp:
+            print(f"  Running fastmcp dev in background (UI at http://localhost:6274)...")
+            process = subprocess.Popen(
+                ["fastmcp", "dev", "src/server.py"],
+                cwd=str(PROJECT_ROOT),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=True,
+            )
+            running_processes.append(process)
+            time.sleep(3)  # Give it time to start
+            print(f"  {Colors.GREEN}MCP Server started (PID: {process.pid}){Colors.END}")
+            print(f"  {Colors.CYAN}MCP Inspector: http://localhost:6274{Colors.END}")
+            return process
+        else:
+            print(f"  Running MCP server in background...")
+            process = subprocess.Popen(
+                ["python", str(mcp_script)],
+                cwd=str(PROJECT_ROOT),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            running_processes.append(process)
+            print(f"  {Colors.GREEN}MCP Server started (PID: {process.pid}){Colors.END}")
+            return process
     else:
         print(f"  Press Ctrl+C to stop\n")
         try:
-            # Try fastmcp dev mode first
-            code, _, _ = run_command(["python", "-c", "import fastmcp"], timeout=5)
-            if code == 0:
+            if has_fastmcp:
+                print(f"  {Colors.CYAN}MCP Inspector will be at http://localhost:6274{Colors.END}\n")
                 subprocess.run(
-                    ["python", "-m", "fastmcp", "dev", "src/server.py"],
-                    cwd=str(PROJECT_ROOT)
+                    ["fastmcp", "dev", "src/server.py"],
+                    cwd=str(PROJECT_ROOT),
+                    shell=True
                 )
             else:
                 subprocess.run(["python", str(mcp_script)], cwd=str(PROJECT_ROOT))
@@ -501,8 +537,9 @@ def print_access_info():
 
   {Colors.BOLD}MCP Server:{Colors.END}
     Tools:      137 tools available
+    Inspector:  http://localhost:6274 (when running with --all or --mcp)
     Config:     .mcp.json (for Claude Desktop/Code)
-    Run:        python run_server.py
+    Run:        python start_services.py --mcp
 
 {Colors.CYAN}{'=' * 60}{Colors.END}
 """
@@ -608,6 +645,8 @@ Examples:
 
     # Start additional services if --all
     if args.all:
+        start_mcp_server(background=True)
+        time.sleep(2)
         start_dashboard_server(background=True)
         time.sleep(2)
 
