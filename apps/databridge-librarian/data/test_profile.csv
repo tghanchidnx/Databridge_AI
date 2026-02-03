@@ -1,6 +1,0 @@
-account_code,account_name,balance,department
-1000,Cash,50000.0,Treasury
-1100,Accounts Receivable,125000.5,Sales
-2000,Accounts Payable,-45000.0,AP
-2100,Accrued Expenses,-12500.75,AP
-3000,Revenue,500000.0,Sales

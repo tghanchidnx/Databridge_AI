@@ -62,11 +62,15 @@ nul
 # Screenshots
 *.png
 
+# Archived files (old versions, backups)
+Archived/
+
 # Large directories to exclude
 current application/
 HIERARCHY_BUILDER_APP-*/
 v2/
 tutorial/
+researcher/
 
 # Docker backups
 docker/backups/
