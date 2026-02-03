@@ -1,0 +1,59 @@
+{
+  "name": "databridge-excel-plugin",
+  "version": "1.0.0",
+  "description": "DataBridge AI Excel Add-in - Hierarchy Management & Data Reconciliation",
+  "main": "src/taskpane/index.tsx",
+  "scripts": {
+    "dev": "webpack serve --mode development",
+    "build": "webpack --mode production",
+    "build:dev": "webpack --mode development",
+    "start": "office-addin-debugging start manifest.xml",
+    "start:desktop": "office-addin-debugging start manifest.xml desktop",
+    "start:web": "office-addin-debugging start manifest.xml web",
+    "stop": "office-addin-debugging stop manifest.xml",
+    "validate": "office-addin-manifest validate manifest.xml",
+    "lint": "eslint src --ext .ts,.tsx",
+    "prettier": "prettier --write src/**/*.{ts,tsx,css}"
+  },
+  "dependencies": {
+    "@fluentui/react-components": "^9.46.0",
+    "@fluentui/react-icons": "^2.0.230",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.23.0",
+    "@babel/preset-env": "^7.23.0",
+    "@babel/preset-react": "^7.23.0",
+    "@babel/preset-typescript": "^7.23.0",
+    "@types/office-js": "^1.0.377",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "babel-loader": "^9.1.0",
+    "clean-webpack-plugin": "^4.0.0",
+    "copy-webpack-plugin": "^11.0.0",
+    "css-loader": "^6.8.0",
+    "eslint": "^8.50.0",
+    "eslint-plugin-react": "^7.33.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "file-loader": "^6.2.0",
+    "html-webpack-plugin": "^5.5.0",
+    "office-addin-cli": "^1.6.0",
+    "office-addin-debugging": "^5.0.0",
+    "office-addin-dev-certs": "^1.11.0",
+    "office-addin-manifest": "^1.12.0",
+    "prettier": "^3.0.0",
+    "style-loader": "^3.3.0",
+    "typescript": "^5.2.0",
+    "webpack": "^5.88.0",
+    "webpack-cli": "^5.1.0",
+    "webpack-dev-server": "^4.15.0"
+  },
+  "browserslist": [
+    "last 2 versions",
+    "ie 11"
+  ]
+}

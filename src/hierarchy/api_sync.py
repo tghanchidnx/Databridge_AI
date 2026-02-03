@@ -21,7 +21,21 @@ logger = logging.getLogger("hierarchy_sync")
 
 
 class AutoSyncManager:
-    """Manages automatic synchronization between MCP and backend."""
+    """Manages automatic synchronization between MCP and backend.
+
+    Now includes Event Bus publishing for the AI Orchestrator layer.
+    Events are published to notify Excel plugins, Power BI, and other
+    AI agents of hierarchy changes in real-time.
+    """
+
+    # Event types for the orchestrator
+    EVENT_HIERARCHY_CREATED = "hierarchy.created"
+    EVENT_HIERARCHY_UPDATED = "hierarchy.updated"
+    EVENT_HIERARCHY_DELETED = "hierarchy.deleted"
+    EVENT_PROJECT_CREATED = "hierarchy.project.created"
+    EVENT_PROJECT_DELETED = "hierarchy.project.deleted"
+    EVENT_MAPPING_ADDED = "hierarchy.mapping.added"
+    EVENT_SYNC_COMPLETED = "sync.completed"
 
     def __init__(self, sync_service: 'HierarchyApiSync', local_service: Any = None):
         """
@@ -37,6 +51,8 @@ class AutoSyncManager:
         self._sync_lock = threading.Lock()
         self._pending_syncs: List[Dict] = []
         self._callbacks: List[Callable] = []
+        self._event_bus_enabled = True
+        self._agent_id = "mcp-hierarchy-service"  # This agent's ID for event publishing
 
     def set_local_service(self, service: Any):
         """Set the local hierarchy service."""
@@ -60,6 +76,91 @@ class AutoSyncManager:
     def add_callback(self, callback: Callable):
         """Add a callback to be called after sync operations."""
         self._callbacks.append(callback)
+
+    def enable_event_bus(self):
+        """Enable Event Bus publishing to orchestrator."""
+        self._event_bus_enabled = True
+        logger.info("Event Bus publishing enabled")
+
+    def disable_event_bus(self):
+        """Disable Event Bus publishing to orchestrator."""
+        self._event_bus_enabled = False
+        logger.info("Event Bus publishing disabled")
+
+    def _get_event_type(self, operation: str) -> str:
+        """Map operation to event type."""
+        event_map = {
+            "create_project": self.EVENT_PROJECT_CREATED,
+            "delete_project": self.EVENT_PROJECT_DELETED,
+            "create_hierarchy": self.EVENT_HIERARCHY_CREATED,
+            "update_hierarchy": self.EVENT_HIERARCHY_UPDATED,
+            "delete_hierarchy": self.EVENT_HIERARCHY_DELETED,
+            "add_mapping": self.EVENT_MAPPING_ADDED,
+        }
+        return event_map.get(operation, f"hierarchy.{operation}")
+
+    def _publish_event(
+        self,
+        event_type: str,
+        project_id: str,
+        hierarchy_id: Optional[str] = None,
+        data: Optional[Dict] = None,
+    ) -> bool:
+        """
+        Publish an event to the orchestrator Event Bus.
+
+        Args:
+            event_type: Type of event (e.g., 'hierarchy.updated')
+            project_id: Project ID affected
+            hierarchy_id: Hierarchy ID affected (optional)
+            data: Additional event data (optional)
+
+        Returns:
+            True if event was published successfully
+        """
+        if not self._event_bus_enabled:
+            return False
+
+        try:
+            event_payload = {
+                "channel": event_type,
+                "payload": {
+                    "project_id": project_id,
+                    "hierarchy_id": hierarchy_id,
+                    "operation": event_type.split(".")[-1],
+                    "data": data or {},
+                    "source": self._agent_id,
+                },
+                "timestamp": datetime.now().isoformat(),
+                "source": self._agent_id,
+            }
+
+            # Post to orchestrator Event Bus endpoint
+            orchestrator_url = self.sync_service.base_url.replace("/smart-hierarchy", "").replace("/api", "")
+            if not orchestrator_url.endswith("/api"):
+                orchestrator_url = f"{orchestrator_url}/api"
+
+            response = requests.post(
+                f"{orchestrator_url}/orchestrator/events/publish",
+                headers=self.sync_service.headers,
+                json=event_payload,
+                timeout=5,  # Short timeout for events
+            )
+
+            if response.status_code < 400:
+                logger.debug(f"Event published: {event_type} for project {project_id}")
+                return True
+            else:
+                logger.warning(f"Event publish failed: {response.status_code}")
+                return False
+
+        except requests.exceptions.ConnectionError:
+            # Orchestrator not available - not a critical error
+            logger.debug("Orchestrator not available for event publishing")
+            return False
+        except Exception as e:
+            logger.warning(f"Event publish error: {e}")
+            return False
 
     def on_local_change(
         self,
@@ -88,6 +189,17 @@ class AutoSyncManager:
                 result = self._sync_to_backend(operation, project_id, hierarchy_id, data)
                 result["auto_sync"] = "enabled"
                 result["synced"] = not result.get("error", False)
+
+                # Publish event to orchestrator Event Bus
+                if result["synced"]:
+                    event_type = self._get_event_type(operation)
+                    event_published = self._publish_event(
+                        event_type=event_type,
+                        project_id=project_id,
+                        hierarchy_id=hierarchy_id,
+                        data=data,
+                    )
+                    result["event_published"] = event_published
 
                 # Call registered callbacks
                 for callback in self._callbacks:

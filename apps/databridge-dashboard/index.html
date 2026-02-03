@@ -1,0 +1,2544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DataBridge AI Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
+    .tab-active { background: #2563eb; color: white; }
+    .animate-fade { animation: fadeIn 0.3s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; }
+    .modal.active { display: flex; align-items: center; justify-content: center; }
+    .tool-item { cursor: pointer; transition: all 0.15s; }
+    .tool-item:hover { background: #dbeafe; }
+    .cli-output { max-height: 400px; overflow-y: auto; }
+    .cli-output pre { white-space: pre-wrap; word-break: break-word; }
+    .connection-card { transition: all 0.2s; }
+    .connection-card:hover { border-color: #3b82f6; }
+    .connection-card.active { border-color: #22c55e; background: #f0fdf4; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <!-- Header -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">DB</div>
+          <div>
+            <h1 class="text-xl font-bold text-gray-900">DataBridge AI</h1>
+            <p class="text-sm text-gray-500">Headless MCP Engine • 98 Tools</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <span id="llm-status" class="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">No LLM</span>
+          <span id="status-badge" class="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">Checking...</span>
+          <button onclick="checkHealth()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Refresh</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- Navigation -->
+    <nav class="flex gap-2 mb-6 overflow-x-auto pb-2" id="nav-tabs">
+      <button onclick="showTab('multi-ai')" class="tab-btn px-4 py-2 rounded-lg font-medium whitespace-nowrap bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition" data-tab="multi-ai">🤖 Multi AI</button>
+      <button onclick="showTab('mcp-cli')" class="tab-btn tab-active px-4 py-2 rounded-lg font-medium whitespace-nowrap transition" data-tab="mcp-cli">🖥️ MCP CLI</button>
+      <button onclick="showTab('connections')" class="tab-btn px-4 py-2 rounded-lg font-medium whitespace-nowrap bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition" data-tab="connections">🔗 Connections</button>
+      <button onclick="showTab('dashboard')" class="tab-btn px-4 py-2 rounded-lg font-medium whitespace-nowrap bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition" data-tab="dashboard">📊 Dashboard</button>
+      <button onclick="showTab('hierarchies')" class="tab-btn px-4 py-2 rounded-lg font-medium whitespace-nowrap bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition" data-tab="hierarchies">🏗️ Hierarchies</button>
+      <button onclick="showTab('sql')" class="tab-btn px-4 py-2 rounded-lg font-medium whitespace-nowrap bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition" data-tab="sql">🔍 SQL Analyzer</button>
+      <button onclick="showTab('templates')" class="tab-btn px-4 py-2 rounded-lg font-medium whitespace-nowrap bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition" data-tab="templates">📋 Templates</button>
+    </nav>
+
+    <!-- Content -->
+    <main id="content" class="animate-fade"></main>
+  </div>
+
+  <!-- Add LLM Connection Modal -->
+  <div id="llm-modal" class="modal">
+    <div class="bg-white rounded-xl p-6 w-full max-w-lg mx-4 shadow-xl">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">Add LLM Connection</h3>
+        <button onclick="closeLlmModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      </div>
+      <form id="llm-form" onsubmit="saveLlmConnection(event)">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Connection Name</label>
+            <input type="text" name="name" required class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="My Claude API">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Provider</label>
+            <select name="provider" required class="w-full px-3 py-2 border border-gray-300 rounded-lg" onchange="updateLlmFields(this.value)">
+              <option value="">Select provider...</option>
+              <option value="anthropic">Anthropic (Claude)</option>
+              <option value="openai">OpenAI (GPT)</option>
+              <option value="azure-openai">Azure OpenAI</option>
+              <option value="google">Google (Gemini)</option>
+              <option value="ollama">Ollama (Local)</option>
+              <option value="custom">Custom API</option>
+            </select>
+          </div>
+          <div id="llm-api-key-field">
+            <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+            <input type="password" name="apiKey" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="sk-...">
+          </div>
+          <div id="llm-endpoint-field" class="hidden">
+            <label class="block text-sm font-medium text-gray-700 mb-1">API Endpoint</label>
+            <input type="text" name="endpoint" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="https://api.openai.com/v1">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Default Model</label>
+            <select name="model" class="w-full px-3 py-2 border border-gray-300 rounded-lg" id="llm-model-select">
+              <option value="">Select model...</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex gap-3 mt-6">
+          <button type="button" onclick="closeLlmModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+          <button type="button" onclick="testLlmConnection()" class="px-4 py-2 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50">Test</button>
+          <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Database Connection Modal -->
+  <div id="db-modal" class="modal">
+    <div class="bg-white rounded-xl p-6 w-full max-w-lg mx-4 shadow-xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">Add Database Connection</h3>
+        <button onclick="closeDbModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      </div>
+      <form id="db-form" onsubmit="saveDbConnection(event)">
+        <div class="space-y-4">
+          <div><label class="block text-sm font-medium text-gray-700 mb-1">Connection Name</label><input type="text" name="connectionName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Production DB"></div>
+          <div><label class="block text-sm font-medium text-gray-700 mb-1">Database Type</label>
+            <select name="serverType" required class="w-full px-3 py-2 border border-gray-300 rounded-lg" onchange="updateDbFields(this.value)">
+              <option value="">Select...</option>
+              <option value="excel">📊 Local Excel File</option>
+              <option value="snowflake">❄️ Snowflake</option>
+              <option value="mysql">🐬 MySQL</option>
+              <option value="postgresql">🐘 PostgreSQL</option>
+              <option value="sqlserver">🗃️ SQL Server</option>
+              <option value="bigquery">📊 BigQuery</option>
+              <option value="databricks">🧱 Databricks</option>
+            </select>
+          </div>
+
+          <!-- Excel File Fields -->
+          <div id="db-excel-fields" class="hidden space-y-4 p-4 bg-gray-50 rounded-lg">
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Excel File Path</label><input type="text" name="filePath" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="C:\Data\mydata.xlsx"></div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Sheet Name (optional)</label><input type="text" name="sheetName" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Sheet1"></div>
+          </div>
+
+          <!-- Database Fields -->
+          <div id="db-standard-fields" class="space-y-4">
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Host / Account</label><input type="text" name="host" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="account.snowflakecomputing.com"></div>
+            <div class="grid grid-cols-2 gap-4">
+              <div><label class="block text-sm font-medium text-gray-700 mb-1">Database</label><input type="text" name="databaseName" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+              <div><label class="block text-sm font-medium text-gray-700 mb-1">Port</label><input type="number" name="port" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+            </div>
+
+            <!-- Auth Type Selection -->
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Authentication Method</label>
+              <select name="authType" class="w-full px-3 py-2 border border-gray-300 rounded-lg" onchange="updateAuthFields(this.value)">
+                <option value="password">Username & Password</option>
+                <option value="oauth">OAuth 2.0 (SSO)</option>
+                <option value="oauth-mfa">OAuth 2.0 with MFA/2FA</option>
+                <option value="keypair">Key Pair (RSA)</option>
+              </select>
+            </div>
+
+            <!-- Password Auth Fields -->
+            <div id="db-auth-password" class="grid grid-cols-2 gap-4">
+              <div><label class="block text-sm font-medium text-gray-700 mb-1">Username</label><input type="text" name="username" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+              <div><label class="block text-sm font-medium text-gray-700 mb-1">Password</label><input type="password" name="password" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+            </div>
+
+            <!-- OAuth Fields -->
+            <div id="db-auth-oauth" class="hidden space-y-4 p-4 bg-blue-50 rounded-lg">
+              <div class="flex items-start gap-2 text-sm text-blue-700">
+                <span>🔐</span>
+                <span>OAuth will redirect to your identity provider for secure authentication. Supports SSO providers like Okta, Azure AD, Google Workspace.</span>
+              </div>
+              <div><label class="block text-sm font-medium text-gray-700 mb-1">OAuth Client ID</label><input type="text" name="oauthClientId" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="your-client-id"></div>
+              <div><label class="block text-sm font-medium text-gray-700 mb-1">OAuth Client Secret</label><input type="password" name="oauthClientSecret" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+              <div><label class="block text-sm font-medium text-gray-700 mb-1">Authorization URL</label><input type="text" name="oauthAuthUrl" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize"></div>
+              <div><label class="block text-sm font-medium text-gray-700 mb-1">Token URL</label><input type="text" name="oauthTokenUrl" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token"></div>
+            </div>
+
+            <!-- OAuth + MFA Fields -->
+            <div id="db-auth-oauth-mfa" class="hidden space-y-4 p-4 bg-purple-50 rounded-lg">
+              <div class="flex items-start gap-2 text-sm text-purple-700">
+                <span>🔒</span>
+                <span>OAuth with Multi-Factor Authentication. You'll be prompted for 2FA (SMS, Authenticator app, or hardware key) during login.</span>
+              </div>
+              <div><label class="block text-sm font-medium text-gray-700 mb-1">OAuth Client ID</label><input type="text" name="oauthMfaClientId" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="your-client-id"></div>
+              <div><label class="block text-sm font-medium text-gray-700 mb-1">OAuth Client Secret</label><input type="password" name="oauthMfaClientSecret" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+              <div><label class="block text-sm font-medium text-gray-700 mb-1">Identity Provider</label>
+                <select name="oauthMfaProvider" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                  <option value="azure-ad">Azure AD / Entra ID</option>
+                  <option value="okta">Okta</option>
+                  <option value="google">Google Workspace</option>
+                  <option value="duo">Duo Security</option>
+                  <option value="custom">Custom OIDC</option>
+                </select>
+              </div>
+              <div><label class="block text-sm font-medium text-gray-700 mb-1">Tenant ID / Domain</label><input type="text" name="oauthMfaTenant" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="your-tenant.onmicrosoft.com"></div>
+              <div class="flex items-center gap-2 text-sm">
+                <input type="checkbox" name="oauthMfaRemember" id="oauth-mfa-remember" class="rounded">
+                <label for="oauth-mfa-remember" class="text-gray-600">Remember device for 30 days</label>
+              </div>
+            </div>
+
+            <!-- Key Pair Fields -->
+            <div id="db-auth-keypair" class="hidden space-y-4 p-4 bg-green-50 rounded-lg">
+              <div class="flex items-start gap-2 text-sm text-green-700">
+                <span>🔑</span>
+                <span>RSA key pair authentication (commonly used with Snowflake).</span>
+              </div>
+              <div><label class="block text-sm font-medium text-gray-700 mb-1">Username</label><input type="text" name="keypairUsername" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+              <div><label class="block text-sm font-medium text-gray-700 mb-1">Private Key Path</label><input type="text" name="privateKeyPath" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="C:\keys\rsa_key.p8"></div>
+              <div><label class="block text-sm font-medium text-gray-700 mb-1">Private Key Passphrase (if encrypted)</label><input type="password" name="privateKeyPassphrase" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-3 mt-6">
+          <button type="button" onclick="closeDbModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+          <button type="button" onclick="initiateOAuth()" id="db-oauth-btn" class="hidden px-4 py-2 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50">🔐 Authenticate</button>
+          <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Excel File Modal -->
+  <div id="excel-modal" class="modal">
+    <div class="bg-white rounded-xl p-6 w-full max-w-lg mx-4 shadow-xl">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">📊 Add Excel File</h3>
+        <button onclick="closeExcelModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      </div>
+      <form id="excel-form" onsubmit="saveExcelFile(event)">
+        <div class="space-y-4">
+          <div><label class="block text-sm font-medium text-gray-700 mb-1">Display Name</label><input type="text" name="name" required class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Sales Data 2024"></div>
+          <div><label class="block text-sm font-medium text-gray-700 mb-1">File Path</label><input type="text" name="filePath" required class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="C:\Data\sales.xlsx"></div>
+          <div><label class="block text-sm font-medium text-gray-700 mb-1">Sheet Name (optional)</label><input type="text" name="sheetName" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Leave blank for first sheet"></div>
+          <div class="flex items-center gap-2 text-sm text-gray-600">
+            <span>📁</span>
+            <span>Excel files are loaded via the MCP load_csv tool or Python pandas.</span>
+          </div>
+        </div>
+        <div class="flex gap-3 mt-6">
+          <button type="button" onclick="closeExcelModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+          <button type="submit" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Add File</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Project Modal -->
+  <div id="project-modal" class="modal">
+    <div class="bg-white rounded-xl p-6 w-full max-w-lg mx-4 shadow-xl">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">Create Project</h3>
+        <button onclick="closeProjectModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      </div>
+      <form id="project-form" onsubmit="saveProject(event)">
+        <div class="space-y-4">
+          <div><label class="block text-sm font-medium text-gray-700 mb-1">Project ID</label><input type="text" name="projectId" required class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="my-project"></div>
+          <div><label class="block text-sm font-medium text-gray-700 mb-1">Project Name</label><input type="text" name="projectName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="My Project"></div>
+          <div><label class="block text-sm font-medium text-gray-700 mb-1">Description</label><textarea name="description" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></textarea></div>
+        </div>
+        <div class="flex gap-3 mt-6">
+          <button type="button" onclick="closeProjectModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg">Cancel</button>
+          <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Configuration
+    const API_BASE = 'http://localhost:3002/api';
+    const API_KEY = 'v2-dev-key-1';
+    const MCP_API_BASE = 'http://localhost:8085';  // MCP HTTP API
+
+    // LLM Provider Models
+    const LLM_MODELS = {
+      anthropic: ['claude-sonnet-4-20250514', 'claude-opus-4-20250514', 'claude-3-5-haiku-20241022', 'claude-3-opus-20240229'],
+      openai: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'],
+      'azure-openai': ['gpt-4o', 'gpt-4', 'gpt-35-turbo'],
+      google: ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-pro'],
+      ollama: ['llama3', 'codellama', 'mistral', 'mixtral', 'phi3'],
+      custom: [],
+    };
+
+    // State
+    let currentTab = 'mcp-cli';
+    let systemStatus = null;
+    let projects = [];
+    let llmConnections = JSON.parse(localStorage.getItem('llm_connections') || '[]');
+    let dbConnections = JSON.parse(localStorage.getItem('db_connections') || '[]');
+    let excelFiles = JSON.parse(localStorage.getItem('excel_files') || '[]');
+    let activeLlmId = localStorage.getItem('active_llm_id') || null;
+    let activeDbId = localStorage.getItem('active_db_id') || null;
+
+    // Multi-AI State
+    let orchestratorLlmId = localStorage.getItem('orchestrator_llm_id') || null;
+    let executorLlmId = localStorage.getItem('executor_llm_id') || null;
+    let orchestratorContext = []; // Retains full conversation history
+    let taskQueue = []; // Tasks from orchestrator to executor
+    let executionLog = []; // Log of executed tasks
+
+    // MCP Tools Database (abbreviated for space - same as before)
+    const MCP_TOOLS = {
+      'Data Reconciliation': [
+        { name: 'load_csv', desc: 'Load CSV file into memory', params: 'file_path, has_header=True' },
+        { name: 'load_json', desc: 'Load JSON file into memory', params: 'file_path' },
+        { name: 'query_database', desc: 'Query a database connection', params: 'connection_id, query' },
+        { name: 'profile_data', desc: 'Profile data quality and structure', params: 'data_id' },
+        { name: 'compare_hashes', desc: 'Compare datasets using hashes', params: 'source_id, target_id, key_columns' },
+        { name: 'fuzzy_match_columns', desc: 'Fuzzy match column values', params: 'source_col, target_col, threshold=80' },
+        { name: 'extract_text_from_pdf', desc: 'Extract text from PDF', params: 'file_path' },
+        { name: 'transform_column', desc: 'Transform column values', params: 'data_id, column, expression' },
+        { name: 'merge_sources', desc: 'Merge multiple data sources', params: 'source_ids, join_type, on_columns' },
+      ],
+      'Hierarchy Management': [
+        { name: 'create_hierarchy_project', desc: 'Create a new hierarchy project', params: 'project_id, name, description' },
+        { name: 'list_hierarchy_projects', desc: 'List all hierarchy projects', params: '' },
+        { name: 'create_hierarchy', desc: 'Create a hierarchy node', params: 'project_id, hierarchy_id, name, parent_id' },
+        { name: 'get_hierarchy_tree', desc: 'Get hierarchy as tree', params: 'project_id' },
+        { name: 'add_source_mapping', desc: 'Add source mapping', params: 'project_id, hierarchy_id, mapping' },
+        { name: 'export_hierarchy_csv', desc: 'Export hierarchy to CSV', params: 'project_id, output_path' },
+        { name: 'import_hierarchy_csv', desc: 'Import hierarchy from CSV', params: 'project_id, file_path' },
+      ],
+      'SQL Discovery': [
+        { name: 'sql_to_hierarchy', desc: 'Convert SQL CASE to hierarchy', params: 'sql, project_id, source_table, source_column' },
+        { name: 'smart_analyze_sql', desc: 'Smart SQL analysis with filters', params: 'sql, coa_path, output_dir' },
+      ],
+      'Deployment': [
+        { name: 'generate_hierarchy_scripts', desc: 'Generate deployment SQL', params: 'project_id, target_type' },
+        { name: 'push_hierarchy_to_snowflake', desc: 'Push to Snowflake', params: 'project_id, connection_id' },
+        { name: 'sync_to_backend', desc: 'Sync project to backend', params: 'project_id' },
+      ],
+      'Templates & Skills': [
+        { name: 'list_financial_templates', desc: 'List all templates', params: 'domain, industry' },
+        { name: 'get_template_details', desc: 'Get template details', params: 'template_id' },
+        { name: 'list_available_skills', desc: 'List AI skills', params: '' },
+        { name: 'get_skill_prompt', desc: 'Get skill system prompt', params: 'skill_id' },
+      ],
+    };
+
+    // API Helper
+    async function apiCall(endpoint, options = {}) {
+      const response = await fetch(`${API_BASE}${endpoint}`, {
+        ...options,
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY, ...options.headers },
+      });
+      return await response.json();
+    }
+
+    // Health check
+    async function checkHealth() {
+      const badge = document.getElementById('status-badge');
+      badge.className = 'px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-700';
+      badge.textContent = 'Checking...';
+
+      let backendOk = false;
+      let mcpOk = false;
+
+      // Check backend API
+      try {
+        const result = await apiCall('/health');
+        if (result.statusCode === 200) {
+          backendOk = true;
+          systemStatus = result.data;
+        }
+      } catch {}
+
+      // Check MCP API
+      try {
+        mcpOk = await checkMcpHealth();
+      } catch {}
+
+      // Update badge
+      if (backendOk && mcpOk) {
+        badge.className = 'px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700';
+        badge.textContent = '● All Systems';
+      } else if (backendOk || mcpOk) {
+        badge.className = 'px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-700';
+        badge.textContent = `● ${backendOk ? 'API' : ''}${backendOk && mcpOk ? '+' : ''}${mcpOk ? 'MCP' : ''}`;
+      } else {
+        badge.className = 'px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-700';
+        badge.textContent = '○ Disconnected';
+      }
+
+      // Store MCP status
+      window.mcpApiAvailable = mcpOk;
+
+      updateLlmStatus();
+    }
+
+    function updateLlmStatus() {
+      const badge = document.getElementById('llm-status');
+      const active = llmConnections.find(c => c.id === activeLlmId);
+      if (active) {
+        badge.className = 'px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-700';
+        badge.textContent = `🤖 ${active.name}`;
+      } else {
+        badge.className = 'px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600';
+        badge.textContent = 'No LLM';
+      }
+    }
+
+    // LLM Modal
+    function openLlmModal() { document.getElementById('llm-modal').classList.add('active'); }
+    function closeLlmModal() { document.getElementById('llm-modal').classList.remove('active'); document.getElementById('llm-form').reset(); }
+
+    function updateLlmFields(provider) {
+      const endpointField = document.getElementById('llm-endpoint-field');
+      const modelSelect = document.getElementById('llm-model-select');
+
+      if (provider === 'ollama' || provider === 'custom') {
+        endpointField.classList.remove('hidden');
+      } else {
+        endpointField.classList.add('hidden');
+      }
+
+      modelSelect.innerHTML = '<option value="">Select model...</option>';
+      if (LLM_MODELS[provider]) {
+        LLM_MODELS[provider].forEach(m => {
+          modelSelect.innerHTML += `<option value="${m}">${m}</option>`;
+        });
+      }
+    }
+
+    async function testLlmConnection() {
+      const form = document.getElementById('llm-form');
+      const provider = form.provider.value;
+      const apiKey = form.apiKey.value;
+      const model = form.model.value;
+      const endpoint = form.endpoint?.value;
+
+      if (!provider || !apiKey) {
+        alert('Please fill in provider and API key');
+        return;
+      }
+
+      try {
+        let testResult = false;
+        let errorMsg = '';
+
+        if (provider === 'anthropic') {
+          const resp = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': apiKey,
+              'anthropic-version': '2023-06-01',
+              'anthropic-dangerous-direct-browser-access': 'true'
+            },
+            body: JSON.stringify({
+              model: model || 'claude-sonnet-4-20250514',
+              max_tokens: 10,
+              messages: [{ role: 'user', content: 'Hi' }]
+            })
+          });
+          testResult = resp.ok;
+          if (!resp.ok) {
+            const data = await resp.json();
+            errorMsg = data.error?.message || 'Unknown error';
+          }
+        } else if (provider === 'openai') {
+          const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+            body: JSON.stringify({ model: model || 'gpt-4o-mini', max_tokens: 10, messages: [{ role: 'user', content: 'Hi' }] })
+          });
+          testResult = resp.ok;
+          if (!resp.ok) {
+            const data = await resp.json();
+            errorMsg = data.error?.message || 'Unknown error';
+          }
+        } else if (provider === 'google') {
+          const geminiModel = model || 'gemini-1.5-flash';
+          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts: [{ text: 'Hi' }] }],
+              generationConfig: { maxOutputTokens: 10 }
+            })
+          });
+          testResult = resp.ok;
+          if (!resp.ok) {
+            const data = await resp.json();
+            errorMsg = data.error?.message || JSON.stringify(data.error);
+          }
+        } else if (provider === 'azure-openai') {
+          if (!endpoint) {
+            alert('Please provide the Azure OpenAI endpoint URL');
+            return;
+          }
+          const resp = await fetch(`${endpoint}/openai/deployments/${model}/chat/completions?api-version=2024-02-15-preview`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'api-key': apiKey },
+            body: JSON.stringify({ max_tokens: 10, messages: [{ role: 'user', content: 'Hi' }] })
+          });
+          testResult = resp.ok;
+          if (!resp.ok) {
+            const data = await resp.json();
+            errorMsg = data.error?.message || 'Unknown error';
+          }
+        } else if (provider === 'ollama') {
+          const ollamaEndpoint = endpoint || 'http://localhost:11434';
+          const resp = await fetch(`${ollamaEndpoint}/api/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: model || 'llama3',
+              messages: [{ role: 'user', content: 'Hi' }],
+              stream: false
+            })
+          });
+          testResult = resp.ok;
+          if (!resp.ok) {
+            errorMsg = 'Ollama not reachable or model not found';
+          }
+        } else {
+          alert('Test not implemented for this provider. Connection will be saved.');
+          return;
+        }
+
+        if (testResult) {
+          alert('✓ Connection successful!');
+        } else {
+          alert('✗ Connection failed: ' + (errorMsg || 'Check your API key.'));
+        }
+      } catch (e) {
+        alert('✗ Connection failed: ' + e.message);
+      }
+    }
+
+    function saveLlmConnection(e) {
+      e.preventDefault();
+      const form = e.target;
+      const conn = {
+        id: 'llm-' + Date.now(),
+        name: form.name.value,
+        provider: form.provider.value,
+        apiKey: form.apiKey.value,
+        endpoint: form.endpoint?.value || null,
+        model: form.model.value,
+        createdAt: new Date().toISOString()
+      };
+      llmConnections.push(conn);
+      localStorage.setItem('llm_connections', JSON.stringify(llmConnections));
+      if (!activeLlmId) setActiveLlm(conn.id);
+      closeLlmModal();
+      if (currentTab === 'connections') renderContent();
+      updateLlmStatus();
+      alert('LLM connection saved!');
+    }
+
+    function deleteLlmConnection(id) {
+      if (!confirm('Delete this LLM connection?')) return;
+      llmConnections = llmConnections.filter(c => c.id !== id);
+      localStorage.setItem('llm_connections', JSON.stringify(llmConnections));
+      if (activeLlmId === id) { activeLlmId = llmConnections[0]?.id || null; localStorage.setItem('active_llm_id', activeLlmId || ''); }
+      renderContent();
+      updateLlmStatus();
+    }
+
+    function setActiveLlm(id) {
+      activeLlmId = id;
+      localStorage.setItem('active_llm_id', id);
+      updateLlmStatus();
+      renderContent();
+    }
+
+    // DB Modal
+    function openDbModal() { document.getElementById('db-modal').classList.add('active'); }
+    function closeDbModal() {
+      document.getElementById('db-modal').classList.remove('active');
+      document.getElementById('db-form').reset();
+      // Reset visibility
+      document.getElementById('db-excel-fields').classList.add('hidden');
+      document.getElementById('db-standard-fields').classList.remove('hidden');
+      updateAuthFields('password');
+    }
+
+    function updateDbFields(serverType) {
+      const excelFields = document.getElementById('db-excel-fields');
+      const standardFields = document.getElementById('db-standard-fields');
+
+      if (serverType === 'excel') {
+        excelFields.classList.remove('hidden');
+        standardFields.classList.add('hidden');
+      } else {
+        excelFields.classList.add('hidden');
+        standardFields.classList.remove('hidden');
+      }
+    }
+
+    function updateAuthFields(authType) {
+      const passwordFields = document.getElementById('db-auth-password');
+      const oauthFields = document.getElementById('db-auth-oauth');
+      const oauthMfaFields = document.getElementById('db-auth-oauth-mfa');
+      const keypairFields = document.getElementById('db-auth-keypair');
+      const oauthBtn = document.getElementById('db-oauth-btn');
+
+      // Hide all
+      passwordFields.classList.add('hidden');
+      oauthFields.classList.add('hidden');
+      oauthMfaFields.classList.add('hidden');
+      keypairFields.classList.add('hidden');
+      oauthBtn.classList.add('hidden');
+
+      // Show selected
+      switch(authType) {
+        case 'password':
+          passwordFields.classList.remove('hidden');
+          break;
+        case 'oauth':
+          oauthFields.classList.remove('hidden');
+          oauthBtn.classList.remove('hidden');
+          break;
+        case 'oauth-mfa':
+          oauthMfaFields.classList.remove('hidden');
+          oauthBtn.classList.remove('hidden');
+          break;
+        case 'keypair':
+          keypairFields.classList.remove('hidden');
+          break;
+      }
+    }
+
+    async function initiateOAuth() {
+      const form = document.getElementById('db-form');
+      const authType = form.authType.value;
+
+      if (authType === 'oauth') {
+        const clientId = form.oauthClientId.value;
+        const authUrl = form.oauthAuthUrl.value;
+        if (!clientId || !authUrl) {
+          alert('Please fill in OAuth Client ID and Authorization URL');
+          return;
+        }
+        // Open OAuth popup
+        const redirectUri = encodeURIComponent(window.location.origin + '/oauth-callback');
+        const oauthUrl = `${authUrl}?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=openid%20profile%20email`;
+        window.open(oauthUrl, 'oauth', 'width=500,height=600');
+        alert('Complete authentication in the popup window. After successful login, your connection will be saved.');
+      } else if (authType === 'oauth-mfa') {
+        const clientId = form.oauthMfaClientId.value;
+        const provider = form.oauthMfaProvider.value;
+        const tenant = form.oauthMfaTenant.value;
+
+        if (!clientId || !tenant) {
+          alert('Please fill in Client ID and Tenant');
+          return;
+        }
+
+        let authUrl;
+        switch(provider) {
+          case 'azure-ad':
+            authUrl = `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/authorize`;
+            break;
+          case 'okta':
+            authUrl = `https://${tenant}/oauth2/default/v1/authorize`;
+            break;
+          case 'google':
+            authUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
+            break;
+          default:
+            alert('Please configure your custom OIDC provider');
+            return;
+        }
+
+        const redirectUri = encodeURIComponent(window.location.origin + '/oauth-callback');
+        const oauthUrl = `${authUrl}?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=openid%20profile%20email&prompt=login`;
+        window.open(oauthUrl, 'oauth-mfa', 'width=500,height=700');
+        alert('Complete authentication with MFA in the popup window.');
+      }
+    }
+
+    async function saveDbConnection(e) {
+      e.preventDefault();
+      const form = e.target;
+      const serverType = form.serverType.value;
+
+      // Handle Excel files separately
+      if (serverType === 'excel') {
+        const excelFile = {
+          id: 'excel-' + Date.now(),
+          name: form.connectionName.value,
+          type: 'excel',
+          filePath: form.filePath.value,
+          sheetName: form.sheetName.value || null,
+          createdAt: new Date().toISOString()
+        };
+        excelFiles.push(excelFile);
+        localStorage.setItem('excel_files', JSON.stringify(excelFiles));
+        alert('Excel file added!');
+        closeDbModal();
+        if (currentTab === 'connections') renderContent();
+        return;
+      }
+
+      // Build connection data
+      const authType = form.authType.value;
+      const data = {
+        id: 'db-' + Date.now(),
+        connectionName: form.connectionName.value,
+        serverType,
+        host: form.host.value,
+        port: form.port.value ? parseInt(form.port.value) : null,
+        databaseName: form.databaseName.value,
+        authType,
+        createdAt: new Date().toISOString()
+      };
+
+      // Add auth-specific fields
+      switch(authType) {
+        case 'password':
+          data.username = form.username.value;
+          data.password = form.password.value;
+          break;
+        case 'oauth':
+          data.oauthClientId = form.oauthClientId.value;
+          data.oauthClientSecret = form.oauthClientSecret.value;
+          data.oauthAuthUrl = form.oauthAuthUrl.value;
+          data.oauthTokenUrl = form.oauthTokenUrl.value;
+          break;
+        case 'oauth-mfa':
+          data.oauthClientId = form.oauthMfaClientId.value;
+          data.oauthClientSecret = form.oauthMfaClientSecret.value;
+          data.oauthProvider = form.oauthMfaProvider.value;
+          data.oauthTenant = form.oauthMfaTenant.value;
+          data.oauthRememberDevice = form.oauthMfaRemember?.checked || false;
+          break;
+        case 'keypair':
+          data.username = form.keypairUsername.value;
+          data.privateKeyPath = form.privateKeyPath.value;
+          data.privateKeyPassphrase = form.privateKeyPassphrase.value;
+          break;
+      }
+
+      // Save locally
+      dbConnections.push(data);
+      localStorage.setItem('db_connections', JSON.stringify(dbConnections));
+
+      // Also try to save to backend
+      try {
+        await apiCall('/connections', { method: 'POST', body: JSON.stringify({
+          connectionName: data.connectionName,
+          serverType: data.serverType,
+          host: data.host,
+          port: data.port,
+          databaseName: data.databaseName,
+          username: data.username,
+          password: data.password
+        }) });
+      } catch (err) {
+        console.log('Backend save failed, connection saved locally');
+      }
+
+      alert('Database connection saved!');
+      closeDbModal();
+      if (currentTab === 'connections') renderContent();
+    }
+
+    function deleteDbConnection(id) {
+      if (!confirm('Delete this database connection?')) return;
+      dbConnections = dbConnections.filter(c => c.id !== id);
+      localStorage.setItem('db_connections', JSON.stringify(dbConnections));
+      if (activeDbId === id) { activeDbId = null; localStorage.setItem('active_db_id', ''); }
+      renderContent();
+    }
+
+    function deleteExcelFile(id) {
+      if (!confirm('Remove this Excel file?')) return;
+      excelFiles = excelFiles.filter(f => f.id !== id);
+      localStorage.setItem('excel_files', JSON.stringify(excelFiles));
+      if (activeDbId === id) { activeDbId = null; localStorage.setItem('active_db_id', ''); }
+      renderContent();
+    }
+
+    function setActiveDb(id) {
+      activeDbId = id;
+      localStorage.setItem('active_db_id', id);
+      renderContent();
+    }
+
+    // Excel Modal
+    function openExcelModal() { document.getElementById('excel-modal').classList.add('active'); }
+    function closeExcelModal() { document.getElementById('excel-modal').classList.remove('active'); document.getElementById('excel-form').reset(); }
+
+    function saveExcelFile(e) {
+      e.preventDefault();
+      const form = e.target;
+      const excelFile = {
+        id: 'excel-' + Date.now(),
+        name: form.name.value,
+        type: 'excel',
+        filePath: form.filePath.value,
+        sheetName: form.sheetName.value || null,
+        createdAt: new Date().toISOString()
+      };
+      excelFiles.push(excelFile);
+      localStorage.setItem('excel_files', JSON.stringify(excelFiles));
+      alert('Excel file added!');
+      closeExcelModal();
+      if (currentTab === 'connections') renderContent();
+    }
+
+    async function loadDbConnections() {
+      // Load from localStorage first
+      dbConnections = JSON.parse(localStorage.getItem('db_connections') || '[]');
+      excelFiles = JSON.parse(localStorage.getItem('excel_files') || '[]');
+
+      // Try to merge with backend connections
+      try {
+        const result = await apiCall('/connections');
+        const backendConns = result.data || [];
+        // Add any backend connections not in local storage
+        backendConns.forEach(bc => {
+          if (!dbConnections.find(lc => lc.connectionName === bc.connectionName && lc.serverType === bc.serverType)) {
+            dbConnections.push({ ...bc, id: bc.id || 'db-' + Date.now() + Math.random() });
+          }
+        });
+        localStorage.setItem('db_connections', JSON.stringify(dbConnections));
+      } catch { /* Backend not available, use local only */ }
+    }
+
+    // Project Modal
+    function openProjectModal() { document.getElementById('project-modal').classList.add('active'); }
+    function closeProjectModal() { document.getElementById('project-modal').classList.remove('active'); }
+
+    async function saveProject(e) {
+      e.preventDefault();
+      const form = e.target;
+      try {
+        await apiCall('/smart-hierarchy/projects', { method: 'POST', body: JSON.stringify({ id: form.projectId.value, name: form.projectName.value, description: form.description.value }) });
+        alert('Project created!');
+        closeProjectModal();
+        if (currentTab === 'hierarchies') loadProjects();
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    // Tab switching
+    function showTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.className = btn.dataset.tab === tab
+          ? 'tab-btn tab-active px-4 py-2 rounded-lg font-medium whitespace-nowrap transition'
+          : 'tab-btn px-4 py-2 rounded-lg font-medium whitespace-nowrap bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition';
+      });
+      renderContent();
+    }
+
+    function renderContent() {
+      const content = document.getElementById('content');
+      content.className = 'animate-fade';
+      switch(currentTab) {
+        case 'multi-ai':
+          content.innerHTML = renderMultiAI();
+          break;
+        case 'mcp-cli':
+          content.innerHTML = renderMcpCli();
+          break;
+        case 'connections':
+          // Load from localStorage first, then render
+          dbConnections = JSON.parse(localStorage.getItem('db_connections') || '[]');
+          excelFiles = JSON.parse(localStorage.getItem('excel_files') || '[]');
+          content.innerHTML = renderConnections();
+          // Then try to sync with backend
+          loadDbConnections().then(() => {
+            if (currentTab === 'connections') {
+              const dbList = document.getElementById('db-list');
+              if (dbList) dbList.innerHTML = renderDataSourcesList();
+            }
+          });
+          break;
+        case 'dashboard': content.innerHTML = renderDashboard(); break;
+        case 'hierarchies': content.innerHTML = renderHierarchies(); loadProjects(); break;
+        case 'sql': content.innerHTML = renderSqlAnalyzer(); break;
+        case 'templates': content.innerHTML = renderTemplates(); break;
+      }
+    }
+
+    // Connections Tab
+    function renderConnections() {
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- LLM Connections -->
+          <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="flex justify-between items-center mb-4">
+              <div>
+                <h3 class="text-lg font-semibold">🤖 LLM Connections</h3>
+                <p class="text-sm text-gray-500">AI models for MCP CLI</p>
+              </div>
+              <button onclick="openLlmModal()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">+ Add LLM</button>
+            </div>
+            <div id="llm-list" class="space-y-3">
+              ${llmConnections.length === 0 ? '<div class="text-center py-8 text-gray-500"><div class="text-4xl mb-2">🤖</div><p>No LLM connections</p><p class="text-sm">Add an API key to enable AI features</p></div>' : llmConnections.map(c => `
+                <div class="connection-card p-4 border rounded-lg ${c.id === activeLlmId ? 'active border-green-500 bg-green-50' : 'border-gray-200 hover:border-blue-300'}">
+                  <div class="flex items-start justify-between">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 rounded-lg flex items-center justify-center text-xl ${getProviderBg(c.provider)}">${getProviderIcon(c.provider)}</div>
+                      <div>
+                        <div class="font-medium">${c.name}</div>
+                        <div class="text-sm text-gray-500">${c.provider} • ${c.model || 'default'}</div>
+                        <div class="text-xs text-gray-400 mono">...${c.apiKey.slice(-8)}</div>
+                      </div>
+                    </div>
+                    <div class="flex gap-2">
+                      ${c.id === activeLlmId ? '<span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Active</span>' : `<button onclick="setActiveLlm('${c.id}')" class="px-2 py-1 text-xs border rounded hover:bg-gray-50">Set Active</button>`}
+                      <button onclick="deleteLlmConnection('${c.id}')" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50">Delete</button>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Database & Data Sources -->
+          <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="flex justify-between items-center mb-4">
+              <div>
+                <h3 class="text-lg font-semibold">🗄️ Data Sources</h3>
+                <p class="text-sm text-gray-500">Databases & Excel files for MCP tools</p>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="openExcelModal()" class="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">+ Excel</button>
+                <button onclick="openDbModal()" class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">+ Database</button>
+              </div>
+            </div>
+            <div id="db-list" class="space-y-3">
+              ${renderDataSourcesList()}
+            </div>
+          </div>
+        </div>
+
+        <!-- Supported Providers -->
+        <div class="mt-6 bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <h3 class="text-lg font-semibold mb-4">Supported Providers</h3>
+          <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+            <div class="p-4 bg-gray-50 rounded-lg text-center"><div class="text-2xl mb-2">🟣</div><div class="font-medium text-sm">Anthropic</div><div class="text-xs text-gray-500">Claude</div></div>
+            <div class="p-4 bg-gray-50 rounded-lg text-center"><div class="text-2xl mb-2">🟢</div><div class="font-medium text-sm">OpenAI</div><div class="text-xs text-gray-500">GPT-4o</div></div>
+            <div class="p-4 bg-gray-50 rounded-lg text-center"><div class="text-2xl mb-2">🔵</div><div class="font-medium text-sm">Azure</div><div class="text-xs text-gray-500">OpenAI</div></div>
+            <div class="p-4 bg-gray-50 rounded-lg text-center"><div class="text-2xl mb-2">🟡</div><div class="font-medium text-sm">Google</div><div class="text-xs text-gray-500">Gemini</div></div>
+            <div class="p-4 bg-gray-50 rounded-lg text-center"><div class="text-2xl mb-2">⚫</div><div class="font-medium text-sm">Ollama</div><div class="text-xs text-gray-500">Local</div></div>
+            <div class="p-4 bg-gray-50 rounded-lg text-center"><div class="text-2xl mb-2">❄️</div><div class="font-medium text-sm">Snowflake</div><div class="text-xs text-gray-500">Database</div></div>
+            <div class="p-4 bg-gray-50 rounded-lg text-center"><div class="text-2xl mb-2">📊</div><div class="font-medium text-sm">Excel</div><div class="text-xs text-gray-500">Local Files</div></div>
+          </div>
+        </div>
+
+        <!-- Auth Methods Info -->
+        <div class="mt-6 bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <h3 class="text-lg font-semibold mb-4">🔐 Authentication Methods</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-4 border rounded-lg">
+              <div class="font-medium mb-2">Password Auth</div>
+              <p class="text-sm text-gray-500">Traditional username/password authentication</p>
+            </div>
+            <div class="p-4 border rounded-lg border-blue-200 bg-blue-50">
+              <div class="font-medium text-blue-700 mb-2">OAuth 2.0 (SSO)</div>
+              <p class="text-sm text-blue-600">Single Sign-On via Okta, Azure AD, Google</p>
+            </div>
+            <div class="p-4 border rounded-lg border-purple-200 bg-purple-50">
+              <div class="font-medium text-purple-700 mb-2">OAuth + MFA/2FA</div>
+              <p class="text-sm text-purple-600">Multi-factor authentication for enhanced security</p>
+            </div>
+            <div class="p-4 border rounded-lg border-green-200 bg-green-50">
+              <div class="font-medium text-green-700 mb-2">Key Pair (RSA)</div>
+              <p class="text-sm text-green-600">Certificate-based auth for Snowflake</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDataSourcesList() {
+      if (dbConnections.length === 0 && excelFiles.length === 0) {
+        return '<div class="text-center py-8 text-gray-500"><div class="text-4xl mb-2">🗄️</div><p>No data sources</p><p class="text-sm">Add a database or Excel file</p></div>';
+      }
+
+      let html = '';
+
+      // Excel files
+      if (excelFiles.length > 0) {
+        html += '<div class="text-xs font-semibold text-gray-500 uppercase mb-2">Excel Files</div>';
+        html += excelFiles.map(f => `
+          <div class="connection-card p-4 border rounded-lg ${f.id === activeDbId ? 'active border-green-500 bg-green-50' : 'border-gray-200 hover:border-blue-300'}">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600">📊</div>
+                <div>
+                  <div class="font-medium">${f.name}</div>
+                  <div class="text-sm text-gray-500 truncate max-w-[200px]">${f.filePath}</div>
+                  ${f.sheetName ? `<div class="text-xs text-gray-400">Sheet: ${f.sheetName}</div>` : ''}
+                </div>
+              </div>
+              <div class="flex gap-2">
+                ${f.id === activeDbId ? '<span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Active</span>' : `<button onclick="setActiveDb('${f.id}')" class="px-2 py-1 text-xs border rounded hover:bg-gray-50">Use</button>`}
+                <button onclick="deleteExcelFile('${f.id}')" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50">×</button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Databases
+      if (dbConnections.length > 0) {
+        html += '<div class="text-xs font-semibold text-gray-500 uppercase mb-2 mt-4">Databases</div>';
+        html += dbConnections.map(c => `
+          <div class="connection-card p-4 border rounded-lg ${c.id === activeDbId ? 'active border-green-500 bg-green-50' : 'border-gray-200 hover:border-blue-300'}">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">${getDbIcon(c.serverType)}</div>
+                <div>
+                  <div class="font-medium">${c.connectionName}</div>
+                  <div class="text-sm text-gray-500">${c.serverType} • ${c.databaseName || c.host}</div>
+                  <div class="text-xs text-gray-400">${getAuthLabel(c.authType)}</div>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                ${c.id === activeDbId ? '<span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Active</span>' : `<button onclick="setActiveDb('${c.id}')" class="px-2 py-1 text-xs border rounded hover:bg-gray-50">Use</button>`}
+                <button onclick="deleteDbConnection('${c.id}')" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50">×</button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      return html;
+    }
+
+    function getAuthLabel(authType) {
+      const labels = { password: '🔑 Password', oauth: '🔐 OAuth SSO', 'oauth-mfa': '🔒 OAuth + MFA', keypair: '🔑 Key Pair' };
+      return labels[authType] || '🔑 Password';
+    }
+
+    function renderDbList() {
+      return renderDataSourcesList();
+    }
+
+    function getProviderIcon(p) {
+      const icons = { anthropic: '🟣', openai: '🟢', 'azure-openai': '🔵', google: '🟡', ollama: '⚫', custom: '⚙️' };
+      return icons[p] || '🤖';
+    }
+
+    function getProviderBg(p) {
+      const bgs = { anthropic: 'bg-purple-100', openai: 'bg-green-100', 'azure-openai': 'bg-blue-100', google: 'bg-yellow-100', ollama: 'bg-gray-200', custom: 'bg-gray-100' };
+      return bgs[p] || 'bg-gray-100';
+    }
+
+    function getDbIcon(t) {
+      const icons = { snowflake: '❄️', mysql: '🐬', postgresql: '🐘', sqlserver: '🗃️', bigquery: '📊', databricks: '🧱' };
+      return icons[t] || '🗄️';
+    }
+
+    // MCP CLI Tab
+    function renderMcpCli() {
+      let toolsHtml = '';
+      for (const [category, tools] of Object.entries(MCP_TOOLS)) {
+        toolsHtml += `<div class="mb-4"><h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">${category}</h4><div class="space-y-1">${tools.map(t => `<div class="tool-item px-2 py-1.5 rounded text-sm hover:bg-blue-50 border border-transparent hover:border-blue-200" onclick="addToolToCli('${t.name}', '${t.params.replace(/'/g, "\\'")}')"><div class="font-medium text-blue-700 mono text-xs">${t.name}</div><div class="text-xs text-gray-500 truncate">${t.desc}</div></div>`).join('')}</div></div>`;
+      }
+
+      const activeLlm = llmConnections.find(c => c.id === activeLlmId);
+      const activeDb = [...dbConnections, ...excelFiles].find(c => c.id === activeDbId);
+
+      // Build LLM options
+      const llmOptions = llmConnections.length === 0
+        ? '<option value="">No LLM connections</option>'
+        : llmConnections.map(c => `<option value="${c.id}" ${c.id === activeLlmId ? 'selected' : ''}>${getProviderIcon(c.provider)} ${c.name} (${c.model || 'default'})</option>`).join('');
+
+      // Build data source options (databases + Excel files)
+      let dataOptions = '<option value="">No data source</option>';
+      if (dbConnections.length > 0 || excelFiles.length > 0) {
+        dataOptions = '<option value="">Select data source...</option>';
+        if (dbConnections.length > 0) {
+          dataOptions += '<optgroup label="Databases">';
+          dataOptions += dbConnections.map(c => `<option value="${c.id}" ${c.id === activeDbId ? 'selected' : ''}>${getDbIcon(c.serverType)} ${c.connectionName}</option>`).join('');
+          dataOptions += '</optgroup>';
+        }
+        if (excelFiles.length > 0) {
+          dataOptions += '<optgroup label="Excel Files">';
+          dataOptions += excelFiles.map(f => `<option value="${f.id}" ${f.id === activeDbId ? 'selected' : ''}>📊 ${f.name}</option>`).join('');
+          dataOptions += '</optgroup>';
+        }
+      }
+
+      return `
+        <div class="flex gap-4 h-[calc(100vh-200px)]">
+          <div class="w-72 bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col">
+            <div class="p-3 bg-gray-50 border-b"><input type="text" id="tool-search" placeholder="Search tools..." oninput="filterTools(this.value)" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"></div>
+            <div class="flex-1 overflow-y-auto p-3" id="tools-list">${toolsHtml}</div>
+          </div>
+          <div class="flex-1 bg-white rounded-xl border border-gray-200 flex flex-col overflow-hidden">
+            <!-- CLI Header with Connection Selectors -->
+            <div class="p-3 bg-gray-900 text-white">
+              <div class="flex items-center gap-3 mb-2">
+                <span class="text-green-400">●</span>
+                <span class="font-medium">MCP CLI</span>
+              </div>
+              <div class="flex gap-3 flex-wrap">
+                <!-- LLM Selector -->
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-gray-400">LLM:</span>
+                  <select id="cli-llm-select" onchange="setCliLlm(this.value)" class="bg-gray-700 text-white text-xs px-2 py-1 rounded border border-gray-600 focus:border-purple-500 focus:outline-none min-w-[140px]">
+                    ${llmOptions}
+                  </select>
+                  ${llmConnections.length === 0 ? '<a href="#" onclick="showTab(\'connections\')" class="text-xs text-yellow-400 hover:underline">+ Add</a>' : ''}
+                </div>
+                <!-- Data Source Selector -->
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-gray-400">Data:</span>
+                  <select id="cli-db-select" onchange="setCliDb(this.value)" class="bg-gray-700 text-white text-xs px-2 py-1 rounded border border-gray-600 focus:border-blue-500 focus:outline-none min-w-[140px]">
+                    ${dataOptions}
+                  </select>
+                  ${(dbConnections.length === 0 && excelFiles.length === 0) ? '<a href="#" onclick="showTab(\'connections\')" class="text-xs text-yellow-400 hover:underline">+ Add</a>' : ''}
+                </div>
+              </div>
+            </div>
+            <div class="flex-1 bg-gray-900 p-4 overflow-y-auto cli-output" id="cli-output">
+              <pre class="text-green-400 text-sm">Welcome to DataBridge AI MCP CLI
+${activeLlm ? `🤖 LLM: ${activeLlm.provider} (${activeLlm.model})` : '⚠️  No LLM configured - select one above or add in Connections tab'}
+${activeDb ? `📊 Data: ${activeDb.connectionName || activeDb.name}` : '📁 No data source - select database or Excel file above'}
+
+Commands:
+  help              - Show available commands
+  clear             - Clear console
+  ask <question>    - Ask the LLM a question
+  query <sql>       - Query the selected database
+  describe          - Describe selected data source
+  <tool_name>()     - Run an MCP tool
+
+<span class="text-gray-500">$ </span></pre>
+            </div>
+            <div class="bg-gray-800 p-3 flex gap-2">
+              <span class="text-green-400 py-2">$</span>
+              <input type="text" id="cli-input" class="flex-1 bg-gray-700 text-white px-3 py-2 rounded mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="${activeLlm ? 'Enter command or ask a question...' : 'Select an LLM first...'}" onkeydown="handleCliKeydown(event)" ${activeLlm ? '' : 'disabled'}>
+              <button onclick="executeCli()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium" ${activeLlm ? '' : 'disabled'}>Run</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function setCliLlm(id) {
+      activeLlmId = id;
+      localStorage.setItem('active_llm_id', id);
+      updateLlmStatus();
+      // Re-enable/disable input
+      const input = document.getElementById('cli-input');
+      const btn = document.querySelector('#content button[onclick="executeCli()"]');
+      if (id) {
+        input.disabled = false;
+        input.placeholder = 'Enter command or ask a question...';
+        btn.disabled = false;
+      } else {
+        input.disabled = true;
+        input.placeholder = 'Select an LLM first...';
+        btn.disabled = true;
+      }
+    }
+
+    function setCliDb(id) {
+      activeDbId = id || null;
+      localStorage.setItem('active_db_id', id || '');
+    }
+
+    function addToolToCli(toolName, params) {
+      const input = document.getElementById('cli-input');
+      if (!input || input.disabled) { alert('Please configure an LLM connection first'); showTab('connections'); return; }
+      input.value = params ? `${toolName}(${params})` : `${toolName}()`;
+      input.focus();
+    }
+
+    function filterTools(query) {
+      const q = query.toLowerCase();
+      document.querySelectorAll('.tool-item').forEach(item => {
+        const name = item.querySelector('.font-medium').textContent.toLowerCase();
+        const desc = item.querySelector('.text-gray-500').textContent.toLowerCase();
+        item.style.display = (name.includes(q) || desc.includes(q)) ? '' : 'none';
+      });
+    }
+
+    function handleCliKeydown(e) { if (e.key === 'Enter') executeCli(); }
+
+    async function executeCli() {
+      const input = document.getElementById('cli-input');
+      const output = document.getElementById('cli-output');
+      const command = input.value.trim();
+      if (!command) return;
+
+      output.innerHTML += `<span class="text-gray-500">$ </span><span class="text-white">${escapeHtml(command)}</span>\n`;
+
+      if (command === 'help') {
+        output.innerHTML += `<span class="text-yellow-400">Commands:
+  help                - Show this help
+  clear               - Clear console
+  ask <question>      - Ask the LLM a question (uses MCP context)
+  query <sql>         - Query the selected database
+  describe            - Describe selected data source
+  connections         - List all connections
+  use db <id>         - Switch active database
+  use llm <id>        - Switch active LLM
+  <tool_name>()       - Run an MCP tool
+</span>\n\n`;
+      } else if (command === 'clear') {
+        output.innerHTML = `<pre class="text-green-400 text-sm">Console cleared.\n\n<span class="text-gray-500">$ </span></pre>`;
+        input.value = '';
+        return;
+      } else if (command === 'describe') {
+        const activeData = [...dbConnections, ...excelFiles].find(c => c.id === activeDbId);
+        if (!activeData) {
+          output.innerHTML += `<span class="text-yellow-400">No data source selected. Use the dropdown above or 'use db <id>'.</span>\n\n`;
+        } else if (activeData.type === 'excel') {
+          output.innerHTML += `<span class="text-cyan-400">Data Source: Excel File
+Name: ${activeData.name}
+Path: ${activeData.filePath}
+Sheet: ${activeData.sheetName || 'default (first sheet)'}
+ID: ${activeData.id}
+
+To load: load_csv(file_path="${activeData.filePath}")</span>\n\n`;
+        } else {
+          output.innerHTML += `<span class="text-cyan-400">Data Source: ${activeData.serverType} Database
+Name: ${activeData.connectionName}
+Host: ${activeData.host || 'N/A'}
+Database: ${activeData.databaseName || 'N/A'}
+Auth: ${getAuthLabel(activeData.authType)}
+ID: ${activeData.id}
+
+To query: query_database(connection_id="${activeData.id}", query="SELECT ...")</span>\n\n`;
+        }
+      } else if (command === 'connections') {
+        output.innerHTML += `<span class="text-cyan-400">LLM Connections:</span>\n`;
+        if (llmConnections.length === 0) {
+          output.innerHTML += `  <span class="text-gray-400">(none)</span>\n`;
+        } else {
+          llmConnections.forEach(c => {
+            output.innerHTML += `  ${c.id === activeLlmId ? '<span class="text-green-400">●</span>' : '<span class="text-gray-500">○</span>'} ${c.id}: ${c.name} (${c.provider})\n`;
+          });
+        }
+        output.innerHTML += `\n<span class="text-cyan-400">Data Sources:</span>\n`;
+        if (dbConnections.length === 0 && excelFiles.length === 0) {
+          output.innerHTML += `  <span class="text-gray-400">(none)</span>\n`;
+        } else {
+          [...dbConnections, ...excelFiles].forEach(c => {
+            const name = c.connectionName || c.name;
+            const type = c.type === 'excel' ? 'Excel' : c.serverType;
+            output.innerHTML += `  ${c.id === activeDbId ? '<span class="text-green-400">●</span>' : '<span class="text-gray-500">○</span>'} ${c.id}: ${name} (${type})\n`;
+          });
+        }
+        output.innerHTML += '\n';
+      } else if (command.startsWith('use db ')) {
+        const id = command.slice(7).trim();
+        const source = [...dbConnections, ...excelFiles].find(c => c.id === id);
+        if (source) {
+          setCliDb(id);
+          document.getElementById('cli-db-select').value = id;
+          output.innerHTML += `<span class="text-green-400">Active data source: ${source.connectionName || source.name}</span>\n\n`;
+        } else {
+          output.innerHTML += `<span class="text-red-400">Data source not found: ${id}</span>\n\n`;
+        }
+      } else if (command.startsWith('use llm ')) {
+        const id = command.slice(8).trim();
+        const llm = llmConnections.find(c => c.id === id);
+        if (llm) {
+          setCliLlm(id);
+          document.getElementById('cli-llm-select').value = id;
+          output.innerHTML += `<span class="text-green-400">Active LLM: ${llm.name}</span>\n\n`;
+        } else {
+          output.innerHTML += `<span class="text-red-400">LLM not found: ${id}</span>\n\n`;
+        }
+      } else if (command.startsWith('query ')) {
+        const sql = command.slice(6).trim();
+        const activeData = [...dbConnections, ...excelFiles].find(c => c.id === activeDbId);
+        if (!activeData) {
+          output.innerHTML += `<span class="text-yellow-400">No data source selected. Select one from the dropdown first.</span>\n\n`;
+        } else if (activeData.type === 'excel') {
+          output.innerHTML += `<span class="text-blue-400">Loading Excel file and executing query...</span>\n`;
+          try {
+            const result = await simulateMcpCall('load_csv', `file_path="${activeData.filePath}"`);
+            output.innerHTML += `<span class="text-green-400">Loaded ${result.rowCount || '?'} rows. Use pandas/SQL tools for querying.</span>\n\n`;
+          } catch (e) {
+            output.innerHTML += `<span class="text-red-400">Error: ${escapeHtml(e.message)}</span>\n\n`;
+          }
+        } else {
+          output.innerHTML += `<span class="text-blue-400">Executing query on ${activeData.connectionName}...</span>\n`;
+          try {
+            const result = await simulateMcpCall('query_database', `connection_id="${activeData.id}", query="${sql.replace(/"/g, '\\"')}"`);
+            if (result.rows && result.columns) {
+              output.innerHTML += `<span class="text-green-400">${result.columns.join(' | ')}\n${'─'.repeat(50)}\n${result.rows.slice(0, 10).map(r => r.join(' | ')).join('\n')}\n${result.rowCount > 10 ? `... and ${result.rowCount - 10} more rows` : ''}</span>\n\n`;
+            } else {
+              output.innerHTML += `<span class="text-green-400">${escapeHtml(JSON.stringify(result, null, 2))}</span>\n\n`;
+            }
+          } catch (e) {
+            output.innerHTML += `<span class="text-red-400">Error: ${escapeHtml(e.message)}</span>\n\n`;
+          }
+        }
+      } else if (command.startsWith('ask ')) {
+        const question = command.slice(4);
+        output.innerHTML += `<span class="text-blue-400">Asking LLM (with MCP context)...</span>\n`;
+        try {
+          const response = await askLlm(question);
+          output.innerHTML += `<span class="text-green-400">${escapeHtml(response)}</span>\n\n`;
+        } catch (e) {
+          output.innerHTML += `<span class="text-red-400">Error: ${escapeHtml(e.message)}</span>\n\n`;
+        }
+      } else {
+        const match = command.match(/^(\w+)\((.*)\)$/);
+        if (match) {
+          output.innerHTML += `<span class="text-blue-400">Executing ${match[1]}...</span>\n`;
+          try {
+            const result = await simulateMcpCall(match[1], match[2]);
+            output.innerHTML += `<span class="text-green-400">${escapeHtml(JSON.stringify(result, null, 2))}</span>\n\n`;
+          } catch (e) {
+            output.innerHTML += `<span class="text-red-400">Error: ${escapeHtml(e.message)}</span>\n\n`;
+          }
+        } else {
+          output.innerHTML += `<span class="text-red-400">Invalid command. Type 'help' for usage.</span>\n\n`;
+        }
+      }
+
+      output.innerHTML += `<span class="text-gray-500">$ </span>`;
+      input.value = '';
+      output.scrollTop = output.scrollHeight;
+    }
+
+    async function askLlm(question) {
+      const conn = llmConnections.find(c => c.id === activeLlmId);
+      if (!conn) throw new Error('No LLM configured');
+
+      // Build context about active data source
+      const activeDataSource = [...dbConnections, ...excelFiles].find(c => c.id === activeDbId);
+      let dataContext = '';
+
+      if (activeDataSource) {
+        if (activeDataSource.type === 'excel') {
+          dataContext = `
+ACTIVE DATA SOURCE: Excel File
+- Name: ${activeDataSource.name}
+- Path: ${activeDataSource.filePath}
+- Sheet: ${activeDataSource.sheetName || 'default'}
+
+To query this Excel file, use the MCP tool:
+  load_csv(file_path="${activeDataSource.filePath}")
+  profile_data(data_id="loaded_data")
+`;
+        } else {
+          dataContext = `
+ACTIVE DATA SOURCE: ${activeDataSource.serverType} Database
+- Name: ${activeDataSource.connectionName}
+- Database: ${activeDataSource.databaseName || 'N/A'}
+- Host: ${activeDataSource.host || 'N/A'}
+- Connection ID: ${activeDataSource.id}
+
+To query this database, use the MCP tool:
+  query_database(connection_id="${activeDataSource.id}", query="SELECT ...")
+`;
+        }
+      }
+
+      // Build MCP system context
+      const systemPrompt = `You are an AI assistant integrated with DataBridge AI MCP (Model Context Protocol).
+You have access to 98 MCP tools for data reconciliation, hierarchy management, SQL analysis, and more.
+
+${dataContext}
+
+Available MCP tool categories:
+- Data Reconciliation: load_csv, load_json, query_database, profile_data, compare_hashes, fuzzy_match_columns
+- Hierarchy Management: create_hierarchy_project, create_hierarchy, add_source_mapping, export_hierarchy_csv
+- SQL Discovery: sql_to_hierarchy, smart_analyze_sql
+- Deployment: generate_hierarchy_scripts, push_hierarchy_to_snowflake, sync_to_backend
+- Templates: list_financial_templates, get_template_details
+
+When the user asks about data, suggest relevant MCP tool calls.
+Format tool calls as: tool_name(param1="value1", param2="value2")`;
+
+      if (conn.provider === 'anthropic') {
+        const resp = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-api-key': conn.apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+          body: JSON.stringify({
+            model: conn.model || 'claude-sonnet-4-20250514',
+            max_tokens: 1024,
+            system: systemPrompt,
+            messages: [{ role: 'user', content: question }]
+          })
+        });
+        const data = await resp.json();
+        if (data.error) throw new Error(data.error.message);
+        return data.content[0].text;
+      } else if (conn.provider === 'openai') {
+        const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${conn.apiKey}` },
+          body: JSON.stringify({
+            model: conn.model || 'gpt-4o-mini',
+            max_tokens: 1024,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: question }
+            ]
+          })
+        });
+        const data = await resp.json();
+        if (data.error) throw new Error(data.error.message);
+        return data.choices[0].message.content;
+      } else if (conn.provider === 'google') {
+        // Google Gemini API
+        const geminiModel = conn.model || 'gemini-1.5-flash';
+        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${conn.apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: systemPrompt + '\n\nUser Question: ' + question }] }],
+            generationConfig: { maxOutputTokens: 1024 }
+          })
+        });
+        const data = await resp.json();
+        if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from Gemini';
+      } else if (conn.provider === 'azure-openai') {
+        const endpoint = conn.endpoint || '';
+        const resp = await fetch(`${endpoint}/openai/deployments/${conn.model}/chat/completions?api-version=2024-02-15-preview`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'api-key': conn.apiKey },
+          body: JSON.stringify({
+            max_tokens: 1024,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: question }
+            ]
+          })
+        });
+        const data = await resp.json();
+        if (data.error) throw new Error(data.error.message);
+        return data.choices[0].message.content;
+      } else if (conn.provider === 'ollama') {
+        const endpoint = conn.endpoint || 'http://localhost:11434';
+        const resp = await fetch(`${endpoint}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: conn.model || 'llama3',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: question }
+            ],
+            stream: false
+          })
+        });
+        const data = await resp.json();
+        if (data.error) throw new Error(data.error);
+        return data.message?.content || 'No response from Ollama';
+      } else {
+        throw new Error(`Provider "${conn.provider}" not supported. Supported: anthropic, openai, google, azure-openai, ollama`);
+      }
+    }
+
+    async function simulateMcpCall(tool, params) {
+      // Try real MCP API first
+      try {
+        const result = await callMcpTool(tool, params);
+        return result;
+      } catch (e) {
+        console.log('MCP API call failed, falling back to backend API:', e.message);
+        // Fallback to backend API for some tools
+        switch(tool) {
+          case 'list_hierarchy_projects': return await apiCall('/smart-hierarchy/projects');
+          case 'list_backend_connections': return await apiCall('/connections');
+          default: return { status: 'error', tool, params, message: 'MCP API unavailable: ' + e.message };
+        }
+      }
+    }
+
+    // Call real MCP tool via HTTP API
+    async function callMcpTool(toolName, paramsString) {
+      // Parse params string like: param1="value1", param2="value2"
+      const params = {};
+      if (paramsString) {
+        const regex = /(\w+)\s*=\s*"([^"]*)"|(\w+)\s*=\s*(\d+(?:\.\d+)?)|(\w+)\s*=\s*(true|false)/g;
+        let match;
+        while ((match = regex.exec(paramsString)) !== null) {
+          if (match[1]) params[match[1]] = match[2];  // string value
+          else if (match[3]) params[match[3]] = parseFloat(match[4]);  // number value
+          else if (match[5]) params[match[5]] = match[6] === 'true';  // boolean value
+        }
+      }
+
+      const response = await fetch(`${MCP_API_BASE}/call`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tool: toolName, params })
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+
+      // Parse result if it's a JSON string
+      let result = data.result;
+      if (typeof result === 'string') {
+        try { result = JSON.parse(result); } catch {}
+      }
+
+      return result;
+    }
+
+    // Check MCP API health
+    async function checkMcpHealth() {
+      try {
+        const resp = await fetch(`${MCP_API_BASE}/health`);
+        return resp.ok;
+      } catch { return false; }
+    }
+
+    function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+    // ============================================================================
+    // MULTI-AI ORCHESTRATION TAB
+    // ============================================================================
+
+    function renderMultiAI() {
+      const orchestrator = llmConnections.find(c => c.id === orchestratorLlmId);
+      const executor = llmConnections.find(c => c.id === executorLlmId);
+      const activeData = [...dbConnections, ...excelFiles].find(c => c.id === activeDbId);
+
+      // Build LLM options for both dropdowns
+      const llmOptions = llmConnections.length === 0
+        ? '<option value="">Add LLM in Connections →</option>'
+        : '<option value="">Select LLM...</option>' + llmConnections.map(c =>
+            `<option value="${c.id}">${getProviderIcon(c.provider)} ${c.name} (${c.model || 'default'})</option>`
+          ).join('');
+
+      return `
+        <div class="space-y-6">
+          <!-- Header -->
+          <div class="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl p-6 text-white">
+            <h2 class="text-2xl font-bold mb-2">🤖 Multi-AI Orchestration</h2>
+            <p class="opacity-90">Configure an Orchestrator LLM for planning and an Executor LLM for task execution.</p>
+          </div>
+
+          <!-- LLM Configuration -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Orchestrator Config -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border-2 border-purple-200">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-2xl">🧠</div>
+                <div>
+                  <h3 class="text-lg font-semibold text-purple-700">Orchestrator LLM</h3>
+                  <p class="text-sm text-gray-500">Plans tasks & retains context</p>
+                </div>
+              </div>
+              <select id="orchestrator-select" onchange="setOrchestratorLlm(this.value)" class="w-full px-4 py-3 border-2 border-purple-200 rounded-lg focus:border-purple-500 focus:outline-none mb-3">
+                ${llmOptions.replace(`value="${orchestratorLlmId}"`, `value="${orchestratorLlmId}" selected`)}
+              </select>
+              <div class="text-sm text-gray-600 space-y-1">
+                <div class="flex items-center gap-2"><span class="text-purple-500">✓</span> Maintains conversation history</div>
+                <div class="flex items-center gap-2"><span class="text-purple-500">✓</span> Breaks down complex requests</div>
+                <div class="flex items-center gap-2"><span class="text-purple-500">✓</span> Coordinates with executor</div>
+              </div>
+              ${orchestrator ? `<div class="mt-3 p-2 bg-purple-50 rounded text-sm text-purple-700">Active: ${orchestrator.name}</div>` : ''}
+            </div>
+
+            <!-- Executor Config -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border-2 border-blue-200">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-2xl">⚡</div>
+                <div>
+                  <h3 class="text-lg font-semibold text-blue-700">Executor LLM</h3>
+                  <p class="text-sm text-gray-500">Executes tasks & MCP commands</p>
+                </div>
+              </div>
+              <select id="executor-select" onchange="setExecutorLlm(this.value)" class="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:border-blue-500 focus:outline-none mb-3">
+                ${llmOptions.replace(`value="${executorLlmId}"`, `value="${executorLlmId}" selected`)}
+              </select>
+              <div class="text-sm text-gray-600 space-y-1">
+                <div class="flex items-center gap-2"><span class="text-blue-500">✓</span> Fresh context per task</div>
+                <div class="flex items-center gap-2"><span class="text-blue-500">✓</span> Executes MCP tools</div>
+                <div class="flex items-center gap-2"><span class="text-blue-500">✓</span> Returns results to orchestrator</div>
+              </div>
+              ${executor ? `<div class="mt-3 p-2 bg-blue-50 rounded text-sm text-blue-700">Active: ${executor.name}</div>` : ''}
+            </div>
+          </div>
+
+          <!-- Data Source Selection -->
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+            <div class="flex items-center gap-4 flex-wrap">
+              <span class="font-medium text-gray-700">📊 Data Source:</span>
+              <select id="multi-ai-data-select" onchange="activeDbId=this.value; localStorage.setItem('active_db_id', this.value);" class="px-3 py-2 border border-gray-300 rounded-lg min-w-[200px]">
+                <option value="">None selected</option>
+                ${dbConnections.length > 0 ? `<optgroup label="Databases">${dbConnections.map(c => `<option value="${c.id}" ${c.id === activeDbId ? 'selected' : ''}>${getDbIcon(c.serverType)} ${c.connectionName}</option>`).join('')}</optgroup>` : ''}
+                ${excelFiles.length > 0 ? `<optgroup label="Excel Files">${excelFiles.map(f => `<option value="${f.id}" ${f.id === activeDbId ? 'selected' : ''}>📊 ${f.name}</option>`).join('')}</optgroup>` : ''}
+              </select>
+              ${activeData ? `<span class="text-sm text-green-600">✓ ${activeData.connectionName || activeData.name}</span>` : '<span class="text-sm text-gray-400">Select a data source for queries</span>'}
+            </div>
+          </div>
+
+          <!-- Main Interface -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Orchestrator Chat -->
+            <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col h-[500px]">
+              <div class="p-4 bg-purple-50 border-b border-purple-100 rounded-t-xl flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="text-xl">🧠</span>
+                  <span class="font-semibold text-purple-700">Orchestrator Chat</span>
+                  <span class="text-xs bg-purple-200 text-purple-700 px-2 py-0.5 rounded-full">${orchestratorContext.length} messages</span>
+                </div>
+                <button onclick="clearOrchestratorContext()" class="text-sm text-purple-600 hover:text-purple-800">Clear Context</button>
+              </div>
+              <div id="orchestrator-chat" class="flex-1 overflow-y-auto p-4 space-y-4">
+                ${orchestratorContext.length === 0 ? `
+                  <div class="text-center py-12 text-gray-400">
+                    <div class="text-4xl mb-3">🧠</div>
+                    <p class="font-medium">Start a conversation</p>
+                    <p class="text-sm">The Orchestrator will plan and coordinate tasks</p>
+                  </div>
+                ` : orchestratorContext.map(msg => `
+                  <div class="flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}">
+                    <div class="${msg.role === 'user' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-800'} rounded-xl px-4 py-3 max-w-[80%]">
+                      <div class="text-sm whitespace-pre-wrap">${escapeHtml(msg.content)}</div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+              <div class="p-4 border-t bg-gray-50 rounded-b-xl">
+                <div class="flex gap-2">
+                  <input type="text" id="orchestrator-input" placeholder="${orchestrator ? 'Describe your task or ask a question...' : 'Select Orchestrator LLM first...'}"
+                    class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                    onkeydown="if(event.key==='Enter')sendToOrchestrator()" ${orchestrator ? '' : 'disabled'}>
+                  <button onclick="sendToOrchestrator()" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-300" ${orchestrator ? '' : 'disabled'}>
+                    Send
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Task Queue & Execution Log -->
+            <div class="space-y-4">
+              <!-- Task Queue -->
+              <div class="bg-white rounded-xl shadow-sm border border-gray-200 h-[240px] flex flex-col">
+                <div class="p-3 bg-orange-50 border-b border-orange-100 rounded-t-xl flex items-center gap-2">
+                  <span>📋</span>
+                  <span class="font-semibold text-orange-700">Task Queue</span>
+                  <span class="text-xs bg-orange-200 text-orange-700 px-2 py-0.5 rounded-full">${taskQueue.length}</span>
+                </div>
+                <div id="task-queue" class="flex-1 overflow-y-auto p-3 space-y-2">
+                  ${taskQueue.length === 0 ? `
+                    <div class="text-center py-6 text-gray-400 text-sm">
+                      <p>No pending tasks</p>
+                    </div>
+                  ` : taskQueue.map((task, i) => `
+                    <div class="p-2 bg-orange-50 rounded-lg border border-orange-200 text-sm">
+                      <div class="flex items-center justify-between">
+                        <span class="font-medium text-orange-700">${task.type}</span>
+                        <span class="text-xs ${task.status === 'pending' ? 'text-orange-500' : task.status === 'running' ? 'text-blue-500' : 'text-green-500'}">${task.status}</span>
+                      </div>
+                      <div class="text-xs text-gray-600 mt-1 truncate">${escapeHtml(task.description || task.command)}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- Execution Log -->
+              <div class="bg-white rounded-xl shadow-sm border border-gray-200 h-[240px] flex flex-col">
+                <div class="p-3 bg-blue-50 border-b border-blue-100 rounded-t-xl flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span>⚡</span>
+                    <span class="font-semibold text-blue-700">Execution Log</span>
+                  </div>
+                  <button onclick="clearExecutionLog()" class="text-xs text-blue-600 hover:text-blue-800">Clear</button>
+                </div>
+                <div id="execution-log" class="flex-1 overflow-y-auto p-3 font-mono text-xs bg-gray-900 text-green-400 rounded-b-xl">
+                  ${executionLog.length === 0 ? '<span class="text-gray-500">Waiting for tasks...</span>' : executionLog.map(log => `<div class="${log.type === 'error' ? 'text-red-400' : log.type === 'success' ? 'text-green-400' : 'text-gray-400'}">${escapeHtml(log.message)}</div>`).join('')}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+            <div class="flex items-center gap-4 flex-wrap">
+              <span class="font-medium text-gray-700">Quick Prompts:</span>
+              <button onclick="setOrchestratorPrompt('Analyze the data in my selected data source and summarize the key insights')" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200">📊 Analyze Data</button>
+              <button onclick="setOrchestratorPrompt('Create a new hierarchy project for financial reporting')" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200">🏗️ Create Hierarchy</button>
+              <button onclick="openHierarchyBuilderPrompt()" class="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-sm hover:bg-purple-200 font-medium">✨ Hierarchy Builder</button>
+              <button onclick="setOrchestratorPrompt('Profile the data quality and identify any issues')" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200">🔍 Profile Data</button>
+              <button onclick="setOrchestratorPrompt('Compare two datasets and find differences')" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200">⚖️ Compare Data</button>
+              <button onclick="setOrchestratorPrompt('Export the current project to CSV files')" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200">📤 Export Project</button>
+            </div>
+          </div>
+
+          <!-- Hierarchy Builder Helper -->
+          <div id="hierarchy-builder-helper" class="hidden bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 shadow-sm border border-purple-200">
+            <div class="flex items-start gap-4">
+              <div class="text-3xl">✨</div>
+              <div class="flex-1">
+                <h3 class="font-semibold text-purple-800 mb-2">Hierarchy Builder - Flexible Import</h3>
+                <p class="text-sm text-gray-600 mb-4">Create hierarchies from simple data. Paste your data below or describe what you want to group.</p>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Your Data (CSV, list, or description)</label>
+                    <textarea id="hierarchy-builder-data" rows="6" class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm" placeholder="Example (Tier 1):
+source_value,group_name
+4100,Revenue
+4200,Revenue
+5100,COGS
+
+Or describe: 'Group account codes starting with 4 into Revenue and 5 into COGS'"></textarea>
+                  </div>
+                  <div class="space-y-3">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">Source Database</label>
+                      <input type="text" id="hb-database" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="WAREHOUSE">
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">Source Schema</label>
+                      <input type="text" id="hb-schema" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="FINANCE">
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">Source Table</label>
+                      <input type="text" id="hb-table" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="DIM_ACCOUNT">
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">Source Column</label>
+                      <input type="text" id="hb-column" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="ACCOUNT_CODE">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex gap-3">
+                  <button onclick="submitHierarchyBuilder()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">🚀 Build Hierarchy</button>
+                  <button onclick="previewHierarchyBuilder()" class="px-4 py-2 border border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50">👁️ Preview</button>
+                  <button onclick="closeHierarchyBuilder()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                </div>
+
+                <div class="mt-4 text-xs text-gray-500">
+                  <strong>Supported Formats:</strong> Tier 1 (2 cols), Tier 2 (with parents), Tier 3 (with IDs), Tier 4 (full enterprise)
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function setOrchestratorLlm(id) {
+      orchestratorLlmId = id;
+      localStorage.setItem('orchestrator_llm_id', id);
+      renderContent();
+    }
+
+    function setExecutorLlm(id) {
+      executorLlmId = id;
+      localStorage.setItem('executor_llm_id', id);
+      renderContent();
+    }
+
+    function setOrchestratorPrompt(prompt) {
+      const input = document.getElementById('orchestrator-input');
+      if (input) {
+        input.value = prompt;
+        input.focus();
+      }
+    }
+
+    // Hierarchy Builder Functions
+    function openHierarchyBuilderPrompt() {
+      const helper = document.getElementById('hierarchy-builder-helper');
+      if (helper) {
+        helper.classList.remove('hidden');
+        helper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function closeHierarchyBuilder() {
+      const helper = document.getElementById('hierarchy-builder-helper');
+      if (helper) {
+        helper.classList.add('hidden');
+      }
+    }
+
+    function previewHierarchyBuilder() {
+      const data = document.getElementById('hierarchy-builder-data')?.value || '';
+      const database = document.getElementById('hb-database')?.value || '';
+      const schema = document.getElementById('hb-schema')?.value || '';
+      const table = document.getElementById('hb-table')?.value || '';
+      const column = document.getElementById('hb-column')?.value || '';
+
+      if (!data.trim()) {
+        alert('Please enter your hierarchy data first');
+        return;
+      }
+
+      // Build preview prompt for orchestrator
+      let prompt = `Preview this hierarchy import (don't create yet, just analyze):
+
+Data:
+\`\`\`
+${data}
+\`\`\`
+`;
+      if (database || schema || table || column) {
+        prompt += `
+Source defaults: database=${database}, schema=${schema}, table=${table}, column=${column}
+`;
+      }
+      prompt += `
+Use the detect_hierarchy_format tool to analyze this data and tell me:
+1. What tier format was detected
+2. How many hierarchies will be created
+3. What fields will be auto-inferred
+4. If source defaults are complete`;
+
+      setOrchestratorPrompt(prompt);
+      closeHierarchyBuilder();
+      document.getElementById('orchestrator-input')?.focus();
+    }
+
+    function submitHierarchyBuilder() {
+      const data = document.getElementById('hierarchy-builder-data')?.value || '';
+      const database = document.getElementById('hb-database')?.value || '';
+      const schema = document.getElementById('hb-schema')?.value || '';
+      const table = document.getElementById('hb-table')?.value || '';
+      const column = document.getElementById('hb-column')?.value || '';
+
+      if (!data.trim()) {
+        alert('Please enter your hierarchy data first');
+        return;
+      }
+
+      // Check if we have source defaults for Tier 1/2
+      const hasSourceDefaults = database && schema && table && column;
+
+      // Build import prompt for orchestrator
+      let prompt = `I want to create hierarchies from this data:
+
+\`\`\`
+${data}
+\`\`\`
+`;
+      if (hasSourceDefaults) {
+        prompt += `
+Source mapping defaults:
+- Database: ${database}
+- Schema: ${schema}
+- Table: ${table}
+- Column: ${column}
+
+Please:
+1. First use detect_hierarchy_format to analyze the data
+2. Then use import_flexible_hierarchy to create the hierarchies with these source defaults
+3. Show me the results`;
+      } else {
+        prompt += `
+Please:
+1. First use detect_hierarchy_format to analyze the data
+2. Tell me what source defaults I need to provide (database, schema, table, column)
+3. Once I provide them, use import_flexible_hierarchy to create the hierarchies`;
+      }
+
+      setOrchestratorPrompt(prompt);
+      closeHierarchyBuilder();
+
+      // Auto-send if orchestrator is configured
+      const orchestrator = llmConnections.find(c => c.id === orchestratorLlmId);
+      if (orchestrator) {
+        setTimeout(() => sendToOrchestrator(), 100);
+      }
+    }
+
+    function clearOrchestratorContext() {
+      if (confirm('Clear all orchestrator conversation history?')) {
+        orchestratorContext = [];
+        renderContent();
+      }
+    }
+
+    function clearExecutionLog() {
+      executionLog = [];
+      renderContent();
+    }
+
+    async function sendToOrchestrator() {
+      const input = document.getElementById('orchestrator-input');
+      const userMessage = input.value.trim();
+      if (!userMessage) return;
+
+      const orchestrator = llmConnections.find(c => c.id === orchestratorLlmId);
+      if (!orchestrator) {
+        alert('Please select an Orchestrator LLM first');
+        return;
+      }
+
+      // Add user message to context
+      orchestratorContext.push({ role: 'user', content: userMessage });
+      input.value = '';
+      renderContent();
+
+      // Scroll chat to bottom
+      setTimeout(() => {
+        const chat = document.getElementById('orchestrator-chat');
+        if (chat) chat.scrollTop = chat.scrollHeight;
+      }, 100);
+
+      // Build orchestrator system prompt
+      const activeData = [...dbConnections, ...excelFiles].find(c => c.id === activeDbId);
+      const dataContext = activeData
+        ? (activeData.type === 'excel'
+          ? `Active Data Source: Excel file "${activeData.name}" at ${activeData.filePath}`
+          : `Active Data Source: ${activeData.serverType} database "${activeData.connectionName}" at ${activeData.host}`)
+        : 'No data source selected';
+
+      const orchestratorSystemPrompt = `You are an AI Orchestrator for DataBridge AI, a data reconciliation and hierarchy management system.
+
+YOUR ROLE:
+- Understand user requests and break them into executable tasks
+- Maintain conversation context and track progress
+- Coordinate task execution with the Executor LLM
+- Summarize results and suggest next steps
+
+CURRENT CONTEXT:
+- ${dataContext}
+- Available MCP Tools: 98 tools across Data Reconciliation, Hierarchy Management, SQL Discovery, Deployment, Templates
+
+AVAILABLE TASK TYPES:
+1. MCP_TOOL - Execute an MCP tool (e.g., load_csv, create_hierarchy, query_database)
+2. QUERY - Run a database query
+3. ANALYZE - Analyze data or results
+4. EXPORT - Export data to files
+5. HIERARCHY_IMPORT - Import hierarchies from flexible formats (Tier 1-4)
+
+HIERARCHY BUILDER GUIDANCE:
+When users want to create hierarchies, guide them through the flexible import process:
+
+Tier 1 (Ultra-Simple): 2-3 columns
+- Just source_value and group_name (e.g., "4100,Revenue")
+- Auto-generates hierarchy_id, parent_id, flags
+
+Tier 2 (Basic): 5-7 columns
+- hierarchy_name, parent_name, source_value, sort_order
+- Supports parent-child via name references
+
+Tier 3 (Standard): 10-12 columns with explicit IDs
+Tier 4 (Enterprise): Full 28+ columns with LEVEL_1-10
+
+For hierarchy creation:
+1. Ask what format their data is in (or have them paste it)
+2. Use detect_hierarchy_format to analyze the data
+3. Ask for source defaults if needed (database, schema, table, column)
+4. Use preview_import to show what will be created
+5. Use import_flexible_hierarchy to create the hierarchies
+
+Example HIERARCHY_IMPORT task:
+[TASK]
+type: HIERARCHY_IMPORT
+content: source_value,group_name\\n4100,Revenue\\n5100,COGS
+source_defaults: {"database":"WAREHOUSE","schema":"FINANCE","table":"DIM_ACCOUNT","column":"ACCOUNT_CODE"}
+tier_hint: auto
+[/TASK]
+
+When you need to execute a task, output it in this format:
+[TASK]
+type: MCP_TOOL
+command: tool_name(param1="value1", param2="value2")
+description: Brief description of what this does
+[/TASK]
+
+You can include multiple [TASK] blocks. After describing tasks, provide a brief explanation to the user.
+
+If the request is just a question or doesn't require execution, respond normally without task blocks.`;
+
+      try {
+        // Call orchestrator LLM
+        let response;
+        if (orchestrator.provider === 'anthropic') {
+          const resp = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': orchestrator.apiKey,
+              'anthropic-version': '2023-06-01',
+              'anthropic-dangerous-direct-browser-access': 'true'
+            },
+            body: JSON.stringify({
+              model: orchestrator.model || 'claude-sonnet-4-20250514',
+              max_tokens: 2048,
+              system: orchestratorSystemPrompt,
+              messages: orchestratorContext.map(m => ({ role: m.role, content: m.content }))
+            })
+          });
+          const data = await resp.json();
+          if (data.error) throw new Error(data.error.message);
+          response = data.content[0].text;
+        } else if (orchestrator.provider === 'openai') {
+          const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${orchestrator.apiKey}`
+            },
+            body: JSON.stringify({
+              model: orchestrator.model || 'gpt-4o',
+              max_tokens: 2048,
+              messages: [
+                { role: 'system', content: orchestratorSystemPrompt },
+                ...orchestratorContext.map(m => ({ role: m.role, content: m.content }))
+              ]
+            })
+          });
+          const data = await resp.json();
+          if (data.error) throw new Error(data.error.message);
+          response = data.choices[0].message.content;
+        } else if (orchestrator.provider === 'google') {
+          // Google Gemini API
+          const geminiModel = orchestrator.model || 'gemini-1.5-pro';
+          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${orchestrator.apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [
+                { role: 'user', parts: [{ text: orchestratorSystemPrompt }] },
+                { role: 'model', parts: [{ text: 'I understand. I am the DataBridge AI Orchestrator. I will plan tasks and coordinate execution.' }] },
+                ...orchestratorContext.map(m => ({
+                  role: m.role === 'user' ? 'user' : 'model',
+                  parts: [{ text: m.content }]
+                }))
+              ],
+              generationConfig: { maxOutputTokens: 2048 }
+            })
+          });
+          const data = await resp.json();
+          if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+          response = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response';
+        } else if (orchestrator.provider === 'azure-openai') {
+          // Azure OpenAI
+          const endpoint = orchestrator.endpoint || '';
+          const resp = await fetch(`${endpoint}/openai/deployments/${orchestrator.model}/chat/completions?api-version=2024-02-15-preview`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'api-key': orchestrator.apiKey
+            },
+            body: JSON.stringify({
+              max_tokens: 2048,
+              messages: [
+                { role: 'system', content: orchestratorSystemPrompt },
+                ...orchestratorContext.map(m => ({ role: m.role, content: m.content }))
+              ]
+            })
+          });
+          const data = await resp.json();
+          if (data.error) throw new Error(data.error.message);
+          response = data.choices[0].message.content;
+        } else if (orchestrator.provider === 'ollama') {
+          // Ollama (local)
+          const endpoint = orchestrator.endpoint || 'http://localhost:11434';
+          const resp = await fetch(`${endpoint}/api/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: orchestrator.model || 'llama3',
+              messages: [
+                { role: 'system', content: orchestratorSystemPrompt },
+                ...orchestratorContext.map(m => ({ role: m.role, content: m.content }))
+              ],
+              stream: false
+            })
+          });
+          const data = await resp.json();
+          if (data.error) throw new Error(data.error);
+          response = data.message?.content || 'No response';
+        } else {
+          throw new Error(`Provider "${orchestrator.provider}" not supported. Supported: anthropic, openai, google, azure-openai, ollama`);
+        }
+
+        // Parse tasks from response
+        const taskMatches = response.matchAll(/\[TASK\]([\s\S]*?)\[\/TASK\]/g);
+        const newTasks = [];
+        for (const match of taskMatches) {
+          const taskContent = match[1];
+          const typeMatch = taskContent.match(/type:\s*(\w+)/i);
+          const commandMatch = taskContent.match(/command:\s*(.+)/i);
+          const descMatch = taskContent.match(/description:\s*(.+)/i);
+
+          // Parse HIERARCHY_IMPORT specific fields
+          const contentMatch = taskContent.match(/content:\s*([\s\S]*?)(?=source_defaults:|tier_hint:|description:|$)/i);
+          const sourceDefaultsMatch = taskContent.match(/source_defaults:\s*(\{[^}]+\})/i);
+          const tierHintMatch = taskContent.match(/tier_hint:\s*(\w+)/i);
+
+          if (typeMatch) {
+            const taskType = typeMatch[1].trim();
+            let command = commandMatch ? commandMatch[1].trim() : '';
+
+            // For HIERARCHY_IMPORT, build command from parsed fields
+            if (taskType === 'HIERARCHY_IMPORT') {
+              const content = contentMatch ? contentMatch[1].trim() : '';
+              const sourceDefaults = sourceDefaultsMatch ? sourceDefaultsMatch[1] : '{}';
+              const tierHint = tierHintMatch ? tierHintMatch[1] : 'auto';
+              command = `content: ${content}\nsource_defaults: ${sourceDefaults}\ntier_hint: ${tierHint}`;
+            }
+
+            newTasks.push({
+              id: 'task-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
+              type: taskType,
+              command: command,
+              description: descMatch ? descMatch[1].trim() : (taskType === 'HIERARCHY_IMPORT' ? 'Import hierarchies from flexible format' : ''),
+              status: 'pending'
+            });
+          }
+        }
+
+        // Clean response for display (remove task blocks)
+        const cleanResponse = response.replace(/\[TASK\][\s\S]*?\[\/TASK\]/g, '').trim();
+
+        // Add assistant response to context
+        orchestratorContext.push({ role: 'assistant', content: cleanResponse || response });
+
+        // Add tasks to queue
+        if (newTasks.length > 0) {
+          taskQueue.push(...newTasks);
+          // Auto-execute tasks
+          executeTaskQueue();
+        }
+
+        renderContent();
+
+        // Scroll chat to bottom
+        setTimeout(() => {
+          const chat = document.getElementById('orchestrator-chat');
+          if (chat) chat.scrollTop = chat.scrollHeight;
+        }, 100);
+
+      } catch (e) {
+        orchestratorContext.push({ role: 'assistant', content: `Error: ${e.message}` });
+        renderContent();
+      }
+    }
+
+    async function executeTaskQueue() {
+      const executor = llmConnections.find(c => c.id === executorLlmId);
+
+      for (let i = 0; i < taskQueue.length; i++) {
+        const task = taskQueue[i];
+        if (task.status !== 'pending') continue;
+
+        task.status = 'running';
+        renderContent();
+
+        addToExecutionLog('info', `[${new Date().toLocaleTimeString()}] Executing: ${task.type} - ${task.description || task.command}`);
+
+        try {
+          let result;
+
+          if (task.type === 'MCP_TOOL') {
+            // Parse and execute MCP tool via real API
+            const match = task.command.match(/^(\w+)\((.*)\)$/);
+            if (match) {
+              const toolName = match[1];
+              const params = match[2];
+              addToExecutionLog('info', `  → Calling MCP: ${toolName}`);
+
+              if (window.mcpApiAvailable) {
+                result = await callMcpTool(toolName, params);
+                addToExecutionLog('success', `  ✓ ${toolName} completed (real MCP)`);
+              } else {
+                result = await simulateMcpCall(toolName, params);
+                addToExecutionLog('success', `  ✓ ${toolName} completed (fallback)`);
+              }
+            } else {
+              throw new Error('Invalid MCP command format');
+            }
+          } else if (task.type === 'QUERY') {
+            // Execute database query via MCP
+            const activeData = [...dbConnections, ...excelFiles].find(c => c.id === activeDbId);
+            if (!activeData) throw new Error('No data source selected');
+
+            if (activeData.type === 'excel') {
+              // Load Excel file
+              addToExecutionLog('info', `  → Loading Excel: ${activeData.filePath}`);
+              result = await callMcpTool('load_csv', `file_path="${activeData.filePath}"`);
+            } else {
+              // Query database
+              const connString = buildConnectionString(activeData);
+              addToExecutionLog('info', `  → Querying: ${activeData.connectionName}`);
+              result = await callMcpTool('query_database', `connection_string="${connString}", query="${task.command.replace(/"/g, '\\"')}"`);
+            }
+            addToExecutionLog('success', `  ✓ Query executed`);
+          } else if (task.type === 'ANALYZE' && executor) {
+            // Use executor LLM for analysis
+            addToExecutionLog('info', `  → Analyzing with ${executor.name}`);
+            result = await callExecutorLlm(task.command);
+            addToExecutionLog('success', `  ✓ Analysis completed`);
+          } else if (task.type === 'EXPORT') {
+            // Handle export tasks
+            addToExecutionLog('info', `  → Exporting...`);
+            const match = task.command.match(/export_(\w+)/);
+            if (match) {
+              result = await callMcpTool(task.command.split('(')[0], task.command.match(/\((.*)\)/)?.[1] || '');
+              addToExecutionLog('success', `  ✓ Export completed`);
+            } else {
+              result = { message: 'Export command parsed', command: task.command };
+              addToExecutionLog('success', `  ✓ Export noted`);
+            }
+          } else if (task.type === 'HIERARCHY_IMPORT') {
+            // Handle hierarchy import tasks (Flexible Import System)
+            addToExecutionLog('info', `  → Processing hierarchy import...`);
+
+            // Parse task content for hierarchy import fields
+            const contentMatch = task.command.match(/content:\s*([\s\S]*?)(?=source_defaults:|tier_hint:|$)/i);
+            const defaultsMatch = task.command.match(/source_defaults:\s*(\{[^}]+\})/i);
+            const tierMatch = task.command.match(/tier_hint:\s*(\w+)/i);
+
+            const content = contentMatch ? contentMatch[1].trim() : task.description || '';
+            const sourceDefaults = defaultsMatch ? defaultsMatch[1] : '{}';
+            const tierHint = tierMatch ? tierMatch[1] : 'auto';
+
+            // Get active project or use default
+            const projectId = window.activeHierarchyProjectId || '';
+
+            if (!projectId) {
+              // First, try to get an existing project
+              addToExecutionLog('info', `  → Checking for existing project...`);
+              const projectsResult = await callMcpTool('list_hierarchy_projects', '');
+              let parsedProjects = {};
+              try { parsedProjects = JSON.parse(projectsResult); } catch(e) {}
+
+              if (parsedProjects.projects && parsedProjects.projects.length > 0) {
+                window.activeHierarchyProjectId = parsedProjects.projects[0].id;
+                addToExecutionLog('info', `  → Using project: ${parsedProjects.projects[0].name}`);
+              } else {
+                // Create a new project
+                addToExecutionLog('info', `  → Creating new hierarchy project...`);
+                const newProject = await callMcpTool('create_hierarchy_project', 'name="Flexible Import Project", description="Auto-created for flexible hierarchy import"');
+                let parsed = {};
+                try { parsed = JSON.parse(newProject); } catch(e) {}
+                if (parsed.project?.id) {
+                  window.activeHierarchyProjectId = parsed.project.id;
+                  addToExecutionLog('success', `  ✓ Created project: ${parsed.project.name}`);
+                }
+              }
+            }
+
+            if (window.activeHierarchyProjectId) {
+              // First detect format
+              addToExecutionLog('info', `  → Detecting format...`);
+              const detectResult = await callMcpTool('detect_hierarchy_format', `content="${content.replace(/"/g, '\\"').replace(/\\n/g, '\\\\n')}"`);
+              let detected = {};
+              try { detected = JSON.parse(detectResult); } catch(e) {}
+              addToExecutionLog('info', `  → Detected: ${detected.tier || 'unknown'} (${detected.format || 'unknown'})`);
+
+              // Now import
+              addToExecutionLog('info', `  → Importing hierarchies...`);
+              result = await callMcpTool('import_flexible_hierarchy',
+                `project_id="${window.activeHierarchyProjectId}", content="${content.replace(/"/g, '\\"').replace(/\\n/g, '\\\\n')}", source_defaults='${sourceDefaults}', tier_hint="${tierHint}"`
+              );
+
+              let importResult = {};
+              try { importResult = JSON.parse(result); } catch(e) {}
+
+              if (importResult.hierarchies_created > 0) {
+                addToExecutionLog('success', `  ✓ Created ${importResult.hierarchies_created} hierarchies, ${importResult.mappings_created || 0} mappings`);
+              } else if (importResult.error) {
+                addToExecutionLog('error', `  ✗ Import failed: ${importResult.error}`);
+              } else {
+                addToExecutionLog('info', `  ⚠ No hierarchies created`);
+              }
+            } else {
+              throw new Error('Could not create or find a hierarchy project');
+            }
+          } else {
+            result = { message: 'Task acknowledged', task: task.description };
+            addToExecutionLog('info', `  ⚠ ${task.type} - acknowledged`);
+          }
+
+          task.status = 'completed';
+          task.result = result;
+
+          // Report back to orchestrator with formatted result
+          if (result) {
+            let resultSummary;
+            if (typeof result === 'object') {
+              resultSummary = JSON.stringify(result, null, 2).slice(0, 500);
+            } else {
+              resultSummary = String(result).slice(0, 500);
+            }
+            orchestratorContext.push({
+              role: 'user',
+              content: `[System] Task completed: ${task.description}\nResult:\n${resultSummary}${resultSummary.length >= 500 ? '...' : ''}`
+            });
+          }
+
+        } catch (e) {
+          task.status = 'error';
+          task.error = e.message;
+          addToExecutionLog('error', `  ✗ Error: ${e.message}`);
+
+          // Report error to orchestrator
+          orchestratorContext.push({
+            role: 'user',
+            content: `[System] Task failed: ${task.description}\nError: ${e.message}`
+          });
+        }
+
+        renderContent();
+      }
+
+      // Clear completed tasks after a delay
+      setTimeout(() => {
+        taskQueue = taskQueue.filter(t => t.status === 'pending' || t.status === 'running');
+        renderContent();
+      }, 5000);
+    }
+
+    // Build connection string for database
+    function buildConnectionString(conn) {
+      if (conn.serverType === 'snowflake') {
+        return `snowflake://${conn.username}:${conn.password}@${conn.host}/${conn.databaseName}`;
+      } else if (conn.serverType === 'mysql') {
+        return `mysql+pymysql://${conn.username}:${conn.password}@${conn.host}:${conn.port || 3306}/${conn.databaseName}`;
+      } else if (conn.serverType === 'postgresql') {
+        return `postgresql://${conn.username}:${conn.password}@${conn.host}:${conn.port || 5432}/${conn.databaseName}`;
+      } else if (conn.serverType === 'sqlserver') {
+        return `mssql+pyodbc://${conn.username}:${conn.password}@${conn.host}/${conn.databaseName}?driver=ODBC+Driver+17+for+SQL+Server`;
+      }
+      return `${conn.serverType}://${conn.host}/${conn.databaseName}`;
+    }
+
+    async function callExecutorLlm(prompt) {
+      const executor = llmConnections.find(c => c.id === executorLlmId);
+      if (!executor) throw new Error('No Executor LLM configured');
+
+      const activeData = [...dbConnections, ...excelFiles].find(c => c.id === activeDbId);
+      const dataContext = activeData
+        ? `Data Source: ${activeData.connectionName || activeData.name}`
+        : 'No data source';
+
+      const executorSystemPrompt = `You are an AI Executor for DataBridge AI. Execute the given task precisely and return results.
+Context: ${dataContext}
+Available tools: load_csv, query_database, profile_data, create_hierarchy, etc.
+Be concise and focus on execution.`;
+
+      // Fresh context - no history (stateless execution)
+      if (executor.provider === 'anthropic') {
+        const resp = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': executor.apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+          },
+          body: JSON.stringify({
+            model: executor.model || 'claude-sonnet-4-20250514',
+            max_tokens: 1024,
+            system: executorSystemPrompt,
+            messages: [{ role: 'user', content: prompt }]
+          })
+        });
+        const data = await resp.json();
+        if (data.error) throw new Error(data.error.message);
+        return { analysis: data.content[0].text };
+      } else if (executor.provider === 'openai') {
+        const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${executor.apiKey}`
+          },
+          body: JSON.stringify({
+            model: executor.model || 'gpt-4o-mini',
+            max_tokens: 1024,
+            messages: [
+              { role: 'system', content: executorSystemPrompt },
+              { role: 'user', content: prompt }
+            ]
+          })
+        });
+        const data = await resp.json();
+        if (data.error) throw new Error(data.error.message);
+        return { analysis: data.choices[0].message.content };
+      } else if (executor.provider === 'google') {
+        // Google Gemini API
+        const geminiModel = executor.model || 'gemini-1.5-flash';
+        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${executor.apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              { role: 'user', parts: [{ text: executorSystemPrompt + '\n\nTask: ' + prompt }] }
+            ],
+            generationConfig: { maxOutputTokens: 1024 }
+          })
+        });
+        const data = await resp.json();
+        if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+        return { analysis: data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response' };
+      } else if (executor.provider === 'azure-openai') {
+        const endpoint = executor.endpoint || '';
+        const resp = await fetch(`${endpoint}/openai/deployments/${executor.model}/chat/completions?api-version=2024-02-15-preview`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'api-key': executor.apiKey
+          },
+          body: JSON.stringify({
+            max_tokens: 1024,
+            messages: [
+              { role: 'system', content: executorSystemPrompt },
+              { role: 'user', content: prompt }
+            ]
+          })
+        });
+        const data = await resp.json();
+        if (data.error) throw new Error(data.error.message);
+        return { analysis: data.choices[0].message.content };
+      } else if (executor.provider === 'ollama') {
+        const endpoint = executor.endpoint || 'http://localhost:11434';
+        const resp = await fetch(`${endpoint}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: executor.model || 'llama3',
+            messages: [
+              { role: 'system', content: executorSystemPrompt },
+              { role: 'user', content: prompt }
+            ],
+            stream: false
+          })
+        });
+        const data = await resp.json();
+        if (data.error) throw new Error(data.error);
+        return { analysis: data.message?.content || 'No response' };
+      }
+
+      throw new Error(`Executor provider "${executor.provider}" not supported`);
+    }
+
+    function addToExecutionLog(type, message) {
+      executionLog.push({ type, message, timestamp: Date.now() });
+      // Keep only last 50 entries
+      if (executionLog.length > 50) executionLog.shift();
+
+      const logEl = document.getElementById('execution-log');
+      if (logEl) {
+        logEl.innerHTML = executionLog.map(log =>
+          `<div class="${log.type === 'error' ? 'text-red-400' : log.type === 'success' ? 'text-green-400' : 'text-gray-400'}">${escapeHtml(log.message)}</div>`
+        ).join('');
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+    }
+
+    // Dashboard Tab
+    function renderDashboard() {
+      const uptime = systemStatus?.uptime ? Math.floor(systemStatus.uptime / 60) + 'm' : '-';
+      const activeLlm = llmConnections.find(c => c.id === activeLlmId);
+      const activeData = [...dbConnections, ...excelFiles].find(c => c.id === activeDbId);
+      const mcpStatus = window.mcpApiAvailable;
+
+      return `<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-xl p-6 shadow-sm border">
+          <h3 class="font-semibold mb-4">System Status</h3>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between"><span>Backend API</span><span class="text-green-600">✓ Online (3002)</span></div>
+            <div class="flex justify-between"><span>MCP API</span><span class="${mcpStatus ? 'text-green-600' : 'text-red-500'}">${mcpStatus ? '✓ Online (8085)' : '○ Offline'}</span></div>
+            <div class="flex justify-between"><span>LLM</span><span>${activeLlm ? `✓ ${activeLlm.name}` : '○ Not configured'}</span></div>
+            <div class="flex justify-between"><span>Data Source</span><span>${activeData ? `✓ ${activeData.connectionName || activeData.name}` : '○ None'}</span></div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl p-6 shadow-sm border">
+          <h3 class="font-semibold mb-4">Connections</h3>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between"><span>LLM APIs</span><span class="font-medium">${llmConnections.length}</span></div>
+            <div class="flex justify-between"><span>Databases</span><span class="font-medium">${dbConnections.length}</span></div>
+            <div class="flex justify-between"><span>Excel Files</span><span class="font-medium">${excelFiles.length}</span></div>
+            <div class="flex justify-between"><span>MCP Tools</span><span class="font-medium">${mcpStatus ? '108' : '-'}</span></div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl p-6 shadow-sm border">
+          <h3 class="font-semibold mb-4">Quick Actions</h3>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="showTab('multi-ai')" class="p-3 bg-purple-50 rounded-lg hover:bg-purple-100 text-sm">🤖 Multi AI</button>
+            <button onclick="showTab('mcp-cli')" class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 text-sm">🖥️ CLI</button>
+            <button onclick="showTab('connections')" class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 text-sm">🔗 Connect</button>
+            <button onclick="window.open('http://localhost:6274', '_blank')" class="p-3 bg-blue-50 rounded-lg hover:bg-blue-100 text-sm">🔧 MCP Inspector</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MCP Tools Overview -->
+      <div class="mt-6 bg-white rounded-xl p-6 shadow-sm border">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-semibold">MCP Tools (108 Available)</h3>
+          <a href="http://localhost:6274" target="_blank" class="text-blue-600 hover:underline text-sm">Open MCP Inspector →</a>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          <div class="p-3 bg-blue-50 rounded-lg text-center">
+            <div class="text-2xl mb-1">📊</div>
+            <div class="text-sm font-medium">Data Loading</div>
+            <div class="text-xs text-gray-500">load_csv, load_json</div>
+          </div>
+          <div class="p-3 bg-green-50 rounded-lg text-center">
+            <div class="text-2xl mb-1">🔍</div>
+            <div class="text-sm font-medium">Profiling</div>
+            <div class="text-xs text-gray-500">profile_data, detect_drift</div>
+          </div>
+          <div class="p-3 bg-purple-50 rounded-lg text-center">
+            <div class="text-2xl mb-1">🏗️</div>
+            <div class="text-sm font-medium">Hierarchies</div>
+            <div class="text-xs text-gray-500">create, update, export</div>
+          </div>
+          <div class="p-3 bg-orange-50 rounded-lg text-center">
+            <div class="text-2xl mb-1">🔗</div>
+            <div class="text-sm font-medium">Mappings</div>
+            <div class="text-xs text-gray-500">add, remove, inherit</div>
+          </div>
+          <div class="p-3 bg-red-50 rounded-lg text-center">
+            <div class="text-2xl mb-1">📝</div>
+            <div class="text-sm font-medium">SQL Discovery</div>
+            <div class="text-xs text-gray-500">sql_to_hierarchy</div>
+          </div>
+          <div class="p-3 bg-cyan-50 rounded-lg text-center">
+            <div class="text-2xl mb-1">🚀</div>
+            <div class="text-sm font-medium">Deployment</div>
+            <div class="text-xs text-gray-500">push to Snowflake</div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    // Other tabs (simplified)
+    function renderHierarchies() { return `<div class="bg-white rounded-xl p-6 shadow-sm border"><div class="flex justify-between mb-4"><h3 class="font-semibold">Hierarchy Projects</h3><button onclick="openProjectModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg">+ New</button></div><select id="project-select" onchange="loadHierarchies(this.value)" class="w-full md:w-96 px-4 py-2 border rounded-lg mb-4"><option value="">Select project...</option></select><div id="hierarchies-content" class="text-gray-500">Select a project</div></div>`; }
+    function renderSqlAnalyzer() { return `<div class="bg-white rounded-xl p-6 shadow-sm border"><h3 class="font-semibold mb-4">SQL Analyzer</h3><textarea id="sql-input" class="w-full h-40 p-3 border rounded-lg mono text-sm mb-4" placeholder="Paste SQL..."></textarea><button onclick="analyzeSQL()" class="px-6 py-2 bg-blue-600 text-white rounded-lg">Analyze</button><div id="sql-result" class="mt-4"></div></div>`; }
+    function renderTemplates() { return `<div class="bg-white rounded-xl p-6 shadow-sm border"><h3 class="font-semibold mb-4">Templates</h3><div class="grid grid-cols-2 md:grid-cols-3 gap-4">${['Standard P&L', 'Balance Sheet', 'Oil & Gas LOS', 'SaaS P&L', 'Cost Centers'].map(t => `<div class="p-4 border rounded-lg hover:border-blue-300 cursor-pointer"><div class="font-medium">${t}</div></div>`).join('')}</div></div>`; }
+
+    async function loadProjects() { try { const r = await apiCall('/smart-hierarchy/projects'); const s = document.getElementById('project-select'); if(s) s.innerHTML = '<option value="">Select...</option>' + (r.data||[]).map(p=>`<option value="${p.id}">${p.name}</option>`).join(''); } catch{} }
+    async function loadHierarchies(id) { if(!id) return; const c = document.getElementById('hierarchies-content'); c.innerHTML = 'Loading...'; try { const r = await apiCall(`/smart-hierarchy/project/${id}`); const h = r.data||[]; c.innerHTML = h.length ? `<table class="w-full border rounded"><thead class="bg-gray-50"><tr><th class="p-2 text-left text-sm">ID</th><th class="p-2 text-left text-sm">Name</th></tr></thead><tbody>${h.slice(0,20).map(x=>`<tr class="border-t"><td class="p-2 mono text-sm">${x.hierarchyId}</td><td class="p-2 text-sm">${x.hierarchyName}</td></tr>`).join('')}</tbody></table>` : 'No hierarchies'; } catch { c.innerHTML = 'Error'; } }
+    function analyzeSQL() { const sql = document.getElementById('sql-input').value; const r = document.getElementById('sql-result'); const m = sql.match(/CASE\s+([\s\S]*?)END/i); if(!m) { r.innerHTML = '<div class="p-3 bg-yellow-50 text-yellow-700 rounded">No CASE found</div>'; return; } const w = [...m[1].matchAll(/WHEN\s+(.+?)\s+THEN\s+'([^']+)'/gi)].map(x=>({c:x[1],n:x[2]})); r.innerHTML = `<div class="p-3 bg-blue-50 rounded mb-3">${w.length} hierarchies found</div><table class="w-full border rounded"><tbody>${w.map(x=>`<tr class="border-t"><td class="p-2 font-medium">${x.n}</td><td class="p-2 mono text-sm text-gray-600">${x.c}</td></tr>`).join('')}</tbody></table>`; }
+
+    // Init - Load connections and settings from localStorage
+    dbConnections = JSON.parse(localStorage.getItem('db_connections') || '[]');
+    excelFiles = JSON.parse(localStorage.getItem('excel_files') || '[]');
+    activeDbId = localStorage.getItem('active_db_id') || null;
+    orchestratorLlmId = localStorage.getItem('orchestrator_llm_id') || null;
+    executorLlmId = localStorage.getItem('executor_llm_id') || null;
+
+    checkHealth();
+    renderContent();
+  </script>
+</body>
+</html>
