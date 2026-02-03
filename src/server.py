@@ -1248,6 +1248,20 @@ try:
 except ImportError as e:
     print(f"Warning: Orchestrator module not loaded: {e}")
 
+# -----------------------------------------------------------------------------
+# Planner Agent Tools (AI-powered workflow planning)
+# -----------------------------------------------------------------------------
+try:
+    try:
+        from src.agents.mcp_tools import register_planner_tools
+    except ImportError:
+        from agents.mcp_tools import register_planner_tools
+
+    register_planner_tools(mcp)
+    log_action("SYSTEM", "planner_init", "PlannerAgent tools registered")
+except ImportError as e:
+    print(f"Warning: PlannerAgent module not loaded: {e}")
+
 
 # =============================================================================
 # Entry Point

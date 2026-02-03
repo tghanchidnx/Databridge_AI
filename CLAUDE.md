@@ -1,15 +1,17 @@
 # DataBridge AI: Project Configuration & Rules
 
 ## 🎯 Purpose
-A headless, MCP-native data reconciliation engine with **98 MCP tools** across five major modules:
+A headless, MCP-native data reconciliation engine with **137 MCP tools** across seven major modules:
 
 1. **Data Reconciliation Engine** - Bridges messy sources (OCR/PDF/SQL) with structured comparison pipelines
 2. **Hierarchy Knowledge Base Builder** - Creates and manages hierarchical data structures for reporting systems
 3. **Templates, Skills & Knowledge Base** - Pre-built templates, AI expertise definitions, and client-specific knowledge
 4. **Git Automation** - Automated commits, PRs, and dbt project generation for CI/CD workflows
 5. **SQL Discovery** - Extract hierarchies from SQL CASE statements automatically
+6. **AI Orchestrator** - Multi-agent coordination with task queues and event-driven workflows
+7. **PlannerAgent** - AI-powered workflow planning using Claude for intelligent task decomposition
 
-## 🔧 Available Tool Categories (96 Tools)
+## 🔧 Available Tool Categories (137 Tools)
 
 ### Data Reconciliation (38 tools)
 - **Data Loading**: `load_csv`, `load_json`, `query_database`
@@ -196,6 +198,46 @@ configure_mapping_enrichment(
     detail_columns="ACCOUNT_ID,ACCOUNT_NAME,ACCOUNT_BILLING_CATEGORY_CODE"
 )
 ```
+
+### PlannerAgent - AI Workflow Planning (11 tools)
+AI-powered workflow planning using Claude to decompose complex requests into executable steps.
+
+- **`plan_workflow`** - Create a workflow plan from natural language request
+- **`analyze_request`** - Analyze user request to understand intent and requirements
+- **`suggest_agents`** - Get ranked agent suggestions for a task
+- **`explain_plan`** - Generate human-readable explanation of a workflow plan
+- **`optimize_plan`** - Optimize a plan for parallel execution
+- **`get_workflow_definition`** - Convert plan to Orchestrator-compatible format
+- **`list_available_agents`** - List all agents available for planning
+- **`register_custom_agent`** - Register a custom agent for workflow planning
+- **`get_planner_status`** - Get planner status
+- **`get_planning_history`** - Get history of recent plans
+- **`configure_planner`** - Configure planner settings (model, temperature, etc.)
+
+**Example - Plan a Workflow:**
+```python
+plan_workflow(
+    request="Extract hierarchies from SQL CASE statements and deploy to Snowflake",
+    context='{"schema": "FINANCE", "database": "WAREHOUSE"}'
+)
+```
+
+**Returns:** Structured workflow plan with:
+- Ordered steps with agent assignments
+- Input/output mappings between steps
+- Dependency graph for parallel execution
+- Confidence score and estimated duration
+- Reasoning for each step
+
+**Available Agents for Planning:**
+| Agent | Capabilities | Description |
+|-------|-------------|-------------|
+| `schema_scanner` | scan_schema, extract_metadata, detect_keys | Scans database schemas |
+| `logic_extractor` | parse_sql, extract_case, identify_calcs | Extracts logic from SQL |
+| `warehouse_architect` | design_star_schema, generate_dims, dbt_models | Designs data warehouses |
+| `deploy_validator` | execute_ddl, run_dbt, validate_counts | Deploys and validates |
+| `hierarchy_builder` | create_hierarchy, import_hierarchy, add_properties | Manages hierarchies |
+| `data_reconciler` | compare_sources, fuzzy_match, identify_orphans | Reconciles data |
 
 ### Auto-Sync Feature
 All hierarchy write operations (create, update, delete) **automatically sync** to the NestJS backend.
