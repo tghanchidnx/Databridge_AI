@@ -109,6 +109,240 @@ def truncate_dataframe(df: pd.DataFrame, max_rows: int = None) -> pd.DataFrame:
 
 
 # =============================================================================
+# Phase 0: File Discovery & Staging Tools
+# =============================================================================
+
+def get_common_search_paths() -> list:
+    """Get common directories where files might be located."""
+    home = Path.home()
+    cwd = Path.cwd()
+
+    paths = [
+        cwd,
+        cwd / "data",
+        cwd / "result_export",
+        cwd / "uploads",
+        home,
+        home / "Downloads",
+        home / "Documents",
+        home / "Desktop",
+        home / "uploads",
+        Path("/tmp"),
+        Path("/tmp/uploads"),
+    ]
+
+    # Add Claude-specific paths
+    claude_paths = [
+        home / ".claude" / "uploads",
+        home / "AppData" / "Local" / "Claude" / "uploads",
+        home / "AppData" / "Roaming" / "Claude" / "uploads",
+        Path("C:/Users") / home.name / "AppData" / "Local" / "Temp",
+    ]
+    paths.extend(claude_paths)
+
+    return [p for p in paths if p.exists()]
+
+
+@mcp.tool()
+def find_files(
+    pattern: str = "*.csv",
+    search_name: str = "",
+    max_results: int = 20
+) -> str:
+    """
+    Search for files across common directories.
+
+    Use this tool when you can't find a file or need to discover available files.
+    It searches Downloads, Documents, Desktop, temp folders, and the DataBridge
+    data directory.
+
+    Args:
+        pattern: Glob pattern to match (default "*.csv"). Examples:
+                 - "*.csv" for all CSV files
+                 - "*.xlsx" for Excel files
+                 - "*" for all files
+        search_name: Optional filename substring to filter results (case-insensitive)
+        max_results: Maximum number of results to return (default 20)
+
+    Returns:
+        JSON with found files, their paths, sizes, and modification times.
+
+    Example:
+        find_files(pattern="*.csv", search_name="hierarchy")
+    """
+    try:
+        search_paths = get_common_search_paths()
+        found_files = []
+        seen_paths = set()
+
+        for search_dir in search_paths:
+            try:
+                # Search recursively but limit depth to avoid long searches
+                for file_path in search_dir.rglob(pattern):
+                    if len(found_files) >= max_results:
+                        break
+
+                    # Skip if already seen (via symlinks or duplicates)
+                    abs_path = str(file_path.resolve())
+                    if abs_path in seen_paths:
+                        continue
+                    seen_paths.add(abs_path)
+
+                    # Apply name filter if provided
+                    if search_name and search_name.lower() not in file_path.name.lower():
+                        continue
+
+                    # Skip very deep paths (likely not user files)
+                    if len(file_path.parts) > 15:
+                        continue
+
+                    try:
+                        stat = file_path.stat()
+                        found_files.append({
+                            "path": str(file_path),
+                            "name": file_path.name,
+                            "size_kb": round(stat.st_size / 1024, 2),
+                            "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+                            "directory": str(file_path.parent),
+                        })
+                    except (OSError, PermissionError):
+                        continue
+
+            except (OSError, PermissionError):
+                continue
+
+        # Sort by modification time (newest first)
+        found_files.sort(key=lambda x: x["modified"], reverse=True)
+        found_files = found_files[:max_results]
+
+        result = {
+            "pattern": pattern,
+            "search_name": search_name or "(none)",
+            "directories_searched": [str(p) for p in search_paths],
+            "files_found": len(found_files),
+            "files": found_files,
+            "tip": "Use stage_file(source_path) to copy a file to the DataBridge data directory for easier access."
+        }
+
+        log_action("AI_AGENT", "find_files", f"Found {len(found_files)} files matching {pattern}")
+        return json.dumps(result, indent=2)
+
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
+@mcp.tool()
+def stage_file(
+    source_path: str,
+    new_name: str = ""
+) -> str:
+    """
+    Copy a file to the DataBridge data directory for easy access.
+
+    Use this when you find a file with find_files() but it's in an inconvenient
+    location. This copies it to the DataBridge data directory where all tools
+    can easily access it.
+
+    Args:
+        source_path: Full path to the source file
+        new_name: Optional new filename (keeps original name if not provided)
+
+    Returns:
+        JSON with the new file path and confirmation.
+
+    Example:
+        stage_file("/Users/john/Downloads/my_data.csv")
+        stage_file("/tmp/upload123.csv", new_name="quarterly_report.csv")
+    """
+    import shutil
+
+    try:
+        source = Path(source_path)
+
+        if not source.exists():
+            # Try to find the file
+            return json.dumps({
+                "error": f"File not found: {source_path}",
+                "suggestion": "Use find_files() to locate the file first.",
+                "working_directory": str(Path.cwd()),
+            })
+
+        # Determine destination
+        dest_name = new_name if new_name else source.name
+        dest_dir = Path(settings.data_dir)
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        dest_path = dest_dir / dest_name
+
+        # Handle existing file
+        if dest_path.exists():
+            # Add timestamp to avoid overwriting
+            stem = dest_path.stem
+            suffix = dest_path.suffix
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            dest_path = dest_dir / f"{stem}_{timestamp}{suffix}"
+
+        # Copy the file
+        shutil.copy2(source, dest_path)
+
+        # Get file info
+        stat = dest_path.stat()
+
+        result = {
+            "status": "success",
+            "source": str(source),
+            "destination": str(dest_path),
+            "size_kb": round(stat.st_size / 1024, 2),
+            "tip": f"You can now use this path: {dest_path}"
+        }
+
+        log_action("AI_AGENT", "stage_file", f"Staged {source.name} to {dest_path}")
+        return json.dumps(result, indent=2)
+
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
+@mcp.tool()
+def get_working_directory() -> str:
+    """
+    Get the current working directory and DataBridge data directory paths.
+
+    Use this to understand where DataBridge is looking for files and where
+    to place files for easy access.
+
+    Returns:
+        JSON with working directory, data directory, and available files.
+    """
+    try:
+        cwd = Path.cwd()
+        data_dir = Path(settings.data_dir)
+
+        # List files in data directory
+        data_files = []
+        if data_dir.exists():
+            for f in data_dir.iterdir():
+                if f.is_file():
+                    data_files.append({
+                        "name": f.name,
+                        "path": str(f),
+                        "size_kb": round(f.stat().st_size / 1024, 2),
+                    })
+
+        result = {
+            "working_directory": str(cwd),
+            "data_directory": str(data_dir),
+            "data_directory_exists": data_dir.exists(),
+            "files_in_data_directory": data_files,
+            "tip": "Use find_files() to search for files, or stage_file() to copy files here."
+        }
+
+        return json.dumps(result, indent=2)
+
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
+# =============================================================================
 # Phase 1: Data Loading Tools
 # =============================================================================
 
@@ -125,6 +359,44 @@ def load_csv(file_path: str, preview_rows: int = 5) -> str:
         JSON with schema info and sample data.
     """
     try:
+        # Check if file exists and provide helpful error if not
+        path = Path(file_path)
+        if not path.exists():
+            # Try common alternatives
+            alternatives = []
+
+            # Check in data directory
+            data_path = Path(settings.data_dir) / path.name
+            if data_path.exists():
+                alternatives.append(str(data_path))
+
+            # Check in current directory
+            cwd_path = Path.cwd() / path.name
+            if cwd_path.exists():
+                alternatives.append(str(cwd_path))
+
+            # Check in result_export
+            result_path = Path.cwd() / "result_export" / path.name
+            if result_path.exists():
+                alternatives.append(str(result_path))
+
+            error_result = {
+                "error": f"File not found: {file_path}",
+                "working_directory": str(Path.cwd()),
+                "data_directory": str(Path(settings.data_dir)),
+                "suggestions": [
+                    "1. Use find_files() to search for the file",
+                    "2. Use get_working_directory() to see available files",
+                    "3. Use stage_file() to copy the file to the data directory",
+                ],
+            }
+
+            if alternatives:
+                error_result["found_alternatives"] = alternatives
+                error_result["suggestions"].insert(0, f"0. Try this path instead: {alternatives[0]}")
+
+            return json.dumps(error_result, indent=2)
+
         df = pd.read_csv(file_path)
         preview_rows = min(preview_rows, settings.max_rows_display)
 
@@ -141,7 +413,14 @@ def load_csv(file_path: str, preview_rows: int = 5) -> str:
         return json.dumps(result, indent=2, default=str)
 
     except Exception as e:
-        return json.dumps({"error": str(e)})
+        return json.dumps({
+            "error": str(e),
+            "file_path": file_path,
+            "suggestions": [
+                "Use find_files() to search for the file",
+                "Use get_working_directory() to check paths",
+            ]
+        })
 
 
 @mcp.tool()

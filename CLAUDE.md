@@ -1,7 +1,7 @@
 # DataBridge AI: Project Configuration & Rules
 
 ## 🎯 Purpose
-A headless, MCP-native data reconciliation engine with **142 MCP tools** across eight major modules:
+A headless, MCP-native data reconciliation engine with **145 MCP tools** across eight major modules:
 
 1. **Data Reconciliation Engine** - Bridges messy sources (OCR/PDF/SQL) with structured comparison pipelines
 2. **Hierarchy Knowledge Base Builder** - Creates and manages hierarchical data structures for reporting systems
@@ -12,7 +12,31 @@ A headless, MCP-native data reconciliation engine with **142 MCP tools** across 
 7. **PlannerAgent** - AI-powered workflow planning using Claude for intelligent task decomposition
 8. **Smart Recommendation Engine** - Context-aware recommendations for CSV imports using skills, templates, and knowledge base
 
-## 🔧 Available Tool Categories (142 Tools)
+## 🔧 Available Tool Categories (145 Tools)
+
+### File Discovery & Staging (3 tools)
+Tools for finding and staging files when paths are unknown or files are in inconvenient locations.
+
+- **`find_files`** - Search for files across common directories (Downloads, Documents, temp, etc.)
+- **`stage_file`** - Copy a file to the DataBridge data directory for easy access
+- **`get_working_directory`** - Show current working directory and available files
+
+**When to use:**
+- File not found errors from `load_csv` or other tools
+- Files uploaded to Claude Desktop but path is unknown
+- Need to discover what files are available
+
+**Example workflow:**
+```python
+# 1. Search for the file
+find_files(pattern="*.csv", search_name="hierarchy")
+
+# 2. Stage it to the data directory
+stage_file("/Users/john/Downloads/my_hierarchy.csv")
+
+# 3. Now load it easily
+load_csv("data/my_hierarchy.csv")
+```
 
 ### Data Reconciliation (38 tools)
 - **Data Loading**: `load_csv`, `load_json`, `query_database`
