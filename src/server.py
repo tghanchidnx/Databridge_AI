@@ -1264,6 +1264,23 @@ except ImportError as e:
 
 
 # =============================================================================
+# Phase 15: Smart Recommendation Engine
+# =============================================================================
+
+# Register recommendation tools for context-aware CSV import suggestions
+try:
+    try:
+        from src.recommendations.mcp_tools import register_recommendation_tools
+    except ImportError:
+        from recommendations.mcp_tools import register_recommendation_tools
+
+    register_recommendation_tools(mcp)
+    log_action("SYSTEM", "recommendations_init", "Smart Recommendation Engine tools registered")
+except ImportError as e:
+    print(f"Warning: Recommendations module not loaded: {e}")
+
+
+# =============================================================================
 # Entry Point
 # =============================================================================
 

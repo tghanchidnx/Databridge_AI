@@ -1,7 +1,7 @@
 # DataBridge AI: Project Configuration & Rules
 
 ## 🎯 Purpose
-A headless, MCP-native data reconciliation engine with **137 MCP tools** across seven major modules:
+A headless, MCP-native data reconciliation engine with **142 MCP tools** across eight major modules:
 
 1. **Data Reconciliation Engine** - Bridges messy sources (OCR/PDF/SQL) with structured comparison pipelines
 2. **Hierarchy Knowledge Base Builder** - Creates and manages hierarchical data structures for reporting systems
@@ -10,8 +10,9 @@ A headless, MCP-native data reconciliation engine with **137 MCP tools** across 
 5. **SQL Discovery** - Extract hierarchies from SQL CASE statements automatically
 6. **AI Orchestrator** - Multi-agent coordination with task queues and event-driven workflows
 7. **PlannerAgent** - AI-powered workflow planning using Claude for intelligent task decomposition
+8. **Smart Recommendation Engine** - Context-aware recommendations for CSV imports using skills, templates, and knowledge base
 
-## 🔧 Available Tool Categories (137 Tools)
+## 🔧 Available Tool Categories (142 Tools)
 
 ### Data Reconciliation (38 tools)
 - **Data Loading**: `load_csv`, `load_json`, `query_database`
@@ -267,6 +268,60 @@ plan_workflow(
 | `deploy_validator` | execute_ddl, run_dbt, validate_counts | Deploys and validates |
 | `hierarchy_builder` | create_hierarchy, import_hierarchy, add_properties | Manages hierarchies |
 | `data_reconciler` | compare_sources, fuzzy_match, identify_orphans | Reconciles data |
+
+### Smart Recommendation Engine (5 tools)
+Context-aware recommendation system for CSV imports that leverages DataBridge's skills, templates, and knowledge base.
+
+- **`get_smart_recommendations`** - Get comprehensive recommendations for CSV import
+- **`get_llm_validation_prompt`** - Get formatted prompt for LLM to validate recommendations
+- **`suggest_enrichment_after_hierarchy`** - Get enrichment suggestions post-import
+- **`smart_import_csv`** - Intelligent CSV import with automatic recommendations
+- **`get_recommendation_context`** - View available skills, templates, and knowledge base
+
+**How It Works:**
+```
+User CSV + Context
+        ↓
+┌─────────────────────────────────────────────┐
+│      DataBridge Recommendation Engine       │
+│  1. Analyze CSV (profile, detect patterns)  │
+│  2. Select Skill (FP&A, Manufacturing, etc) │
+│  3. Query Knowledge Base (client patterns)  │
+│  4. Match Templates (industry hierarchies)  │
+│  5. Generate Recommendations                │
+└─────────────────────────────────────────────┘
+        ↓
+┌─────────────────────────────────────────────┐
+│         LLM Validation Layer                │
+│  - Review recommendations                   │
+│  - Refine based on user intent              │
+└─────────────────────────────────────────────┘
+```
+
+**Example - Get Smart Recommendations:**
+```python
+get_smart_recommendations(
+    file_path="C:/data/gl_accounts.csv",
+    user_intent="Build a P&L hierarchy for upstream oil and gas",
+    industry="oil_gas"
+)
+```
+
+**Returns:**
+- **data_profile**: Column analysis, detected patterns, industry/domain hints
+- **import_tier**: Recommended tier (1-4) with reasoning
+- **skills**: Top 3 skill recommendations with scores
+- **templates**: Top 3 template recommendations with scores
+- **knowledge**: Client-specific pattern matches
+- **summary**: Human-readable recommendation summary
+
+**Detected Industries:**
+| Industry | Keywords |
+|----------|----------|
+| `oil_gas` | well, field, basin, lease, royalty, LOE, DD&A, BOE |
+| `manufacturing` | plant, BOM, WIP, variance, standard_cost |
+| `saas` | ARR, MRR, churn, LTV, CAC, cohort |
+| `transportation` | fleet, lane, terminal, operating_ratio |
 
 ### Auto-Sync Feature
 All hierarchy write operations (create, update, delete) **automatically sync** to the NestJS backend.
