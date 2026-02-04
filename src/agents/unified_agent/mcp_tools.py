@@ -706,12 +706,18 @@ def register_unified_agent_tools(mcp):
                     # Map to appropriate Librarian tool
                     if step["action"] == "promote":
                         if "book_name" in context:
-                            result = promote_book_to_librarian(
-                                book_name=context["book_name"],
-                                **step.get("params", {}),
-                            )
-                            step_result["result"] = result
-                            step_result["status"] = "completed" if result.get("success") else "failed"
+                            # Call tool via MCP tool manager
+                            tool_fn = mcp._tool_manager._tools.get("promote_book_to_librarian")
+                            if tool_fn:
+                                result = tool_fn.fn(
+                                    book_name=context["book_name"],
+                                    **step.get("params", {}),
+                                )
+                                step_result["result"] = result
+                                step_result["status"] = "completed" if result.get("success") else "failed"
+                            else:
+                                step_result["result"] = {"error": "Tool not found"}
+                                step_result["status"] = "failed"
                         else:
                             step_result["result"] = {"error": "book_name not in context"}
                             step_result["status"] = "failed"
@@ -723,13 +729,19 @@ def register_unified_agent_tools(mcp):
                     # Map to appropriate Researcher tool
                     if step["action"] == "validate_sources":
                         if "book_name" in context and "connection_id" in context:
-                            result = analyze_book_with_researcher(
-                                book_name=context["book_name"],
-                                connection_id=context["connection_id"],
-                                analysis_type="validate_sources",
-                            )
-                            step_result["result"] = result
-                            step_result["status"] = "completed" if result.get("success") else "failed"
+                            # Call tool via MCP tool manager
+                            tool_fn = mcp._tool_manager._tools.get("analyze_book_with_researcher")
+                            if tool_fn:
+                                result = tool_fn.fn(
+                                    book_name=context["book_name"],
+                                    connection_id=context["connection_id"],
+                                    analysis_type="validate_sources",
+                                )
+                                step_result["result"] = result
+                                step_result["status"] = "completed" if result.get("success") else "failed"
+                            else:
+                                step_result["result"] = {"error": "Tool not found"}
+                                step_result["status"] = "failed"
                         else:
                             step_result["result"] = {"error": "book_name or connection_id not in context"}
                             step_result["status"] = "failed"
