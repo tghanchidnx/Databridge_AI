@@ -1695,6 +1695,24 @@ except ImportError as e:
 
 
 # =============================================================================
+# Phase 17: Unified AI Agent Integration
+# =============================================================================
+
+# Register Unified Agent tools for cross-system operations
+# (Book ↔ Librarian ↔ Researcher)
+try:
+    try:
+        from src.agents.unified_agent.mcp_tools import register_unified_agent_tools
+    except ImportError:
+        from agents.unified_agent.mcp_tools import register_unified_agent_tools
+
+    register_unified_agent_tools(mcp)
+    log_action("SYSTEM", "unified_agent_init", "Unified Agent tools registered (10 tools)")
+except ImportError as e:
+    print(f"Warning: Unified Agent module not loaded: {e}")
+
+
+# =============================================================================
 # Entry Point
 # =============================================================================
 

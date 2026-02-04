@@ -1,7 +1,7 @@
 # DataBridge AI: Project Configuration & Rules
 
 ## 🎯 Purpose
-A headless, MCP-native data reconciliation engine with **151 MCP tools** across nine major modules:
+A headless, MCP-native data reconciliation engine with **161 MCP tools** across ten major modules:
 
 1. **Data Reconciliation Engine** - Bridges messy sources (OCR/PDF/SQL) with structured comparison pipelines
 2. **Hierarchy Knowledge Base Builder** - Creates and manages hierarchical data structures for reporting systems
@@ -12,8 +12,9 @@ A headless, MCP-native data reconciliation engine with **151 MCP tools** across 
 7. **PlannerAgent** - AI-powered workflow planning using Claude for intelligent task decomposition
 8. **Smart Recommendation Engine** - Context-aware recommendations for CSV imports using skills, templates, and knowledge base
 9. **Diff Utilities** - Character-level text/data comparison using Python's difflib for AI agents
+10. **Unified AI Agent** - Cross-system operations between Book (Python), Librarian (NestJS), and Researcher (NestJS)
 
-## 🔧 Available Tool Categories (151 Tools)
+## 🔧 Available Tool Categories (161 Tools)
 
 ### File Discovery & Staging (3 tools)
 Tools for finding and staging files when paths are unknown or files are in inconvenient locations.
@@ -383,6 +384,73 @@ The diff module also enhances these existing tools:
 - **`transform_column`** - Now includes character-level `diffs` in preview
 - **`detect_schema_drift`** - Now includes `type_similarity`, `safe_conversion`, `warning`
 - **`fuzzy_match_columns`** - Now includes `matching_blocks`, `alignment` opcodes
+
+### Unified AI Agent (10 tools)
+Cross-system operations between Book (Python in-memory), Librarian (NestJS backend), and Researcher (NestJS analytics).
+
+**Book ↔ Librarian Operations:**
+- **`checkout_librarian_to_book`** - Convert Librarian project → Book for manipulation
+- **`promote_book_to_librarian`** - Create/update Librarian project from Book
+- **`sync_book_and_librarian`** - Bidirectional sync with conflict resolution
+- **`diff_book_and_librarian`** - Show differences between Book and project
+
+**Researcher Analytics:**
+- **`analyze_book_with_researcher`** - Validate Book sources against database
+- **`compare_book_to_database`** - Compare hierarchy data to live data
+- **`profile_book_sources`** - Profile data for mapped columns
+
+**Unified Workflows:**
+- **`create_unified_workflow`** - Plan workflow spanning all three systems
+- **`execute_unified_workflow`** - Execute planned workflow
+- **`get_unified_context`** - Get current context across all systems
+
+**Architecture:**
+```
+┌──────────────────────────────────────────────────────────────┐
+│                   Unified AI Agent                           │
+│              (src/agents/unified_agent/)                     │
+├──────────────────────────────────────────────────────────────┤
+│  UnifiedAgentContext        │  Tracks active Book, project   │
+│  LibrarianBridge            │  Book ↔ Librarian conversion   │
+│  ResearcherBridge           │  Analytics on Book/Librarian   │
+└──────────────────────────────────────────────────────────────┘
+         │                    │                    │
+         ▼                    ▼                    ▼
+┌─────────────┐      ┌─────────────┐      ┌─────────────┐
+│    Book     │      │  Librarian  │      │  Researcher │
+│  (Python)   │      │  (NestJS)   │      │  (NestJS)   │
+│  In-memory  │      │  /smart-    │      │  /schema-   │
+│  hierarchy  │      │  hierarchy/ │      │  matcher/   │
+└─────────────┘      └─────────────┘      └─────────────┘
+```
+
+**Example - Checkout and Promote Workflow:**
+```python
+# 1. Checkout a Librarian project to Book
+checkout_librarian_to_book(project_id="abc-123", book_name="My P&L")
+
+# 2. Manipulate the Book (using Book tools)
+# ... add nodes, apply formulas, etc.
+
+# 3. Validate sources
+analyze_book_with_researcher(
+    book_name="My P&L",
+    connection_id="snowflake-prod",
+    analysis_type="validate_sources"
+)
+
+# 4. Promote back to Librarian
+promote_book_to_librarian(
+    book_name="My P&L",
+    project_name="Updated P&L Hierarchy"
+)
+```
+
+**PlannerAgent Integration:**
+Three new agent types are available for workflow planning:
+- **`book_manipulator`** - Creates and manipulates Book hierarchies
+- **`librarian_sync`** - Syncs between Book and Librarian
+- **`researcher_analyst`** - Runs analytics via Researcher API
 
 ### Auto-Sync Feature
 All hierarchy write operations (create, update, delete) **automatically sync** to the NestJS backend.

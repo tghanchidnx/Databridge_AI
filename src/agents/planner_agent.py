@@ -191,6 +191,31 @@ DEFAULT_AGENTS: list[AgentInfo] = [
         input_schema={"source_a": "dict", "source_b": "dict", "match_columns": "list"},
         output_schema={"matches": "list", "orphans": "list", "conflicts": "list", "report": "dict"},
     ),
+    # Unified Agent agents for Book ↔ Librarian ↔ Researcher operations
+    AgentInfo(
+        name="book_manipulator",
+        agent_type="BookManipulator",
+        description="Manipulates Book hierarchies in-memory. Creates Books from CSV/JSON, adds/removes nodes, applies formulas, and exports to various formats.",
+        capabilities=["create_book", "add_node", "remove_node", "apply_formula", "export_book"],
+        input_schema={"book_name": "str", "node_data": "dict", "formula": "dict"},
+        output_schema={"book": "dict", "node_count": "int", "export_path": "str"},
+    ),
+    AgentInfo(
+        name="librarian_sync",
+        agent_type="LibrarianSync",
+        description="Synchronizes between Book (Python) and Librarian (NestJS). Checks out projects to Books, promotes Books to Librarian, and handles bidirectional sync.",
+        capabilities=["checkout_project", "promote_book", "sync_changes", "diff_systems"],
+        input_schema={"book_name": "str", "project_id": "str", "direction": "str"},
+        output_schema={"sync_result": "dict", "created": "int", "updated": "int", "diff": "dict"},
+    ),
+    AgentInfo(
+        name="researcher_analyst",
+        agent_type="ResearcherAnalyst",
+        description="Runs analytics on Book/Librarian data using Researcher API. Validates source mappings, compares hierarchy data with databases, profiles source columns.",
+        capabilities=["validate_mappings", "compare_schemas", "profile_sources", "analyze_data"],
+        input_schema={"book_name": "str", "connection_id": "str", "analysis_type": "str"},
+        output_schema={"validation": "dict", "profile": "dict", "comparison": "dict"},
+    ),
 ]
 
 
