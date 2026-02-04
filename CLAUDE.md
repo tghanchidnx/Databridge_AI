@@ -1,7 +1,7 @@
 # DataBridge AI: Project Configuration & Rules
 
 ## 🎯 Purpose
-A headless, MCP-native data reconciliation engine with **145 MCP tools** across eight major modules:
+A headless, MCP-native data reconciliation engine with **151 MCP tools** across nine major modules:
 
 1. **Data Reconciliation Engine** - Bridges messy sources (OCR/PDF/SQL) with structured comparison pipelines
 2. **Hierarchy Knowledge Base Builder** - Creates and manages hierarchical data structures for reporting systems
@@ -11,8 +11,9 @@ A headless, MCP-native data reconciliation engine with **145 MCP tools** across 
 6. **AI Orchestrator** - Multi-agent coordination with task queues and event-driven workflows
 7. **PlannerAgent** - AI-powered workflow planning using Claude for intelligent task decomposition
 8. **Smart Recommendation Engine** - Context-aware recommendations for CSV imports using skills, templates, and knowledge base
+9. **Diff Utilities** - Character-level text/data comparison using Python's difflib for AI agents
 
-## 🔧 Available Tool Categories (145 Tools)
+## 🔧 Available Tool Categories (151 Tools)
 
 ### File Discovery & Staging (3 tools)
 Tools for finding and staging files when paths are unknown or files are in inconvenient locations.
@@ -346,6 +347,42 @@ get_smart_recommendations(
 | `manufacturing` | plant, BOM, WIP, variance, standard_cost |
 | `saas` | ARR, MRR, churn, LTV, CAC, cohort |
 | `transportation` | fleet, lane, terminal, operating_ratio |
+
+### Diff Utilities (6 tools)
+Character-level text/data comparison using Python's difflib module. Provides detailed diff analysis for AI agents and enhances existing comparison tools.
+
+- **`diff_text`** - Compare two strings with similarity scores, opcodes, unified diff
+- **`diff_lists`** - Compare lists (added, removed, common items, Jaccard similarity)
+- **`diff_dicts`** - Compare dictionaries with value-level character diffs
+- **`find_similar_strings`** - Find similar strings from candidates list
+- **`explain_diff`** - Human-readable explanation for users
+- **`generate_patch`** - Create unified/context patch format
+
+**Example - Compare Text:**
+```python
+diff_text("John Smith", "Jon Smyth", detail_level="detailed")
+```
+
+**Returns:**
+```json
+{
+    "similarity": 0.7273,
+    "similarity_percent": "72.7%",
+    "is_identical": false,
+    "opcodes": [
+        {"operation": "replace", "from": "hn", "to": "n"},
+        {"operation": "replace", "from": "i", "to": "y"}
+    ],
+    "explanation": "Similarity: 72.7%\n  Changed: 'hn' -> 'n'\n  Changed: 'i' -> 'y'"
+}
+```
+
+**Enhanced Existing Tools:**
+The diff module also enhances these existing tools:
+- **`get_conflict_details`** - Now includes `similarity`, `opcodes`, `explanation` for each conflict
+- **`transform_column`** - Now includes character-level `diffs` in preview
+- **`detect_schema_drift`** - Now includes `type_similarity`, `safe_conversion`, `warning`
+- **`fuzzy_match_columns`** - Now includes `matching_blocks`, `alignment` opcodes
 
 ### Auto-Sync Feature
 All hierarchy write operations (create, update, delete) **automatically sync** to the NestJS backend.

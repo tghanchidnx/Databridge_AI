@@ -587,11 +587,46 @@ def detect_schema_drift(source_a_path: str, source_b_path: str) -> str:
 
         # Find type changes in common columns
         common_cols = cols_a & cols_b
-        type_changes = {
-            col: {"from": types_a[col], "to": types_b[col]}
-            for col in common_cols
-            if types_a[col] != types_b[col]
+
+        # Define safe type conversions
+        SAFE_CONVERSIONS = {
+            ("int64", "float64"): True,
+            ("int32", "float64"): True,
+            ("int64", "object"): False,  # Lossy - becomes string
+            ("float64", "object"): False,
+            ("object", "int64"): False,  # May fail on non-numeric
+            ("object", "float64"): False,
         }
+
+        # Import diff utilities for type similarity
+        try:
+            from src.diff.core import compute_similarity
+            diff_available = True
+        except ImportError:
+            try:
+                from diff.core import compute_similarity
+                diff_available = True
+            except ImportError:
+                diff_available = False
+
+        type_changes = {}
+        for col in common_cols:
+            if types_a[col] != types_b[col]:
+                change_info = {"from": types_a[col], "to": types_b[col]}
+
+                # Enhanced: Add type similarity and safety info
+                if diff_available:
+                    change_info["type_similarity"] = round(
+                        compute_similarity(types_a[col], types_b[col]), 4
+                    )
+
+                conversion_key = (types_a[col], types_b[col])
+                if conversion_key in SAFE_CONVERSIONS:
+                    change_info["safe_conversion"] = SAFE_CONVERSIONS[conversion_key]
+                    if not SAFE_CONVERSIONS[conversion_key]:
+                        change_info["warning"] = f"Conversion from {types_a[col]} to {types_b[col]} may lose data"
+
+                type_changes[col] = change_info
 
         result = {
             "source_a": source_a_path,
@@ -804,11 +839,39 @@ def get_conflict_details(
             diff_cols = []
             for col in compare_cols:
                 if str(row_a[col]) != str(row_b[col]):
-                    diff_cols.append({
+                    val_a_str = str(row_a[col])
+                    val_b_str = str(row_b[col])
+
+                    # Enhanced: Add diff analysis
+                    diff_entry = {
                         "column": col,
                         "value_a": row_a[col],
                         "value_b": row_b[col]
-                    })
+                    }
+
+                    # Add similarity and opcodes for string comparison
+                    try:
+                        from src.diff.core import compute_similarity, get_opcodes, explain_diff_human_readable
+                    except ImportError:
+                        try:
+                            from diff.core import compute_similarity, get_opcodes, explain_diff_human_readable
+                        except ImportError:
+                            compute_similarity = None
+
+                    if compute_similarity:
+                        similarity = compute_similarity(val_a_str, val_b_str)
+                        diff_entry["similarity"] = round(similarity, 4)
+
+                        # Only add opcodes for non-trivial comparisons
+                        if similarity > 0 and similarity < 1:
+                            opcodes = get_opcodes(val_a_str, val_b_str)
+                            diff_entry["opcodes"] = [
+                                {"operation": op.operation, "a_content": op.a_content, "b_content": op.b_content}
+                                for op in opcodes if op.operation != "equal"
+                            ]
+                            diff_entry["explanation"] = explain_diff_human_readable(val_a_str, val_b_str)
+
+                    diff_cols.append(diff_entry)
 
             conflicts.append({
                 "key": {k: row_a[k] for k in keys},
@@ -866,15 +929,41 @@ def fuzzy_match_columns(
         values_a = df_a[column_a].astype(str).unique().tolist()
         values_b = df_b[column_b].astype(str).unique().tolist()
 
+        # Import diff utilities for enhanced comparison
+        try:
+            from src.diff.core import get_matching_blocks, get_opcodes
+            diff_available = True
+        except ImportError:
+            try:
+                from diff.core import get_matching_blocks, get_opcodes
+                diff_available = True
+            except ImportError:
+                diff_available = False
+
         matches = []
         for val_a in values_a[:50]:  # Limit source values to prevent timeout
             result = process.extractOne(val_a, values_b, scorer=fuzz.ratio)
             if result and result[1] >= threshold:
-                matches.append({
+                match_entry = {
                     "value_a": val_a,
                     "value_b": result[0],
                     "similarity": result[1]
-                })
+                }
+
+                # Enhanced: Add alignment details for fuzzy matches
+                if diff_available and result[1] < 100:
+                    matching_blocks = get_matching_blocks(val_a, result[0])
+                    opcodes = get_opcodes(val_a, result[0])
+                    match_entry["matching_blocks"] = [
+                        {"content": b.content, "size": b.size}
+                        for b in matching_blocks if b.size > 1
+                    ]
+                    match_entry["alignment"] = [
+                        {"op": op.operation, "a": op.a_content, "b": op.b_content}
+                        for op in opcodes if op.operation != "equal"
+                    ]
+
+                matches.append(match_entry)
 
         # Sort by similarity descending
         matches.sort(key=lambda x: x["similarity"], reverse=True)
@@ -1284,12 +1373,41 @@ def transform_column(
 
         transformed_sample = df[column].head(5).tolist()
 
+        # Enhanced: Add character-level diff analysis for transformations
+        diffs = []
+        try:
+            from src.diff.core import diff_values_paired
+            diff_available = True
+        except ImportError:
+            try:
+                from diff.core import diff_values_paired
+                diff_available = True
+            except ImportError:
+                diff_available = False
+
+        if diff_available:
+            paired_diffs = diff_values_paired(original_sample, transformed_sample)
+            diffs = [
+                {
+                    "index": d.index,
+                    "before": d.before,
+                    "after": d.after,
+                    "similarity": round(d.similarity, 4),
+                    "changes": [
+                        {"op": op.operation, "from": op.a_content, "to": op.b_content}
+                        for op in d.opcodes if op.operation != "equal"
+                    ]
+                }
+                for d in paired_diffs
+            ]
+
         result = {
             "column": column,
             "operation": operation,
             "preview": {
                 "before": original_sample,
-                "after": transformed_sample
+                "after": transformed_sample,
+                "diffs": diffs if diffs else None
             }
         }
 
@@ -1557,6 +1675,23 @@ try:
     log_action("SYSTEM", "recommendations_init", "Smart Recommendation Engine tools registered")
 except ImportError as e:
     print(f"Warning: Recommendations module not loaded: {e}")
+
+
+# =============================================================================
+# Phase 16: Diff Utilities Integration
+# =============================================================================
+
+# Register diff utility tools for character-level text/data comparison
+try:
+    try:
+        from src.diff.mcp_tools import register_diff_tools
+    except ImportError:
+        from diff.mcp_tools import register_diff_tools
+
+    register_diff_tools(mcp)
+    log_action("SYSTEM", "diff_init", "Diff utilities tools registered")
+except ImportError as e:
+    print(f"Warning: Diff utilities module not loaded: {e}")
 
 
 # =============================================================================
