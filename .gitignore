@@ -37,6 +37,10 @@ env/
 .env
 .env.local
 
+# API keys and secrets
+docs/claude_API_KEY_Databridge_AI_2.txt
+.claude/settings.local.json
+
 # Data files (keep structure, ignore contents)
 data/*.csv
 data/*.json
