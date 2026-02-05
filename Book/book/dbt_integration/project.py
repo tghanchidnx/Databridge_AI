@@ -28,7 +28,7 @@ DBT_MODEL_SQL_TEMPLATE = """
 -- It unnests a hierarchical structure into a flat dimension table.
 
 WITH base_hierarchy AS (
-    -- In a real scenario, this would be a {{ source(...) }} call
+    -- In a real scenario, this would be a {% raw %}{{ source(...) }}{% endraw %} call
     -- For demonstration, we'll use a series of UNION ALL statements
     {% for node in all_nodes %}
     SELECT '{{ node.id }}' AS id, '{{ node.name }}' AS name, {% if node.properties.get('parent_id') %}'{{ node.properties.get('parent_id') }}'{% else %}NULL{% endif %} AS parent_id

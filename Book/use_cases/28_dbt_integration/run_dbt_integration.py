@@ -6,40 +6,50 @@ from book import (
 )
 import os
 import json
+import shutil
 
 logger = get_logger(__name__)
 
-def create_dummy_manifest():
+def create_dummy_manifest(project_name: str):
     """
     Creates a dummy manifest.json file for demonstration purposes.
     """
     manifest_data = {
         "metadata": {
-            "project_name": "My dbt Project"
+            "project_name": project_name,
+            "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+            "dbt_version": "1.9.0",
+            "generated_at": "2026-02-05T00:00:00.000000Z",
+            "invocation_id": "00000000-0000-0000-0000-000000000000",
+            "adapter_type": "snowflake"
         },
         "nodes": {
-            "source.my_dbt_project.my_source.my_table": {
+            f"source.{project_name}.my_source.my_table": {
                 "name": "my_table",
                 "resource_type": "source",
-                "package_name": "my_dbt_project",
+                "package_name": project_name,
                 "path": "models/my_source.yml",
                 "original_file_path": "models/my_source.yml",
-                "unique_id": "source.my_dbt_project.my_source.my_table",
+                "unique_id": f"source.{project_name}.my_source.my_table",
                 "depends_on": {"nodes": []}
             },
-            "model.my_dbt_project.my_model": {
-                "name": "my_model",
+            f"model.{project_name}.{project_name.lower().replace(' ', '_')}": {
+                "name": project_name.lower().replace(' ', '_'),
                 "resource_type": "model",
-                "package_name": "my_dbt_project",
-                "path": "models/my_model.sql",
-                "original_file_path": "models/my_model.sql",
-                "unique_id": "model.my_dbt_project.my_model",
-                "depends_on": {"nodes": ["source.my_dbt_project.my_source.my_table"]}
+                "package_name": project_name,
+                "path": f"models/{project_name.lower().replace(' ', '_')}.sql",
+                "original_file_path": f"models/{project_name.lower().replace(' ', '_')}.sql",
+                "unique_id": f"model.{project_name}.{project_name.lower().replace(' ', '_')}",
+                "depends_on": {"nodes": [f"source.{project_name}.my_source.my_table"]}
             }
         }
     }
-    with open("manifest.json", "w") as f:
+    manifest_dir = os.path.join(project_name, "target")
+    os.makedirs(manifest_dir, exist_ok=True)
+    manifest_path = os.path.join(manifest_dir, "manifest.json")
+    with open(manifest_path, "w") as f:
         json.dump(manifest_data, f, indent=2)
+    return manifest_path
 
 def main():
     """
@@ -66,10 +76,10 @@ def main():
     
     # 3. Create a dummy manifest.json file (simulating 'dbt compile')
     logger.info("Creating a dummy manifest.json file...")
-    create_dummy_manifest()
+    manifest_path = create_dummy_manifest(product_hierarchy.name)
 
     # 4. Create a Book from the manifest
-    dbt_book = dbt_integration.create_book_from_dbt_manifest("manifest.json")
+    dbt_book = dbt_integration.create_book_from_dbt_manifest(manifest_path)
 
     # 5. Print the structure of the dbt Book
     logger.info("\n--- dbt Project as a Book ---")
@@ -81,8 +91,9 @@ def main():
     print_hierarchy(dbt_book.root_nodes)
 
     # Clean up
-    os.remove("manifest.json")
-    # You would also remove the generated dbt project directory in a real scenario
+    shutil.rmtree(product_hierarchy.name)
+    logger.info(f"\nCleaned up dbt project directory: {product_hierarchy.name}")
+
     logger.info("\ndbt integration use case completed.")
 
 if __name__ == "__main__":
