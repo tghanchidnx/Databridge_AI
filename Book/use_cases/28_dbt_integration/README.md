@@ -21,7 +21,7 @@ This use case demonstrates the powerful, bi-directional integration between the 
 
 ### 1. Set up the Environment
 
-Make sure you have the `Book` library and its dependencies, including `dbt-artifacts-parser`, installed. From the `Book` directory, run:
+Make sure you have the `Book` library and its dependencies, including `dbt-core` and `dbt-artifacts-parser`, installed. From the `Book` directory, run:
 
 ```bash
 poetry install
@@ -44,7 +44,7 @@ The script runs in two parts:
 2.  **Generate dbt Project:** The `generate_dbt_project_from_book` function is called. This creates a new directory named after the `Book` ("Product Hierarchy"), which contains a `dbt_project.yml` file and a `models` directory with a `.sql` file for the hierarchy model.
 
 **Part 2: `dbt` -> `Book`**
-1.  **Simulate `dbt compile`:** The script creates a dummy `manifest.json` file. In a real workflow, you would run `dbt compile` in the generated dbt project directory to create this file.
+1.  **Simulate `dbt compile`:** The script creates a dummy `manifest.json` file inside a `target` directory within the newly created dbt project. In a real workflow, you would run `dbt compile` in the generated dbt project directory to create this file.
 2.  **Create Book from Manifest:** The `create_book_from_dbt_manifest` function is called. This function parses the `manifest.json` file and creates a new `Book` object that represents the dbt project's dependency graph.
 3.  **Print dbt Graph:** The script then prints the structure of this new `Book`, showing how the dbt models and sources are related.
 
@@ -61,12 +61,15 @@ INFO:book.dbt_integration.project:dbt project generated at: ./Product Hierarchy
 
 --- Part 2: Creating a Book from a dbt manifest ---
 INFO:__main__:Creating a dummy manifest.json file...
-INFO:book.dbt_integration.manifest_parser:Creating Book from dbt manifest: manifest.json...
+INFO:book.dbt_integration.manifest_parser:Creating Book from dbt manifest: Product Hierarchy/target/manifest.json...
 INFO:book.dbt_integration.manifest_parser:Successfully created Book from dbt manifest. Found 2 nodes.
 
 --- dbt Project as a Book ---
 - my_table (source)
-  - my_model (model)
+  - product_hierarchy (model)
+
+INFO:__main__:
+Cleaned up dbt project directory: Product Hierarchy
 
 INFO:__main__:
 dbt integration use case completed.

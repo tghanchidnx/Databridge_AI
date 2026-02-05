@@ -15,7 +15,9 @@ rapidfuzz = "^3.6.2"
 Jinja2 = "^3.1.2"
 tinydb = "^4.8.0"
 fastmcp = "^0.4.0"
+dbt-core = "^1.7.0"
 dbt-artifacts-parser = "*"
+great-expectations = "^0.18.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.4.3"

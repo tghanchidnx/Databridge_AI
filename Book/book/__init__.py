@@ -36,6 +36,7 @@ from .ai_agent import AIAgent
 from .ai_agent_config import AIAgentConfig
 
 from . import dbt_integration
+from . import great_expectations_integration
 
 __all__ = [
     "Book",
@@ -72,4 +73,5 @@ __all__ = [
     "AIAgent",
     "AIAgentConfig",
     "dbt_integration",
+    "great_expectations_integration",
 ]
