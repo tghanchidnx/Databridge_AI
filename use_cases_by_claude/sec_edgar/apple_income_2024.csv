@@ -1,0 +1,9 @@
+account_code,account_name,account_type,normal_balance,amount,fiscal_year
+4000,Revenue,Revenue,Credit,391035000000,2024
+5000,Cost of Goods Sold,COGS,Debit,210352000000,2024
+5500,Gross Profit,Gross Profit,Credit,180683000000,2024
+6100,Research & Development,Operating Expense,Debit,31370000000,2024
+6200,"Selling, General & Administrative",Operating Expense,Debit,26097000000,2024
+7000,Operating Income,Operating Income,Credit,123216000000,2024
+8000,Income Tax Expense,Tax,Debit,29749000000,2024
+9000,Net Income,Net Income,Credit,93736000000,2024

@@ -1,0 +1,13 @@
+account_code,account_name,account_type,normal_balance,amount,fiscal_year
+1010,Cash & Cash Equivalents,Current Asset,Debit,29943000000,2024
+1020,Accounts Receivable,Current Asset,Debit,66243000000,2024
+1030,Inventories,Current Asset,Debit,7286000000,2024
+1100,Total Current Assets,Current Asset,Debit,152987000000,2024
+1200,"Property, Plant & Equipment",Non-Current Asset,Debit,44856000000,2024
+1000,Total Assets,Total Assets,Debit,364980000000,2024
+2010,Accounts Payable,Current Liability,Credit,68960000000,2024
+2100,Total Current Liabilities,Current Liability,Credit,176392000000,2024
+2200,Long-Term Debt,Non-Current Liability,Credit,85750000000,2024
+2000,Total Liabilities,Total Liabilities,Credit,308030000000,2024
+3100,Retained Earnings,Equity,Credit,-19154000000,2024
+3000,Total Stockholders' Equity,Total Equity,Credit,56950000000,2024

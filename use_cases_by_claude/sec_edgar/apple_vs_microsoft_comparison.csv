@@ -1,0 +1,9 @@
+account_name,account_type,apple_amount,microsoft_amount,apple_fiscal_year,microsoft_fiscal_year
+Revenue,Revenue,416179000000,245122000000,2025,2024
+Cost of Goods Sold,COGS,220953000000,74114000000,2025,2024
+Gross Profit,Gross Profit,195226000000,171008000000,2025,2024
+Research & Development,Operating Expense,34583000000,29510000000,2025,2024
+Total Operating Expenses,Operating Expense,62166000000,61575000000,2025,2024
+Operating Income,Operating Income,133060000000,109433000000,2025,2024
+Income Tax Expense,Tax,22091000000,19651000000,2025,2024
+Net Income,Net Income,112004000000,88136000000,2025,2024

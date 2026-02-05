@@ -1,0 +1,16 @@
+order_id,customer_name,pizza_type,size,quantity,price,date
+1,Alice,Pepperoni,Large,2,24.99,2024-03-01
+2,Bob,Margherita,Medium,1,12.99,2024-03-01
+3,Charlie,Hawaiian,Large,1,14.99,2024-03-01
+4,Alice,Cheese,Small,3,21.99,2024-03-02
+5,Diana,Pepperoni,Medium,1,12.99,2024-03-02
+6,,Veggie Supreme,Large,2,28.99,2024-03-02
+7,Frank,Pepperoni,Large,1,14.99,2024-03-03
+8,Grace,BBQ Chicken,Medium,2,27.98,2024-03-03
+9,Bob,Margherita,Large,1,14.99,2024-03-03
+10,Hank,Cheese,Small,1,7.99,2024-03-04
+11,Alice,Pepperoni,Large,1,14.99,2024-03-04
+12,Ivy,Hawaiian,,1,12.99,2024-03-04
+13,Jack,Veggie Supreme,Large,2,28.99,2024-03-05
+14,Alice,Pepperoni,Medium,1,12.99,2024-03-05
+15,Bob,Cheese,Large,1,14.99,2024-03-05
