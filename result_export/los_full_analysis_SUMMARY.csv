@@ -1,0 +1,15 @@
+HIERARCHY_NAME,SOURCE_COLUMN,ENTITY_TYPE,PATTERN_TYPE,TOTAL_CONDITIONS,UNIQUE_VALUES,HAS_ELSE,CONFIDENCE,RECOMMENDATION,CLIENT,INDUSTRY
+acctcode,unknown,unknown,exact,1,2,Yes,62%,Consider with careful review,Demo Oil & Gas Corp,oil_gas_upstream
+adjbillcat,unknown,unknown,exact,6,6,Yes,64%,Consider with careful review,Demo Oil & Gas Corp,oil_gas_upstream
+state,unknown,unknown,exact,2,3,Yes,62%,Consider with careful review,Demo Oil & Gas Corp,oil_gas_upstream
+productid,unknown,unknown,exact,1,2,Yes,62%,Consider with careful review,Demo Oil & Gas Corp,oil_gas_upstream
+gl,account_code,account,prefix,76,75,No,82%,Recommended with minor review,Demo Oil & Gas Corp,oil_gas_upstream
+los_map,account_billing_category_code,account,exact_list,22,22,No,78%,Recommended with minor review,Demo Oil & Gas Corp,oil_gas_upstream
+AU_Op,cost_center_area_code,cost_center,exact_list,1,2,Yes,80%,Recommended with minor review,Demo Oil & Gas Corp,oil_gas_upstream
+A3_Op,cost_center_area_code,cost_center,exact_list,1,2,Yes,80%,Recommended with minor review,Demo Oil & Gas Corp,oil_gas_upstream
+AU_Nop,cost_center_area_code,cost_center,exact_list,1,2,Yes,80%,Recommended with minor review,Demo Oil & Gas Corp,oil_gas_upstream
+A3_Nop,cost_center_area_code,cost_center,exact_list,1,2,Yes,80%,Recommended with minor review,Demo Oil & Gas Corp,oil_gas_upstream
+fund,corp_code,entity,exact_list,3,4,Yes,87%,Highly recommended for hierarchy creation,Demo Oil & Gas Corp,oil_gas_upstream
+Segment,corp_code,entity,exact_list,5,6,Yes,76%,Recommended with minor review,Demo Oil & Gas Corp,oil_gas_upstream
+AU_Stake,corp_code,entity,exact_list,3,4,Yes,80%,Recommended with minor review,Demo Oil & Gas Corp,oil_gas_upstream
+A3_Stake,corp_code,entity,exact_list,3,4,Yes,80%,Recommended with minor review,Demo Oil & Gas Corp,oil_gas_upstream
