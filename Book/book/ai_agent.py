@@ -1,6 +1,6 @@
 import os
 import json
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Generator
 from .models import Book, Node
 from .ai_agent_config import AIAgentConfig
 from sentence_transformers import SentenceTransformer
@@ -75,12 +75,20 @@ class AIAgent:
         
         return best_skill
 
+    def _traverse(self, nodes: List[Node]) -> Generator[Node, None, None]:
+        """
+        Traverses the tree of nodes.
+        """
+        for node in nodes:
+            yield node
+            yield from self._traverse(node.children)
+
     def analyze_validation_results(self, book: Book) -> List[str]:
         """
         Analyzes the Great Expectations validation results in a Book and provides suggestions.
         """
         suggestions = []
-        for node in book.traverse():
+        for node in self._traverse(book.root_nodes):
             if "validation_results" in node.properties:
                 results = node.properties["validation_results"]
                 if not results.get("success"):

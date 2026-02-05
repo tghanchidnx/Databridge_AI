@@ -1,6 +1,5 @@
-from book import Book, get_logger
-import great_expectations as gx
-from great_expectations.core.batch import RuntimeBatchRequest
+from book.models import Book
+from book.logger import get_logger
 import pandas as pd
 import json
 
@@ -27,6 +26,7 @@ def generate_expectations_from_book(book: Book, suite_name: str) -> str:
     Generates a Great Expectations Expectation Suite from a Book object.
     Returns the path to the generated suite file.
     """
+    import great_expectations as gx
     logger.info(f"Generating Expectation Suite for Book: {book.name}...")
 
     # Convert Book to DataFrame

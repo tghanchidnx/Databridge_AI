@@ -1,6 +1,5 @@
-from book import Book, get_logger
-import great_expectations as gx
-from great_expectations.core.batch import RuntimeBatchRequest
+from book.models import Book
+from book.logger import get_logger
 import pandas as pd
 from book.great_expectations_integration.generator import book_to_dataframe
 
@@ -12,6 +11,7 @@ def validate_book_with_expectations(book: Book, suite_path: str) -> bool:
     Attaches the validation results to the Book's nodes.
     Returns True if the validation succeeds, False otherwise.
     """
+    import great_expectations as gx
     logger.info(f"Validating Book: {book.name} with suite: {suite_path}...")
 
     # Convert Book to DataFrame

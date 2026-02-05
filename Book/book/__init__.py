@@ -36,7 +36,11 @@ from .ai_agent import AIAgent
 from .ai_agent_config import AIAgentConfig
 
 from . import dbt_integration
-from . import great_expectations_integration
+
+try:
+    from . import great_expectations_integration
+except ImportError:
+    great_expectations_integration = None
 
 __all__ = [
     "Book",
