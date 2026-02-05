@@ -1,0 +1,11 @@
+product_id,product_name,category,price,stock_level
+P001,Laptop Pro,Electronics,1200.00,150
+P002,Mechanical Keyboard,Electronics,150.00,80
+P003,Wireless Mouse,Electronics,25.00,
+P004,Ergonomic Chair,Office Furniture,400.00,30
+P005,Desk Lamp,Office Furniture,50.00,120
+P006,Monitor 4K,Electronics,-50.00,70
+P007,Software Suite,,300.00,200
+P008,Webcam HD,Electronics,75.00,45
+P009,External SSD,Electronics,100.00,ten
+P010,Meeting Table,Office Furniture,1500.00,10

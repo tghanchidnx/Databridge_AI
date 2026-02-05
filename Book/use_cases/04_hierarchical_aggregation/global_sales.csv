@@ -1,0 +1,13 @@
+entity_id,entity_name,parent_entity,local_currency,sales_local
+1,Global Corp,
+2,North America,1,USD,
+3,USA,2,USD,
+4,East,3,USD,500000
+5,West,3,USD,750000
+6,Canada,2,CAD,
+7,East,6,CAD,250000
+8,West,6,CAD,300000
+9,Europe,1,EUR,
+10,Germany,9,EUR,400000
+11,France,9,EUR,350000
+12,UK,9,GBP,300000

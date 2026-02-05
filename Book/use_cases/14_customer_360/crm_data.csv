@@ -1,0 +1,4 @@
+customer_id,customer_name,region,segment,account_manager
+C001,Alpha Corp,North,Enterprise,John Smith
+C002,Beta LLC,South,SMB,Jane Doe
+C003,Gamma Inc,North,Enterprise,John Smith

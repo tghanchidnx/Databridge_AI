@@ -1,0 +1,9 @@
+{
+    "name": "Pricing Analyst",
+    "description": "An AI skill for suggesting pricing adjustments based on market demand.",
+    "rules": [
+        {"condition": "market_demand == 'High'", "suggestion": "Increase price by 10%"},
+        {"condition": "market_demand == 'Medium'", "suggestion": "Maintain current price"},
+        {"condition": "market_demand == 'Low'", "suggestion": "Decrease price by 5%"}
+    ]
+}

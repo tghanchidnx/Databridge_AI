@@ -1,0 +1,6 @@
+server_id,server_name,datacenter,status,cpu_cores,memory_gb
+S001,web-prod-01,us-east-1,online,8,32
+S002,db-prod-01,us-east-1,online,16,64
+S003,app-prod-01,us-west-1,online,8,32
+S004,web-dev-01,us-east-1,offline,4,16
+S005,db-dev-01,us-west-1,online,8,32

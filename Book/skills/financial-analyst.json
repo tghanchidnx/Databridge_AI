@@ -1,0 +1,9 @@
+{
+    "name": "Financial Analyst",
+    "description": "An AI skill for financial analysis.",
+    "mappings": {
+        "Sales": "Revenue",
+        "Cost of Sales": "COGS",
+        "Expenses": "Operating Expenses"
+    }
+}

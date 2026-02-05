@@ -1,0 +1,4 @@
+customer_id,billing_status,total_spend,last_invoice_date
+C001,Active,50000,2026-01-15
+C002,Active,15000,2026-01-20
+C003,Past Due,75000,2025-12-10

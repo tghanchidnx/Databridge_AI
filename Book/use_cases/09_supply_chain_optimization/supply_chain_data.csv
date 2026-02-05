@@ -1,0 +1,14 @@
+node_id,node_name,parent_node_id,type,capacity,cost_per_unit,lead_time_days
+SC001,Global Supply Chain,
+SC002,Raw Materials,SC001,Stage,
+SC003,Supplier A,SC002,Supplier,10000,0.50,30
+SC004,Supplier B,SC002,Supplier,15000,0.45,45
+SC005,Manufacturing,SC001,Stage,
+SC006,Factory X,SC005,Factory,20000,1.20,10
+SC007,Factory Y,SC005,Factory,18000,1.15,12
+SC008,Distribution,SC001,Stage,
+SC009,Warehouse P,SC008,Warehouse,50000,0.10,3
+SC010,Warehouse Q,SC008,Warehouse,40000,0.12,4
+SC011,Retail,SC001,Stage,
+SC012,Store 1,SC011,Store,,0.05,1
+SC013,Store 2,SC011,Store,,0.05,1

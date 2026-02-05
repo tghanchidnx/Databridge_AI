@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ book.name }}</title>
+    <style>
+        body { font-family: sans-serif; }
+        ul { list-style-type: none; padding-left: 20px; }
+        li { margin: 5px 0; }
+        .amount { float: right; }
+    </style>
+</head>
+<body>
+    <h1>{{ book.name }}</h1>
+    <ul>
+        {% for node in book.root_nodes %}
+            {% include 'node.html' %}
+        {% endfor %}
+    </ul>
+</body>
+</html>

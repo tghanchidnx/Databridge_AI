@@ -1,0 +1,11 @@
+<li>
+    <span>{{ node.name }}</span>
+    <span class="amount">${{ "{:,.2f}".format(node.properties.get('amount', 0)) }}</span>
+    {% if node.children %}
+        <ul>
+            {% for node in node.children %}
+                {% include 'node.html' %}
+            {% endfor %}
+        </ul>
+    {% endif %}
+</li>

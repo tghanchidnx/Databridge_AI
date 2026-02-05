@@ -1,0 +1,9 @@
+{
+    "name": "Animal Expert",
+    "description": "A skill that provides clues about animals.",
+    "animals": {
+        "Lion": ["I am the king of the jungle.", "I have a loud roar.", "I have a big mane."],
+        "Elephant": ["I am the largest land animal.", "I have a long trunk.", "I have big ears."],
+        "Monkey": ["I live in trees.", "I love bananas.", "I like to swing from branch to branch."]
+    }
+}

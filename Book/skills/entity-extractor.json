@@ -1,0 +1,7 @@
+{
+    "name": "Entity Extractor",
+    "description": "An AI skill for extracting entities (e.g., companies, people, places) from text.",
+    "entity_patterns": {
+        "company": ["Alpha Corp", "Beta LLC", "Gamma Inc"]
+    }
+}

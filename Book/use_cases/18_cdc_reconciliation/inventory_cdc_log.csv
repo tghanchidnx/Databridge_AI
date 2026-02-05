@@ -1,0 +1,5 @@
+product_id,change_type,new_value
+P001,UPDATE,140
+P003,UPDATE,180
+P004,INSERT,"{'product_name': 'Gaming Mouse', 'stock_level': 50}"
+P002,DELETE,

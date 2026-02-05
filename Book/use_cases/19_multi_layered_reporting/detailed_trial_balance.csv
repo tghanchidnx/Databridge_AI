@@ -1,0 +1,14 @@
+account_id,account_name,parent_account_id,amount
+1000,Revenue,
+1010,Product Revenue,1000,1000000
+1020,Service Revenue,1000,250000
+2000,Cost of Goods Sold,
+2010,Product COGS,2000,400000
+2020,Service COGS,2000,100000
+3000,Operating Expenses,
+3010,Sales & Marketing,3000,150000
+3020,Research & Development,3000,100000
+3030,General & Administrative,3000,50000
+4000,Non-operating Income/Expense,
+4010,Interest Income,4000,10000
+4020,Interest Expense,4000,-5000

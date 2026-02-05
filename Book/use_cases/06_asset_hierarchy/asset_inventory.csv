@@ -1,0 +1,9 @@
+asset_id,asset_name,parent_asset_id,location,status,value
+A1,Building 1,
+A2,Floor 1,A1,Ground,Active,1000000
+A3,Office 101,A2,1st Floor,Active,50000
+A4,Desk 1,A3,1st Floor,Active,500
+A5,Chair 1,A3,1st Floor,Active,100
+A6,Floor 2,A1,2nd Floor,Active,800000
+A7,Office 201,A6,2nd Floor,Active,40000
+A8,Server Rack 1,A7,2nd Floor,Active,10000

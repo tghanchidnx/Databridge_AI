@@ -1,0 +1,14 @@
+id,name,parent_id,type,hp
+1,Pokemon,
+2,Fire,1,
+3,Water,1,
+4,Grass,1,
+5,Charmander,2,Fire,39
+6,Charmeleon,5,Fire,58
+7,Charizard,6,Fire,78
+8,Squirtle,3,Water,44
+9,Wartortle,8,Water,59
+10,Blastoise,9,Water,79
+11,Bulbasaur,4,Grass,45
+12,Ivysaur,11,Grass,60
+13,Venusaur,12,Grass,80

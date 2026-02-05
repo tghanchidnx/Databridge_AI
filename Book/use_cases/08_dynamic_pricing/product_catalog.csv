@@ -1,0 +1,7 @@
+product_id,product_name,category,base_price,market_demand
+P001,Laptop Pro,Electronics,1200.00,High
+P002,Mechanical Keyboard,Electronics,150.00,Medium
+P003,Wireless Mouse,Electronics,25.00,Low
+P004,Ergonomic Chair,Office Furniture,400.00,Medium
+P005,Desk Lamp,Office Furniture,50.00,High
+P006,Monitor 4K,Electronics,500.00,High

@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "book"
+version = "0.1.0"
+description = "A library to create and manage hierarchical data structures."
+authors = ["Your Name <you@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pydantic = "^2.5.3"
+networkx = "^3.2.1"
+chromadb = "^0.4.22"
+sentence-transformers = "^2.2.2"
+numpy = "1.26.4"
+rapidfuzz = "^3.6.2"
+Jinja2 = "^3.1.2"
+tinydb = "^4.8.0"
+fastmcp = "^0.4.0"
+dbt-artifacts-parser = "*"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.4.3"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
