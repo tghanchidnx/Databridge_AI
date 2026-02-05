@@ -1,7 +1,7 @@
 import os
 import json
 from typing import List, Dict, Any, Optional
-from .models import Book
+from .models import Book, Node
 from .ai_agent_config import AIAgentConfig
 from sentence_transformers import SentenceTransformer
 from tinydb import TinyDB, Query
@@ -75,9 +75,29 @@ class AIAgent:
         
         return best_skill
 
+    def analyze_validation_results(self, book: Book) -> List[str]:
+        """
+        Analyzes the Great Expectations validation results in a Book and provides suggestions.
+        """
+        suggestions = []
+        for node in book.traverse():
+            if "validation_results" in node.properties:
+                results = node.properties["validation_results"]
+                if not results.get("success"):
+                    for result in results.get("results", []):
+                        if not result.get("success"):
+                            expectation_config = result.get("expectation_config", {})
+                            column = expectation_config.get("kwargs", {}).get("column")
+                            expectation_type = expectation_config.get("expectation_type")
+                            
+                            suggestion = f"Data Quality Issue Found in column '{column}': Expectation '{expectation_type}' failed."
+                            suggestions.append(suggestion)
+        return suggestions
+
     def suggest_enhancements(self, book: Book, query: str) -> List[str]:
         """
-        Analyzes a Book and suggests enhancements based on the most relevant skill for the query.
+        Analyzes a Book and suggests enhancements based on the most relevant skill for the query,
+        and also analyzes data quality issues.
         """
         suggestions = []
         
@@ -96,6 +116,12 @@ class AIAgent:
                 suggestions.append("No specific rules or mappings found in the selected skill.")
         else:
             suggestions.append("No relevant skills found for your query.")
+
+        # Analyze data quality
+        validation_suggestions = self.analyze_validation_results(book)
+        if validation_suggestions:
+            suggestions.append("\n--- Data Quality Analysis ---")
+            suggestions.extend(validation_suggestions)
 
         return suggestions
 
