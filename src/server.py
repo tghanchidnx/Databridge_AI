@@ -1725,7 +1725,7 @@ try:
         from faux_objects.mcp_tools import register_faux_objects_tools
 
     faux_objects_service = register_faux_objects_tools(mcp, str(settings.data_dir))
-    log_action("SYSTEM", "faux_objects_init", "Faux Objects tools registered (13 tools)")
+    log_action("SYSTEM", "faux_objects_init", "Faux Objects tools registered (18 tools)")
 except ImportError as e:
     print(f"Warning: Faux Objects module not loaded: {e}")
 
