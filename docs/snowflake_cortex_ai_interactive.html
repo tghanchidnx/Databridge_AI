@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snowflake Cortex AI Integration for DataBridge</title>
+    <style>
+        :root {
+            --primary: #29B5E8;
+            --primary-dark: #1a8fc2;
+            --secondary: #FF6B35;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --dark: #1E293B;
+            --light: #F8FAFC;
+            --gray: #64748B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, rgba(41, 181, 232, 0.1), rgba(255, 107, 53, 0.1));
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: var(--gray);
+            font-size: 1.1rem;
+        }
+
+        /* Navigation Tabs */
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab:hover {
+            background: rgba(41, 181, 232, 0.2);
+            border-color: var(--primary);
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Content Sections */
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .card h3 {
+            color: var(--secondary);
+            margin: 20px 0 10px;
+            font-size: 1.2rem;
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        /* Feature Cards */
+        .feature-card {
+            background: linear-gradient(135deg, rgba(41, 181, 232, 0.1), rgba(255, 107, 53, 0.05));
+            border: 1px solid rgba(41, 181, 232, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(41, 181, 232, 0.2);
+        }
+
+        .feature-card h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feature-card .icon {
+            font-size: 1.5rem;
+        }
+
+        /* Comparison Table */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .comparison-table th {
+            background: rgba(41, 181, 232, 0.2);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Pro/Con Lists */
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .pros-cons {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .pros, .cons {
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .pros {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .cons {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .pros h4 {
+            color: var(--success);
+        }
+
+        .cons h4 {
+            color: var(--danger);
+        }
+
+        .pros ul, .cons ul {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        .pros li::before {
+            content: "✓ ";
+            color: var(--success);
+        }
+
+        .cons li::before {
+            content: "✗ ";
+            color: var(--danger);
+        }
+
+        /* Architecture Diagram */
+        .architecture {
+            background: #0f172a;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .architecture pre {
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.85rem;
+            color: #93c5fd;
+            white-space: pre;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+        }
+
+        .timeline-item {
+            position: relative;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -36px;
+            top: 25px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 3px solid var(--dark);
+        }
+
+        .timeline-item h4 {
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .timeline-item .duration {
+            color: var(--secondary);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        /* Interactive Demo */
+        .demo-section {
+            background: rgba(41, 181, 232, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+
+        .demo-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(41, 181, 232, 0.3);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+
+        .demo-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .demo-button {
+            padding: 12px 30px;
+            background: var(--primary);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .demo-button:hover {
+            background: var(--primary-dark);
+            transform: scale(1.05);
+        }
+
+        .demo-output {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            min-height: 150px;
+        }
+
+        /* Cost Calculator */
+        .calculator {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .slider-container {
+            margin: 20px 0;
+        }
+
+        .slider-container label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--gray);
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+        }
+
+        .cost-result {
+            font-size: 2rem;
+            color: var(--primary);
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        /* Recommendation Badge */
+        .recommendation {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .recommendation.recommended {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .recommendation.caution {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .recommendation.not-recommended {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px;
+            margin-top: 50px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--gray);
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Snowflake Cortex AI + DataBridge</h1>
+            <p>Interactive Research Guide for AI-Powered Data Reconciliation</p>
+        </header>
+
+        <div class="tabs">
+            <div class="tab active" onclick="showSection('overview')">Overview</div>
+            <div class="tab" onclick="showSection('components')">Cortex Components</div>
+            <div class="tab" onclick="showSection('integration')">Integration Options</div>
+            <div class="tab" onclick="showSection('proscons')">Pros & Cons</div>
+            <div class="tab" onclick="showSection('architecture')">Architecture</div>
+            <div class="tab" onclick="showSection('demo')">Interactive Demo</div>
+            <div class="tab" onclick="showSection('roadmap')">Roadmap</div>
+            <div class="tab" onclick="showSection('costs')">Cost Calculator</div>
+        </div>
+
+        <!-- Overview Section -->
+        <div id="overview" class="section active">
+            <div class="card">
+                <h2>What is Snowflake Cortex AI?</h2>
+                <p>Snowflake Cortex AI is a fully managed suite of AI services running natively within Snowflake's data cloud. It provides LLM functions, natural language to SQL conversion, RAG search, and intelligent agents - all while keeping your data secure within Snowflake's governance boundary.</p>
+
+                <h3>Why Integrate with DataBridge?</h3>
+                <div class="grid">
+                    <div class="feature-card">
+                        <h4><span class="icon">🗣️</span> Natural Language Queries</h4>
+                        <p>Query hierarchies using plain English: "Show all Revenue accounts under Operating Income"</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4><span class="icon">🔍</span> Data Validation</h4>
+                        <p>Verify mappings against actual database values and identify orphaned accounts automatically</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4><span class="icon">💡</span> AI Suggestions</h4>
+                        <p>Get intelligent recommendations for hierarchy structures and column mappings</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4><span class="icon">🛡️</span> Enterprise Security</h4>
+                        <p>Data never leaves Snowflake - full RBAC integration and audit logging</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Key Recommendation</h2>
+                <p><span class="recommendation recommended">RECOMMENDED</span></p>
+                <p style="margin-top: 15px;">
+                    <strong>Integrate Cortex AI with DataBridge using a hybrid approach:</strong>
+                </p>
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                    <li>Use <strong>REST API</strong> for real-time suggestions during hierarchy building</li>
+                    <li>Use <strong>Direct SQL</strong> for batch processing and deployed semantic views</li>
+                    <li>Build a <strong>Cortex Agent</strong> for advanced multi-step orchestration</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Components Section -->
+        <div id="components" class="section">
+            <div class="card">
+                <h2>Cortex AI Components</h2>
+
+                <div class="grid">
+                    <div class="feature-card">
+                        <h4><span class="icon">🤖</span> Cortex Analyst</h4>
+                        <p><strong>What:</strong> Natural language to SQL conversion</p>
+                        <p><strong>Accuracy:</strong> 95% on verified repositories</p>
+                        <p><strong>DataBridge Use:</strong> Query hierarchies in plain English</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4><span class="icon">🧠</span> Cortex LLM Functions</h4>
+                        <p><strong>What:</strong> SQL-callable AI functions</p>
+                        <p><strong>Functions:</strong> COMPLETE, SENTIMENT, TRANSLATE, SUMMARIZE</p>
+                        <p><strong>DataBridge Use:</strong> Generate descriptions, suggest mappings</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4><span class="icon">🔎</span> Cortex Search</h4>
+                        <p><strong>What:</strong> RAG-as-a-Service with hybrid search</p>
+                        <p><strong>Features:</strong> Keyword + vector similarity</p>
+                        <p><strong>DataBridge Use:</strong> Search hierarchy documentation</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4><span class="icon">🤝</span> Cortex Agents</h4>
+                        <p><strong>What:</strong> Multi-step task orchestration</p>
+                        <p><strong>Features:</strong> Uses Analyst, Search, and custom tools</p>
+                        <p><strong>DataBridge Use:</strong> Complex reconciliation workflows</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>LLM Functions for DataBridge</h2>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Function</th>
+                            <th>Description</th>
+                            <th>DataBridge Use Case</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>COMPLETE</code></td>
+                            <td>General-purpose text generation</td>
+                            <td>Generate hierarchy descriptions, suggest mappings</td>
+                        </tr>
+                        <tr>
+                            <td><code>CLASSIFY_TEXT</code></td>
+                            <td>Text classification</td>
+                            <td>Auto-classify account types</td>
+                        </tr>
+                        <tr>
+                            <td><code>SUMMARIZE</code></td>
+                            <td>Text summarization</td>
+                            <td>Summarize reconciliation results</td>
+                        </tr>
+                        <tr>
+                            <td><code>EXTRACT_ANSWER</code></td>
+                            <td>Q&A extraction</td>
+                            <td>Extract business rules from docs</td>
+                        </tr>
+                        <tr>
+                            <td><code>TRANSLATE</code></td>
+                            <td>Multi-language translation</td>
+                            <td>Translate column descriptions</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Integration Options Section -->
+        <div id="integration" class="section">
+            <div class="card">
+                <h2>Integration Options</h2>
+
+                <h3>Option A: Direct Snowflake Connection <span class="recommendation recommended">RECOMMENDED for Production</span></h3>
+                <p>Connect DataBridge directly to Snowflake using the Python connector. LLM functions are called via SQL, and semantic views are deployed for Cortex Analyst.</p>
+
+                <h3>Option B: Cortex REST API <span class="recommendation recommended">RECOMMENDED for Flexibility</span></h3>
+                <p>Connect via HTTPS REST API using PAT/JWT authentication. Compatible with OpenAI SDK. No warehouse required for API calls.</p>
+
+                <h3>Option C: Hybrid Approach <span class="recommendation recommended">BEST OVERALL</span></h3>
+                <p>Use REST API for real-time suggestions during development, and direct SQL for batch operations and deployed semantic views.</p>
+            </div>
+
+            <div class="card">
+                <h2>Comparison Matrix</h2>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Direct SQL</th>
+                            <th>REST API</th>
+                            <th>External LLM</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Data Security</td>
+                            <td>✅ Never leaves Snowflake</td>
+                            <td>✅ Never leaves Snowflake</td>
+                            <td>❌ Data sent externally</td>
+                        </tr>
+                        <tr>
+                            <td>Cortex Analyst</td>
+                            <td>✅ Full access</td>
+                            <td>✅ Via REST endpoint</td>
+                            <td>❌ Not available</td>
+                        </tr>
+                        <tr>
+                            <td>Cortex Agents</td>
+                            <td>✅ Full access</td>
+                            <td>✅ Via REST endpoint</td>
+                            <td>❌ Not available</td>
+                        </tr>
+                        <tr>
+                            <td>Setup Complexity</td>
+                            <td>Medium</td>
+                            <td>Low</td>
+                            <td>Low</td>
+                        </tr>
+                        <tr>
+                            <td>Warehouse Required</td>
+                            <td>Yes (for SQL calls)</td>
+                            <td>No</td>
+                            <td>No</td>
+                        </tr>
+                        <tr>
+                            <td>Latency</td>
+                            <td>Lowest</td>
+                            <td>Medium</td>
+                            <td>Variable</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pros & Cons Section -->
+        <div id="proscons" class="section">
+            <div class="card">
+                <h2>Direct Snowflake Connection</h2>
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>Pros</h4>
+                        <ul>
+                            <li>Data stays in Snowflake governance</li>
+                            <li>Full Cortex feature access</li>
+                            <li>Lowest latency</li>
+                            <li>RBAC integration</li>
+                            <li>Cortex Agents available</li>
+                            <li>Transparent token costs</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>Cons</h4>
+                        <ul>
+                            <li>Requires Snowflake account</li>
+                            <li>Warehouse costs for LLM calls</li>
+                            <li>More complex setup</li>
+                            <li>Must deploy semantic views first</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>REST API Connection</h2>
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>Pros</h4>
+                        <ul>
+                            <li>No warehouse costs</li>
+                            <li>OpenAI SDK compatible</li>
+                            <li>Flexible integration</li>
+                            <li>Works without full Snowflake setup</li>
+                            <li>Easy to test and prototype</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>Cons</h4>
+                        <ul>
+                            <li>Network latency</li>
+                            <li>Token management complexity</li>
+                            <li>Some features unavailable</li>
+                            <li>Still needs Snowflake account</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>When NOT to Use Cortex AI</h2>
+                <div class="cons" style="max-width: 100%;">
+                    <h4>Avoid Cortex If:</h4>
+                    <ul>
+                        <li>Client doesn't have Snowflake Enterprise edition</li>
+                        <li>Data cannot be stored in Snowflake (regulatory)</li>
+                        <li>Cost constraints are severe</li>
+                        <li>Real-time sub-second latency required</li>
+                        <li>No existing Snowflake investment</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Section -->
+        <div id="architecture" class="section">
+            <div class="card">
+                <h2>Proposed Architecture</h2>
+                <div class="architecture">
+                    <pre>
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              DataBridge                                      │
+│                                                                              │
+│  ┌────────────────┐   ┌────────────────┐   ┌────────────────────────────┐  │
+│  │   MCP Server   │   │   Hierarchy    │   │    SQL Translator          │  │
+│  │   (Python)     │   │   Builder      │   │   (semantic views)         │  │
+│  └───────┬────────┘   └───────┬────────┘   └─────────────┬──────────────┘  │
+│          │                    │                          │                  │
+│          └────────────────────┼──────────────────────────┘                  │
+│                               │                                              │
+│                               ▼                                              │
+│               ┌───────────────────────────────┐                             │
+│               │      Cortex Integration       │                             │
+│               │   ┌─────────┐ ┌─────────────┐ │                             │
+│               │   │REST API │ │ SQL Client  │ │                             │
+│               │   │ Client  │ │(snowflake-  │ │                             │
+│               │   │(OpenAI) │ │ connector)  │ │                             │
+│               │   └────┬────┘ └──────┬──────┘ │                             │
+│               └────────┼─────────────┼────────┘                             │
+└────────────────────────┼─────────────┼──────────────────────────────────────┘
+                         │             │
+                         ▼             ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       Snowflake Data Cloud                                   │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                        Cortex AI Suite                               │   │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐               │   │
+│  │  │Cortex LLM    │  │Cortex        │  │Cortex        │               │   │
+│  │  │Functions     │  │Analyst       │  │Agents        │               │   │
+│  │  │COMPLETE      │  │NL → SQL      │  │Orchestration │               │   │
+│  │  │SUMMARIZE     │  │95% accuracy  │  │Multi-step    │               │   │
+│  │  └──────────────┘  └──────────────┘  └──────────────┘               │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │           DataBridge Semantic Views (Deployed)                       │   │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐               │   │
+│  │  │P&L Hierarchy │  │Balance Sheet │  │GL Mappings   │               │   │
+│  │  │Semantic View │  │Semantic View │  │Semantic View │               │   │
+│  │  └──────────────┘  └──────────────┘  └──────────────┘               │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+                    </pre>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>DataBridgeCortexAgent</h2>
+                <p>A proposed AI agent that lives in Snowflake and uses DataBridge tools via MCP:</p>
+
+                <div class="grid" style="margin-top: 20px;">
+                    <div class="feature-card">
+                        <h4>Capabilities</h4>
+                        <ul style="padding-left: 20px;">
+                            <li>Analyze hierarchy data quality</li>
+                            <li>Suggest AI-powered mappings</li>
+                            <li>Answer natural language queries</li>
+                            <li>Validate reconciliation results</li>
+                            <li>Explain conflicts and orphans</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Tools Available</h4>
+                        <ul style="padding-left: 20px;">
+                            <li>cortex_analyst</li>
+                            <li>cortex_search</li>
+                            <li>databridge_hierarchy_api</li>
+                            <li>databridge_mapping_api</li>
+                            <li>snowflake_query</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Demo Section -->
+        <div id="demo" class="section">
+            <div class="card">
+                <h2>Interactive Demo: How Cortex Analyst Would Work</h2>
+                <p>See how natural language queries would be converted to SQL using your deployed semantic views.</p>
+
+                <div class="demo-section">
+                    <label for="nlQuery"><strong>Enter a natural language question:</strong></label>
+                    <input type="text" id="nlQuery" class="demo-input"
+                           placeholder="e.g., Show me all Revenue accounts with negative balances in 2024"
+                           value="Show me all Revenue accounts with negative balances in 2024">
+
+                    <button class="demo-button" onclick="simulateQuery()">
+                        🔮 Generate SQL with Cortex Analyst
+                    </button>
+
+                    <div class="demo-output" id="demoOutput">
+                        Click the button to see how Cortex Analyst would process your query...
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <p><strong>Try these example queries:</strong></p>
+                    <ul style="padding-left: 20px; margin-top: 10px;">
+                        <li><a href="#" onclick="setQuery('What is total revenue by business unit for Q4 2024?')">What is total revenue by business unit for Q4 2024?</a></li>
+                        <li><a href="#" onclick="setQuery('Show orphaned accounts not mapped to any hierarchy')">Show orphaned accounts not mapped to any hierarchy</a></li>
+                        <li><a href="#" onclick="setQuery('Compare actual vs budget for Operating Expenses')">Compare actual vs budget for Operating Expenses</a></li>
+                        <li><a href="#" onclick="setQuery('List all accounts under Cost of Goods Sold')">List all accounts under Cost of Goods Sold</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Roadmap Section -->
+        <div id="roadmap" class="section">
+            <div class="card">
+                <h2>Implementation Roadmap</h2>
+
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <h4>Phase 1: Foundation</h4>
+                        <div class="duration">2 weeks</div>
+                        <ul style="padding-left: 20px;">
+                            <li>Create <code>src/cortex/</code> module</li>
+                            <li>Implement REST API client (OpenAI SDK compatible)</li>
+                            <li>Add MCP tools: <code>ask_cortex_analyst</code>, <code>cortex_complete</code></li>
+                            <li>Update SQL Translator for Cortex compatibility</li>
+                        </ul>
+                    </div>
+
+                    <div class="timeline-item">
+                        <h4>Phase 2: Enhanced Recommendations</h4>
+                        <div class="duration">2 weeks</div>
+                        <ul style="padding-left: 20px;">
+                            <li>Integrate with Smart Recommendation Engine</li>
+                            <li>Use Cortex to analyze CSV patterns</li>
+                            <li>Add hierarchy validation against live data</li>
+                            <li>Implement AI-powered mapping suggestions</li>
+                        </ul>
+                    </div>
+
+                    <div class="timeline-item">
+                        <h4>Phase 3: Cortex Agent</h4>
+                        <div class="duration">3 weeks</div>
+                        <ul style="padding-left: 20px;">
+                            <li>Build DataBridgeCortexAgent</li>
+                            <li>Register as Cortex Agent in Snowflake</li>
+                            <li>Expose DataBridge tools via MCP</li>
+                            <li>Enable multi-step reasoning workflows</li>
+                        </ul>
+                    </div>
+
+                    <div class="timeline-item">
+                        <h4>Phase 4: Production Hardening</h4>
+                        <div class="duration">2 weeks</div>
+                        <ul style="padding-left: 20px;">
+                            <li>Token usage monitoring and optimization</li>
+                            <li>Response caching for frequent queries</li>
+                            <li>Error handling and graceful degradation</li>
+                            <li>Documentation and training materials</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cost Calculator Section -->
+        <div id="costs" class="section">
+            <div class="card">
+                <h2>Cost Calculator</h2>
+                <p>Estimate your monthly Cortex AI costs based on expected usage.</p>
+
+                <div class="calculator">
+                    <div class="slider-container">
+                        <label>Cortex Analyst Queries per Month: <span id="analystQueriesValue">1000</span></label>
+                        <input type="range" class="slider" id="analystQueries" min="100" max="100000" value="1000" step="100" oninput="calculateCost()">
+                    </div>
+
+                    <div class="slider-container">
+                        <label>LLM Function Calls per Month: <span id="llmCallsValue">500</span></label>
+                        <input type="range" class="slider" id="llmCalls" min="0" max="50000" value="500" step="100" oninput="calculateCost()">
+                    </div>
+
+                    <div class="slider-container">
+                        <label>Average Tokens per LLM Call: <span id="tokensValue">1000</span></label>
+                        <input type="range" class="slider" id="tokens" min="100" max="10000" value="1000" step="100" oninput="calculateCost()">
+                    </div>
+
+                    <div class="cost-result">
+                        Estimated Monthly Cost: $<span id="totalCost">35</span>
+                    </div>
+
+                    <div style="text-align: center; color: var(--gray); font-size: 0.9rem;">
+                        <p>* Estimates based on average Cortex pricing. Actual costs may vary.</p>
+                        <p>* Does not include warehouse compute costs for direct SQL integration.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Pricing Reference</h2>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th>Pricing Model</th>
+                            <th>Estimated Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Cortex Analyst</td>
+                            <td>Per query</td>
+                            <td>~$0.01 - $0.05 per query</td>
+                        </tr>
+                        <tr>
+                            <td>Cortex LLM (Mistral)</td>
+                            <td>Per million tokens</td>
+                            <td>~$0.10 - $0.50 / M tokens</td>
+                        </tr>
+                        <tr>
+                            <td>Cortex LLM (Claude/GPT)</td>
+                            <td>Per million tokens</td>
+                            <td>~$3 - $15 / M tokens</td>
+                        </tr>
+                        <tr>
+                            <td>Cortex Search</td>
+                            <td>Per query</td>
+                            <td>~$0.001 per query</td>
+                        </tr>
+                        <tr>
+                            <td>Cortex Agents</td>
+                            <td>Per execution</td>
+                            <td>Varies by complexity</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <footer>
+            <p>DataBridge AI - Snowflake Cortex Integration Research</p>
+            <p>February 2026 | <a href="snowflake_cortex_ai_integration.md">View Full Documentation</a></p>
+        </footer>
+    </div>
+
+    <script>
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+
+            // Activate tab
+            event.target.classList.add('active');
+        }
+
+        function setQuery(query) {
+            document.getElementById('nlQuery').value = query;
+            simulateQuery();
+            return false;
+        }
+
+        function simulateQuery() {
+            const query = document.getElementById('nlQuery').value;
+            const output = document.getElementById('demoOutput');
+
+            output.innerHTML = '<span style="color: var(--primary);">Processing query with Cortex Analyst...</span>';
+
+            setTimeout(() => {
+                const responses = {
+                    'Show me all Revenue accounts with negative balances in 2024': `
+🔍 Cortex Analyst Analysis
+
+Natural Language: "${query}"
+
+✅ Understanding: Looking for Revenue accounts with negative balance values in fiscal year 2024
+
+📊 Generated SQL:
+─────────────────────────────────────────────────────────
+SELECT
+    h.hierarchy_name AS account_name,
+    h.level_1 AS category,
+    m.source_column,
+    SUM(gl.net_amount) AS balance
+FROM FINANCE.SEMANTIC.pl_hierarchy h
+JOIN FINANCE.GL.hierarchy_mapping m
+    ON h.hierarchy_id = m.hierarchy_id
+JOIN FINANCE.GL.fact_journal_entries gl
+    ON m.source_value = gl.account_code
+WHERE h.level_1 = 'Revenue'
+  AND gl.fiscal_year = 2024
+GROUP BY h.hierarchy_name, h.level_1, m.source_column
+HAVING SUM(gl.net_amount) < 0
+ORDER BY balance ASC;
+─────────────────────────────────────────────────────────
+
+⚡ Confidence: 94%
+📝 Tables Used: pl_hierarchy, hierarchy_mapping, fact_journal_entries
+🔒 RBAC: Query respects your role-based access controls
+                    `,
+                    'What is total revenue by business unit for Q4 2024?': `
+🔍 Cortex Analyst Analysis
+
+Natural Language: "${query}"
+
+✅ Understanding: Aggregating revenue by business unit for Q4 2024 (Oct-Dec)
+
+📊 Generated SQL:
+─────────────────────────────────────────────────────────
+SELECT
+    bu.business_unit_name,
+    SUM(gl.net_amount) AS total_revenue
+FROM FINANCE.SEMANTIC.pl_hierarchy h
+JOIN FINANCE.GL.hierarchy_mapping m
+    ON h.hierarchy_id = m.hierarchy_id
+JOIN FINANCE.GL.fact_journal_entries gl
+    ON m.source_value = gl.account_code
+JOIN FINANCE.GL.dim_business_unit bu
+    ON gl.bu_id = bu.bu_id
+WHERE h.level_1 = 'Revenue'
+  AND gl.fiscal_year = 2024
+  AND gl.fiscal_quarter = 'Q4'
+GROUP BY bu.business_unit_name
+ORDER BY total_revenue DESC;
+─────────────────────────────────────────────────────────
+
+⚡ Confidence: 96%
+📝 Tables Used: pl_hierarchy, hierarchy_mapping, fact_journal_entries, dim_business_unit
+                    `,
+                    'default': `
+🔍 Cortex Analyst Analysis
+
+Natural Language: "${query}"
+
+✅ Understanding: Analyzing your query to determine intent...
+
+📊 Generated SQL:
+─────────────────────────────────────────────────────────
+-- Cortex Analyst would generate appropriate SQL
+-- based on your deployed semantic views and
+-- the specific entities/metrics in your question.
+
+SELECT
+    /* dimensions from semantic view */
+    /* metrics/aggregations as needed */
+FROM FINANCE.SEMANTIC.your_semantic_view
+WHERE /* filters based on query intent */
+GROUP BY /* grouping dimensions */
+ORDER BY /* relevant ordering */;
+─────────────────────────────────────────────────────────
+
+💡 Tip: Deploy your DataBridge hierarchies as Semantic Views
+   to enable Cortex Analyst to understand your data model.
+                    `
+                };
+
+                const response = responses[query] || responses['default'];
+                output.innerHTML = response;
+            }, 1500);
+        }
+
+        function calculateCost() {
+            const analystQueries = parseInt(document.getElementById('analystQueries').value);
+            const llmCalls = parseInt(document.getElementById('llmCalls').value);
+            const tokens = parseInt(document.getElementById('tokens').value);
+
+            // Update display values
+            document.getElementById('analystQueriesValue').textContent = analystQueries.toLocaleString();
+            document.getElementById('llmCallsValue').textContent = llmCalls.toLocaleString();
+            document.getElementById('tokensValue').textContent = tokens.toLocaleString();
+
+            // Calculate costs (estimates)
+            const analystCost = analystQueries * 0.02; // $0.02 per query average
+            const llmTokens = (llmCalls * tokens) / 1000000; // Convert to millions
+            const llmCost = llmTokens * 0.50; // $0.50 per million tokens (Mistral average)
+
+            const totalCost = Math.round(analystCost + llmCost);
+            document.getElementById('totalCost').textContent = totalCost.toLocaleString();
+        }
+
+        // Initialize cost calculator
+        calculateCost();
+    </script>
+</body>
+</html>
