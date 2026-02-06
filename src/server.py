@@ -1713,6 +1713,24 @@ except ImportError as e:
 
 
 # =============================================================================
+# Phase 18: Faux Objects - Semantic View Wrappers for BI Tools
+# =============================================================================
+
+# Register Faux Objects tools for generating standard Snowflake objects
+# (views, stored procedures, dynamic tables, tasks) that wrap Semantic Views
+try:
+    try:
+        from src.faux_objects.mcp_tools import register_faux_objects_tools
+    except ImportError:
+        from faux_objects.mcp_tools import register_faux_objects_tools
+
+    faux_objects_service = register_faux_objects_tools(mcp, str(settings.data_dir))
+    log_action("SYSTEM", "faux_objects_init", "Faux Objects tools registered (13 tools)")
+except ImportError as e:
+    print(f"Warning: Faux Objects module not loaded: {e}")
+
+
+# =============================================================================
 # Entry Point
 # =============================================================================
 
