@@ -1,7 +1,7 @@
 # DataBridge AI: Project Configuration & Rules
 
 ## 🎯 Purpose
-A headless, MCP-native data reconciliation engine with **260 MCP tools** across eighteen major modules:
+A headless, MCP-native data reconciliation engine with **275 MCP tools** across nineteen major modules:
 
 1. **Data Reconciliation Engine** - Bridges messy sources (OCR/PDF/SQL) with structured comparison pipelines
 2. **Hierarchy Knowledge Base Builder** - Creates and manages hierarchical data structures for reporting systems
@@ -21,8 +21,9 @@ A headless, MCP-native data reconciliation engine with **260 MCP tools** across 
 16. **Mart Factory** - Hierarchy-driven data mart generation with 4-object pipeline and AI discovery
 17. **Lineage & Impact Analysis** - Column-level lineage tracking, impact analysis, and dependency visualization
 18. **Git/CI-CD Integration** - Git operations, GitHub PRs, and automated workflow generation
+19. **Data Catalog** - Centralized metadata registry with business glossary, data discovery, and classification
 
-## 🔧 Available Tool Categories (260 Tools)
+## 🔧 Available Tool Categories (275 Tools)
 
 ### File Discovery & Staging (3 tools)
 Tools for finding and staging files when paths are unknown or files are in inconvenient locations.
@@ -1287,6 +1288,121 @@ generate_dbt_workflow(
 | `test` | dbt test execution |
 | `docs` | dbt docs generation |
 | `deploy` | Production deployment |
+
+### Data Catalog (15 tools)
+Centralized metadata registry with business glossary, data discovery, classification, and search capabilities.
+
+**Asset Management (5):**
+- **`catalog_create_asset`** - Create a data asset (table, view, hierarchy, semantic model)
+- **`catalog_get_asset`** - Get asset details including columns, owners, and quality metrics
+- **`catalog_update_asset`** - Update asset metadata (description, tags, classification, owners)
+- **`catalog_list_assets`** - List assets with filtering by type, classification, or tag
+- **`catalog_delete_asset`** - Delete an asset from the catalog
+
+**Discovery (3):**
+- **`catalog_scan_connection`** - Scan a database connection to auto-discover and catalog assets
+- **`catalog_scan_table`** - Scan a single table for columns, PII detection, and profiling
+- **`catalog_refresh_asset`** - Re-scan and refresh an existing asset's metadata
+
+**Glossary (4):**
+- **`catalog_create_term`** - Create a business glossary term with definition and examples
+- **`catalog_get_term`** - Get term details including linked assets
+- **`catalog_list_terms`** - List glossary terms with filtering by domain or status
+- **`catalog_link_term`** - Link a glossary term to a data asset
+
+**Search & Tags (3):**
+- **`catalog_search`** - Full-text search across assets, terms, and descriptions
+- **`catalog_get_stats`** - Get catalog statistics (asset counts, classification breakdown)
+- **`catalog_manage_tags`** - Add, remove, or list tags on assets
+
+**Architecture:**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Data Catalog Module                          │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │              CatalogStore (Persistence)                 │   │
+│  │  - Asset registry with JSON storage                     │   │
+│  │  - Business glossary with term lifecycle                │   │
+│  │  - Inverted search index for fast lookups               │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                           ↓                                     │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │              CatalogScanner (Discovery)                 │   │
+│  │  - Snowflake INFORMATION_SCHEMA scanning                │   │
+│  │  - Column profiling (types, nullability, patterns)      │   │
+│  │  - PII detection (email, SSN, credit card, etc.)        │   │
+│  │  - DataBridge hierarchy auto-cataloging                 │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                           ↓                                     │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │              Search & Classification                    │   │
+│  │  - Full-text search with relevance scoring              │   │
+│  │  - Data classification (PII, PHI, PCI, CONFIDENTIAL)    │   │
+│  │  - Quality tiers (GOLD, SILVER, BRONZE)                 │   │
+│  │  - Ownership tracking (OWNER, STEWARD, CUSTODIAN)       │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Data Classifications:**
+| Classification | Description | Auto-Detection |
+|----------------|-------------|----------------|
+| `PUBLIC` | No restrictions | Default |
+| `INTERNAL` | Internal use only | - |
+| `CONFIDENTIAL` | Business sensitive | - |
+| `RESTRICTED` | Highly restricted | - |
+| `PII` | Personal identifiable info | email, phone, address, ssn |
+| `PHI` | Protected health info | dob, medical_*, diagnosis |
+| `PCI` | Payment card data | credit_card, cvv, pan |
+
+**Example - Scan and Catalog Database:**
+```python
+# 1. Scan a Snowflake connection
+catalog_scan_connection(
+    connection_id="snowflake-prod",
+    database="ANALYTICS",
+    schema_pattern="PUBLIC",
+    table_pattern="DIM_*",
+    detect_pii=True
+)
+
+# 2. Create glossary term
+catalog_create_term(
+    name="Revenue",
+    definition="Total income from sales before deductions",
+    domain="Finance",
+    examples="Gross Revenue, Net Revenue, ARR",
+    approved_by="finance-team"
+)
+
+# 3. Link term to asset
+catalog_link_term(
+    term_id="revenue-123",
+    asset_id="dim-account-456",
+    column_name="AMOUNT"
+)
+
+# 4. Search the catalog
+catalog_search(
+    query="revenue accounts",
+    asset_types="table,view",
+    limit=10
+)
+
+# 5. Get catalog statistics
+catalog_get_stats()
+```
+
+**Asset Types:**
+| Type | Description |
+|------|-------------|
+| `TABLE` | Database tables |
+| `VIEW` | Database views |
+| `COLUMN` | Individual columns |
+| `HIERARCHY` | DataBridge hierarchies |
+| `HIERARCHY_PROJECT` | DataBridge hierarchy projects |
+| `SEMANTIC_MODEL` | Cortex Analyst semantic models |
+| `DATA_MART` | Mart Factory data marts |
 
 ## 📋 Available Templates (20 Templates)
 

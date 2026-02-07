@@ -1869,6 +1869,24 @@ except ImportError as e:
 
 
 # =============================================================================
+# Phase 29: Data Catalog - Centralized Metadata Registry
+# =============================================================================
+
+# Register Data Catalog tools for asset registry, business glossary,
+# data discovery, search, and classification
+try:
+    try:
+        from src.data_catalog.mcp_tools import register_data_catalog_tools
+    except ImportError:
+        from data_catalog.mcp_tools import register_data_catalog_tools
+
+    data_catalog = register_data_catalog_tools(mcp, settings)
+    log_action("SYSTEM", "data_catalog_init", "Data Catalog tools registered (15 tools)")
+except ImportError as e:
+    print(f"Warning: Data Catalog module not loaded: {e}")
+
+
+# =============================================================================
 # Entry Point
 # =============================================================================
 

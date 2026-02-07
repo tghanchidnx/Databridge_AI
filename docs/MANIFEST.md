@@ -7,7 +7,7 @@
 
 ## Overview
 
-DataBridge AI provides **260 tools** across these categories:
+DataBridge AI provides **275 tools** across these categories:
 
 | Category | Tools |
 |----------|-------|
@@ -38,6 +38,7 @@ DataBridge AI provides **260 tools** across these categories:
 | Mart Factory | 10 tools for hierarchy-driven data mart generation |
 | Lineage & Impact Analysis | 11 tools for column-level lineage tracking and impact analysis |
 | Git/CI-CD Integration | 12 tools for git operations, GitHub PRs, and workflow generation |
+| Data Catalog | 15 tools for metadata registry, glossary, discovery, and search |
 | Documentation | update_manifest |
 
 ---
@@ -509,6 +510,222 @@ Cancel a pending or running task.
 
         Returns:
             JSON with cancellation result
+
+---
+
+### `catalog_create_asset`
+
+Create a new data asset in the catalog.
+
+        Args:
+            name: Asset name
+            asset_type: Type (table, view, hierarchy, semantic_model, etc.)
+            database: Optional database name
+            schema_name: Optional schema name
+            description: Optional description
+            classification: Data classification (public, internal, confidential, pii, phi, pci)
+            tags: Optional comma-separated tags
+
+        Returns:
+            JSON with created asset details
+
+---
+
+### `catalog_delete_asset`
+
+Delete an asset from the catalog.
+
+        Args:
+            asset_id: The asset ID to delete
+
+        Returns:
+            JSON with deletion confirmation
+
+---
+
+### `catalog_get_asset`
+
+Get detailed information about a data asset.
+
+        Args:
+            asset_id: The asset ID to retrieve
+
+        Returns:
+            JSON with asset details including columns, owners, quality metrics
+
+---
+
+### `catalog_get_stats`
+
+Get catalog statistics including asset counts and classification breakdown.
+
+        Returns:
+            JSON with total counts, type breakdown, classification breakdown, quality tier breakdown
+
+---
+
+### `catalog_get_term`
+
+Get detailed information about a glossary term.
+
+        Args:
+            term_id: The term ID to retrieve
+
+        Returns:
+            JSON with term details including linked assets
+
+---
+
+### `catalog_create_term`
+
+Create a new business glossary term.
+
+        Args:
+            name: Term name
+            definition: Term definition
+            domain: Business domain (e.g., Finance, Operations)
+            examples: Optional comma-separated examples
+            synonyms: Optional comma-separated synonyms
+            approved_by: Optional approver name
+
+        Returns:
+            JSON with created term details
+
+---
+
+### `catalog_link_term`
+
+Link a glossary term to a data asset.
+
+        Args:
+            term_id: The glossary term ID
+            asset_id: The data asset ID to link
+            column_name: Optional specific column name
+
+        Returns:
+            JSON with link confirmation
+
+---
+
+### `catalog_list_assets`
+
+List data assets with optional filtering.
+
+        Args:
+            asset_type: Filter by asset type (table, view, hierarchy, etc.)
+            classification: Filter by classification (pii, phi, pci, etc.)
+            tag: Filter by tag name
+            limit: Maximum results (default 100)
+
+        Returns:
+            JSON with list of matching assets
+
+---
+
+### `catalog_list_terms`
+
+List glossary terms with optional filtering.
+
+        Args:
+            domain: Filter by business domain
+            status: Filter by status (draft, pending_review, approved, deprecated)
+            limit: Maximum results (default 100)
+
+        Returns:
+            JSON with list of matching terms
+
+---
+
+### `catalog_manage_tags`
+
+Add, remove, or list tags on an asset.
+
+        Args:
+            asset_id: The asset ID
+            action: One of "add", "remove", "list"
+            tag_name: Tag name (required for add/remove)
+            tag_color: Optional tag color for add
+
+        Returns:
+            JSON with tag operation result
+
+---
+
+### `catalog_refresh_asset`
+
+Re-scan and refresh an existing asset's metadata.
+
+        Args:
+            asset_id: The asset ID to refresh
+            connection_id: Database connection for scanning
+
+        Returns:
+            JSON with refresh results
+
+---
+
+### `catalog_scan_connection`
+
+Scan a database connection to auto-discover and catalog assets.
+
+        Args:
+            connection_id: The database connection ID
+            database: Database to scan
+            schema_pattern: Schema pattern to match (default %)
+            table_pattern: Table pattern to match (default %)
+            detect_pii: Whether to detect PII columns (default true)
+
+        Returns:
+            JSON with scan results including discovered assets
+
+---
+
+### `catalog_scan_table`
+
+Scan a single table for columns, PII detection, and profiling.
+
+        Args:
+            connection_id: The database connection ID
+            database: Database name
+            schema_name: Schema name
+            table_name: Table name
+            detect_pii: Whether to detect PII columns (default true)
+            profile_data: Whether to profile column data (default false)
+
+        Returns:
+            JSON with table asset including column profiles
+
+---
+
+### `catalog_search`
+
+Full-text search across assets, terms, and descriptions.
+
+        Args:
+            query: Search query text
+            asset_types: Comma-separated asset types to search (default all)
+            include_terms: Whether to include glossary terms (default true)
+            limit: Maximum results (default 20)
+
+        Returns:
+            JSON with search results ranked by relevance
+
+---
+
+### `catalog_update_asset`
+
+Update an existing data asset's metadata.
+
+        Args:
+            asset_id: The asset ID to update
+            description: New description
+            classification: New classification
+            quality_tier: New quality tier (gold, silver, bronze)
+            add_tags: Comma-separated tags to add
+            add_owner: Owner to add (format: name:email:role)
+
+        Returns:
+            JSON with updated asset details
 
 ---
 
