@@ -1,45 +1,36 @@
 # DataBridge AI - Tool Manifest
 
 > Auto-generated documentation for all MCP tools.
-> Last updated: 2026-02-06 23:55:25
+> Last updated: 2026-02-07 13:08:03
 
 ---
 
 ## Overview
 
-DataBridge AI provides **275 tools** across these categories:
+DataBridge AI provides **285 tools** across 20 modules:
 
-| Category | Tools |
-|----------|-------|
-| File Discovery | find_files, stage_file, get_working_directory |
-| Data Loading | load_csv, load_json, query_database |
-| Profiling | profile_data, detect_schema_drift |
-| Comparison | compare_hashes, get_orphan_details, get_conflict_details |
-| Fuzzy Matching | fuzzy_match_columns, fuzzy_deduplicate |
-| PDF/OCR | extract_text_from_pdf, ocr_image, parse_table_from_text |
-| Workflow | save_workflow_step, get_workflow, clear_workflow, get_audit_log |
-| Transform | transform_column, merge_sources |
-| Hierarchy Builder | 44 tools for hierarchy management |
-| Connections | Backend connection management |
-| Schema Matcher | Database schema comparison |
-| Data Matcher | Table data comparison |
-| Templates & Skills | 16 tools for templates, skills, knowledge base |
-| AI Orchestrator | 16 tools for task management, agent messaging |
-| Planner Agent | 11 tools for AI workflow planning |
-| Recommendations | 5 tools for smart CSV import suggestions |
-| Diff Utilities | 6 tools for character-level comparison |
-| Unified Agent | 10 tools for cross-system operations |
-| Faux Objects | 18 tools for semantic view wrappers |
-| Cortex Agent | 12 tools for Cortex AI LLM functions |
-| Cortex Analyst | 13 tools for natural language to SQL |
-| Console Dashboard | 5 tools for WebSocket streaming |
-| dbt Integration | 8 tools for dbt project generation |
-| Data Quality | 7 tools for expectations and data contracts |
-| Mart Factory | 10 tools for hierarchy-driven data mart generation |
-| Lineage & Impact Analysis | 11 tools for column-level lineage tracking and impact analysis |
-| Git/CI-CD Integration | 12 tools for git operations, GitHub PRs, and workflow generation |
-| Data Catalog | 15 tools for metadata registry, glossary, discovery, and search |
-| Documentation | update_manifest |
+| Module | Description |
+|--------|-------------|
+| File Discovery & Staging | find_files, stage_file, get_working_directory |
+| Data Reconciliation | load_csv, load_json, query_database, profile_data, compare_hashes |
+| Hierarchy Builder | create_hierarchy_project, create_hierarchy, add_source_mapping |
+| Templates & Skills | list_financial_templates, get_skill_details, get_client_knowledge |
+| AI Orchestrator | submit_orchestrated_task, register_agent, send_agent_message |
+| PlannerAgent | plan_workflow, analyze_request, suggest_agents |
+| Recommendations | get_smart_recommendations, smart_import_csv |
+| Diff Utilities | diff_text, diff_lists, diff_dicts, explain_diff |
+| Unified Agent | checkout_librarian_to_book, promote_book_to_librarian |
+| Faux Objects | create_faux_project, add_semantic_view, generate_faux_ddl |
+| Cortex Agent | cortex_complete, cortex_reason, cortex_analyze_data |
+| Cortex Analyst | analyst_ask, create_semantic_model, deploy_semantic_model |
+| Console Dashboard | start_console_server, broadcast_console_message |
+| dbt Integration | create_dbt_project, generate_dbt_model, generate_cicd_pipeline |
+| Data Quality | generate_expectation_suite, create_data_contract, run_validation |
+| Wright (Dim/Fact Builder) | create_mart_config, generate_mart_pipeline, discover_hierarchy_pattern |
+| Lineage & Impact | add_lineage_node, analyze_change_impact, export_lineage_diagram |
+| Git/CI-CD | configure_git, git_commit, github_create_pr |
+| Data Catalog | catalog_create_asset, catalog_search, catalog_scan_connection |
+| Data Versioning | version_create, version_diff, version_rollback, version_tag |
 
 ---
 
@@ -61,6 +52,38 @@ Add a custom prompt to a client's knowledge base.
 
         Returns:
             JSON with the updated client profile including the new prompt.
+
+---
+
+### `add_column_expectation`
+
+Add a column expectation to a suite.
+
+        Adds a specific data quality expectation for a column.
+
+        Available expectation types:
+        - not_null: Column values should not be null
+        - unique: Column values should be unique
+        - in_set: Values should be in specified set
+        - match_regex: Values should match regex pattern
+        - between: Values should be between min and max
+
+        Args:
+            suite_name: Name of the suite
+            column: Column name
+            expectation_type: Type of expectation (not_null, unique, in_set, match_regex, between)
+            value_set: JSON array of allowed values (for in_set)
+            regex: Regex pattern (for match_regex)
+            min_value: Minimum value (for between)
+            max_value: Maximum value (for between)
+            severity: Failure severity (critical, high, medium, low, info)
+            description: Human-readable description
+
+        Returns:
+            Added expectation details
+
+
+... (truncated)
 
 ---
 
@@ -91,18 +114,8 @@ Add a faux object configuration to the project.
             target_schema: Schema for the faux object
             selected_dimensions: Comma-separated dimension names (empty = all)
             selected_metrics: Comma-separated metric names (empty = all)
-            selected_facts: Comma-separated fact names (empty = all)
-            parameters: JSON array of procedure parameters (stored_procedure only).
-                        Each: {"name": "FISCAL_YEAR", "data_type": "INT", "default_value": "2025"}
-            warehouse: Warehouse name (for dynamic_table/task)
-            target_lag: Refresh interval (for dynamic_table, e.g., "2 hours")
-            schedule: CRON schedule (for task, e.g., "USING CRON 0 */4 * * * America/Chicago")
-            materialized_table: Target table for materialization (task only)
-            where_clause: Static WHERE filter (e.g., "fiscal_year = 2025")
-            comment: Object description
 
-        Returns:
-            JSON confirmation with the faux object details
+... (truncated)
 
 ---
 
@@ -211,21 +224,68 @@ Add a property to a hierarchy node.
             override_allowed: Whether children can override ("true"/"false")
             description: Property description
 
+
+... (truncated)
+
+---
+
+### `add_lineage_node`
+
+Add a node to the lineage graph.
+
+        Nodes represent data objects like tables, views, hierarchies,
+        and data marts that participate in data lineage.
+
+        Args:
+            graph_name: Name of the lineage graph (creates if not exists)
+            node_name: Node name (object name)
+            node_type: Type of node (TABLE, VIEW, DYNAMIC_TABLE, HIERARCHY, DATA_MART, DBT_MODEL)
+            database: Database name
+            schema_name: Schema name
+            columns: JSON array of column definitions [{"name": "col1", "data_type": "VARCHAR"}]
+            description: Node description
+            tags: Comma-separated tags
+
         Returns:
-            JSON with updated hierarchy and property details.
+            Created node details
 
-        Examples:
-            # Add aggregation type
-            add_hierarchy_property(project_id, "REVENUE_1", "aggregation_type", "SUM", "dimension")
+        Example:
+            add_lineage_node(
+                graph_name="finance_lineage",
+                node_name="DIM_ACCOUNT",
+                node_type="TABLE",
+                database="ANALYTICS",
+                schema_name="PUBLIC",
 
-            # Add measure type
-            add_hierarchy_property(project_id, "NET_INCOME", "measure_type", "derived", "fact")
+... (truncated)
 
-            # Add display color
-            add_hierarchy_property(project_id, "REVENUE_1", "color", "#22c55e", "display")
+---
 
-            # Add custom property
-            add_hierarchy_property(project_id, "WELL_1", "regulatory_reporting", "true", "custom")
+### `add_mart_join_pattern`
+
+Add a UNION ALL branch definition to a configuration.
+
+        Each join pattern defines how hierarchy metadata joins to the fact table.
+        Multiple patterns create UNION ALL branches in DT_3A.
+
+        Args:
+            config_name: Name of the configuration
+            name: Branch name (e.g., "account", "deduct_product", "royalty")
+            join_keys: Comma-separated DT_2 columns for join
+            fact_keys: Comma-separated fact table columns for join
+            filter: Optional WHERE clause filter (e.g., "ROYALTY_FILTER = 'Y'")
+            description: Branch description
+
+        Returns:
+            Added pattern details
+
+        Example:
+            add_mart_join_pattern(
+                config_name="upstream_gross",
+                name="deduct_product",
+                join_keys="LOS_DEDUCT_CODE_FILTER,LOS_PRODUCT_CODE_FILTER",
+                fact_keys="FK_DEDUCT_KEY,FK_PRODUCT_KEY"
+            )
 
 ---
 
@@ -256,13 +316,8 @@ Add a logical table with dimensions and metrics to a semantic model.
             Added table configuration
 
         Example:
-            add_semantic_table(
-                model_name="sales_analytics",
-                table_name="sales",
-                base_table="ANALYTICS.PUBLIC.SALES_FACT",
-                dimensions='[{"name": "region", "expr": "region_name", "description": "Sales region", "data_type": "VARCHAR"}]',
-                metrics='[{"name": "revenue", "expr": "SUM(amount)", "description": "Total revenue", "data_type": "NUMBER"}]'
-            )
+
+... (truncated)
 
 ---
 
@@ -365,8 +420,8 @@ Have a multi-turn conversation with Cortex Analyst.
             result2 = analyst_conversation(
                 question="Break that down by quarter",
                 semantic_model_file="@ANALYTICS.PUBLIC.MODELS/sales.yaml",
-                conversation_id=conv_id
-            )
+
+... (truncated)
 
 ---
 
@@ -393,6 +448,33 @@ Analyze a Book using Researcher capabilities.
                 book_name="My P&L",
                 connection_id="snowflake-prod",
                 analysis_type="validate_sources"
+            )
+
+---
+
+### `analyze_change_impact`
+
+Analyze impact of a proposed change.
+
+        Identifies all objects affected by changes like column removal,
+        column rename, hierarchy modifications, etc.
+
+        Args:
+            graph_name: Name of the lineage graph
+            node: Node to change
+            change_type: Type of change (REMOVE_COLUMN, RENAME_COLUMN, REMOVE_NODE, MODIFY_MAPPING, MODIFY_FORMULA)
+            column: Column name (for column changes)
+            new_column_name: New column name (for renames)
+
+        Returns:
+            Impact analysis with affected objects and severity
+
+        Example:
+            analyze_change_impact(
+                graph_name="finance_lineage",
+                node="DIM_ACCOUNT",
+                change_type="REMOVE_COLUMN",
+                column="ACCOUNT_CODE"
             )
 
 ---
@@ -473,6 +555,31 @@ Broadcast a message to all connected console clients.
 
 ---
 
+### `build_dependency_graph`
+
+Build a dependency graph for visualization.
+
+        Creates a hierarchical view of object dependencies that can be
+        exported as Mermaid or DOT diagrams.
+
+        Args:
+            graph_name: Name of the lineage graph
+            node: Root node name or ID
+            direction: "upstream" or "downstream"
+            max_depth: Maximum depth to traverse
+
+        Returns:
+            Dependency graph structure
+
+        Example:
+            build_dependency_graph(
+                graph_name="finance_lineage",
+                node="DT_3_UPSTREAM_GROSS",
+                direction="upstream"
+            )
+
+---
+
 ### `bulk_set_property`
 
 Set a property on multiple hierarchies at once.
@@ -517,215 +624,339 @@ Cancel a pending or running task.
 
 Create a new data asset in the catalog.
 
+        Data assets can be databases, schemas, tables, views, hierarchies,
+        semantic models, dbt models, or other data objects.
+
         Args:
             name: Asset name
-            asset_type: Type (table, view, hierarchy, semantic_model, etc.)
-            database: Optional database name
-            schema_name: Optional schema name
-            description: Optional description
-            classification: Data classification (public, internal, confidential, pii, phi, pci)
-            tags: Optional comma-separated tags
+            asset_type: Type (database, schema, table, view, hierarchy, semantic_model, etc.)
+            description: Business description
+            database: Database name (for tables/views)
+            schema_name: Schema name (for tables/views)
+            classification: Data classification (public, internal, confidential, restricted, pii, phi, pci)
+            quality_tier: Quality tier (gold, silver, bronze, unknown)
+            tags: Comma-separated list of tags
+            owner_name: Owner's display name
+            owner_email: Owner's email
 
         Returns:
-            JSON with created asset details
+            Created asset details
 
----
+        Example:
+            catalog_create_asset(
+                name="CUSTOMER_DIM",
+                asset_type="table",
+                database="ANALYTICS",
 
-### `catalog_delete_asset`
-
-Delete an asset from the catalog.
-
-        Args:
-            asset_id: The asset ID to delete
-
-        Returns:
-            JSON with deletion confirmation
-
----
-
-### `catalog_get_asset`
-
-Get detailed information about a data asset.
-
-        Args:
-            asset_id: The asset ID to retrieve
-
-        Returns:
-            JSON with asset details including columns, owners, quality metrics
-
----
-
-### `catalog_get_stats`
-
-Get catalog statistics including asset counts and classification breakdown.
-
-        Returns:
-            JSON with total counts, type breakdown, classification breakdown, quality tier breakdown
-
----
-
-### `catalog_get_term`
-
-Get detailed information about a glossary term.
-
-        Args:
-            term_id: The term ID to retrieve
-
-        Returns:
-            JSON with term details including linked assets
+... (truncated)
 
 ---
 
 ### `catalog_create_term`
 
-Create a new business glossary term.
+Create a business glossary term.
+
+        Glossary terms define business concepts and can be linked to
+        data assets and columns.
 
         Args:
             name: Term name
-            definition: Term definition
-            domain: Business domain (e.g., Finance, Operations)
-            examples: Optional comma-separated examples
-            synonyms: Optional comma-separated synonyms
-            approved_by: Optional approver name
+            definition: Business definition
+            domain: Business domain (e.g., "Finance", "Sales")
+            category: Term category
+            synonyms: Comma-separated synonyms
+            examples: Comma-separated examples
+            owner_name: Term owner name
 
         Returns:
-            JSON with created term details
+            Created term details
+
+        Example:
+            catalog_create_term(
+                name="Revenue",
+                definition="Total income from sales of goods and services",
+                domain="Finance",
+                synonyms="Sales,Income",
+                examples="Product Revenue,Service Revenue"
+            )
+
+---
+
+### `catalog_delete_asset`
+
+Delete a data asset from the catalog.
+
+        Args:
+            asset_id: Asset ID to delete
+
+        Returns:
+            Deletion status
+
+        Example:
+            catalog_delete_asset(asset_id="abc-123")
+
+---
+
+### `catalog_get_asset`
+
+Get details of a data asset.
+
+        Can look up by ID or by name (with optional database/schema filters).
+
+        Args:
+            asset_id: Asset ID (preferred)
+            name: Asset name
+            database: Filter by database
+            schema_name: Filter by schema
+
+        Returns:
+            Asset details including columns, tags, owners, quality metrics
+
+        Example:
+            catalog_get_asset(name="CUSTOMER_DIM", database="ANALYTICS")
+
+---
+
+### `catalog_get_stats`
+
+Get data catalog statistics.
+
+        Returns summary of assets, glossary terms, tags, and data quality.
+
+        Returns:
+            Catalog statistics
+
+        Example:
+            catalog_get_stats()
+
+---
+
+### `catalog_get_term`
+
+Get glossary term details.
+
+        Args:
+            term_id: Term ID (preferred)
+            name: Term name
+
+        Returns:
+            Term details including linked assets
+
+        Example:
+            catalog_get_term(name="Revenue")
 
 ---
 
 ### `catalog_link_term`
 
-Link a glossary term to a data asset.
+Link a glossary term to an asset or column.
 
         Args:
-            term_id: The glossary term ID
-            asset_id: The data asset ID to link
-            column_name: Optional specific column name
+            term_id: Glossary term ID
+            asset_id: Asset ID to link
+            column_ref: Column reference (database.schema.table.column)
 
         Returns:
-            JSON with link confirmation
+            Link status
+
+        Example:
+            catalog_link_term(
+                term_id="term-123",
+                column_ref="ANALYTICS.PUBLIC.SALES.REVENUE"
+            )
 
 ---
 
 ### `catalog_list_assets`
 
-List data assets with optional filtering.
+List data assets with optional filters.
 
         Args:
-            asset_type: Filter by asset type (table, view, hierarchy, etc.)
-            classification: Filter by classification (pii, phi, pci, etc.)
-            tag: Filter by tag name
-            limit: Maximum results (default 100)
+            asset_type: Filter by type (table, view, hierarchy, etc.)
+            database: Filter by database
+            schema_name: Filter by schema
+            tags: Comma-separated required tags
+            classification: Filter by classification
+            quality_tier: Filter by quality tier
+            owner_id: Filter by owner user_id
+            limit: Maximum results (default 50)
+            offset: Pagination offset
 
         Returns:
-            JSON with list of matching assets
+            List of assets matching filters
+
+        Example:
+            catalog_list_assets(
+                asset_type="table",
+                database="ANALYTICS",
+                tags="customer,validated"
+            )
 
 ---
 
 ### `catalog_list_terms`
 
-List glossary terms with optional filtering.
+List glossary terms with filters.
 
         Args:
-            domain: Filter by business domain
+            domain: Filter by domain
             status: Filter by status (draft, pending_review, approved, deprecated)
-            limit: Maximum results (default 100)
+            limit: Maximum results
+            offset: Pagination offset
 
         Returns:
-            JSON with list of matching terms
+            List of glossary terms
+
+        Example:
+            catalog_list_terms(domain="Finance", status="approved")
 
 ---
 
 ### `catalog_manage_tags`
 
-Add, remove, or list tags on an asset.
+Manage tags in the catalog.
+
+        Actions:
+        - "list": List all tags
+        - "add": Add a tag to an asset
+        - "remove": Remove a tag from an asset
+        - "create": Create a new tag definition
 
         Args:
-            asset_id: The asset ID
-            action: One of "add", "remove", "list"
-            tag_name: Tag name (required for add/remove)
-            tag_color: Optional tag color for add
+            action: Action to perform (list, add, remove, create)
+            asset_id: Asset ID (for add/remove)
+            tag_name: Tag name
+            tag_category: Tag category (for create)
 
         Returns:
-            JSON with tag operation result
+            Action result
+
+        Example:
+            catalog_manage_tags(action="add", asset_id="abc-123", tag_name="validated")
 
 ---
 
 ### `catalog_refresh_asset`
 
-Re-scan and refresh an existing asset's metadata.
+Refresh metadata for an existing cataloged asset.
+
+        Re-scans the source to update column info, row counts, etc.
 
         Args:
-            asset_id: The asset ID to refresh
-            connection_id: Database connection for scanning
+            asset_id: Asset ID to refresh
 
         Returns:
-            JSON with refresh results
+            Updated asset details
+
+        Example:
+            catalog_refresh_asset(asset_id="abc-123")
 
 ---
 
 ### `catalog_scan_connection`
 
-Scan a database connection to auto-discover and catalog assets.
+Scan a data connection and catalog discovered assets.
+
+        Automatically discovers databases, schemas, tables, and columns.
+        Optionally profiles data and detects PII columns.
 
         Args:
-            connection_id: The database connection ID
-            database: Database to scan
-            schema_pattern: Schema pattern to match (default %)
-            table_pattern: Table pattern to match (default %)
-            detect_pii: Whether to detect PII columns (default true)
+            connection_id: Snowflake connection ID
+            database: Specific database to scan (default: all)
+            schema_pattern: Schema name pattern (e.g., "PROD_%")
+            table_pattern: Table name pattern (e.g., "DIM_%")
+            include_views: Include views in scan
+            profile_columns: Collect column statistics (slower)
+            detect_pii: Detect PII columns by name patterns
 
         Returns:
-            JSON with scan results including discovered assets
+            Scan results with statistics
+
+        Example:
+            catalog_scan_connection(
+                connection_id="snowflake-prod",
+                database="ANALYTICS",
+                schema_pattern="PUBLIC",
+                detect_pii=True
+            )
 
 ---
 
 ### `catalog_scan_table`
 
-Scan a single table for columns, PII detection, and profiling.
+Scan a single table and add to catalog.
 
         Args:
-            connection_id: The database connection ID
+            connection_id: Snowflake connection ID
             database: Database name
             schema_name: Schema name
             table_name: Table name
-            detect_pii: Whether to detect PII columns (default true)
-            profile_data: Whether to profile column data (default false)
+            profile: Collect column statistics
+            detect_pii: Detect PII columns
 
         Returns:
-            JSON with table asset including column profiles
+            Created/updated asset details
+
+        Example:
+            catalog_scan_table(
+                connection_id="snowflake-prod",
+                database="ANALYTICS",
+                schema_name="PUBLIC",
+                table_name="CUSTOMER_DIM"
+            )
 
 ---
 
 ### `catalog_search`
 
-Full-text search across assets, terms, and descriptions.
+Search the data catalog.
+
+        Searches asset names, descriptions, column names, and glossary terms.
 
         Args:
-            query: Search query text
-            asset_types: Comma-separated asset types to search (default all)
-            include_terms: Whether to include glossary terms (default true)
-            limit: Maximum results (default 20)
+            query: Search text
+            asset_types: Comma-separated asset types to include
+            tags: Comma-separated required tags
+            databases: Comma-separated database filter
+            classification: Filter by classification
+            include_glossary: Include glossary terms in results
+            limit: Maximum results
 
         Returns:
-            JSON with search results ranked by relevance
+            Search results ranked by relevance
+
+        Example:
+            catalog_search(
+                query="customer revenue",
+                asset_types="table,view",
+                databases="ANALYTICS"
+            )
 
 ---
 
 ### `catalog_update_asset`
 
-Update an existing data asset's metadata.
+Update a data asset's metadata.
 
         Args:
-            asset_id: The asset ID to update
+            asset_id: Asset ID to update
             description: New description
             classification: New classification
-            quality_tier: New quality tier (gold, silver, bronze)
+            quality_tier: New quality tier
             add_tags: Comma-separated tags to add
-            add_owner: Owner to add (format: name:email:role)
+            remove_tags: Comma-separated tags to remove
+            add_owner: Owner name to add (format: "Name <email>")
 
         Returns:
-            JSON with updated asset details
+            Updated asset summary
+
+        Example:
+            catalog_update_asset(
+                asset_id="abc-123",
+                description="Updated customer dimension",
+                classification="confidential",
+                add_tags="validated,production"
+            )
 
 ---
 
@@ -889,6 +1120,38 @@ Configure the Cortex Agent with a Snowflake connection.
 
 ---
 
+### `configure_git`
+
+Configure git integration settings.
+
+        Sets up git client for a repository with optional GitHub authentication.
+
+        Args:
+            repo_path: Path to the git repository
+            remote_url: GitHub/GitLab remote URL (e.g., https://github.com/owner/repo.git)
+            username: Git username for commits
+            email: Git email for commits
+            token: GitHub personal access token (for PRs)
+            default_branch: Default branch name
+            branch_strategy: Branch naming strategy (feature, release, hotfix, deploy)
+            auto_commit: Auto-commit generated files
+            commit_prefix: Prefix for commit messages
+
+        Returns:
+            Configuration status
+
+        Example:
+            configure_git(
+                repo_path="C:/projects/my-dbt",
+                remote_url="https://github.com/myorg/my-dbt.git",
+                username="databridge-bot",
+                email="bot@example.com",
+                token="ghp_xxxx",
+
+... (truncated)
+
+---
+
 ### `configure_planner`
 
 Configure the PlannerAgent settings.
@@ -960,10 +1223,8 @@ Convert SQL from one format to another.
             JSON with converted SQL
 
         Example:
-            convert_sql_format('''
-                SELECT region, SUM(amount) as total_sales
-                FROM orders GROUP BY region
-            ''', "semantic_view_ddl", name="sales_summary", database="ANALYTICS")
+
+... (truncated)
 
 ---
 
@@ -1164,6 +1425,38 @@ Create a new client knowledge base profile.
 
 ---
 
+### `create_data_contract`
+
+Create a data contract with quality expectations.
+
+        Data contracts define the expected schema, quality rules, and SLAs
+        for a data asset. They can be exported to YAML for version control.
+
+        Args:
+            name: Contract name
+            version: Contract version (e.g., "1.0.0")
+            owner: Data owner
+            team: Responsible team
+            database: Target database
+            schema_name: Target schema
+            table_name: Target table
+            columns: JSON array of column definitions
+            freshness_hours: Max data age in hours
+            completeness_percent: Min completeness percentage
+            validation_schedule: Cron schedule for validation
+
+        Returns:
+            Created contract details
+
+        Example:
+            create_data_contract(
+                name="gl_accounts_contract",
+                owner="finance-team",
+
+... (truncated)
+
+---
+
 ### `create_dbt_project`
 
 Create a new dbt project scaffold.
@@ -1191,11 +1484,8 @@ Create a new dbt project scaffold.
             create_dbt_project(
                 name="finance_analytics",
                 profile="snowflake_prod",
-                target_database="ANALYTICS",
-                target_schema="FINANCE",
-                hierarchy_project_id="revenue-pl",
-                include_cicd=True
-            )
+
+... (truncated)
 
 ---
 
@@ -1292,6 +1582,38 @@ Create a new hierarchy project.
 
         Returns:
             JSON with project ID and details (includes auto_sync status)
+
+---
+
+### `create_mart_config`
+
+Create a new data mart pipeline configuration.
+
+        The configuration defines the 7 variables that parameterize
+        the pipeline generation for any hierarchy type.
+
+        Args:
+            project_name: Unique name for this mart config
+            report_type: Type of report (GROSS, NET, etc.)
+            hierarchy_table: Fully qualified hierarchy table name
+            mapping_table: Fully qualified mapping table name
+            account_segment: Filter value for ACCOUNT_SEGMENT
+            measure_prefix: Prefix for measure columns (default: report_type)
+            has_sign_change: Whether to apply sign change logic
+            has_exclusions: Whether mapping has exclusion rows
+            has_group_filter_precedence: Whether to use multi-round filtering
+            fact_table: Fact table for joins
+            target_database: Target database for generated objects
+            target_schema: Target schema for generated objects
+            description: Configuration description
+
+        Returns:
+            Created configuration details
+
+        Example:
+            create_mart_config(
+
+... (truncated)
 
 ---
 
@@ -1419,9 +1741,8 @@ Create a workflow plan spanning Book, Librarian, and Researcher.
                     {"system": "book", "action": "apply_formula", "params": {"formula": "SUM"}},
                     {"system": "researcher", "action": "validate_sources", "params": {}},
                     {"system": "librarian", "action": "promote", "params": {}},
-                    {"system": "librarian", "action": "push_to_snowflake", "params": {}}
-                ]
-            )
+
+... (truncated)
 
 ---
 
@@ -1622,26 +1943,8 @@ Compare two dictionaries with value-level character diffs.
             - overall_similarity: Weighted similarity score
 
         Example:
-            >>> diff_dicts(
-            ...     {"name": "John Smith", "age": 30},
-            ...     {"name": "Jon Smyth", "age": 30, "city": "NYC"}
-            ... )
-            {
-                "added_keys": ["city"],
-                "changed_keys": ["name"],
-                "unchanged_keys": ["age"],
-                "differences": [
-                    {
-                        "key": "name",
-                        "value_a": "John Smith",
-                        "value_b": "Jon Smyth",
-                        "status": "changed",
-                        "similarity": 0.7273,
-                        "opcodes": [...]
-                    },
-                    ...
-                ]
-            }
+
+... (truncated)
 
 ---
 
@@ -1672,11 +1975,8 @@ Compare two lists and identify added, removed, and common items.
             >>> diff_lists(["a", "b", "c"], ["b", "c", "d"])
             {
                 "added": ["d"],
-                "removed": ["a"],
-                "common": ["b", "c"],
-                "jaccard_similarity": 0.5,
-                "jaccard_percent": "50.0%"
-            }
+
+... (truncated)
 
 ---
 
@@ -1707,21 +2007,38 @@ Compare two text strings with similarity scores and detailed diff analysis.
             - matching_blocks: Where the strings match (detailed only)
             - unified_diff: Standard patch format (detailed only)
             - ndiff: Character-level +/-/? markers (detailed only)
-            - html: HTML formatted diff (if include_html=True)
+
+... (truncated)
+
+---
+
+### `discover_hierarchy_pattern`
+
+Use AI to discover hierarchy structure and suggest configuration.
+
+        Scans the hierarchy and mapping tables to detect:
+        - Hierarchy type (P&L, Balance Sheet, LOS, etc.)
+        - Level structure and naming conventions
+        - Optimal join patterns for UNION ALL branches
+        - ID_SOURCE to physical column mappings
+        - Data quality issues (typos, orphans, duplicates)
+
+        Uses Snowflake Cortex COMPLETE() for intelligent pattern detection.
+
+        Args:
+            hierarchy_table: Fully qualified hierarchy table name
+            mapping_table: Fully qualified mapping table name
+            connection_id: Snowflake connection for queries
+
+        Returns:
+            Discovery result with suggested configuration
 
         Example:
-            >>> diff_text("John Smith", "Jon Smyth")
-            {
-                "similarity": 0.7273,
-                "similarity_percent": "72.7%",
-                "is_identical": false,
-                "opcodes": [
-                    {"operation": "equal", "a_content": "Jo", "b_content": "Jo"},
-                    {"operation": "replace", "a_content": "hn", "b_content": "n"},
-                    ...
-                ],
-                "explanation": "Similarity: 72.7%\n  Changed: 'hn' -> 'n'\n  Changed: 'i' -> 'y'"
-            }
+            discover_hierarchy_pattern(
+                hierarchy_table="ANALYTICS.PUBLIC.TBL_0_GROSS_LOS_REPORT_HIERARCHY_",
+                mapping_table="ANALYTICS.PUBLIC.TBL_0_GROSS_LOS_REPORT_HIERARCHY_MAPPING",
+                connection_id="snowflake-prod"
+            )
 
 ---
 
@@ -1787,8 +2104,8 @@ Generate a human-readable explanation of differences between two texts.
                 "similarity": 0.7273,
                 "is_identical": false,
                 "summary": "The customer name values are 72.7% similar with 2 changes",
-                "explanation": "Similarity: 72.7%\nChanges:\n  - Changed 'hn' to 'n'\n  - Changed 'i' to 'y'"
-            }
+
+... (truncated)
 
 ---
 
@@ -1804,6 +2121,30 @@ Generate a human-readable explanation of a workflow plan.
 
         Returns:
             Markdown explanation of the plan
+
+---
+
+### `export_data_contract`
+
+Export a data contract to YAML or JSON.
+
+        Exports the contract definition including schema, quality rules,
+        and SLAs to a file or returns the content.
+
+        Args:
+            contract_name: Name of the contract
+            format: Output format (yaml, json)
+            output_path: Optional file path to write to
+
+        Returns:
+            Exported contract content or file path
+
+        Example:
+            export_data_contract(
+                contract_name="gl_accounts_contract",
+                format="yaml",
+                output_path="./contracts/gl_accounts.yml"
+            )
 
 ---
 
@@ -1913,6 +2254,32 @@ Export project hierarchies in simplified format.
 
 ---
 
+### `export_lineage_diagram`
+
+Export lineage as a diagram.
+
+        Generates Mermaid or DOT (Graphviz) diagram code for visualization.
+
+        Args:
+            graph_name: Name of the lineage graph
+            node: Root node name or ID
+            direction: "upstream" or "downstream"
+            format: Output format - "mermaid" or "dot"
+            max_depth: Maximum depth to traverse
+
+        Returns:
+            Diagram code string
+
+        Example:
+            export_lineage_diagram(
+                graph_name="finance_lineage",
+                node="DT_3_UPSTREAM_GROSS",
+                direction="upstream",
+                format="mermaid"
+            )
+
+---
+
 ### `export_mapping_csv`
 
 Export all source mappings to CSV format - exports MAPPING data only.
@@ -1926,6 +2293,28 @@ Export all source mappings to CSV format - exports MAPPING data only.
 
         Returns:
             JSON with CSV content and suggested filename
+
+---
+
+### `export_mart_config`
+
+Export configuration to dbt YAML format.
+
+        Exports the mart configuration as a YAML file that can be used
+        with dbt vars or version controlled.
+
+        Args:
+            config_name: Name of the configuration
+            output_path: Optional output file path
+
+        Returns:
+            Exported YAML content or file path
+
+        Example:
+            export_mart_config(
+                config_name="upstream_gross",
+                output_path="./configs/upstream_gross.yml"
+            )
 
 ---
 
@@ -2005,12 +2394,8 @@ Find strings similar to a target from a list of candidates.
             >>> find_similar_strings("Revenue", ["Revnue", "Expenses", "Revenue Total", "Rev"])
             {
                 "target": "Revenue",
-                "matches": [
-                    {"candidate": "Revenue Total", "similarity": 0.8571, "rank": 1},
-                    {"candidate": "Revnue", "similarity": 0.8571, "rank": 2},
-                    {"candidate": "Rev", "similarity": 0.6667, "rank": 3}
-                ]
-            }
+
+... (truncated)
 
 ---
 
@@ -2121,16 +2506,8 @@ Generate a dbt model SQL file.
                 model_name="gl_accounts",
                 model_type="staging",
                 source_name="raw",
-                source_table="GL_ACCOUNTS"
-            )
 
-            # Dimension model
-            generate_dbt_model(
-                project_name="finance",
-                model_name="account_hierarchy",
-                model_type="dimension",
-                ref_models="stg_gl_accounts"
-            )
+... (truncated)
 
 ---
 
@@ -2180,6 +2557,57 @@ Generate sources.yml from hierarchy mappings or manual configuration.
 
 ---
 
+### `generate_dbt_workflow`
+
+Generate a GitHub Actions workflow for dbt CI/CD.
+
+        Creates a complete workflow with lint, build, test, and deploy jobs.
+
+        Args:
+            project_name: dbt project name
+            dbt_version: dbt version to use
+            database_type: Database type (snowflake, postgres, bigquery)
+            run_commands: Comma-separated dbt commands (build, test, run, docs)
+            environments: Comma-separated environments (dev, prod)
+            output_path: Path to write workflow file (optional)
+
+        Returns:
+            Generated workflow YAML
+
+        Example:
+            generate_dbt_workflow(
+                project_name="revenue_mart",
+                dbt_version="1.7.0",
+                database_type="snowflake",
+                run_commands="build,test,docs generate",
+                output_path=".github/workflows/dbt-ci.yml"
+            )
+
+---
+
+### `generate_deploy_workflow`
+
+Generate a GitHub Actions workflow for DataBridge deployments.
+
+        Creates a workflow to deploy hierarchy DDL scripts to multiple environments.
+
+        Args:
+            project_name: Project name
+            environments: Comma-separated environments
+            output_path: Path to write workflow file (optional)
+
+        Returns:
+            Generated workflow YAML
+
+        Example:
+            generate_deploy_workflow(
+                project_name="upstream_gross",
+                environments="dev,staging,prod",
+                output_path=".github/workflows/deploy.yml"
+            )
+
+---
+
 ### `generate_deployment_scripts`
 
 Generate SQL deployment scripts for a hierarchy project via the backend.
@@ -2193,6 +2621,36 @@ Generate SQL deployment scripts for a hierarchy project via the backend.
 
         Returns:
             JSON with generated SQL scripts ready for deployment.
+
+---
+
+### `generate_expectation_suite`
+
+Generate an expectation suite from hierarchy mappings or configuration.
+
+        Creates a suite of data quality expectations that can be validated against
+        source data. Expectations are derived from hierarchy mappings (source_column,
+        source_uid patterns) or can be configured manually.
+
+        Args:
+            name: Suite name (e.g., "gl_accounts_suite")
+            hierarchy_project_id: Source hierarchy project ID (optional)
+            mappings: JSON string of hierarchy mappings (optional)
+            database: Target database name
+            schema_name: Target schema name
+            table_name: Target table name
+            description: Suite description
+
+        Returns:
+            Generated suite details
+
+        Example:
+            generate_expectation_suite(
+                name="gl_accounts_suite",
+                database="ANALYTICS",
+                schema_name="FINANCE",
+                table_name="GL_ACCOUNTS"
+            )
 
 ---
 
@@ -2240,6 +2698,102 @@ Generate SQL scripts for hierarchy deployment.
 
         Returns:
             JSON with generated SQL scripts
+
+---
+
+### `generate_mart_dbt_project`
+
+Generate a complete dbt project from mart configuration.
+
+        Creates dbt model files, schema.yml, and project configuration
+        from the mart pipeline configuration.
+
+        Args:
+            config_name: Name of the mart configuration
+            dbt_project_name: Name for the dbt project
+            output_dir: Output directory for dbt files
+
+        Returns:
+            Generated file paths
+
+        Example:
+            generate_mart_dbt_project(
+                config_name="upstream_gross",
+                dbt_project_name="upstream_gross_marts",
+                output_dir="./dbt_projects/upstream_gross"
+            )
+
+---
+
+### `generate_mart_object`
+
+Generate a single pipeline object.
+
+        Generate just one layer of the pipeline for inspection or testing.
+
+        Args:
+            config_name: Name of the configuration
+            layer: Pipeline layer - "VW_1", "DT_2", "DT_3A", or "DT_3"
+
+        Returns:
+            Generated DDL for the specified layer
+
+        Example:
+            generate_mart_object(
+                config_name="upstream_gross",
+                layer="VW_1"
+            )
+
+---
+
+### `generate_mart_pipeline`
+
+Generate the complete 4-object data mart pipeline.
+
+        Creates:
+        - VW_1: Translation View (CASE on ID_SOURCE)
+        - DT_2: Granularity Dynamic Table (UNPIVOT, exclusions)
+        - DT_3A: Pre-Aggregation Fact (UNION ALL branches)
+        - DT_3: Data Mart (formula precedence, surrogates)
+
+        Args:
+            config_name: Name of the configuration to use
+            output_format: Output format - "ddl" or "summary"
+            include_formulas: Whether to include standard LOS formulas
+
+        Returns:
+            Generated pipeline objects
+
+        Example:
+            generate_mart_pipeline(
+                config_name="upstream_gross",
+                output_format="ddl"
+            )
+
+---
+
+### `generate_mart_workflow`
+
+Generate a GitHub Actions workflow for Mart Factory pipelines.
+
+        Creates a workflow to auto-generate and deploy data mart DDL.
+
+        Args:
+            project_name: Project name
+            hierarchy_table: Hierarchy table name (e.g., ANALYTICS.PUBLIC.TBL_0_HIERARCHY)
+            mapping_table: Mapping table name
+            output_path: Path to write workflow file (optional)
+
+        Returns:
+            Generated workflow YAML
+
+        Example:
+            generate_mart_workflow(
+                project_name="upstream_gross",
+                hierarchy_table="ANALYTICS.PUBLIC.TBL_0_GROSS_LOS_REPORT_HIERARCHY_",
+                mapping_table="ANALYTICS.PUBLIC.TBL_0_GROSS_LOS_REPORT_HIERARCHY_MAPPING",
+                output_path=".github/workflows/mart-factory.yml"
+            )
 
 ---
 
@@ -2337,11 +2891,8 @@ Auto-generate a semantic model from Snowflake schema metadata.
         Example:
             generate_model_from_schema(
                 connection_id="snowflake-prod",
-                database="ANALYTICS",
-                schema_name="PUBLIC",
-                tables="SALES_FACT,DIM_CUSTOMER,DIM_PRODUCT",
-                model_name="sales_model"
-            )
+
+... (truncated)
 
 ---
 
@@ -2372,12 +2923,8 @@ Generate a patch in unified, context, or ndiff format.
             - has_changes: Boolean indicating if there are differences
 
         Example:
-            >>> generate_patch("line1\nline2", "line1\nline2 modified", format="unified")
-            {
-                "format": "unified",
-                "patch": "--- original\n+++ modified\n@@ -1,2 +1,2 @@\n line1\n-line2\n+line2 modified",
-                "has_changes": true
-            }
+
+... (truncated)
 
 ---
 
@@ -2522,6 +3069,31 @@ Get distinct values from a specific column.
 
         Returns:
             JSON array of distinct values from the column.
+
+---
+
+### `get_column_lineage`
+
+Get lineage for a specific column.
+
+        Shows what feeds into a column (upstream) or what a column feeds (downstream).
+
+        Args:
+            graph_name: Name of the lineage graph
+            node: Node name or ID
+            column: Column name
+            direction: "upstream" (what feeds this column) or "downstream" (what this column feeds)
+
+        Returns:
+            Column lineage relationships
+
+        Example:
+            get_column_lineage(
+                graph_name="finance_lineage",
+                node="DT_3_UPSTREAM_GROSS",
+                column="GROSS_AMOUNT",
+                direction="upstream"
+            )
 
 ---
 
@@ -2732,6 +3304,28 @@ Get deployment history for a project.
 
 ---
 
+### `get_downstream_impact`
+
+Get all objects that would be impacted by changes to a node.
+
+        Shows the "blast radius" of potential changes to a data object.
+
+        Args:
+            graph_name: Name of the lineage graph
+            node: Node name or ID
+            max_depth: Maximum depth to traverse
+
+        Returns:
+            All downstream objects that depend on this node
+
+        Example:
+            get_downstream_impact(
+                graph_name="finance_lineage",
+                node="TBL_0_GROSS_LOS_REPORT_HIERARCHY_"
+            )
+
+---
+
 ### `get_faux_project`
 
 Get full details of a Faux Objects project.
@@ -2858,8 +3452,8 @@ Get a formatted prompt for LLM validation of recommendations.
         Example:
             get_llm_validation_prompt(
                 file_path="C:/data/chart_of_accounts.csv",
-                user_intent="Create a standard P&L structure for manufacturing"
-            )
+
+... (truncated)
 
 ---
 
@@ -3088,20 +3682,31 @@ Get smart recommendations for importing a CSV file.
             target_schema: Target schema for deployment hints
             target_table: Target table for deployment hints
 
+
+... (truncated)
+
+---
+
+### `get_table_lineage`
+
+Get lineage for a table/object.
+
+        Shows all upstream sources and downstream consumers of a data object.
+
+        Args:
+            graph_name: Name of the lineage graph
+            node: Node name or ID
+            direction: "upstream", "downstream", or "both"
+            max_depth: Maximum depth to traverse
+
         Returns:
-            JSON containing:
-            - data_profile: Analyzed data structure and patterns
-            - import_tier: Recommended tier (1-4) with reasoning
-            - skills: Top 3 skill recommendations with scores
-            - templates: Top 3 template recommendations with scores
-            - knowledge: Knowledge base matches (if client_id provided)
-            - summary: Human-readable summary of recommendations
+            Table lineage with upstream and downstream objects
 
         Example:
-            get_smart_recommendations(
-                file_path="C:/data/gl_accounts.csv",
-                user_intent="Build a P&L hierarchy for upstream oil and gas",
-                industry="oil_gas"
+            get_table_lineage(
+                graph_name="finance_lineage",
+                node="DT_3_UPSTREAM_GROSS",
+                direction="both"
             )
 
 ---
@@ -3165,6 +3770,28 @@ Get the current unified context across all systems.
 
 ---
 
+### `get_upstream_dependencies`
+
+Get all upstream dependencies of a node.
+
+        Shows all source tables and objects that feed into a data object.
+
+        Args:
+            graph_name: Name of the lineage graph
+            node: Node name or ID
+            max_depth: Maximum depth to traverse
+
+        Returns:
+            All upstream objects that this node depends on
+
+        Example:
+            get_upstream_dependencies(
+                graph_name="finance_lineage",
+                node="DT_3_UPSTREAM_GROSS"
+            )
+
+---
+
 ### `get_user_guide_section`
 
 Get a specific section from the user guide or the full guide.
@@ -3177,6 +3804,25 @@ Get a specific section from the user guide or the full guide.
 
         Returns:
             The requested section content or full user guide.
+
+---
+
+### `get_validation_results`
+
+Get validation results for a suite.
+
+        Returns historical validation results including status,
+        timing, and statistics.
+
+        Args:
+            suite_name: Name of the suite
+            limit: Maximum number of results to return
+
+        Returns:
+            List of validation results
+
+        Example:
+            get_validation_results(suite_name="gl_accounts_suite", limit=5)
 
 ---
 
@@ -3228,6 +3874,174 @@ Get the current working directory and DataBridge data directory paths.
 
 ---
 
+### `git_commit`
+
+Commit changes to the repository.
+
+        Stages and commits files with the specified message.
+
+        Args:
+            message: Commit message
+            files: Comma-separated list of files to commit (or None for staged)
+            all_files: Commit all changes (git add -A)
+            repo_path: Repository path (uses configured path if not specified)
+
+        Returns:
+            Commit result with SHA
+
+        Example:
+            git_commit(
+                message="Add dbt models for revenue hierarchy",
+                files="models/staging/stg_revenue.sql,models/marts/fct_revenue.sql"
+            )
+
+---
+
+### `git_create_branch`
+
+Create a new git branch.
+
+        Creates a branch with optional naming strategy prefix.
+
+        Args:
+            branch_name: Branch name (will be prefixed with strategy if configured)
+            checkout: Switch to the new branch
+            from_branch: Base branch to create from
+            repo_path: Repository path (uses configured path if not specified)
+
+        Returns:
+            Branch creation result
+
+        Example:
+            git_create_branch(
+                branch_name="add-revenue-hierarchy",
+                from_branch="main"
+            )
+
+---
+
+### `git_push`
+
+Push commits to remote repository.
+
+        Pushes the current or specified branch to the remote.
+
+        Args:
+            remote: Remote name (default: origin)
+            branch: Branch to push (current if not specified)
+            set_upstream: Set upstream tracking (-u flag)
+            repo_path: Repository path (uses configured path if not specified)
+
+        Returns:
+            Push result
+
+        Example:
+            git_push(remote="origin", set_upstream=True)
+
+---
+
+### `git_status`
+
+Get git repository status.
+
+        Shows current branch, staged/modified/untracked files, and sync status.
+
+        Args:
+            repo_path: Repository path (uses configured path if not specified)
+
+        Returns:
+            Repository status
+
+        Example:
+            git_status(repo_path="C:/projects/my-dbt")
+
+---
+
+### `github_create_pr`
+
+Create a GitHub pull request.
+
+        Creates a PR from head branch to base branch with optional reviewers and labels.
+
+        Args:
+            title: PR title
+            body: PR description (supports markdown)
+            head_branch: Source branch with changes
+            base_branch: Target branch (default: main)
+            draft: Create as draft PR
+            reviewers: Comma-separated list of reviewer usernames
+            labels: Comma-separated list of labels
+
+        Returns:
+            PR creation result with URL
+
+        Example:
+            github_create_pr(
+                title="Add revenue hierarchy models",
+                body="## Summary\nAdds dbt models for revenue...",
+                head_branch="feature/add-revenue-hierarchy",
+                base_branch="main",
+                reviewers="john,jane",
+                labels="dbt,hierarchy"
+            )
+
+---
+
+### `github_get_pr_status`
+
+Get status of a pull request.
+
+        Shows PR details, check status, and mergeability.
+
+        Args:
+            pr_number: Pull request number
+
+        Returns:
+            PR status with checks
+
+        Example:
+            github_get_pr_status(pr_number=42)
+
+---
+
+### `github_list_prs`
+
+List pull requests.
+
+        Lists PRs with optional filtering by state and branches.
+
+        Args:
+            state: PR state (open, closed, all)
+            head_branch: Filter by source branch
+            base_branch: Filter by target branch
+
+        Returns:
+            List of pull requests
+
+        Example:
+            github_list_prs(state="open", base_branch="main")
+
+---
+
+### `github_merge_pr`
+
+Merge a pull request.
+
+        Merges the PR using the specified method.
+
+        Args:
+            pr_number: Pull request number
+            merge_method: Merge method (merge, squash, rebase)
+            commit_message: Custom commit message for squash/merge
+
+        Returns:
+            Merge result
+
+        Example:
+            github_merge_pr(pr_number=42, merge_method="squash")
+
+---
+
 ### `import_flexible_hierarchy`
 
 Import hierarchies from flexible format with auto-detection.
@@ -3255,21 +4069,8 @@ Import hierarchies from flexible format with auto-detection.
             - hierarchies_created, mappings_created
             - created_hierarchies (list with IDs and names)
             - inferred_fields (what was auto-generated)
-            - errors (if any)
 
-        Example:
-            # Tier 1 import
-            import_flexible_hierarchy(
-                project_id="abc-123",
-                content="source_value,group_name\n4100,Revenue\n4200,Revenue\n5100,COGS",
-                source_defaults='{"database":"WAREHOUSE","schema":"FINANCE","table":"DIM_ACCOUNT","column":"ACCOUNT_CODE"}'
-            )
-
-            # Tier 2 import
-            import_flexible_hierarchy(
-                project_id="abc-123",
-                content="hierarchy_name,parent_name,source_value\nRevenue,,4%\nProduct Rev,Revenue,41%"
-            )
+... (truncated)
 
 ---
 
@@ -3425,6 +4226,21 @@ List all client knowledge base profiles.
 
 ---
 
+### `list_expectation_suites`
+
+List all available expectation suites.
+
+        Returns a list of all configured suites with their metadata
+        including name, description, expectations count, and target table.
+
+        Returns:
+            List of suite summaries
+
+        Example:
+            list_expectation_suites()
+
+---
+
 ### `list_faux_projects`
 
 List all Faux Objects projects.
@@ -3497,6 +4313,30 @@ List all hierarchy projects with summary statistics.
 
         Returns:
             JSON array of projects with hierarchy counts
+
+---
+
+### `list_lineage_graphs`
+
+List all lineage graphs.
+
+        Returns:
+            List of graph summaries
+
+        Example:
+            list_lineage_graphs()
+
+---
+
+### `list_mart_configs`
+
+List all configured data mart configurations.
+
+        Returns:
+            List of configuration summaries
+
+        Example:
+            list_mart_configs()
 
 ---
 
@@ -3939,6 +4779,38 @@ Remove a source mapping by index.
 
 ---
 
+### `run_validation`
+
+Run an expectation suite against data.
+
+        Validates data against all expectations in a suite and returns
+        detailed results including pass/fail status, unexpected values,
+        and statistics.
+
+        Args:
+            suite_name: Name of the suite to run
+            data: JSON array of row data (for in-memory validation)
+            connection_id: Database connection ID (for database validation)
+
+        Returns:
+            Validation results with pass/fail details
+
+        Example:
+            # In-memory validation
+            run_validation(
+                suite_name="gl_accounts_suite",
+                data='[{"ACCOUNT_CODE": "4100", "ACCOUNT_NAME": "Revenue"}]'
+            )
+
+            # Database validation (requires connection)
+            run_validation(
+                suite_name="gl_accounts_suite",
+                connection_id="snowflake-prod"
+
+... (truncated)
+
+---
+
 ### `save_project_as_template`
 
 Save an existing hierarchy project as a reusable template.
@@ -4041,10 +4913,8 @@ Set dimension properties for a hierarchy.
                 }
 
         Returns:
-            JSON with updated hierarchy.
 
-        Example:
-            set_dimension_properties(project_id, "ACCOUNT", '{"aggregation_type": "SUM", "drill_enabled": true}')
+... (truncated)
 
 ---
 
@@ -4075,9 +4945,8 @@ Set display properties for a hierarchy.
         Returns:
             JSON with updated hierarchy.
 
-        Examples:
-            set_display_properties(project_id, "REVENUE", '{"color": "#22c55e", "icon": "dollar"}')
-            set_display_properties(project_id, "EXPENSES", '{"color": "#ef4444", "collapsed_by_default": true}')
+
+... (truncated)
 
 ---
 
@@ -4108,18 +4977,8 @@ Set fact/measure properties for a hierarchy.
                     "base_measure_ids": null        // IDs of measures used in calculation
                 }
 
-        Returns:
-            JSON with updated hierarchy.
 
-        Examples:
-            # Additive measure (revenue, expenses)
-            set_fact_properties(project_id, "REVENUE", '{"measure_type": "additive", "aggregation_type": "SUM"}')
-
-            # Semi-additive balance (uses last value for time)
-            set_fact_properties(project_id, "BALANCE", '{"measure_type": "semi_additive", "time_balance": "last"}')
-
-            # Derived ratio
-            set_fact_properties(project_id, "MARGIN_PCT", '{"measure_type": "non_additive", "format_string": "0.00%"}')
+... (truncated)
 
 ---
 
@@ -4150,18 +5009,8 @@ Set filter properties for a hierarchy.
                     "max_selections": null          // Max selections for multi-select
                 }
 
-        Returns:
-            JSON with updated hierarchy.
 
-        Examples:
-            # Multi-select with search
-            set_filter_properties(project_id, "ACCOUNT", '{"filter_behavior": "multi", "search_enabled": true}')
-
-            # Cascading filter (depends on parent)
-            set_filter_properties(project_id, "WELL", '{"filter_behavior": "cascading", "cascading_parent_id": "FIELD_1"}')
-
-            # Required single-select
-            set_filter_properties(project_id, "PERIOD", '{"filter_behavior": "single", "required": true}')
+... (truncated)
 
 ---
 
@@ -4192,11 +5041,8 @@ Smart CSV import with automatic recommendations.
 
         Example:
             smart_import_csv(
-                file_path="C:/data/los_hierarchy.csv",
-                project_name="Q4 LOS Hierarchy",
-                user_intent="Build Lease Operating Statement hierarchy",
-                industry="oil_gas"
-            )
+
+... (truncated)
 
 ---
 
@@ -4287,8 +5133,7 @@ Submit a task to the AI Orchestrator for managed execution.
             dependencies: JSON array of task IDs that must complete first
             callback_url: Webhook URL for completion notification
 
-        Returns:
-            JSON with task ID, status, and queue position
+... (truncated)
 
 ---
 
@@ -4334,6 +5179,31 @@ Suggest enrichment options after hierarchy import.
                 project_id="my-project",
                 file_path="C:/data/gl_hierarchy.csv",
                 user_intent="Add account names to the mapping export"
+
+... (truncated)
+
+---
+
+### `suggest_mart_config`
+
+Get AI-recommended configuration for a hierarchy.
+
+        Analyzes the hierarchy and mapping tables to generate a complete
+        mart configuration recommendation.
+
+        Args:
+            hierarchy_table: Fully qualified hierarchy table name
+            mapping_table: Fully qualified mapping table name
+            project_name: Optional project name (auto-generated if not provided)
+            connection_id: Snowflake connection for queries
+
+        Returns:
+            Recommended configuration
+
+        Example:
+            suggest_mart_config(
+                hierarchy_table="ANALYTICS.PUBLIC.TBL_0_NET_LOS_REPORT_HIERARCHY",
+                mapping_table="ANALYTICS.PUBLIC.TBL_0_NET_LOS_REPORT_HIERARCHY_MAPPING"
             )
 
 ---
@@ -4415,6 +5285,38 @@ Test a database connection's health and connectivity.
 
 ---
 
+### `track_column_lineage`
+
+Add column-level lineage relationship.
+
+        Tracks how source column(s) transform into a target column.
+
+        Args:
+            graph_name: Name of the lineage graph
+            source_node: Source node name or ID
+            source_columns: Comma-separated source column names
+            target_node: Target node name or ID
+            target_column: Target column name
+            transformation_type: Type of transformation (DIRECT, AGGREGATION, CALCULATION, FILTER, JOIN, CASE)
+            transformation_expression: Optional expression used
+
+        Returns:
+            Created lineage details
+
+        Example:
+            track_column_lineage(
+                graph_name="finance_lineage",
+                source_node="DIM_ACCOUNT",
+                source_columns="ACCOUNT_CODE,ACCOUNT_NAME",
+                target_node="VW_1_GROSS_TRANSLATED",
+                target_column="RESOLVED_VALUE",
+                transformation_type="CASE",
+                transformation_expression="CASE WHEN ID_SOURCE = 'ACCOUNT_CODE' THEN ..."
+
+... (truncated)
+
+---
+
 ### `transform_column`
 
 Apply a transformation to a column and optionally save the result.
@@ -4486,7 +5388,8 @@ Parse SQL into a SemanticViewDefinition.
                 SELECT region, SUM(amount) as total_sales
                 FROM orders
                 GROUP BY region
-            ''', name="sales_analysis")
+
+... (truncated)
 
 ---
 
@@ -4567,6 +5470,73 @@ Validate a hierarchy project for issues.
 
 ---
 
+### `validate_lineage`
+
+Validate lineage graph completeness.
+
+        Checks for:
+        - Orphan nodes (nodes with no connections)
+        - Missing source lineage
+        - Circular dependencies
+        - Overall completeness score
+
+        Args:
+            graph_name: Name of the lineage graph
+
+        Returns:
+            Validation result with issues and completeness score
+
+        Example:
+            validate_lineage(graph_name="finance_lineage")
+
+---
+
+### `validate_mart_config`
+
+Validate configuration completeness and consistency.
+
+        Checks that:
+        - All required fields are present
+        - Join pattern key counts match
+        - No duplicate ID_SOURCE values
+        - Configuration is ready for pipeline generation
+
+        Args:
+            config_name: Name of the configuration to validate
+
+        Returns:
+            Validation result with errors and warnings
+
+        Example:
+            validate_mart_config(config_name="upstream_gross")
+
+---
+
+### `validate_mart_pipeline`
+
+Test generated DDL against source data.
+
+        Validates that:
+        - Source tables exist and are accessible
+        - Column references are valid
+        - Generated DDL is syntactically correct
+        - Join patterns produce expected row counts
+
+        Args:
+            config_name: Name of the configuration
+            connection_id: Snowflake connection for validation queries
+
+        Returns:
+            Validation result with per-layer status
+
+        Example:
+            validate_mart_pipeline(
+                config_name="upstream_gross",
+                connection_id="snowflake-prod"
+            )
+
+---
+
 ### `validate_semantic_model`
 
 Validate a semantic model configuration.
@@ -4586,6 +5556,214 @@ Validate a semantic model configuration.
                 model_name="sales_analytics",
                 connection_id="snowflake-prod"
             )
+
+---
+
+### `version_create`
+
+Create a versioned snapshot of any object.
+
+        This is the core versioning tool that creates a new version record
+        with a full snapshot of the object's current state.
+
+        Args:
+            object_type: Type of object (hierarchy_project, hierarchy, catalog_asset,
+                        glossary_term, semantic_model, data_contract, expectation_suite,
+                        formula_group, source_mapping)
+            object_id: Unique identifier for the object
+            snapshot: JSON string of the complete object state
+            change_description: Human-readable description of changes
+            changed_by: User who made the change
+            version_bump: Type of version increment (major, minor, patch)
+            change_type: Type of change (create, update, delete, restore)
+            tags: Comma-separated tags (e.g., "release,approved,production")
+            object_name: Human-readable name for the object
+
+        Returns:
+            Version record with id, version string, and metadata
+
+---
+
+### `version_create_catalog_asset`
+
+Create a versioned snapshot of a data catalog asset.
+
+        Args:
+            asset_id: The catalog asset ID
+            asset_data: JSON string with the asset metadata
+            change_description: Description of what changed
+            changed_by: User who made the change
+            version_bump: Version increment type (major, minor, patch)
+            asset_name: Human-readable asset name
+
+        Returns:
+            Version record for the asset
+
+---
+
+### `version_create_hierarchy`
+
+Create a versioned snapshot of a hierarchy project with all its hierarchies.
+
+        This is a convenience tool for versioning hierarchy projects that automatically
+        includes all child hierarchies in the snapshot.
+
+        Args:
+            project_id: The hierarchy project ID
+            hierarchies: JSON string with project data including hierarchies array
+            change_description: Description of what changed
+            changed_by: User who made the change
+            version_bump: Version increment type (major, minor, patch)
+            project_name: Human-readable project name
+
+        Returns:
+            Version record for the project
+
+---
+
+### `version_diff`
+
+Compare two versions and show differences.
+
+        Args:
+            object_type: Type of object
+            object_id: Object identifier
+            from_version: Starting version (e.g., "1.0.0")
+            to_version: Ending version (None = latest)
+
+        Returns:
+            Diff with added, removed, and modified fields
+
+---
+
+### `version_diff_latest`
+
+Compare current (latest) version to a previous version.
+
+        This is a convenience wrapper for version_diff that compares
+        a specific historical version to the current state.
+
+        Args:
+            object_type: Type of object
+            object_id: Object identifier
+            compare_to_version: Historical version to compare against
+
+        Returns:
+            Diff showing what changed since that version
+
+---
+
+### `version_get`
+
+Get a specific version or the latest version of an object.
+
+        Args:
+            object_type: Type of object
+            object_id: Object identifier
+            version: Specific version string (e.g., "1.2.3") or None for latest
+            include_snapshot: Whether to include the full snapshot data
+
+        Returns:
+            Version record with optional snapshot
+
+---
+
+### `version_get_stats`
+
+Get versioning statistics across all objects.
+
+        Returns counts by object type, recent activity, and top contributors.
+
+        Returns:
+            Statistics including total counts, by-type breakdowns, and activity
+
+---
+
+### `version_list`
+
+List version history for an object (most recent first).
+
+        Args:
+            object_type: Type of object
+            object_id: Object identifier
+            limit: Maximum number of versions to return
+
+        Returns:
+            List of versions without snapshot data
+
+---
+
+### `version_preview_rollback`
+
+Preview what a rollback would restore without applying it.
+
+        Use this to see the differences before committing to a rollback.
+
+        Args:
+            object_type: Type of object
+            object_id: Object identifier
+            to_version: Target version to preview
+
+        Returns:
+            Preview with diff and optional warnings
+
+---
+
+### `version_rollback`
+
+Rollback an object to a previous version.
+
+        This creates a new version with the state from the target version,
+        recording it as a RESTORE change type. The caller is responsible
+        for actually applying the snapshot to the underlying object.
+
+        Args:
+            object_type: Type of object
+            object_id: Object identifier
+            to_version: Target version to restore
+            changed_by: User performing the rollback
+
+        Returns:
+            The snapshot data to apply and the new version record
+
+---
+
+### `version_search`
+
+Search versions across all objects with filters.
+
+        Args:
+            object_type: Filter by object type
+            object_id: Filter by specific object
+            changed_by: Filter by user who made changes
+            change_type: Filter by change type (create, update, delete, restore)
+            tag: Filter by tag
+            from_date: Start date (ISO format)
+            to_date: End date (ISO format)
+            is_major: Filter for major versions only
+            limit: Maximum results
+
+        Returns:
+            List of matching versions
+
+---
+
+### `version_tag`
+
+Add or remove tags on a version.
+
+        Tags are useful for marking releases, approvals, or other milestones.
+        Common tags: "release", "approved", "production", "staging", "archived"
+
+        Args:
+            object_type: Type of object
+            object_id: Object identifier
+            version: Version string to tag
+            add_tags: Comma-separated tags to add
+            remove_tags: Comma-separated tags to remove
+
+        Returns:
+            Updated version with current tags
 
 ---
 
