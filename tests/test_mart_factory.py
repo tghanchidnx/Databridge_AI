@@ -12,8 +12,8 @@ from pathlib import Path
 from datetime import datetime
 from unittest.mock import Mock
 
-# Import types
-from src.mart_factory.types import (
+# Import types (renamed from mart_factory to wright in Phase 31)
+from src.wright.types import (
     PipelineLayer,
     ObjectType,
     FormulaLogic,
@@ -27,13 +27,13 @@ from src.mart_factory.types import (
 )
 
 # Import generators
-from src.mart_factory.config_generator import MartConfigGenerator
-from src.mart_factory.pipeline_generator import MartPipelineGenerator
-from src.mart_factory.formula_engine import (
+from src.wright.config_generator import MartConfigGenerator
+from src.wright.pipeline_generator import MartPipelineGenerator
+from src.wright.formula_engine import (
     FormulaPrecedenceEngine,
     create_standard_los_formulas,
 )
-from src.mart_factory.cortex_discovery import CortexDiscoveryAgent
+from src.wright.cortex_discovery import CortexDiscoveryAgent
 
 
 class TestMartFactoryTypes:
@@ -652,14 +652,15 @@ class TestMCPTools:
 
     def test_register_mart_factory_tools(self):
         """Test registering mart factory tools."""
-        from src.mart_factory.mcp_tools import register_mart_factory_tools
+        from src.wright.mcp_tools import register_mart_factory_tools
 
         mock_mcp = Mock()
         mock_mcp.tool = Mock(return_value=lambda f: f)
 
         result = register_mart_factory_tools(mock_mcp)
 
-        assert result["tools_registered"] == 10
+        # Updated count to 18 with Phase 31 enhancements
+        assert result["tools_registered"] == 18
         assert "create_mart_config" in result["tools"]
         assert "add_mart_join_pattern" in result["tools"]
         assert "export_mart_config" in result["tools"]
@@ -670,6 +671,10 @@ class TestMCPTools:
         assert "suggest_mart_config" in result["tools"]
         assert "validate_mart_config" in result["tools"]
         assert "validate_mart_pipeline" in result["tools"]
+        # Phase 31 tools
+        assert "validate_hierarchy_data_quality" in result["tools"]
+        assert "normalize_id_source_values" in result["tools"]
+        assert "compare_ddl_content" in result["tools"]
 
 
 class TestModuleExports:
@@ -677,7 +682,7 @@ class TestModuleExports:
 
     def test_all_exports(self):
         """Test that all expected items are exported."""
-        from src.mart_factory import (
+        from src.wright import (
             # Enums
             PipelineLayer,
             ObjectType,
@@ -698,9 +703,17 @@ class TestModuleExports:
             CortexDiscoveryAgent,
             # MCP
             register_mart_factory_tools,
+            # Phase 31
+            HierarchyQualityValidator,
+            IDSourceNormalizer,
+            GroupFilterPrecedenceEngine,
+            DDLDiffComparator,
         )
 
         # Just verify imports work
         assert PipelineLayer.VW_1 is not None
         assert ObjectType.VIEW is not None
         assert FormulaLogic.SUM is not None
+        # Phase 31
+        assert HierarchyQualityValidator is not None
+        assert IDSourceNormalizer is not None

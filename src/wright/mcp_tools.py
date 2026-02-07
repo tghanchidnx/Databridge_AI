@@ -1,7 +1,7 @@
 """
-MCP Tools for Hierarchy-Driven Data Mart Factory.
+MCP Tools for Hierarchy-Driven Data Mart Factory (Wright Module).
 
-Provides 10 tools for automated data mart generation:
+Provides 18 tools for automated data mart generation:
 
 Configuration Management (3):
 - create_mart_config
@@ -20,6 +20,22 @@ AI Discovery (2):
 Validation (2):
 - validate_mart_config
 - validate_mart_pipeline
+
+Data Quality (Phase 31) (3):
+- validate_hierarchy_quality
+- normalize_id_sources
+- get_alias_report
+
+Multi-Round Filtering (Phase 31) (2):
+- analyze_filter_precedence
+- generate_filter_sql
+
+DDL Comparison (Phase 31) (2):
+- compare_ddl
+- compare_pipeline_ddl
+
+Utility (1):
+- list_mart_configs
 """
 
 import json
@@ -38,6 +54,10 @@ from .config_generator import MartConfigGenerator
 from .pipeline_generator import MartPipelineGenerator
 from .formula_engine import FormulaPrecedenceEngine, create_standard_los_formulas
 from .cortex_discovery import CortexDiscoveryAgent
+from .quality_validator import HierarchyQualityValidator, validate_hierarchy_quality
+from .alias_normalizer import IDSourceNormalizer, get_normalizer
+from .filter_engine import GroupFilterPrecedenceEngine, analyze_group_filter_precedence
+from .ddl_diff import DDLDiffComparator, compare_generated_ddl
 
 logger = logging.getLogger(__name__)
 
@@ -708,9 +728,366 @@ def register_mart_factory_tools(mcp, settings=None) -> Dict[str, Any]:
             logger.error(f"Failed to list configs: {e}")
             return {"success": False, "error": str(e)}
 
+    # ========================================
+    # Data Quality (Phase 31) - 3 tools
+    # ========================================
+
+    @mcp.tool()
+    def validate_hierarchy_data_quality(
+        hierarchies: str,
+        mappings: str,
+        hierarchy_table: str = "HIERARCHY",
+        mapping_table: str = "MAPPING",
+    ) -> Dict[str, Any]:
+        """
+        Validate hierarchy and mapping data for quality issues.
+
+        Detects:
+        - ID_SOURCE typos (e.g., BILLING_CATEGRY_CODE)
+        - Duplicate hierarchy keys
+        - Orphan nodes (no mappings)
+        - Orphan mappings (no hierarchy)
+        - FILTER_GROUP mismatches
+        - Formula reference issues
+
+        Args:
+            hierarchies: JSON array of hierarchy records
+            mappings: JSON array of mapping records
+            hierarchy_table: Name of hierarchy table
+            mapping_table: Name of mapping table
+
+        Returns:
+            Validation result with all detected issues
+
+        Example:
+            validate_hierarchy_data_quality(
+                hierarchies='[{"HIERARCHY_ID": 1, "ACTIVE_FLAG": true}]',
+                mappings='[{"FK_REPORT_KEY": 1, "ID_SOURCE": "BILLING_CATEGRY_CODE"}]'
+            )
+        """
+        try:
+            import json
+            hierarchy_data = json.loads(hierarchies)
+            mapping_data = json.loads(mappings)
+
+            result = validate_hierarchy_quality(
+                hierarchies=hierarchy_data,
+                mappings=mapping_data,
+                hierarchy_table=hierarchy_table,
+                mapping_table=mapping_table,
+            )
+
+            return {
+                "success": True,
+                **result.to_dict(),
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to validate hierarchy quality: {e}")
+            return {"success": False, "error": str(e)}
+
+    @mcp.tool()
+    def normalize_id_source_values(
+        mappings: str,
+        auto_detect: bool = True,
+        id_source_key: str = "ID_SOURCE",
+    ) -> Dict[str, Any]:
+        """
+        Normalize ID_SOURCE values in mapping data.
+
+        Corrects known typos like:
+        - BILLING_CATEGRY_CODE → BILLING_CATEGORY_CODE
+        - BILLING_CATEGORY_TYPE → BILLING_CATEGORY_TYPE_CODE
+
+        Args:
+            mappings: JSON array of mapping records
+            auto_detect: Whether to use fuzzy matching for unknown values
+            id_source_key: Key for ID_SOURCE field
+
+        Returns:
+            Normalized mappings and correction details
+
+        Example:
+            normalize_id_source_values(
+                mappings='[{"ID_SOURCE": "BILLING_CATEGRY_CODE", "ID": "4100"}]'
+            )
+        """
+        try:
+            import json
+            mapping_data = json.loads(mappings)
+
+            normalizer = get_normalizer()
+            normalized, results = normalizer.normalize_mapping_data(
+                mappings=mapping_data,
+                id_source_key=id_source_key,
+                auto_detect=auto_detect,
+            )
+
+            corrections = [
+                {
+                    "original": r.original,
+                    "normalized": r.normalized,
+                    "confidence": r.confidence,
+                    "suggestion": r.suggestion,
+                }
+                for r in results if r.was_aliased
+            ]
+
+            return {
+                "success": True,
+                "mapping_count": len(mapping_data),
+                "correction_count": len(corrections),
+                "corrections": corrections,
+                "normalized_mappings": normalized,
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to normalize ID_SOURCE values: {e}")
+            return {"success": False, "error": str(e)}
+
+    @mcp.tool()
+    def get_id_source_alias_report() -> Dict[str, Any]:
+        """
+        Get a report of all ID_SOURCE aliases and mappings.
+
+        Returns:
+            Report with canonical mappings, aliases, and auto-detected corrections
+
+        Example:
+            get_id_source_alias_report()
+        """
+        try:
+            normalizer = get_normalizer()
+            report = normalizer.get_alias_report()
+
+            return {
+                "success": True,
+                **report,
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to get alias report: {e}")
+            return {"success": False, "error": str(e)}
+
+    # ========================================
+    # Multi-Round Filtering (Phase 31) - 2 tools
+    # ========================================
+
+    @mcp.tool()
+    def analyze_group_filter_precedence(
+        mappings: str,
+    ) -> Dict[str, Any]:
+        """
+        Analyze GROUP_FILTER_PRECEDENCE patterns in mapping data.
+
+        Detects multi-round filtering patterns:
+        - Precedence 1: Primary dimension join
+        - Precedence 2: Secondary filter
+        - Precedence 3: Tertiary filter
+
+        Args:
+            mappings: JSON array of mapping records with GROUP_FILTER_PRECEDENCE
+
+        Returns:
+            Analysis with detected patterns and recommended SQL
+
+        Example:
+            analyze_group_filter_precedence(
+                mappings='[{"FILTER_GROUP_1": "Deducts", "GROUP_FILTER_PRECEDENCE": 1}]'
+            )
+        """
+        try:
+            import json
+            mapping_data = json.loads(mappings)
+
+            result = analyze_group_filter_precedence(mapping_data)
+
+            return {
+                "success": True,
+                **result,
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to analyze filter precedence: {e}")
+            return {"success": False, "error": str(e)}
+
+    @mcp.tool()
+    def generate_filter_precedence_sql(
+        mappings: str,
+    ) -> Dict[str, Any]:
+        """
+        Generate SQL for GROUP_FILTER_PRECEDENCE multi-round filtering.
+
+        Generates DT_2 CTEs and UNION ALL branch definitions
+        based on detected filter patterns.
+
+        Args:
+            mappings: JSON array of mapping records with GROUP_FILTER_PRECEDENCE
+
+        Returns:
+            SQL snippets for multi-round filtering
+
+        Example:
+            generate_filter_precedence_sql(
+                mappings='[{"FILTER_GROUP_1": "Taxes", "GROUP_FILTER_PRECEDENCE": 2}]'
+            )
+        """
+        try:
+            import json
+            mapping_data = json.loads(mappings)
+
+            engine = GroupFilterPrecedenceEngine()
+            patterns = engine.analyze_mappings(mapping_data)
+
+            dt2_ctes = engine.generate_dt2_ctes(patterns)
+            union_branches = engine.generate_union_branches(patterns)
+
+            return {
+                "success": True,
+                "pattern_count": len(patterns),
+                "dt2_ctes": dt2_ctes,
+                "union_branches": union_branches,
+                "summary": engine.get_pattern_summary(),
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to generate filter SQL: {e}")
+            return {"success": False, "error": str(e)}
+
+    # ========================================
+    # DDL Comparison (Phase 31) - 2 tools
+    # ========================================
+
+    @mcp.tool()
+    def compare_ddl_content(
+        generated_ddl: str,
+        baseline_ddl: str,
+        generated_name: str = "generated.sql",
+        baseline_name: str = "baseline.sql",
+    ) -> Dict[str, Any]:
+        """
+        Compare generated DDL against baseline DDL.
+
+        Identifies:
+        - Overall similarity
+        - Column additions/removals/modifications
+        - JOIN clause changes
+        - WHERE clause changes
+        - Breaking changes and warnings
+
+        Args:
+            generated_ddl: The generated DDL content
+            baseline_ddl: The baseline DDL to compare against
+            generated_name: Name of generated file
+            baseline_name: Name of baseline file
+
+        Returns:
+            Comparison result with differences
+
+        Example:
+            compare_ddl_content(
+                generated_ddl="CREATE VIEW VW_1 AS SELECT col1 FROM table1",
+                baseline_ddl="CREATE VIEW VW_1 AS SELECT col1, col2 FROM table1"
+            )
+        """
+        try:
+            comparator = DDLDiffComparator()
+            result = comparator.compare_ddl(
+                generated_ddl=generated_ddl,
+                baseline_ddl=baseline_ddl,
+                generated_file=generated_name,
+                baseline_file=baseline_name,
+            )
+
+            return {
+                "success": True,
+                **result.to_dict(),
+                "unified_diff": result.unified_diff[:5000] if result.unified_diff else "",
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to compare DDL: {e}")
+            return {"success": False, "error": str(e)}
+
+    @mcp.tool()
+    def compare_pipeline_to_baseline(
+        config_name: str,
+        baseline_dir: str,
+    ) -> Dict[str, Any]:
+        """
+        Compare a generated pipeline against baseline DDL files.
+
+        Compares all 4 pipeline objects (VW_1, DT_2, DT_3A, DT_3)
+        against matching files in the baseline directory.
+
+        Args:
+            config_name: Name of the mart configuration
+            baseline_dir: Directory containing baseline DDL files
+
+        Returns:
+            Comparison results for each pipeline object
+
+        Example:
+            compare_pipeline_to_baseline(
+                config_name="upstream_gross",
+                baseline_dir="C:/data/baseline_ddl"
+            )
+        """
+        try:
+            config = config_gen.get_config(config_name)
+            if not config:
+                return {"success": False, "error": f"Configuration '{config_name}' not found"}
+
+            # Generate pipeline
+            objects = pipeline_gen.generate_full_pipeline(config)
+
+            # Convert to dicts for comparison
+            obj_dicts = [
+                {
+                    "object_name": obj.object_name,
+                    "ddl": obj.ddl,
+                }
+                for obj in objects
+            ]
+
+            # Compare against baseline
+            comparator = DDLDiffComparator()
+            results = comparator.compare_pipeline(obj_dicts, baseline_dir)
+
+            # Summarize results
+            summaries = {}
+            breaking_changes = []
+            warnings = []
+
+            for obj_name, result in results.items():
+                summaries[obj_name] = {
+                    "similarity": result.similarity,
+                    "is_identical": result.is_identical,
+                    "column_diff_count": len(result.column_diffs),
+                    "breaking_change_count": len(result.breaking_changes),
+                }
+                breaking_changes.extend(result.breaking_changes)
+                warnings.extend(result.warnings)
+
+            return {
+                "success": True,
+                "config_name": config_name,
+                "object_count": len(objects),
+                "baseline_dir": baseline_dir,
+                "summaries": summaries,
+                "total_breaking_changes": len(breaking_changes),
+                "total_warnings": len(warnings),
+                "breaking_changes": breaking_changes[:20],
+                "warnings": warnings[:20],
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to compare pipeline: {e}")
+            return {"success": False, "error": str(e)}
+
     # Return registration info
     return {
-        "tools_registered": 10,
+        "tools_registered": 18,
         "tools": [
             # Configuration Management
             "create_mart_config",
@@ -726,5 +1103,17 @@ def register_mart_factory_tools(mcp, settings=None) -> Dict[str, Any]:
             # Validation
             "validate_mart_config",
             "validate_mart_pipeline",
+            # Data Quality (Phase 31)
+            "validate_hierarchy_data_quality",
+            "normalize_id_source_values",
+            "get_id_source_alias_report",
+            # Multi-Round Filtering (Phase 31)
+            "analyze_group_filter_precedence",
+            "generate_filter_precedence_sql",
+            # DDL Comparison (Phase 31)
+            "compare_ddl_content",
+            "compare_pipeline_to_baseline",
+            # Utility
+            "list_mart_configs",
         ],
     }

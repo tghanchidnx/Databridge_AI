@@ -1,7 +1,7 @@
 # DataBridge AI: Project Configuration & Rules
 
 ## 🎯 Purpose
-A headless, MCP-native data reconciliation engine with **285 MCP tools** across twenty major modules:
+A headless, MCP-native data reconciliation engine with **293 MCP tools** across twenty major modules:
 
 1. **Data Reconciliation Engine** - Bridges messy sources (OCR/PDF/SQL) with structured comparison pipelines
 2. **Hierarchy Knowledge Base Builder** - Creates and manages hierarchical data structures for reporting systems
@@ -18,13 +18,13 @@ A headless, MCP-native data reconciliation engine with **285 MCP tools** across 
 13. **Console Dashboard** - Real-time WebSocket streaming for agent activity monitoring
 14. **dbt Integration** - Generate dbt projects, models, and CI/CD pipelines from hierarchies
 15. **Data Quality** - Expectation suites, data contracts, and validation inspired by Great Expectations
-16. **Wright** - Hierarchy-driven dimension & fact builder with 4-object pipeline and AI discovery
+16. **Wright** - Hierarchy-driven dimension & fact builder with 4-object pipeline, AI discovery, and data quality validation
 17. **Lineage & Impact Analysis** - Column-level lineage tracking, impact analysis, and dependency visualization
 18. **Git/CI-CD Integration** - Git operations, GitHub PRs, and automated workflow generation
 19. **Data Catalog** - Centralized metadata registry with business glossary, data discovery, and classification
 20. **Data Versioning** - Unified version control for DataBridge objects with snapshots, diff, and rollback
 
-## 🔧 Available Tool Categories (285 Tools)
+## 🔧 Available Tool Categories (293 Tools)
 
 ### File Discovery & Staging (3 tools)
 Tools for finding and staging files when paths are unknown or files are in inconvenient locations.
@@ -993,7 +993,7 @@ sla:
   alert_on_failure: true
 ```
 
-### Wright - Dimension & Fact Builder (10 tools)
+### Wright - Dimension & Fact Builder (18 tools)
 Hierarchy-driven dimension and fact builder using the 4-object pipeline pattern (VW_1 → DT_2 → DT_3A → DT_3) with AI-powered discovery. Named after the Wright Brothers, pioneers of building and flying.
 
 **Configuration Management (3):**
@@ -1013,6 +1013,22 @@ Hierarchy-driven dimension and fact builder using the 4-object pipeline pattern 
 **Validation (2):**
 - **`validate_mart_config`** - Validate configuration completeness
 - **`validate_mart_pipeline`** - Test generated DDL against source data
+
+**Data Quality (Phase 31) (3):**
+- **`validate_hierarchy_data_quality`** - Detect ID_SOURCE typos, duplicates, orphans, mismatches
+- **`normalize_id_source_values`** - Auto-correct known typos (BILLING_CATEGRY_CODE → BILLING_CATEGORY_CODE)
+- **`get_id_source_alias_report`** - Get report of all aliases and auto-detected corrections
+
+**Multi-Round Filtering (Phase 31) (2):**
+- **`analyze_group_filter_precedence`** - Analyze GROUP_FILTER_PRECEDENCE patterns in mappings
+- **`generate_filter_precedence_sql`** - Generate SQL for multi-round filtering (Precedence 1→2→3)
+
+**DDL Comparison (Phase 31) (2):**
+- **`compare_ddl_content`** - Compare generated DDL against baseline with detailed diff
+- **`compare_pipeline_to_baseline`** - Compare full pipeline against baseline DDL files
+
+**Utility (1):**
+- **`list_mart_configs`** - List all configured data mart configurations
 
 **Architecture:**
 ```
