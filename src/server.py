@@ -1816,6 +1816,24 @@ except ImportError as e:
 
 
 # =============================================================================
+# Phase 26: Mart Factory - Hierarchy-Driven Data Mart Generation
+# =============================================================================
+
+# Register Mart Factory tools for automated data mart pipeline generation
+# using 7 configuration variables and AI-powered hierarchy discovery
+try:
+    try:
+        from src.mart_factory.mcp_tools import register_mart_factory_tools
+    except ImportError:
+        from mart_factory.mcp_tools import register_mart_factory_tools
+
+    mart_factory = register_mart_factory_tools(mcp, settings)
+    log_action("SYSTEM", "mart_factory_init", "Mart Factory tools registered (10 tools)")
+except ImportError as e:
+    print(f"Warning: Mart Factory module not loaded: {e}")
+
+
+# =============================================================================
 # Entry Point
 # =============================================================================
 

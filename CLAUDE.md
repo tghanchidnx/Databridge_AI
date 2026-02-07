@@ -1,7 +1,7 @@
 # DataBridge AI: Project Configuration & Rules
 
 ## 🎯 Purpose
-A headless, MCP-native data reconciliation engine with **224 MCP tools** across fifteen major modules:
+A headless, MCP-native data reconciliation engine with **234 MCP tools** across sixteen major modules:
 
 1. **Data Reconciliation Engine** - Bridges messy sources (OCR/PDF/SQL) with structured comparison pipelines
 2. **Hierarchy Knowledge Base Builder** - Creates and manages hierarchical data structures for reporting systems
@@ -18,8 +18,9 @@ A headless, MCP-native data reconciliation engine with **224 MCP tools** across 
 13. **Console Dashboard** - Real-time WebSocket streaming for agent activity monitoring
 14. **dbt Integration** - Generate dbt projects, models, and CI/CD pipelines from hierarchies
 15. **Data Quality** - Expectation suites, data contracts, and validation inspired by Great Expectations
+16. **Mart Factory** - Hierarchy-driven data mart generation with 4-object pipeline and AI discovery
 
-## 🔧 Available Tool Categories (224 Tools)
+## 🔧 Available Tool Categories (234 Tools)
 
 ### File Discovery & Staging (3 tools)
 Tools for finding and staging files when paths are unknown or files are in inconvenient locations.
@@ -987,6 +988,104 @@ sla:
   validation_schedule: "0 6 * * *"
   alert_on_failure: true
 ```
+
+### Mart Factory (10 tools)
+Hierarchy-driven data mart generation using the 4-object pipeline pattern (VW_1 → DT_2 → DT_3A → DT_3) with AI-powered discovery.
+
+**Configuration Management (3):**
+- **`create_mart_config`** - Create data mart pipeline configuration with 7 variables
+- **`add_mart_join_pattern`** - Add UNION ALL branch to configuration
+- **`export_mart_config`** - Export configuration to dbt YAML
+
+**Pipeline Generation (3):**
+- **`generate_mart_pipeline`** - Generate all 4 DDL objects (VW_1, DT_2, DT_3A, DT_3)
+- **`generate_mart_object`** - Generate single pipeline object
+- **`generate_mart_dbt_project`** - Generate complete dbt project from config
+
+**AI Discovery (2):**
+- **`discover_hierarchy_pattern`** - AI-powered hierarchy discovery with Cortex
+- **`suggest_mart_config`** - Get AI-recommended configuration
+
+**Validation (2):**
+- **`validate_mart_config`** - Validate configuration completeness
+- **`validate_mart_pipeline`** - Test generated DDL against source data
+
+**Architecture:**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                 Data Mart Factory Module                        │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │         MartConfigGenerator (7 Config Variables)         │   │
+│  │  - JOIN_PATTERNS[]      - Dynamic UNION ALL branches     │   │
+│  │  - DYNAMIC_COLUMN_MAP{} - ID_SOURCE → physical column    │   │
+│  │  - ACCOUNT_SEGMENT      - GROSS/NET filter               │   │
+│  │  - MEASURE_PREFIX       - Column name prefix             │   │
+│  │  - HAS_SIGN_CHANGE      - Sign flip flag                 │   │
+│  │  - HAS_EXCLUSIONS       - NOT IN subquery flag           │   │
+│  │  - HAS_GROUP_FILTER     - Multi-round filter flag        │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                           ↓                                     │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │         MartPipelineGenerator (4-Object DDL)             │   │
+│  │  - VW_1: Translation View (CASE on ID_SOURCE)            │   │
+│  │  - DT_2: Granularity Table (UNPIVOT, exclusions)         │   │
+│  │  - DT_3A: Pre-Aggregation Fact (UNION ALL branches)      │   │
+│  │  - DT_3: Data Mart (formula precedence, surrogates)      │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                           ↓                                     │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │         CortexDiscoveryAgent + FormulaPrecedenceEngine   │   │
+│  │  - AI-powered hierarchy discovery                        │   │
+│  │  - 5-level formula precedence cascade                    │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Example - Generate Data Mart Pipeline:**
+```python
+# 1. Create configuration
+create_mart_config(
+    project_name="upstream_gross",
+    report_type="GROSS",
+    hierarchy_table="ANALYTICS.PUBLIC.TBL_0_GROSS_LOS_REPORT_HIERARCHY_",
+    mapping_table="ANALYTICS.PUBLIC.TBL_0_GROSS_LOS_REPORT_HIERARCHY_MAPPING",
+    account_segment="GROSS",
+    has_group_filter_precedence=True
+)
+
+# 2. Add join patterns
+add_mart_join_pattern(
+    config_name="upstream_gross",
+    name="account",
+    join_keys="LOS_ACCOUNT_ID_FILTER",
+    fact_keys="FK_ACCOUNT_KEY"
+)
+add_mart_join_pattern(
+    config_name="upstream_gross",
+    name="deduct_product",
+    join_keys="LOS_DEDUCT_CODE_FILTER,LOS_PRODUCT_CODE_FILTER",
+    fact_keys="FK_DEDUCT_KEY,FK_PRODUCT_KEY"
+)
+
+# 3. Generate full pipeline
+generate_mart_pipeline(config_name="upstream_gross")
+
+# 4. Or use AI discovery
+discover_hierarchy_pattern(
+    hierarchy_table="ANALYTICS.PUBLIC.TBL_0_NET_LOS_REPORT_HIERARCHY",
+    mapping_table="ANALYTICS.PUBLIC.TBL_0_NET_LOS_REPORT_HIERARCHY_MAPPING",
+    connection_id="snowflake-prod"
+)
+```
+
+**5-Level Formula Precedence:**
+| Level | Object | Calculations |
+|-------|--------|--------------|
+| P1 | DT_3A | Base totals (Revenue, Taxes, Deducts, OpEx, CapEx) |
+| P2 | DT_3 | Combined totals (Taxes + Deducts) |
+| P3 | DT_3 | Gross Profit = Revenue - Taxes - Deducts |
+| P4 | DT_3 | Operating Income = Gross Profit - OpEx |
+| P5 | DT_3 | Cash Flow = Operating Income - CapEx |
 
 ## 📋 Available Templates (20 Templates)
 
