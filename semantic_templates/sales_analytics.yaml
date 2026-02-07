@@ -1,0 +1,154 @@
+name: sales_analytics
+description: Standard sales analytics model for revenue and order analysis
+
+tables:
+  - name: sales
+    description: Sales transactions fact table
+    base_table:
+      database: "{{DATABASE}}"
+      schema: "{{SCHEMA}}"
+      table: SALES_FACT
+
+    dimensions:
+      - name: region
+        synonyms: ["area", "territory", "geography"]
+        description: Sales region or territory
+        expr: REGION_NAME
+        data_type: VARCHAR
+
+      - name: product_category
+        synonyms: ["category", "product type", "product group"]
+        description: Product category classification
+        expr: PRODUCT_CATEGORY
+        data_type: VARCHAR
+
+      - name: customer_segment
+        synonyms: ["segment", "customer type"]
+        description: Customer segment classification
+        expr: CUSTOMER_SEGMENT
+        data_type: VARCHAR
+
+      - name: sales_channel
+        synonyms: ["channel", "source"]
+        description: Sales channel (online, retail, wholesale)
+        expr: SALES_CHANNEL
+        data_type: VARCHAR
+
+    time_dimensions:
+      - name: order_date
+        synonyms: ["date", "sale date", "transaction date"]
+        description: Date of the order
+        expr: ORDER_DATE
+        data_type: DATE
+
+      - name: ship_date
+        synonyms: ["shipped date", "delivery date"]
+        description: Date order was shipped
+        expr: SHIP_DATE
+        data_type: DATE
+
+    metrics:
+      - name: total_revenue
+        synonyms: ["revenue", "sales", "total sales"]
+        description: Total revenue amount
+        expr: SUM(REVENUE)
+        data_type: NUMBER
+
+      - name: order_count
+        synonyms: ["orders", "number of orders", "transactions"]
+        description: Count of orders
+        expr: COUNT(DISTINCT ORDER_ID)
+        data_type: NUMBER
+
+      - name: units_sold
+        synonyms: ["quantity", "units", "volume"]
+        description: Total units sold
+        expr: SUM(QUANTITY)
+        data_type: NUMBER
+
+      - name: average_order_value
+        synonyms: ["AOV", "avg order"]
+        description: Average revenue per order
+        expr: AVG(REVENUE)
+        data_type: NUMBER
+
+      - name: gross_profit
+        synonyms: ["profit", "margin"]
+        description: Gross profit (revenue - cost)
+        expr: SUM(REVENUE - COST)
+        data_type: NUMBER
+
+  - name: customers
+    description: Customer dimension table
+    base_table:
+      database: "{{DATABASE}}"
+      schema: "{{SCHEMA}}"
+      table: DIM_CUSTOMER
+
+    dimensions:
+      - name: customer_name
+        synonyms: ["customer", "name", "account name"]
+        description: Customer name
+        expr: CUSTOMER_NAME
+        data_type: VARCHAR
+
+      - name: customer_tier
+        synonyms: ["tier", "level", "status"]
+        description: Customer tier classification
+        expr: CUSTOMER_TIER
+        data_type: VARCHAR
+
+      - name: country
+        synonyms: ["nation", "location"]
+        description: Customer country
+        expr: COUNTRY
+        data_type: VARCHAR
+
+      - name: industry
+        synonyms: ["sector", "vertical"]
+        description: Customer industry
+        expr: INDUSTRY
+        data_type: VARCHAR
+
+  - name: products
+    description: Product dimension table
+    base_table:
+      database: "{{DATABASE}}"
+      schema: "{{SCHEMA}}"
+      table: DIM_PRODUCT
+
+    dimensions:
+      - name: product_name
+        synonyms: ["product", "item", "sku name"]
+        description: Product name
+        expr: PRODUCT_NAME
+        data_type: VARCHAR
+
+      - name: brand
+        synonyms: ["manufacturer", "vendor"]
+        description: Product brand
+        expr: BRAND
+        data_type: VARCHAR
+
+      - name: product_line
+        synonyms: ["line", "family"]
+        description: Product line
+        expr: PRODUCT_LINE
+        data_type: VARCHAR
+
+relationships:
+  - left_table: sales
+    right_table: customers
+    join_type: left_outer
+    relationship_type: many_to_one
+    columns:
+      - left_column: CUSTOMER_ID
+        right_column: CUSTOMER_ID
+
+  - left_table: sales
+    right_table: products
+    join_type: left_outer
+    relationship_type: many_to_one
+    columns:
+      - left_column: PRODUCT_ID
+        right_column: PRODUCT_ID

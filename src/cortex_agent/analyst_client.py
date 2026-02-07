@@ -5,13 +5,18 @@ This client communicates with the Cortex Analyst API to translate
 natural language questions into SQL using semantic models.
 
 API Endpoint: POST /api/v2/cortex/analyst/message
+
+Authentication Methods:
+1. OAuth token (preferred for production)
+2. Key-pair authentication (JWT)
+3. Session token from existing connection
 """
 
 import json
 import logging
 import time
 import uuid
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import requests
 
@@ -28,6 +33,140 @@ from .analyst_types import (
 logger = logging.getLogger(__name__)
 
 
+class SnowflakeAuth:
+    """Authentication helper for Snowflake REST API."""
+
+    def __init__(
+        self,
+        account: str,
+        user: Optional[str] = None,
+        password: Optional[str] = None,
+        private_key_path: Optional[str] = None,
+        oauth_token: Optional[str] = None,
+        session_token: Optional[str] = None,
+    ):
+        """
+        Initialize authentication.
+
+        Supports multiple auth methods (in priority order):
+        1. oauth_token - Pre-obtained OAuth token
+        2. session_token - Session token from existing connection
+        3. private_key_path - Key-pair auth (JWT)
+        4. user/password - Basic auth (not recommended for production)
+        """
+        self.account = account
+        self.user = user
+        self.password = password
+        self.private_key_path = private_key_path
+        self.oauth_token = oauth_token
+        self.session_token = session_token
+        self._cached_token: Optional[str] = None
+        self._token_expiry: Optional[float] = None
+
+    def get_token(self) -> str:
+        """Get a valid authentication token."""
+        # Check cache first
+        if self._cached_token and self._token_expiry:
+            if time.time() < self._token_expiry - 60:  # 60s buffer
+                return self._cached_token
+
+        # Try auth methods in priority order
+        if self.oauth_token:
+            self._cached_token = self.oauth_token
+            self._token_expiry = time.time() + 3600  # Assume 1hr validity
+            return self._cached_token
+
+        if self.session_token:
+            self._cached_token = self.session_token
+            self._token_expiry = time.time() + 3600
+            return self._cached_token
+
+        if self.private_key_path:
+            return self._get_jwt_token()
+
+        if self.user and self.password:
+            return self._get_session_token()
+
+        raise ValueError("No valid authentication method configured")
+
+    def _get_jwt_token(self) -> str:
+        """Generate JWT token from private key."""
+        try:
+            import jwt
+            from cryptography.hazmat.backends import default_backend
+            from cryptography.hazmat.primitives import serialization
+
+            # Load private key
+            with open(self.private_key_path, "rb") as key_file:
+                private_key = serialization.load_pem_private_key(
+                    key_file.read(),
+                    password=None,
+                    backend=default_backend(),
+                )
+
+            # Generate JWT
+            now = int(time.time())
+            account_upper = self.account.upper().split(".")[0]
+            user_upper = self.user.upper() if self.user else ""
+
+            payload = {
+                "iss": f"{account_upper}.{user_upper}.SHA256:{self._get_public_key_fp(private_key)}",
+                "sub": f"{account_upper}.{user_upper}",
+                "iat": now,
+                "exp": now + 3600,
+            }
+
+            token = jwt.encode(payload, private_key, algorithm="RS256")
+            self._cached_token = token
+            self._token_expiry = now + 3600
+            return token
+
+        except ImportError:
+            raise ValueError("PyJWT and cryptography required for key-pair auth")
+        except Exception as e:
+            raise ValueError(f"Failed to generate JWT: {e}")
+
+    def _get_public_key_fp(self, private_key) -> str:
+        """Get SHA256 fingerprint of public key."""
+        import hashlib
+        from cryptography.hazmat.primitives import serialization
+
+        public_key = private_key.public_key()
+        public_key_bytes = public_key.public_bytes(
+            encoding=serialization.Encoding.DER,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        return hashlib.sha256(public_key_bytes).hexdigest()
+
+    def _get_session_token(self) -> str:
+        """Get session token via username/password login."""
+        url = f"https://{self.account}.snowflakecomputing.com/session/v1/login-request"
+
+        payload = {
+            "data": {
+                "ACCOUNT_NAME": self.account,
+                "LOGIN_NAME": self.user,
+                "PASSWORD": self.password,
+            }
+        }
+
+        try:
+            response = requests.post(url, json=payload, timeout=30)
+            response.raise_for_status()
+            data = response.json()
+
+            if data.get("success"):
+                token = data.get("data", {}).get("token")
+                self._cached_token = token
+                self._token_expiry = time.time() + 3600
+                return token
+            else:
+                raise ValueError(f"Login failed: {data.get('message')}")
+
+        except requests.exceptions.RequestException as e:
+            raise ValueError(f"Failed to authenticate: {e}")
+
+
 class AnalystClient:
     """REST API client for Snowflake Cortex Analyst."""
 
@@ -36,7 +175,8 @@ class AnalystClient:
     def __init__(
         self,
         account: str,
-        token_func: Callable[[], str],
+        token_func: Optional[Callable[[], str]] = None,
+        auth: Optional[SnowflakeAuth] = None,
         timeout: int = 60,
     ):
         """
@@ -44,14 +184,62 @@ class AnalystClient:
 
         Args:
             account: Snowflake account identifier (e.g., "xy12345.us-east-1")
-            token_func: Function that returns a valid auth token
+            token_func: Function that returns a valid auth token (legacy)
+            auth: SnowflakeAuth instance for authentication
             timeout: Request timeout in seconds
         """
         self.account = account
-        self.token_func = token_func
         self.timeout = timeout
         self.base_url = f"https://{account}.snowflakecomputing.com"
         self._conversations: Dict[str, AnalystConversation] = {}
+
+        # Set up authentication
+        if auth:
+            self._auth = auth
+            self.token_func = auth.get_token
+        elif token_func:
+            self._auth = None
+            self.token_func = token_func
+        else:
+            # Create a placeholder that returns empty string
+            self._auth = None
+            self.token_func = lambda: ""
+
+    @classmethod
+    def from_connection(
+        cls,
+        connection_config: Dict[str, Any],
+        timeout: int = 60,
+    ) -> "AnalystClient":
+        """
+        Create an AnalystClient from a DataBridge connection config.
+
+        Args:
+            connection_config: Connection configuration dict with:
+                - account: Snowflake account
+                - user: Username
+                - password: Password (optional)
+                - private_key_path: Path to private key (optional)
+                - oauth_token: OAuth token (optional)
+            timeout: Request timeout
+
+        Returns:
+            Configured AnalystClient
+        """
+        account = connection_config.get("account", "")
+        if not account:
+            raise ValueError("Account is required")
+
+        auth = SnowflakeAuth(
+            account=account,
+            user=connection_config.get("user"),
+            password=connection_config.get("password"),
+            private_key_path=connection_config.get("private_key_path"),
+            oauth_token=connection_config.get("oauth_token"),
+            session_token=connection_config.get("session_token"),
+        )
+
+        return cls(account=account, auth=auth, timeout=timeout)
 
     def ask(
         self,

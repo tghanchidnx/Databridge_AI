@@ -585,6 +585,103 @@ def register_analyst_tools(mcp, settings):
             return {"error": f"Generation failed: {e}"}
 
     @mcp.tool()
+    def generate_model_from_schema(
+        connection_id: str,
+        database: str,
+        schema_name: str,
+        tables: Optional[str] = None,
+        model_name: Optional[str] = None,
+        include_sample_values: bool = False,
+        deploy_to_stage: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Auto-generate a semantic model from Snowflake schema metadata.
+
+        Scans tables and intelligently maps column types:
+        - VARCHAR/TEXT -> Dimensions
+        - DATE/TIMESTAMP -> Time Dimensions
+        - NUMBER/FLOAT -> Facts (potential metrics)
+        - Columns ending in _ID -> Join keys
+
+        Also auto-detects relationships based on naming conventions.
+
+        Args:
+            connection_id: Snowflake connection ID
+            database: Database name to scan
+            schema_name: Schema name to scan
+            tables: Optional comma-separated table names (defaults to all)
+            model_name: Optional model name (defaults to schema name)
+            include_sample_values: Fetch sample values for dimensions
+            deploy_to_stage: Optional stage path to deploy immediately
+
+        Returns:
+            Generated model summary
+
+        Example:
+            generate_model_from_schema(
+                connection_id="snowflake-prod",
+                database="ANALYTICS",
+                schema_name="PUBLIC",
+                tables="SALES_FACT,DIM_CUSTOMER,DIM_PRODUCT",
+                model_name="sales_model"
+            )
+        """
+        try:
+            manager = _ensure_model_manager(settings)
+
+            # Parse tables list
+            table_list = None
+            if tables:
+                table_list = [t.strip() for t in tables.split(",")]
+
+            model = manager.from_snowflake_schema(
+                connection_id=connection_id,
+                database=database,
+                schema_name=schema_name,
+                tables=table_list,
+                model_name=model_name,
+                include_sample_values=include_sample_values,
+            )
+
+            result = {
+                "status": "generated",
+                "model": {
+                    "name": model.name,
+                    "description": model.description,
+                    "tables": len(model.tables),
+                    "relationships": len(model.relationships),
+                },
+                "source": {
+                    "database": database,
+                    "schema": schema_name,
+                    "tables_scanned": table_list or "all",
+                },
+                "summary": {
+                    "total_dimensions": sum(len(t.dimensions) for t in model.tables),
+                    "total_time_dimensions": sum(len(t.time_dimensions) for t in model.tables),
+                    "total_facts": sum(len(t.facts) for t in model.tables),
+                    "total_metrics": sum(len(t.metrics) for t in model.tables),
+                },
+            }
+
+            # Deploy if requested
+            if deploy_to_stage:
+                deploy_result = manager.deploy_to_stage(
+                    model_name=model.name,
+                    stage_path=deploy_to_stage,
+                    connection_id=connection_id,
+                )
+                result["deployment"] = deploy_result
+
+            return result
+
+        except ValueError as e:
+            return {"error": str(e)}
+        except Exception as e:
+            logger.error(f"Failed to generate model from schema: {e}")
+            return {"error": f"Generation failed: {e}"}
+
+    @mcp.tool()
     def generate_model_from_faux(
         faux_project_id: str,
         model_name: Optional[str] = None,
@@ -715,9 +812,208 @@ def register_analyst_tools(mcp, settings):
             logger.error(f"Validation failed: {e}")
             return {"error": f"Validation failed: {e}"}
 
-    logger.info("Registered 10 Cortex Analyst MCP tools")
+    # =========================================================================
+    # Template Tools (2)
+    # =========================================================================
+
+    @mcp.tool()
+    def list_semantic_templates(
+        domain: Optional[str] = None,
+        industry: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        List available semantic model templates.
+
+        Templates provide pre-built semantic models for common use cases
+        like sales analytics, financial reporting, and industry-specific models.
+
+        Args:
+            domain: Optional filter by domain (sales, finance, operations, marketing)
+            industry: Optional filter by industry (general, retail, oil_gas, etc.)
+
+        Returns:
+            List of available templates with metadata
+
+        Example:
+            list_semantic_templates(domain="finance")
+            list_semantic_templates(industry="oil_gas")
+        """
+        try:
+            templates_dir = Path("semantic_templates")
+            index_file = templates_dir / "index.json"
+
+            if not index_file.exists():
+                return {
+                    "templates": [],
+                    "message": "No templates directory found",
+                }
+
+            with open(index_file, "r") as f:
+                index = json.load(f)
+
+            templates = index.get("templates", [])
+
+            # Apply filters
+            if domain:
+                templates = [t for t in templates if t.get("domain") == domain]
+            if industry:
+                templates = [t for t in templates if t.get("industry") == industry]
+
+            return {
+                "count": len(templates),
+                "templates": templates,
+                "filters_applied": {
+                    "domain": domain,
+                    "industry": industry,
+                },
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to list templates: {e}")
+            return {"error": str(e)}
+
+    @mcp.tool()
+    def create_model_from_template(
+        template_id: str,
+        model_name: str,
+        database: str,
+        schema_name: str,
+        deploy_to_stage: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Create a semantic model from a template.
+
+        Loads a pre-built template and customizes it with your database/schema.
+        Templates include standard dimensions, metrics, and relationships.
+
+        Args:
+            template_id: Template ID (from list_semantic_templates)
+            model_name: Name for the new model
+            database: Target database name
+            schema_name: Target schema name
+            deploy_to_stage: Optional stage path to deploy immediately
+
+        Returns:
+            Created model configuration
+
+        Example:
+            create_model_from_template(
+                template_id="sales_analytics",
+                model_name="my_sales_model",
+                database="ANALYTICS",
+                schema_name="PUBLIC"
+            )
+        """
+        try:
+            import yaml
+
+            templates_dir = Path("semantic_templates")
+            index_file = templates_dir / "index.json"
+
+            if not index_file.exists():
+                return {"error": "Templates directory not found"}
+
+            with open(index_file, "r") as f:
+                index = json.load(f)
+
+            # Find template
+            template_info = None
+            for t in index.get("templates", []):
+                if t.get("id") == template_id:
+                    template_info = t
+                    break
+
+            if not template_info:
+                return {
+                    "error": f"Template '{template_id}' not found",
+                    "available": [t["id"] for t in index.get("templates", [])],
+                }
+
+            # Load template YAML
+            template_file = templates_dir / template_info["file"]
+            if not template_file.exists():
+                return {"error": f"Template file not found: {template_info['file']}"}
+
+            with open(template_file, "r") as f:
+                template_content = f.read()
+
+            # Replace placeholders
+            template_content = template_content.replace("{{DATABASE}}", database)
+            template_content = template_content.replace("{{SCHEMA}}", schema_name)
+
+            template_data = yaml.safe_load(template_content)
+
+            # Create the model
+            manager = _ensure_model_manager(settings)
+
+            model = manager.create_model(
+                name=model_name,
+                description=template_data.get("description", template_info.get("description", "")),
+                database=database,
+                schema_name=schema_name,
+            )
+
+            # Add tables from template
+            for table_data in template_data.get("tables", []):
+                base_table = table_data.get("base_table", {})
+                manager.add_table(
+                    model_name=model_name,
+                    table_name=table_data["name"],
+                    description=table_data.get("description", ""),
+                    base_database=base_table.get("database", database),
+                    base_schema=base_table.get("schema", schema_name),
+                    base_table=base_table.get("table", table_data["name"].upper()),
+                    dimensions=table_data.get("dimensions", []),
+                    time_dimensions=table_data.get("time_dimensions", []),
+                    metrics=table_data.get("metrics", []),
+                    facts=table_data.get("facts", []),
+                )
+
+            # Add relationships from template
+            for rel_data in template_data.get("relationships", []):
+                try:
+                    manager.add_relationship(
+                        model_name=model_name,
+                        left_table=rel_data["left_table"],
+                        right_table=rel_data["right_table"],
+                        columns=rel_data.get("columns", []),
+                        join_type=rel_data.get("join_type", "left_outer"),
+                        relationship_type=rel_data.get("relationship_type", "many_to_one"),
+                    )
+                except ValueError:
+                    pass  # Skip if relationship tables don't exist
+
+            result = {
+                "status": "created",
+                "template_id": template_id,
+                "model": {
+                    "name": model_name,
+                    "tables": len(model.tables),
+                    "relationships": len(model.relationships),
+                },
+                "customization": {
+                    "database": database,
+                    "schema": schema_name,
+                },
+            }
+
+            # Deploy if requested
+            if deploy_to_stage:
+                deploy_result = manager.deploy_to_stage(
+                    model_name=model_name,
+                    stage_path=deploy_to_stage,
+                )
+                result["deployment"] = deploy_result
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Failed to create model from template: {e}")
+            return {"error": str(e)}
+
+    logger.info("Registered 13 Cortex Analyst MCP tools")
     return {
-        "tools_registered": 10,
+        "tools_registered": 13,
         "categories": {
             "model_management": [
                 "create_semantic_model",
@@ -732,7 +1028,12 @@ def register_analyst_tools(mcp, settings):
             ],
             "auto_generation": [
                 "generate_model_from_hierarchy",
+                "generate_model_from_schema",
                 "generate_model_from_faux",
+            ],
+            "templates": [
+                "list_semantic_templates",
+                "create_model_from_template",
             ],
             "utilities": [
                 "validate_semantic_model",

@@ -1,0 +1,139 @@
+name: financial_reporting
+description: Financial reporting model for GL-based analysis
+
+tables:
+  - name: gl_transactions
+    description: General ledger transactions
+    base_table:
+      database: "{{DATABASE}}"
+      schema: "{{SCHEMA}}"
+      table: GL_TRANSACTIONS
+
+    dimensions:
+      - name: account_code
+        synonyms: ["account", "gl code", "account number"]
+        description: General ledger account code
+        expr: ACCOUNT_CODE
+        data_type: VARCHAR
+
+      - name: account_name
+        synonyms: ["account description", "gl name"]
+        description: Account name/description
+        expr: ACCOUNT_NAME
+        data_type: VARCHAR
+
+      - name: account_type
+        synonyms: ["type", "category"]
+        description: Account type (Asset, Liability, Revenue, Expense)
+        expr: ACCOUNT_TYPE
+        data_type: VARCHAR
+
+      - name: cost_center
+        synonyms: ["cc", "department", "dept"]
+        description: Cost center
+        expr: COST_CENTER
+        data_type: VARCHAR
+
+      - name: entity
+        synonyms: ["company", "legal entity", "business unit"]
+        description: Legal entity
+        expr: ENTITY_CODE
+        data_type: VARCHAR
+
+      - name: project
+        synonyms: ["project code", "job"]
+        description: Project identifier
+        expr: PROJECT_CODE
+        data_type: VARCHAR
+
+    time_dimensions:
+      - name: posting_date
+        synonyms: ["date", "gl date", "transaction date"]
+        description: Transaction posting date
+        expr: POSTING_DATE
+        data_type: DATE
+
+      - name: fiscal_period
+        synonyms: ["period", "month"]
+        description: Fiscal period (YYYY-MM)
+        expr: FISCAL_PERIOD
+        data_type: VARCHAR
+
+      - name: fiscal_year
+        synonyms: ["year", "fy"]
+        description: Fiscal year
+        expr: FISCAL_YEAR
+        data_type: VARCHAR
+
+    metrics:
+      - name: debit_amount
+        synonyms: ["debits", "dr"]
+        description: Total debit amount
+        expr: SUM(DEBIT_AMOUNT)
+        data_type: NUMBER
+
+      - name: credit_amount
+        synonyms: ["credits", "cr"]
+        description: Total credit amount
+        expr: SUM(CREDIT_AMOUNT)
+        data_type: NUMBER
+
+      - name: net_amount
+        synonyms: ["net", "balance", "amount"]
+        description: Net amount (debit - credit)
+        expr: SUM(DEBIT_AMOUNT - CREDIT_AMOUNT)
+        data_type: NUMBER
+
+      - name: transaction_count
+        synonyms: ["count", "entries", "journal entries"]
+        description: Number of transactions
+        expr: COUNT(*)
+        data_type: NUMBER
+
+  - name: accounts
+    description: Chart of accounts dimension
+    base_table:
+      database: "{{DATABASE}}"
+      schema: "{{SCHEMA}}"
+      table: DIM_ACCOUNT
+
+    dimensions:
+      - name: account_code
+        synonyms: ["account", "code"]
+        description: Account code
+        expr: ACCOUNT_CODE
+        data_type: VARCHAR
+        unique: true
+
+      - name: account_name
+        synonyms: ["name", "description"]
+        description: Account name
+        expr: ACCOUNT_NAME
+        data_type: VARCHAR
+
+      - name: account_category
+        synonyms: ["category", "classification"]
+        description: Account category (P&L hierarchy level 1)
+        expr: ACCOUNT_CATEGORY
+        data_type: VARCHAR
+
+      - name: account_subcategory
+        synonyms: ["subcategory", "sub-classification"]
+        description: Account subcategory (P&L hierarchy level 2)
+        expr: ACCOUNT_SUBCATEGORY
+        data_type: VARCHAR
+
+      - name: is_balance_sheet
+        synonyms: ["bs", "balance sheet"]
+        description: Is this a balance sheet account
+        expr: IS_BALANCE_SHEET
+        data_type: BOOLEAN
+
+relationships:
+  - left_table: gl_transactions
+    right_table: accounts
+    join_type: left_outer
+    relationship_type: many_to_one
+    columns:
+      - left_column: ACCOUNT_CODE
+        right_column: ACCOUNT_CODE

@@ -1,7 +1,7 @@
 # DataBridge AI: Project Configuration & Rules
 
 ## 🎯 Purpose
-A headless, MCP-native data reconciliation engine with **173 MCP tools** across eleven major modules:
+A headless, MCP-native data reconciliation engine with **204 MCP tools** across twelve major modules:
 
 1. **Data Reconciliation Engine** - Bridges messy sources (OCR/PDF/SQL) with structured comparison pipelines
 2. **Hierarchy Knowledge Base Builder** - Creates and manages hierarchical data structures for reporting systems
@@ -14,8 +14,9 @@ A headless, MCP-native data reconciliation engine with **173 MCP tools** across 
 9. **Diff Utilities** - Character-level text/data comparison using Python's difflib for AI agents
 10. **Unified AI Agent** - Cross-system operations between Book (Python), Librarian (NestJS), and Researcher (NestJS)
 11. **Cortex Agent** - Snowflake Cortex AI integration with orchestrated reasoning loop
+12. **Cortex Analyst** - Natural language to SQL translation via semantic models
 
-## 🔧 Available Tool Categories (173 Tools)
+## 🔧 Available Tool Categories (204 Tools)
 
 ### File Discovery & Staging (3 tools)
 Tools for finding and staging files when paths are unknown or files are in inconvenient locations.
@@ -535,6 +536,147 @@ get_cortex_console_log(limit=20)
 **PlannerAgent Integration:**
 The `cortex_agent` is registered in PlannerAgent and can be selected for AI-powered data tasks:
 - **Capabilities:** complete, summarize, sentiment, translate, extract_answer, reason, analyze_data, clean_data
+
+### Cortex Analyst (13 tools)
+Natural language to SQL translation using semantic models. Cortex Analyst understands business context through semantic models that define tables, dimensions, and metrics.
+
+**Semantic Model Management (4):**
+- **`create_semantic_model`** - Create a new semantic model configuration
+- **`add_semantic_table`** - Add a logical table with dimensions/metrics
+- **`deploy_semantic_model`** - Deploy model YAML to Snowflake stage
+- **`list_semantic_models`** - List configured semantic models
+
+**Natural Language Queries (3):**
+- **`analyst_ask`** - Ask question, get SQL + explanation
+- **`analyst_ask_and_run`** - Ask question, execute SQL, return results
+- **`analyst_conversation`** - Multi-turn conversation with context
+
+**Auto-Generation (3):**
+- **`generate_model_from_hierarchy`** - Auto-generate from DataBridge hierarchy
+- **`generate_model_from_schema`** - Auto-generate from Snowflake schema (scans columns, detects types)
+- **`generate_model_from_faux`** - Auto-generate from Faux Objects project
+
+**Templates (2):**
+- **`list_semantic_templates`** - List available semantic model templates
+- **`create_model_from_template`** - Create model from pre-built template
+
+**Utilities (1):**
+- **`validate_semantic_model`** - Validate model against database
+
+**Architecture:**
+```
+User: "What was total revenue by region last quarter?"
+                    ↓
+┌─────────────────────────────────────────────────────────────────┐
+│                    Cortex Analyst Module                        │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │           SemanticModelManager                          │   │
+│  │  - Create/edit/deploy semantic models (YAML)            │   │
+│  │  - Auto-generate from hierarchies or schemas            │   │
+│  │  - Store models on Snowflake stages                     │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                           ↓                                     │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │           AnalystClient (REST API)                       │   │
+│  │  POST /api/v2/cortex/analyst/message                    │   │
+│  │  - Send natural language questions                       │   │
+│  │  - Receive SQL + explanation                            │   │
+│  │  - Multi-turn conversations                             │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                           ↓                                     │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │           QueryExecutor                                  │   │
+│  │  - Execute generated SQL via connection                  │   │
+│  │  - Return formatted results                             │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+                    ↓
+        SQL Result + Explanation
+```
+
+**Example - Create and Use Semantic Model:**
+```python
+# 1. Create a semantic model
+create_semantic_model(
+    name="sales_analytics",
+    description="Sales data for revenue analysis",
+    database="ANALYTICS",
+    schema_name="PUBLIC"
+)
+
+# 2. Add a table with dimensions and metrics
+add_semantic_table(
+    model_name="sales_analytics",
+    table_name="sales",
+    base_table="ANALYTICS.PUBLIC.SALES_FACT",
+    dimensions='[{"name": "region", "expr": "REGION_NAME", "description": "Sales region", "data_type": "VARCHAR"}]',
+    metrics='[{"name": "revenue", "expr": "SUM(AMOUNT)", "description": "Total revenue", "data_type": "NUMBER"}]'
+)
+
+# 3. Deploy to Snowflake stage
+deploy_semantic_model(
+    model_name="sales_analytics",
+    stage_path="@ANALYTICS.PUBLIC.MODELS/sales.yaml"
+)
+
+# 4. Ask questions in natural language
+analyst_ask(
+    question="What was total revenue by region last quarter?",
+    semantic_model_file="@ANALYTICS.PUBLIC.MODELS/sales.yaml"
+)
+
+# 5. Ask and execute in one step
+analyst_ask_and_run(
+    question="Show top 5 regions by revenue",
+    semantic_model_file="@ANALYTICS.PUBLIC.MODELS/sales.yaml",
+    connection_id="snowflake-prod"
+)
+```
+
+**Semantic Model YAML Format:**
+```yaml
+name: sales_analytics
+description: Sales data for revenue analysis
+
+tables:
+  - name: sales
+    description: Sales transactions
+    base_table:
+      database: ANALYTICS
+      schema: PUBLIC
+      table: SALES_FACT
+
+    dimensions:
+      - name: region
+        synonyms: ["area", "territory"]
+        description: Sales region
+        expr: REGION_NAME
+        data_type: VARCHAR
+
+    time_dimensions:
+      - name: sale_date
+        synonyms: ["date"]
+        description: Date of sale
+        expr: SALE_DATE
+        data_type: DATE
+
+    metrics:
+      - name: total_revenue
+        synonyms: ["revenue", "sales"]
+        description: Total revenue
+        expr: SUM(AMOUNT)
+        data_type: NUMBER
+```
+
+**Auto-Generation from Hierarchy:**
+```python
+# Convert a DataBridge hierarchy project to semantic model
+generate_model_from_hierarchy(
+    project_id="revenue-pl",
+    model_name="revenue_semantic",
+    deploy_to_stage="@ANALYTICS.PUBLIC.MODELS/revenue.yaml"
+)
+```
 
 ## 📋 Available Templates (20 Templates)
 

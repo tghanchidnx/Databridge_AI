@@ -683,7 +683,7 @@ class TestAnalystMCPTools:
 
         result = register_analyst_tools(mock_mcp, mock_settings)
 
-        assert result["tools_registered"] == 10
+        assert result["tools_registered"] == 13
         assert "model_management" in result["categories"]
         assert "natural_language" in result["categories"]
 

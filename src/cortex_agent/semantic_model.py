@@ -584,6 +584,253 @@ class SemanticModelManager:
         self._save()
         return model
 
+    def from_snowflake_schema(
+        self,
+        connection_id: str,
+        database: str,
+        schema_name: str,
+        tables: Optional[List[str]] = None,
+        model_name: Optional[str] = None,
+        include_sample_values: bool = False,
+        sample_limit: int = 5,
+    ) -> SemanticModelConfig:
+        """
+        Auto-generate a semantic model from Snowflake schema metadata.
+
+        Scans table columns and intelligently maps:
+        - VARCHAR/TEXT columns -> Dimensions
+        - DATE/TIMESTAMP columns -> Time Dimensions
+        - NUMBER/FLOAT/INTEGER columns -> Facts (potential metrics)
+        - Columns ending in _ID -> Potential join keys
+
+        Args:
+            connection_id: Snowflake connection ID
+            database: Database name
+            schema_name: Schema name
+            tables: Optional list of table names (defaults to all tables)
+            model_name: Optional model name (defaults to schema name)
+            include_sample_values: Fetch sample values for dimensions
+            sample_limit: Number of sample values to fetch
+
+        Returns:
+            Generated SemanticModelConfig
+        """
+        if not self.query_func:
+            raise ValueError("Query function required for schema scanning")
+
+        model_name = model_name or self._slugify(f"{database}_{schema_name}")
+
+        # Create the model
+        model = self.create_model(
+            name=model_name,
+            description=f"Auto-generated from {database}.{schema_name}",
+            database=database,
+            schema_name=schema_name,
+        )
+
+        # Get list of tables if not provided
+        if not tables:
+            tables_query = f"""
+            SELECT TABLE_NAME
+            FROM {database}.INFORMATION_SCHEMA.TABLES
+            WHERE TABLE_SCHEMA = '{schema_name}'
+            AND TABLE_TYPE = 'BASE TABLE'
+            ORDER BY TABLE_NAME
+            """
+            try:
+                result = self.query_func(connection_id, tables_query)
+                tables = [row.get("TABLE_NAME", row.get("table_name", "")) for row in result]
+            except Exception as e:
+                logger.error(f"Failed to get tables: {e}")
+                raise ValueError(f"Failed to query tables: {e}")
+
+        # Process each table
+        for table_name in tables:
+            # Get column metadata
+            columns_query = f"""
+            SELECT
+                COLUMN_NAME,
+                DATA_TYPE,
+                IS_NULLABLE,
+                CHARACTER_MAXIMUM_LENGTH,
+                NUMERIC_PRECISION,
+                NUMERIC_SCALE,
+                COLUMN_DEFAULT
+            FROM {database}.INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA = '{schema_name}'
+            AND TABLE_NAME = '{table_name}'
+            ORDER BY ORDINAL_POSITION
+            """
+
+            try:
+                columns = self.query_func(connection_id, columns_query)
+            except Exception as e:
+                logger.warning(f"Failed to get columns for {table_name}: {e}")
+                continue
+
+            dimensions = []
+            time_dimensions = []
+            facts = []
+            primary_key = None
+
+            for col in columns:
+                col_name = col.get("COLUMN_NAME", col.get("column_name", ""))
+                data_type = col.get("DATA_TYPE", col.get("data_type", "")).upper()
+
+                # Skip internal columns
+                if col_name.startswith("_") or col_name.upper() in ("METADATA$", "ROW_NUMBER"):
+                    continue
+
+                # Detect primary key candidates
+                if col_name.upper() == "ID" or col_name.upper().endswith("_ID"):
+                    if col_name.upper() == "ID" and not primary_key:
+                        primary_key = col_name
+
+                # Categorize by data type
+                if data_type in ("DATE", "DATETIME", "TIMESTAMP", "TIMESTAMP_NTZ", "TIMESTAMP_LTZ", "TIMESTAMP_TZ"):
+                    time_dimensions.append({
+                        "name": self._slugify(col_name),
+                        "synonyms": self._generate_synonyms(col_name),
+                        "description": f"Date/time column: {col_name}",
+                        "expr": col_name,
+                        "data_type": "DATE" if data_type == "DATE" else "TIMESTAMP",
+                    })
+
+                elif data_type in ("VARCHAR", "TEXT", "STRING", "CHAR", "NVARCHAR"):
+                    dim = {
+                        "name": self._slugify(col_name),
+                        "synonyms": self._generate_synonyms(col_name),
+                        "description": f"Dimension: {col_name}",
+                        "expr": col_name,
+                        "data_type": "VARCHAR",
+                    }
+
+                    # Fetch sample values if requested
+                    if include_sample_values:
+                        try:
+                            sample_query = f"""
+                            SELECT DISTINCT {col_name}
+                            FROM {database}.{schema_name}.{table_name}
+                            WHERE {col_name} IS NOT NULL
+                            LIMIT {sample_limit}
+                            """
+                            samples = self.query_func(connection_id, sample_query)
+                            dim["sample_values"] = [
+                                str(s.get(col_name, s.get(col_name.lower(), "")))
+                                for s in samples
+                            ]
+                        except Exception:
+                            pass
+
+                    dimensions.append(dim)
+
+                elif data_type in ("NUMBER", "NUMERIC", "DECIMAL", "FLOAT", "DOUBLE", "REAL", "INTEGER", "INT", "BIGINT", "SMALLINT"):
+                    # ID columns are dimensions, not facts
+                    if col_name.upper().endswith("_ID") or col_name.upper() == "ID":
+                        dimensions.append({
+                            "name": self._slugify(col_name),
+                            "description": f"ID column: {col_name}",
+                            "expr": col_name,
+                            "data_type": "NUMBER",
+                            "unique": col_name.upper() == "ID",
+                        })
+                    else:
+                        facts.append({
+                            "name": self._slugify(col_name),
+                            "synonyms": self._generate_synonyms(col_name),
+                            "description": f"Numeric column: {col_name}",
+                            "expr": col_name,
+                            "data_type": "NUMBER",
+                        })
+
+                elif data_type in ("BOOLEAN", "BOOL"):
+                    dimensions.append({
+                        "name": self._slugify(col_name),
+                        "description": f"Boolean flag: {col_name}",
+                        "expr": col_name,
+                        "data_type": "BOOLEAN",
+                    })
+
+            # Add the table to the model
+            if dimensions or time_dimensions or facts:
+                try:
+                    self.add_table(
+                        model_name=model_name,
+                        table_name=self._slugify(table_name),
+                        description=f"Table: {table_name}",
+                        base_database=database,
+                        base_schema=schema_name,
+                        base_table=table_name,
+                        dimensions=dimensions,
+                        time_dimensions=time_dimensions,
+                        facts=facts,
+                        primary_key=primary_key,
+                    )
+                except ValueError:
+                    pass  # Table already exists
+
+        # Try to detect relationships based on _ID columns
+        self._detect_relationships(model_name)
+
+        self._save()
+        return self._models[model_name]
+
+    def _generate_synonyms(self, column_name: str) -> List[str]:
+        """Generate synonyms for a column name."""
+        synonyms = []
+        # Remove common prefixes/suffixes
+        clean_name = column_name.lower()
+        for prefix in ("dim_", "fact_", "fk_", "pk_"):
+            if clean_name.startswith(prefix):
+                clean_name = clean_name[len(prefix):]
+        for suffix in ("_id", "_key", "_code", "_num", "_date", "_dt"):
+            if clean_name.endswith(suffix):
+                synonyms.append(clean_name[:-len(suffix)])
+
+        # Convert underscores to spaces
+        if "_" in clean_name:
+            synonyms.append(clean_name.replace("_", " "))
+
+        return synonyms[:3]  # Limit to 3 synonyms
+
+    def _detect_relationships(self, model_name: str) -> None:
+        """Auto-detect relationships based on ID column naming conventions."""
+        model = self._models.get(model_name)
+        if not model or len(model.tables) < 2:
+            return
+
+        # Build a map of table names to their ID columns
+        table_ids = {}
+        for table in model.tables:
+            for dim in table.dimensions:
+                if dim.name.endswith("_id") or dim.name == "id":
+                    table_ids.setdefault(table.name, []).append(dim.name)
+
+        # Look for FK relationships (table_a has table_b_id -> relates to table_b)
+        for table in model.tables:
+            for dim in table.dimensions:
+                if dim.name.endswith("_id") and dim.name != "id":
+                    # Extract potential related table name
+                    related_name = dim.name[:-3]  # Remove "_id"
+
+                    # Check if there's a matching table
+                    for other_table in model.tables:
+                        if other_table.name == related_name or other_table.name == f"{related_name}s":
+                            # Check if the related table has an "id" column
+                            has_id = any(d.name == "id" for d in other_table.dimensions)
+                            if has_id:
+                                try:
+                                    self.add_relationship(
+                                        model_name=model_name,
+                                        left_table=table.name,
+                                        right_table=other_table.name,
+                                        columns=[{"left_column": dim.expr, "right_column": "ID"}],
+                                        join_type="left_outer",
+                                        relationship_type="many_to_one",
+                                    )
+                                except ValueError:
+                                    pass  # Relationship already exists
+
     # =========================================================================
     # Validation
     # =========================================================================

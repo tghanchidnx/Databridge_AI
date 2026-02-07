@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "description": "Semantic model templates for Cortex Analyst",
+  "templates": [
+    {
+      "id": "sales_analytics",
+      "name": "Sales Analytics",
+      "description": "Standard sales analytics model with revenue, orders, and customer dimensions",
+      "domain": "sales",
+      "industry": "general",
+      "file": "sales_analytics.yaml"
+    },
+    {
+      "id": "financial_reporting",
+      "name": "Financial Reporting",
+      "description": "GL-based financial reporting with account hierarchies and period dimensions",
+      "domain": "finance",
+      "industry": "general",
+      "file": "financial_reporting.yaml"
+    },
+    {
+      "id": "inventory_management",
+      "name": "Inventory Management",
+      "description": "Inventory tracking with product, warehouse, and movement metrics",
+      "domain": "operations",
+      "industry": "retail",
+      "file": "inventory_management.yaml"
+    },
+    {
+      "id": "customer_360",
+      "name": "Customer 360",
+      "description": "Customer analytics with demographics, behavior, and lifetime value",
+      "domain": "marketing",
+      "industry": "general",
+      "file": "customer_360.yaml"
+    },
+    {
+      "id": "oil_gas_production",
+      "name": "Oil & Gas Production",
+      "description": "Upstream production analytics with well, field, and BOE metrics",
+      "domain": "operations",
+      "industry": "oil_gas",
+      "file": "oil_gas_production.yaml"
+    }
+  ]
+}

@@ -1,0 +1,164 @@
+name: oil_gas_production
+description: Upstream oil & gas production analytics
+
+tables:
+  - name: production
+    description: Daily production volumes by well
+    base_table:
+      database: "{{DATABASE}}"
+      schema: "{{SCHEMA}}"
+      table: DAILY_PRODUCTION
+
+    dimensions:
+      - name: well_name
+        synonyms: ["well", "wellbore"]
+        description: Well name/identifier
+        expr: WELL_NAME
+        data_type: VARCHAR
+
+      - name: field
+        synonyms: ["field name", "oil field"]
+        description: Field name
+        expr: FIELD_NAME
+        data_type: VARCHAR
+
+      - name: basin
+        synonyms: ["play", "formation"]
+        description: Basin/play
+        expr: BASIN
+        data_type: VARCHAR
+
+      - name: operator
+        synonyms: ["company", "operating company"]
+        description: Well operator
+        expr: OPERATOR
+        data_type: VARCHAR
+
+      - name: well_type
+        synonyms: ["type", "classification"]
+        description: Well type (oil, gas, injection)
+        expr: WELL_TYPE
+        data_type: VARCHAR
+
+      - name: well_status
+        synonyms: ["status", "state"]
+        description: Well operational status
+        expr: WELL_STATUS
+        data_type: VARCHAR
+
+    time_dimensions:
+      - name: production_date
+        synonyms: ["date", "prod date"]
+        description: Production date
+        expr: PRODUCTION_DATE
+        data_type: DATE
+
+      - name: first_production_date
+        synonyms: ["spud date", "online date"]
+        description: First production date
+        expr: FIRST_PRODUCTION_DATE
+        data_type: DATE
+
+    metrics:
+      - name: oil_volume
+        synonyms: ["oil", "oil production", "bbls"]
+        description: Oil production volume (barrels)
+        expr: SUM(OIL_BBL)
+        data_type: NUMBER
+
+      - name: gas_volume
+        synonyms: ["gas", "gas production", "mcf"]
+        description: Gas production volume (MCF)
+        expr: SUM(GAS_MCF)
+        data_type: NUMBER
+
+      - name: water_volume
+        synonyms: ["water", "water production"]
+        description: Water production volume (barrels)
+        expr: SUM(WATER_BBL)
+        data_type: NUMBER
+
+      - name: boe
+        synonyms: ["boe production", "barrel oil equivalent"]
+        description: Barrel of oil equivalent (oil + gas/6)
+        expr: SUM(OIL_BBL + GAS_MCF/6)
+        data_type: NUMBER
+
+      - name: gas_oil_ratio
+        synonyms: ["GOR", "gor"]
+        description: Gas to oil ratio
+        expr: SUM(GAS_MCF) / NULLIF(SUM(OIL_BBL), 0)
+        data_type: NUMBER
+
+      - name: water_cut
+        synonyms: ["water percentage"]
+        description: Water cut percentage
+        expr: SUM(WATER_BBL) / NULLIF(SUM(OIL_BBL + WATER_BBL), 0) * 100
+        data_type: NUMBER
+
+      - name: producing_days
+        synonyms: ["days online", "uptime"]
+        description: Number of producing days
+        expr: COUNT(DISTINCT CASE WHEN OIL_BBL > 0 OR GAS_MCF > 0 THEN PRODUCTION_DATE END)
+        data_type: NUMBER
+
+  - name: wells
+    description: Well master dimension
+    base_table:
+      database: "{{DATABASE}}"
+      schema: "{{SCHEMA}}"
+      table: DIM_WELL
+
+    dimensions:
+      - name: api_number
+        synonyms: ["api", "uwi"]
+        description: API/UWI number
+        expr: API_NUMBER
+        data_type: VARCHAR
+        unique: true
+
+      - name: well_name
+        synonyms: ["name"]
+        description: Well name
+        expr: WELL_NAME
+        data_type: VARCHAR
+
+      - name: lease
+        synonyms: ["lease name"]
+        description: Lease name
+        expr: LEASE_NAME
+        data_type: VARCHAR
+
+      - name: county
+        synonyms: ["location"]
+        description: County
+        expr: COUNTY
+        data_type: VARCHAR
+
+      - name: state
+        synonyms: ["state code"]
+        description: State
+        expr: STATE
+        data_type: VARCHAR
+
+    facts:
+      - name: lateral_length
+        synonyms: ["lateral", "length"]
+        description: Lateral length (feet)
+        expr: LATERAL_LENGTH_FT
+        data_type: NUMBER
+
+      - name: true_vertical_depth
+        synonyms: ["tvd", "depth"]
+        description: True vertical depth (feet)
+        expr: TVD_FT
+        data_type: NUMBER
+
+relationships:
+  - left_table: production
+    right_table: wells
+    join_type: left_outer
+    relationship_type: many_to_one
+    columns:
+      - left_column: WELL_ID
+        right_column: WELL_ID
