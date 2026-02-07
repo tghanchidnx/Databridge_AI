@@ -1,16 +1,17 @@
 # DataBridge AI - Tool Manifest
 
 > Auto-generated documentation for all MCP tools.
-> Last updated: 2026-02-06 22:00:22
+> Last updated: 2026-02-06 23:14:36
 
 ---
 
 ## Overview
 
-DataBridge AI provides **191 tools** across multiple categories:
+DataBridge AI provides **201 tools** across these categories:
 
 | Category | Tools |
 |----------|-------|
+| File Discovery | find_files, stage_file, get_working_directory |
 | Data Loading | load_csv, load_json, query_database |
 | Profiling | profile_data, detect_schema_drift |
 | Comparison | compare_hashes, get_orphan_details, get_conflict_details |
@@ -18,12 +19,19 @@ DataBridge AI provides **191 tools** across multiple categories:
 | PDF/OCR | extract_text_from_pdf, ocr_image, parse_table_from_text |
 | Workflow | save_workflow_step, get_workflow, clear_workflow, get_audit_log |
 | Transform | transform_column, merge_sources |
-| Hierarchy Builder | create_hierarchy_project, import_hierarchy_csv, export_hierarchy_csv, etc. |
-| Templates & Skills | list_financial_templates, get_skill_details, list_client_profiles, etc. |
-| Faux Objects | create_faux_project, add_faux_object, generate_faux_scripts, etc. |
-| SQL Translator | detect_sql_format, translate_sql_to_semantic_view, convert_sql_format |
-| AI Orchestrator | submit_orchestrated_task, plan_workflow, register_agent, etc. |
-| Cortex Agent | cortex_complete, cortex_reason, cortex_analyze_data, etc. |
+| Hierarchy Builder | 44 tools for hierarchy management |
+| Connections | Backend connection management |
+| Schema Matcher | Database schema comparison |
+| Data Matcher | Table data comparison |
+| Templates & Skills | 16 tools for templates, skills, knowledge base |
+| AI Orchestrator | 16 tools for task management, agent messaging |
+| Planner Agent | 11 tools for AI workflow planning |
+| Recommendations | 5 tools for smart CSV import suggestions |
+| Diff Utilities | 6 tools for character-level comparison |
+| Unified Agent | 10 tools for cross-system operations |
+| Faux Objects | 18 tools for semantic view wrappers |
+| Cortex Agent | 12 tools for Cortex AI LLM functions |
+| Cortex Analyst | 10 tools for natural language to SQL |
 | Documentation | update_manifest |
 
 ---
@@ -214,6 +222,43 @@ Add a property to a hierarchy node.
 
 ---
 
+### `add_semantic_table`
+
+Add a logical table with dimensions and metrics to a semantic model.
+
+        The base_table should be a fully qualified Snowflake table name.
+        Dimensions, metrics, and facts define the business semantics.
+
+        Args:
+            model_name: Name of the semantic model
+            table_name: Logical name for this table
+            base_table: Fully qualified table (DATABASE.SCHEMA.TABLE)
+            description: Table description
+            dimensions: JSON array of dimension definitions
+            time_dimensions: JSON array of time dimension definitions
+            metrics: JSON array of metric definitions (with aggregations)
+            facts: JSON array of fact/measure definitions
+
+        Dimension format:
+            [{"name": "region", "description": "Sales region", "expr": "REGION_NAME", "data_type": "VARCHAR"}]
+
+        Metric format:
+            [{"name": "total_revenue", "description": "Sum of revenue", "expr": "SUM(REVENUE)", "data_type": "NUMBER"}]
+
+        Returns:
+            Added table configuration
+
+        Example:
+            add_semantic_table(
+                model_name="sales_analytics",
+                table_name="sales",
+                base_table="ANALYTICS.PUBLIC.SALES_FACT",
+                dimensions='[{"name": "region", "expr": "region_name", "description": "Sales region", "data_type": "VARCHAR"}]',
+                metrics='[{"name": "revenue", "expr": "SUM(amount)", "description": "Total revenue", "data_type": "NUMBER"}]'
+            )
+
+---
+
 ### `add_source_mapping`
 
 Add a source mapping to a hierarchy.
@@ -234,6 +279,87 @@ Add a source mapping to a hierarchy.
 
         Returns:
             JSON with updated hierarchy (includes auto_sync status)
+
+---
+
+### `analyst_ask`
+
+Ask a natural language question and get SQL + explanation.
+
+        Uses Cortex Analyst to translate the question to SQL based on
+        the semantic model's business context.
+
+        Args:
+            question: Natural language question
+            semantic_model_file: Stage path to semantic model YAML
+            connection_id: Optional Snowflake connection for context
+
+        Returns:
+            Generated SQL and explanation
+
+        Example:
+            analyst_ask(
+                question="What was total revenue by region last quarter?",
+                semantic_model_file="@ANALYTICS.PUBLIC.MODELS/sales.yaml"
+            )
+
+---
+
+### `analyst_ask_and_run`
+
+Ask a question, generate SQL, and execute it.
+
+        Combines natural language understanding with query execution
+        to return actual data results.
+
+        Args:
+            question: Natural language question
+            semantic_model_file: Stage path to semantic model YAML
+            connection_id: Snowflake connection ID for execution
+            limit: Maximum rows to return (default 100)
+
+        Returns:
+            SQL, explanation, and query results
+
+        Example:
+            analyst_ask_and_run(
+                question="Show top 5 regions by revenue",
+                semantic_model_file="@ANALYTICS.PUBLIC.MODELS/sales.yaml",
+                connection_id="snowflake-prod",
+                limit=5
+            )
+
+---
+
+### `analyst_conversation`
+
+Have a multi-turn conversation with Cortex Analyst.
+
+        Maintains conversation context for follow-up questions like
+        "now break that down by month" or "filter to just Q4".
+
+        Args:
+            question: Natural language question or follow-up
+            semantic_model_file: Stage path to semantic model YAML
+            conversation_id: Optional ID to continue existing conversation
+
+        Returns:
+            SQL, explanation, and conversation context
+
+        Example:
+            # First question
+            result1 = analyst_conversation(
+                question="What was total revenue last year?",
+                semantic_model_file="@ANALYTICS.PUBLIC.MODELS/sales.yaml"
+            )
+            conv_id = result1["conversation_id"]
+
+            # Follow-up
+            result2 = analyst_conversation(
+                question="Break that down by quarter",
+                semantic_model_file="@ANALYTICS.PUBLIC.MODELS/sales.yaml",
+                conversation_id=conv_id
+            )
 
 ---
 
@@ -927,6 +1053,32 @@ Create a new hierarchy project pre-populated from a template.
 
 ---
 
+### `create_semantic_model`
+
+Create a new semantic model configuration for Cortex Analyst.
+
+        A semantic model defines the business context (tables, dimensions, metrics)
+        that Cortex Analyst uses to translate natural language to SQL.
+
+        Args:
+            name: Unique model name (used as filename)
+            description: Human-readable description of the model
+            database: Default Snowflake database for tables
+            schema_name: Default Snowflake schema for tables
+
+        Returns:
+            Created model configuration
+
+        Example:
+            create_semantic_model(
+                name="sales_analytics",
+                description="Sales data for revenue analysis",
+                database="ANALYTICS",
+                schema_name="PUBLIC"
+            )
+
+---
+
 ### `create_unified_workflow`
 
 Create a workflow plan spanning Book, Librarian, and Researcher.
@@ -1022,6 +1174,30 @@ Delete a project and all its hierarchies.
 
         Returns:
             JSON with deletion status (includes auto_sync status)
+
+---
+
+### `deploy_semantic_model`
+
+Deploy a semantic model YAML to a Snowflake stage.
+
+        The semantic model must be deployed to a stage that Cortex Analyst
+        can access. The stage_path should include the filename.
+
+        Args:
+            model_name: Name of the semantic model to deploy
+            stage_path: Stage path with filename (e.g., @DB.SCHEMA.STAGE/models/model.yaml)
+            connection_id: Optional Snowflake connection for deployment
+
+        Returns:
+            Deployment status with local and remote paths
+
+        Example:
+            deploy_semantic_model(
+                model_name="sales_analytics",
+                stage_path="@ANALYTICS.PUBLIC.MODELS/sales_analytics.yaml",
+                connection_id="snowflake-prod"
+            )
 
 ---
 
@@ -1615,6 +1791,52 @@ Generate a MERGE SQL script for synchronizing data between two tables.
 
         Returns:
             JSON with generated SQL script ready for execution or review.
+
+---
+
+### `generate_model_from_faux`
+
+Generate a semantic model from a Faux Objects project.
+
+        Converts Faux Objects semantic view definitions into a
+        Cortex Analyst semantic model.
+
+        Args:
+            faux_project_id: Faux Objects project ID
+            model_name: Optional name for the model
+
+        Returns:
+            Generated model configuration
+
+        Example:
+            generate_model_from_faux(
+                faux_project_id="abc-123",
+                model_name="faux_semantic"
+            )
+
+---
+
+### `generate_model_from_hierarchy`
+
+Auto-generate a semantic model from a DataBridge hierarchy project.
+
+        Maps hierarchy levels to dimensions, source mappings to base tables,
+        and formula groups to metrics.
+
+        Args:
+            project_id: DataBridge hierarchy project ID
+            model_name: Optional name for the model (defaults to project name)
+            deploy_to_stage: Optional stage path to deploy immediately
+
+        Returns:
+            Generated model configuration
+
+        Example:
+            generate_model_from_hierarchy(
+                project_id="revenue-pl",
+                model_name="revenue_semantic",
+                deploy_to_stage="@ANALYTICS.PUBLIC.MODELS/revenue.yaml"
+            )
 
 ---
 
@@ -2811,6 +3033,20 @@ List all schema comparison jobs.
 
 ---
 
+### `list_semantic_models`
+
+List all configured semantic models.
+
+        Returns all models with their table counts and metadata.
+
+        Returns:
+            List of semantic models with summaries
+
+        Example:
+            list_semantic_models()
+
+---
+
 ### `load_csv`
 
 Load a CSV file and return a preview with schema information.
@@ -3708,6 +3944,28 @@ Validate a hierarchy project for issues.
 
         Returns:
             JSON with validation results and recommendations
+
+---
+
+### `validate_semantic_model`
+
+Validate a semantic model configuration.
+
+        Checks for required fields, valid references, and optionally
+        validates against the live database.
+
+        Args:
+            model_name: Name of the model to validate
+            connection_id: Optional Snowflake connection for live validation
+
+        Returns:
+            Validation results with errors and warnings
+
+        Example:
+            validate_semantic_model(
+                model_name="sales_analytics",
+                connection_id="snowflake-prod"
+            )
 
 ---
 
