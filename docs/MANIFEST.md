@@ -1,7 +1,7 @@
 # DataBridge AI - Tool Manifest
 
 > Auto-generated documentation for all MCP tools.
-> Last updated: 2026-02-06 13:47:32
+> Last updated: 2026-02-06 22:00:22
 
 ---
 
@@ -486,6 +486,32 @@ Enable or disable automatic synchronization between MCP and backend.
 
 ---
 
+### `configure_cortex_agent`
+
+Configure the Cortex Agent with a Snowflake connection.
+
+        This must be called before using other Cortex tools. The connection_id
+        should reference an existing Snowflake connection from list_backend_connections.
+
+        Args:
+            connection_id: ID of Snowflake connection (from list_backend_connections)
+            cortex_model: Default model for COMPLETE (mistral-large, llama3-70b, etc.)
+            max_reasoning_steps: Maximum steps in reasoning loop (1-50)
+            temperature: Sampling temperature for COMPLETE (0.0-1.0)
+            enable_console: Enable communication console
+            console_outputs: Comma-separated outputs (cli, file, database)
+
+        Returns:
+            Configuration status
+
+        Example:
+            configure_cortex_agent(
+                connection_id="snowflake-prod",
+                cortex_model="mistral-large"
+            )
+
+---
+
 ### `configure_planner`
 
 Configure the PlannerAgent settings.
@@ -535,9 +561,9 @@ Configure default source information for a project.
 Convert SQL from one format to another.
 
         Supports conversions between:
-        - SELECT query <-> CREATE SEMANTIC VIEW DDL
-        - CREATE VIEW <-> CREATE SEMANTIC VIEW DDL
-        - Any format -> SELECT query
+        - SELECT query ↔ CREATE SEMANTIC VIEW DDL
+        - CREATE VIEW ↔ CREATE SEMANTIC VIEW DDL
+        - Any format → SELECT query
 
         Target formats:
         - "semantic_view_ddl": CREATE SEMANTIC VIEW statement
@@ -561,6 +587,185 @@ Convert SQL from one format to another.
                 SELECT region, SUM(amount) as total_sales
                 FROM orders GROUP BY region
             ''', "semantic_view_ddl", name="sales_summary", database="ANALYTICS")
+
+---
+
+### `cortex_analyze_data`
+
+AI-powered data analysis on a Snowflake table.
+
+        Uses Cortex to analyze data quality, patterns, or statistics.
+
+        Args:
+            table_name: Fully qualified table name (DATABASE.SCHEMA.TABLE)
+            analysis_type: Type of analysis (quality, patterns, statistics, anomalies)
+            sample_size: Number of rows to sample for analysis
+            focus_columns: Comma-separated column names to focus on (optional)
+
+        Returns:
+            Analysis results with AI insights
+
+        Example:
+            cortex_analyze_data(
+                table_name="ANALYTICS.PUBLIC.CUSTOMERS",
+                analysis_type="quality",
+                sample_size=100
+            )
+
+---
+
+### `cortex_clean_data`
+
+AI-powered data cleaning with proposed changes.
+
+        Uses Cortex to analyze and propose data cleaning transformations.
+
+        Args:
+            table_name: Fully qualified table name
+            column_name: Column to clean
+            cleaning_goal: What to clean (e.g., "standardize product names")
+            preview_only: If True, only preview changes without applying
+            limit: Number of rows to preview
+
+        Returns:
+            Proposed cleaning transformations
+
+        Example:
+            cortex_clean_data(
+                table_name="ANALYTICS.PUBLIC.PRODUCTS",
+                column_name="PRODUCT_NAME",
+                cleaning_goal="Standardize product names and fix typos",
+                preview_only=True
+            )
+
+---
+
+### `cortex_complete`
+
+Generate text using Snowflake Cortex COMPLETE() function.
+
+        Uses an LLM to generate text based on the prompt. All processing
+        happens within Snowflake - data never leaves the cloud.
+
+        Args:
+            prompt: The text prompt for generation
+            model: Model to use (default from config: mistral-large)
+            temperature: Sampling temperature (0.0-1.0)
+            max_tokens: Maximum tokens to generate
+
+        Returns:
+            Generated text and query details
+
+        Example:
+            cortex_complete(
+                prompt="Explain data reconciliation in one sentence",
+                model="mistral-large"
+            )
+
+---
+
+### `cortex_extract_answer`
+
+Extract answer from context using Snowflake Cortex EXTRACT_ANSWER().
+
+        Finds and extracts the answer to a question from provided context.
+
+        Args:
+            context: Text context to search
+            question: Question to answer
+
+        Returns:
+            Extracted answer
+
+        Example:
+            cortex_extract_answer(
+                context="The company was founded in 2010 by John Smith.",
+                question="When was the company founded?"
+            )
+            # Returns: {"answer": "2010"}
+
+---
+
+### `cortex_reason`
+
+Run the full reasoning loop for a complex goal.
+
+        Uses the Observe → Plan → Execute → Reflect pattern to break down
+        complex tasks into steps and execute them via Cortex functions.
+
+        Args:
+            goal: The goal to achieve (natural language)
+            context: Optional JSON context (e.g., table names, constraints)
+
+        Returns:
+            Complete response with thinking steps
+
+        Example:
+            cortex_reason(
+                goal="Analyze the data quality in PRODUCTS table and suggest improvements",
+                context='{"table": "ANALYTICS.PUBLIC.PRODUCTS"}'
+            )
+
+---
+
+### `cortex_sentiment`
+
+Analyze sentiment using Snowflake Cortex SENTIMENT() function.
+
+        Returns a sentiment score from -1 (negative) to 1 (positive).
+
+        Args:
+            text: Text to analyze
+
+        Returns:
+            Sentiment score and interpretation
+
+        Example:
+            cortex_sentiment(text="This product is amazing!")
+            # Returns: {"sentiment": 0.85, "interpretation": "positive"}
+
+---
+
+### `cortex_summarize`
+
+Summarize text using Snowflake Cortex SUMMARIZE() function.
+
+        Generates a concise summary of the input text.
+
+        Args:
+            text: Text to summarize
+
+        Returns:
+            Summary and query details
+
+        Example:
+            cortex_summarize(
+                text="Long document text here..."
+            )
+
+---
+
+### `cortex_translate`
+
+Translate text using Snowflake Cortex TRANSLATE() function.
+
+        Translates text between languages.
+
+        Args:
+            text: Text to translate
+            from_lang: Source language code (en, es, fr, de, etc.)
+            to_lang: Target language code
+
+        Returns:
+            Translated text
+
+        Example:
+            cortex_translate(
+                text="Hello, world!",
+                from_lang="en",
+                to_lang="es"
+            )
+            # Returns: {"translation": "¡Hola, mundo!"}
 
 ---
 
@@ -1660,6 +1865,58 @@ List all tables in a schema.
 
         Returns:
             JSON array of table names in the specified schema.
+
+---
+
+### `get_cortex_agent_status`
+
+Get the current status of the Cortex Agent.
+
+        Returns connection status, configuration, and statistics.
+
+        Returns:
+            Agent status including:
+            - is_configured: Whether agent is configured
+            - config: Current configuration
+            - context_stats: Conversation statistics
+            - console_status: Console output status
+
+---
+
+### `get_cortex_console_log`
+
+Get recent console log entries.
+
+        The console captures all agent communication for observability.
+
+        Args:
+            limit: Maximum entries to return
+            conversation_id: Filter by conversation ID
+            message_type: Filter by type (request, response, thinking, plan, error)
+
+        Returns:
+            List of console log entries
+
+        Example:
+            get_cortex_console_log(limit=20, message_type="thinking")
+
+---
+
+### `get_cortex_conversation`
+
+Get full conversation with all thinking steps.
+
+        Retrieves the complete conversation history including observations,
+        plans, executions, and reflections.
+
+        Args:
+            conversation_id: The conversation ID
+
+        Returns:
+            Full conversation with thinking steps
+
+        Example:
+            get_cortex_conversation(conversation_id="abc-123-...")
 
 ---
 
@@ -3220,7 +3477,7 @@ Suggest enrichment options after hierarchy import.
         reference data (like Chart of Accounts).
 
         This helps complete the workflow:
-        1. Import CSV -> Hierarchy
+        1. Import CSV → Hierarchy
         2. Suggest enrichment (this tool)
         3. Configure enrichment sources
         4. Enrich mapping file
@@ -3372,9 +3629,9 @@ Parse SQL into a SemanticViewDefinition.
         tables, dimensions, metrics, facts, and relationships.
 
         Column classification rules:
-        - Columns in GROUP BY -> DIMENSION
-        - Columns with aggregations (SUM, COUNT, AVG, MIN, MAX) -> METRIC
-        - Raw columns not in GROUP BY -> FACT
+        - Columns in GROUP BY → DIMENSION
+        - Columns with aggregations (SUM, COUNT, AVG, MIN, MAX) → METRIC
+        - Raw columns not in GROUP BY → FACT
 
         Args:
             sql: SQL statement (CREATE VIEW, SELECT, or CREATE SEMANTIC VIEW)
