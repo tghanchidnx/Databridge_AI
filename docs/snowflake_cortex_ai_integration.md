@@ -455,6 +455,24 @@ DataBridgeCortexAgent:
 
 ---
 
+---
+
+## Agent Orchestration & Communication Console
+
+For detailed architecture on multi-agent communication with full observability, see:
+
+- **[Agent Orchestration Architecture](cortex_agent_orchestration_architecture.md)** - Full design for agent-to-agent communication
+- **[Console Demo](cortex_agent_console_demo.html)** - Interactive demo of the communication console
+
+### Key Features:
+1. **Chain-of-thought reasoning** - Agents think step-by-step like Claude/Gemini
+2. **Execution planning** - Create and execute multi-step plans
+3. **Clarification requests** - Ask follow-up questions when needed
+4. **Full observability** - See all agent communication in real-time
+5. **Multiple outputs** - CLI, WebSocket, Database, File logging
+
+---
+
 ## References
 
 - [Snowflake Cortex AI Features](https://www.snowflake.com/en/product/features/cortex/)

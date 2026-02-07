@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataBridge Agent Communication Console</title>
+    <style>
+        :root {
+            --bg-dark: #0a0e17;
+            --bg-card: #111827;
+            --bg-hover: #1f2937;
+            --primary: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --thinking: #a855f7;
+            --plan: #ec4899;
+            --synthesis: #06b6d4;
+            --text: #e5e7eb;
+            --text-dim: #6b7280;
+            --border: #374151;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .app {
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            grid-template-rows: 60px 1fr;
+            height: 100vh;
+        }
+
+        /* Header */
+        header {
+            grid-column: 1 / -1;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        header h1 {
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        header h1 .logo {
+            font-size: 1.5rem;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 20px;
+            font-size: 0.85rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.active { background: var(--success); }
+        .status-dot.processing { background: var(--warning); }
+        .status-dot.idle { background: var(--text-dim); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Sidebar - Agents */
+        .sidebar {
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .agent-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .agent-card {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .agent-card:hover {
+            border-color: var(--primary);
+            background: var(--bg-hover);
+        }
+
+        .agent-card.active {
+            border-color: var(--success);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+        }
+
+        .agent-card .name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .agent-card .type {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        .agent-icon {
+            font-size: 1.1rem;
+        }
+
+        /* Main Console */
+        .console {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-dark);
+        }
+
+        .console-header {
+            background: var(--bg-card);
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .console-header h3 {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .console-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg-dark);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--bg-hover);
+        }
+
+        .btn.primary {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn.primary:hover {
+            background: #2563eb;
+        }
+
+        /* Message Stream */
+        .message-stream {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .message {
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message .header {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+
+        .message .timestamp {
+            color: var(--text-dim);
+        }
+
+        .message .type {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .message .type.request { background: rgba(59, 130, 246, 0.2); color: var(--primary); }
+        .message .type.response { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .message .type.thinking { background: rgba(168, 85, 247, 0.2); color: var(--thinking); }
+        .message .type.plan { background: rgba(236, 72, 153, 0.2); color: var(--plan); }
+        .message .type.clarification { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .message .type.synthesis { background: rgba(6, 182, 212, 0.2); color: var(--synthesis); }
+        .message .type.error { background: rgba(239, 68, 68, 0.2); color: var(--error); }
+
+        .message .agents {
+            color: var(--text-dim);
+            font-size: 0.8rem;
+        }
+
+        .message .content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 8px;
+            white-space: pre-wrap;
+        }
+
+        .message.thinking .content {
+            border-left: 3px solid var(--thinking);
+            font-style: italic;
+        }
+
+        .message.plan .content {
+            border-left: 3px solid var(--plan);
+        }
+
+        /* Input Area */
+        .input-area {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            padding: 15px;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-container input {
+            flex: 1;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-dark);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .input-container input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Right Panel - Details */
+        .details-panel {
+            background: var(--bg-card);
+            border-left: 1px solid var(--border);
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .details-panel h2 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .detail-card {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .detail-card h4 {
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat {
+            background: var(--bg-card);
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat .value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat .label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .thinking-chain {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .thinking-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 0.8rem;
+        }
+
+        .thinking-step .number {
+            background: var(--thinking);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            flex-shrink: 0;
+        }
+
+        .plan-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .plan-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.8rem;
+        }
+
+        .plan-step .step-icon {
+            font-size: 1rem;
+        }
+
+        .plan-step.completed .step-icon { color: var(--success); }
+        .plan-step.in-progress .step-icon { color: var(--warning); }
+        .plan-step.pending .step-icon { color: var(--text-dim); }
+
+        /* Loading Animation */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 10px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--text-dim);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-dim);
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header>
+            <h1>
+                <span class="logo">🤖</span>
+                DataBridge Agent Console
+            </h1>
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-dot active"></span>
+                    <span>Orchestrator: Active</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-dot processing"></span>
+                    <span>Cortex: Connected</span>
+                </div>
+                <div class="status-item">
+                    <span id="messageCount">0</span> messages
+                </div>
+            </div>
+        </header>
+
+        <aside class="sidebar">
+            <h2>Active Agents</h2>
+            <div class="agent-list">
+                <div class="agent-card active" data-agent="orchestrator">
+                    <div class="name"><span class="agent-icon">🎯</span> Orchestrator</div>
+                    <div class="type">Central Coordinator</div>
+                </div>
+                <div class="agent-card" data-agent="cortex_analyst">
+                    <div class="name"><span class="agent-icon">🔍</span> Cortex Analyst</div>
+                    <div class="type">NL to SQL</div>
+                </div>
+                <div class="agent-card" data-agent="cortex_llm">
+                    <div class="name"><span class="agent-icon">🧠</span> Cortex LLM</div>
+                    <div class="type">Text Generation</div>
+                </div>
+                <div class="agent-card" data-agent="hierarchy_builder">
+                    <div class="name"><span class="agent-icon">🏗️</span> Hierarchy Builder</div>
+                    <div class="type">DataBridge</div>
+                </div>
+                <div class="agent-card" data-agent="mapping_expert">
+                    <div class="name"><span class="agent-icon">🗺️</span> Mapping Expert</div>
+                    <div class="type">DataBridge</div>
+                </div>
+                <div class="agent-card" data-agent="sql_translator">
+                    <div class="name"><span class="agent-icon">📝</span> SQL Translator</div>
+                    <div class="type">Semantic Views</div>
+                </div>
+            </div>
+
+            <h2 style="margin-top: 30px;">Quick Actions</h2>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button class="btn" onclick="runDemo('revenue')">Demo: Revenue Query</button>
+                <button class="btn" onclick="runDemo('orphans')">Demo: Find Orphans</button>
+                <button class="btn" onclick="runDemo('validate')">Demo: Validate Mappings</button>
+            </div>
+        </aside>
+
+        <main class="console">
+            <div class="console-header">
+                <h3>
+                    <span>📡</span>
+                    Communication Stream
+                    <span id="conversationId" style="color: var(--text-dim); font-weight: normal;"></span>
+                </h3>
+                <div class="console-controls">
+                    <button class="btn" onclick="clearConsole()">Clear</button>
+                    <button class="btn" onclick="exportLog()">Export</button>
+                    <button class="btn primary" onclick="toggleAutoScroll()">Auto-scroll: ON</button>
+                </div>
+            </div>
+
+            <div class="message-stream" id="messageStream">
+                <div class="message">
+                    <div class="header">
+                        <span class="timestamp">[--:--:--.---]</span>
+                        <span class="type request">SYSTEM</span>
+                    </div>
+                    <div class="content">Agent Communication Console initialized.
+Ready to process requests. Type a query below or use Quick Actions.</div>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <div class="input-container">
+                    <input type="text" id="queryInput" placeholder="Ask a question about your data..."
+                           onkeypress="if(event.key==='Enter')sendQuery()">
+                    <button class="btn primary" onclick="sendQuery()">Send</button>
+                </div>
+            </div>
+        </main>
+
+        <aside class="details-panel">
+            <h2>Conversation Details</h2>
+
+            <div class="detail-card">
+                <h4>Statistics</h4>
+                <div class="stats-grid">
+                    <div class="stat">
+                        <div class="value" id="totalMessages">0</div>
+                        <div class="label">Messages</div>
+                    </div>
+                    <div class="stat">
+                        <div class="value" id="totalTokens">0</div>
+                        <div class="label">Tokens</div>
+                    </div>
+                    <div class="stat">
+                        <div class="value" id="agentsInvolved">0</div>
+                        <div class="label">Agents</div>
+                    </div>
+                    <div class="stat">
+                        <div class="value" id="latencyMs">0</div>
+                        <div class="label">Latency (ms)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-card">
+                <h4>Thinking Chain</h4>
+                <div class="thinking-chain" id="thinkingChain">
+                    <div style="color: var(--text-dim); font-size: 0.8rem;">
+                        No active thinking process
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-card">
+                <h4>Execution Plan</h4>
+                <div class="plan-steps" id="planSteps">
+                    <div style="color: var(--text-dim); font-size: 0.8rem;">
+                        No active plan
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        let messageCount = 0;
+        let totalTokens = 0;
+        let autoScroll = true;
+        const agentsInvolved = new Set();
+
+        function getTimestamp() {
+            const now = new Date();
+            return now.toTimeString().split(' ')[0] + '.' +
+                   String(now.getMilliseconds()).padStart(3, '0');
+        }
+
+        function addMessage(type, from, to, content, delay = 0) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const stream = document.getElementById('messageStream');
+                    const message = document.createElement('div');
+                    message.className = `message ${type}`;
+
+                    message.innerHTML = `
+                        <div class="header">
+                            <span class="timestamp">[${getTimestamp()}]</span>
+                            <span class="type ${type}">${type.toUpperCase()}</span>
+                            <span class="agents">${from} → ${to}</span>
+                        </div>
+                        <div class="content">${content}</div>
+                    `;
+
+                    stream.appendChild(message);
+                    messageCount++;
+                    document.getElementById('messageCount').textContent = messageCount;
+                    document.getElementById('totalMessages').textContent = messageCount;
+
+                    if (from !== 'user') agentsInvolved.add(from);
+                    if (to !== 'user') agentsInvolved.add(to);
+                    document.getElementById('agentsInvolved').textContent = agentsInvolved.size;
+
+                    if (autoScroll) {
+                        stream.scrollTop = stream.scrollHeight;
+                    }
+
+                    // Highlight active agent
+                    document.querySelectorAll('.agent-card').forEach(card => {
+                        card.classList.remove('active');
+                        if (card.dataset.agent === from || card.dataset.agent === to) {
+                            card.classList.add('active');
+                        }
+                    });
+
+                    resolve();
+                }, delay);
+            });
+        }
+
+        function addThinkingStep(step, text) {
+            const chain = document.getElementById('thinkingChain');
+            if (step === 1) chain.innerHTML = '';
+
+            const stepEl = document.createElement('div');
+            stepEl.className = 'thinking-step';
+            stepEl.innerHTML = `
+                <span class="number">${step}</span>
+                <span>${text}</span>
+            `;
+            chain.appendChild(stepEl);
+        }
+
+        function updatePlan(steps) {
+            const planEl = document.getElementById('planSteps');
+            planEl.innerHTML = steps.map((step, i) => `
+                <div class="plan-step ${step.status}">
+                    <span class="step-icon">${
+                        step.status === 'completed' ? '✅' :
+                        step.status === 'in-progress' ? '⏳' : '⬜'
+                    }</span>
+                    <span>Step ${i + 1}: [${step.agent}] ${step.action}</span>
+                </div>
+            `).join('');
+        }
+
+        function addTypingIndicator() {
+            const stream = document.getElementById('messageStream');
+            const typing = document.createElement('div');
+            typing.id = 'typingIndicator';
+            typing.className = 'typing-indicator';
+            typing.innerHTML = `
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            `;
+            stream.appendChild(typing);
+            stream.scrollTop = stream.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const typing = document.getElementById('typingIndicator');
+            if (typing) typing.remove();
+        }
+
+        async function sendQuery() {
+            const input = document.getElementById('queryInput');
+            const query = input.value.trim();
+            if (!query) return;
+
+            input.value = '';
+            document.getElementById('conversationId').textContent =
+                `Conversation: ${Math.random().toString(36).substr(2, 8)}`;
+
+            await simulateConversation(query);
+        }
+
+        async function simulateConversation(query) {
+            // Reset stats
+            agentsInvolved.clear();
+            document.getElementById('thinkingChain').innerHTML = '';
+
+            // User sends query
+            await addMessage('request', 'user', 'orchestrator', query);
+
+            addTypingIndicator();
+            await delay(800);
+            removeTypingIndicator();
+
+            // Orchestrator thinking
+            await addMessage('thinking', 'orchestrator', 'orchestrator',
+                `I need to understand what the user is asking. Let me analyze:
+1. What entities are involved?
+2. What data sources do I need?
+3. Which agents should handle this?`);
+            addThinkingStep(1, 'Analyzing user query...');
+
+            await delay(600);
+            await addMessage('thinking', 'orchestrator', 'orchestrator',
+                `This query requires:
+- Cortex Analyst for natural language to SQL conversion
+- DataBridge hierarchy data for validation
+- Potentially Cortex LLM for explaining results`);
+            addThinkingStep(2, 'Identifying required agents...');
+            addThinkingStep(3, 'Planning execution strategy...');
+
+            await delay(500);
+
+            // Create plan
+            const plan = [
+                { agent: 'cortex_analyst', action: 'Convert query to SQL', status: 'pending' },
+                { agent: 'hierarchy_builder', action: 'Validate against hierarchy', status: 'pending' },
+                { agent: 'cortex_llm', action: 'Explain results', status: 'pending' }
+            ];
+
+            await addMessage('plan', 'orchestrator', 'orchestrator',
+                `Execution Plan:
+Step 1: [Cortex Analyst] Convert natural language to SQL
+Step 2: [Hierarchy Builder] Validate results against P&L hierarchy
+Step 3: [Cortex LLM] Generate explanation for user`);
+            updatePlan(plan);
+
+            await delay(700);
+
+            // Execute Step 1
+            plan[0].status = 'in-progress';
+            updatePlan(plan);
+
+            await addMessage('request', 'orchestrator', 'cortex_analyst',
+                `Query: ${query}
+Semantic View: FINANCE.SEMANTIC.pl_hierarchy
+Generate SQL to answer this question.`);
+
+            addTypingIndicator();
+            await delay(1200);
+            removeTypingIndicator();
+            totalTokens += 523;
+            document.getElementById('totalTokens').textContent = totalTokens;
+
+            await addMessage('response', 'cortex_analyst', 'orchestrator',
+                `Generated SQL:
+SELECT h.hierarchy_name, h.level_1, SUM(gl.net_amount) as balance
+FROM pl_semantic_view h
+JOIN fact_journal_entries gl ON h.mapping_value = gl.account_code
+WHERE h.level_1 = 'Revenue' AND gl.fiscal_year = 2024
+GROUP BY h.hierarchy_name, h.level_1
+HAVING SUM(gl.net_amount) < 0
+
+Results: Found 3 accounts with negative balances
+Confidence: 94%
+Tokens: 523 | Latency: 1,156ms`);
+
+            plan[0].status = 'completed';
+            plan[1].status = 'in-progress';
+            updatePlan(plan);
+            document.getElementById('latencyMs').textContent = '1,156';
+
+            await delay(500);
+
+            // Think about results
+            await addMessage('thinking', 'orchestrator', 'orchestrator',
+                `Cortex returned 3 accounts with negative balances. I should:
+1. Validate these are correctly mapped in the hierarchy
+2. Check if they are contra-revenue accounts (expected negative)
+3. Flag any anomalies for the user`);
+
+            // Execute Step 2
+            await addMessage('request', 'orchestrator', 'hierarchy_builder',
+                `Validate accounts against P&L hierarchy:
+- Product Returns
+- Sales Discounts
+- Revenue Adjustments
+
+Check: Are these mapped as contra-revenue?`);
+
+            addTypingIndicator();
+            await delay(800);
+            removeTypingIndicator();
+
+            await addMessage('response', 'hierarchy_builder', 'orchestrator',
+                `Validation Results:
+✅ Product Returns: Mapped as Contra-Revenue (EXPECTED negative)
+✅ Sales Discounts: Mapped as Contra-Revenue (EXPECTED negative)
+⚠️ Revenue Adjustments: Mapped as Revenue (UNEXPECTED negative)
+
+Recommendation: Review mapping for "Revenue Adjustments"`);
+
+            plan[1].status = 'completed';
+            plan[2].status = 'in-progress';
+            updatePlan(plan);
+
+            await delay(500);
+
+            // Think about discrepancy
+            await addMessage('thinking', 'orchestrator', 'orchestrator',
+                `There's a discrepancy! "Revenue Adjustments" is mapped as regular
+Revenue but has a negative balance. This could be:
+1. A mapping error (should be Contra-Revenue)
+2. Unusual business activity that needs investigation
+Let me ask Cortex LLM to help explain this.`);
+
+            // Execute Step 3
+            await addMessage('request', 'orchestrator', 'cortex_llm',
+                `Explain the following discrepancy:
+Account "Revenue Adjustments" is mapped as Revenue but has a negative balance of -$8,450.
+What could cause this and what should the user do?`);
+
+            addTypingIndicator();
+            await delay(1000);
+            removeTypingIndicator();
+            totalTokens += 412;
+            document.getElementById('totalTokens').textContent = totalTokens;
+
+            await addMessage('response', 'cortex_llm', 'orchestrator',
+                `Explanation:
+
+A Revenue account with a negative balance typically indicates one of:
+
+1. **Mapping Error**: The account should be classified as "Contra-Revenue"
+   - Solution: Update the hierarchy mapping
+
+2. **Revenue Reversal**: Credit notes or customer refunds posted to this account
+   - Solution: Review journal entries for the period
+
+3. **Accounting Adjustment**: Year-end or audit adjustments
+   - Solution: Verify with accounting team
+
+Recommendation: Start by checking the journal entries for this account.`);
+
+            plan[2].status = 'completed';
+            updatePlan(plan);
+
+            await delay(500);
+
+            // Synthesize
+            await addMessage('synthesis', 'orchestrator', 'orchestrator',
+                `Preparing final response for user:
+- Summarize the 3 accounts found
+- Categorize as expected vs. unexpected
+- Provide actionable recommendation
+- Offer follow-up options`);
+
+            await delay(600);
+
+            // Final response
+            await addMessage('response', 'orchestrator', 'user',
+                `📊 Revenue Accounts with Negative Balances (2024)
+
+Found 3 accounts with negative balances:
+
+✅ Expected (Contra-Revenue):
+• Product Returns: -$45,230
+• Sales Discounts: -$12,100
+
+⚠️ Needs Investigation:
+• Revenue Adjustments: -$8,450
+  This account is mapped as regular Revenue but shows a negative balance.
+
+Recommended Actions:
+1. Review the mapping for "Revenue Adjustments"
+2. Check journal entries for unusual activity
+3. Verify with your accounting team
+
+Would you like me to show the journal entries for Revenue Adjustments?`);
+
+            document.getElementById('latencyMs').textContent = '4,823';
+        }
+
+        async function runDemo(type) {
+            const queries = {
+                'revenue': 'Show me all Revenue accounts with negative balances in 2024',
+                'orphans': 'Find all GL accounts that are not mapped to any hierarchy',
+                'validate': 'Validate the P&L hierarchy against our Chart of Accounts'
+            };
+            document.getElementById('queryInput').value = queries[type];
+            await sendQuery();
+        }
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function clearConsole() {
+            const stream = document.getElementById('messageStream');
+            stream.innerHTML = `
+                <div class="message">
+                    <div class="header">
+                        <span class="timestamp">[${getTimestamp()}]</span>
+                        <span class="type request">SYSTEM</span>
+                    </div>
+                    <div class="content">Console cleared. Ready for new queries.</div>
+                </div>
+            `;
+            messageCount = 1;
+            totalTokens = 0;
+            agentsInvolved.clear();
+            document.getElementById('messageCount').textContent = messageCount;
+            document.getElementById('totalMessages').textContent = messageCount;
+            document.getElementById('totalTokens').textContent = 0;
+            document.getElementById('agentsInvolved').textContent = 0;
+            document.getElementById('latencyMs').textContent = 0;
+            document.getElementById('thinkingChain').innerHTML =
+                '<div style="color: var(--text-dim); font-size: 0.8rem;">No active thinking process</div>';
+            document.getElementById('planSteps').innerHTML =
+                '<div style="color: var(--text-dim); font-size: 0.8rem;">No active plan</div>';
+        }
+
+        function exportLog() {
+            const stream = document.getElementById('messageStream');
+            const text = stream.innerText;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `agent-log-${new Date().toISOString()}.txt`;
+            a.click();
+        }
+
+        function toggleAutoScroll() {
+            autoScroll = !autoScroll;
+            event.target.textContent = `Auto-scroll: ${autoScroll ? 'ON' : 'OFF'}`;
+        }
+    </script>
+</body>
+</html>
