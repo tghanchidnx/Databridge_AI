@@ -4,69 +4,114 @@ build-backend = "hatchling.build"
 
 [project]
 name = "databridge-ai"
-version = "3.0.0"
-description = "DataBridge AI - Unified Data Reconciliation and Analytics Platform"
+version = "0.31.0"
+description = "DataBridge AI - MCP-native data reconciliation engine with 292 tools for hierarchy management, data quality, and analytics"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [
-    {name = "DataBridge AI Team"}
+    {name = "DataBridge AI Team", email = "support@databridge.ai"}
 ]
-keywords = ["data", "reconciliation", "analytics", "hierarchy", "mcp"]
+keywords = [
+    "data", "reconciliation", "analytics", "hierarchy", "mcp",
+    "data-quality", "etl", "snowflake", "cortex", "ai",
+    "data-catalog", "lineage", "dbt", "data-mart"
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Intended Audience :: Information Technology",
     "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Topic :: Database",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Scientific/Engineering :: Information Analysis",
 ]
 
 dependencies = [
-    "databridge-core",
-    "databridge-models",
+    "fastmcp>=2.0.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "pandas>=2.0.0",
+    "sqlalchemy>=2.0.0",
+    "rapidfuzz>=3.0.0",
 ]
 
 [project.optional-dependencies]
-librarian = ["databridge-librarian"]
-researcher = ["databridge-researcher"]
-cli = ["databridge-cli"]
-discovery = ["databridge-discovery"]
+pdf = [
+    "pypdf>=3.0.0",
+]
+ocr = [
+    "pytesseract>=0.3.10",
+    "Pillow>=10.0.0",
+]
+snowflake = [
+    "snowflake-connector-python>=3.0.0",
+]
 all = [
-    "databridge-librarian",
-    "databridge-researcher",
-    "databridge-cli",
-    "databridge-discovery",
+    "pypdf>=3.0.0",
+    "pytesseract>=0.3.10",
+    "Pillow>=10.0.0",
+    "snowflake-connector-python>=3.0.0",
 ]
 dev = [
-    "pytest>=7.0",
-    "pytest-cov>=4.0",
-    "pytest-asyncio>=0.21",
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.21.0",
     "ruff>=0.1.0",
-    "mypy>=1.0",
+    "mypy>=1.0.0",
+    "build>=1.0.0",
+    "twine>=4.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/tghanchidnx/Databridge_AI"
+Documentation = "https://github.com/tghanchidnx/Databridge_AI#readme"
+Repository = "https://github.com/tghanchidnx/Databridge_AI.git"
+Issues = "https://github.com/tghanchidnx/Databridge_AI/issues"
 
 [project.scripts]
-databridge = "databridge_cli.main:main_app"
+databridge = "src.server:main"
+databridge-mcp = "src.server:mcp.run"
 
-[tool.hatch.build.targets.wheel]
-packages = ["apps", "libs"]
+[project.entry-points."mcp.servers"]
+databridge = "src.server:mcp"
 
-# Workspace configuration for local development
-[tool.hatch.envs.default]
-dependencies = [
-    "pytest",
-    "pytest-cov",
-    "pytest-asyncio",
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/templates",
+    "/skills",
+    "/knowledge_base",
+    "/README.md",
+    "/LICENSE",
+]
+exclude = [
+    "*.pyc",
+    "__pycache__",
+    ".git",
+    ".pytest_cache",
+    "*.egg-info",
+    "/tests",
+    "/data",
+    "/docs",
+    "/Archived",
+    "/v2",
+    "/ui",
+    "/Book",
+    "/libs",
+    "/apps",
 ]
 
-[tool.hatch.envs.default.scripts]
-test = "pytest {args:tests}"
-test-all = "pytest apps/ libs/ {args}"
-cov = "pytest --cov=apps --cov=libs {args:tests}"
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
 
-# Ruff configuration (shared linting)
+# Ruff configuration (linting)
 [tool.ruff]
 line-length = 120
 target-version = "py310"
@@ -85,9 +130,6 @@ ignore = [
     "C901",  # too complex
 ]
 
-[tool.ruff.isort]
-known-first-party = ["databridge_core", "databridge_models", "databridge_librarian", "databridge_researcher", "databridge_cli", "databridge_discovery"]
-
 # MyPy configuration
 [tool.mypy]
 python_version = "3.10"
@@ -99,18 +141,12 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra -q"
-testpaths = [
-    "apps/databridge-librarian/tests",
-    "apps/databridge-researcher/tests",
-    "libs/databridge-core/tests",
-    "libs/databridge-models/tests",
-    "libs/databridge-discovery/tests",
-]
+testpaths = ["tests"]
 asyncio_mode = "auto"
 
 # Coverage configuration
 [tool.coverage.run]
-source = ["apps", "libs"]
+source = ["src"]
 branch = true
 
 [tool.coverage.report]
