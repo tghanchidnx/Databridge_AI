@@ -1816,21 +1816,22 @@ except ImportError as e:
 
 
 # =============================================================================
-# Phase 26: Mart Factory - Hierarchy-Driven Data Mart Generation
+# Phase 26: Wright - Hierarchy-Driven Dimension & Fact Builder
 # =============================================================================
 
-# Register Mart Factory tools for automated data mart pipeline generation
-# using 7 configuration variables and AI-powered hierarchy discovery
+# Register Wright tools for automated data mart pipeline generation
+# Builds dimensions and facts based on hierarchies using 7 configuration
+# variables and AI-powered discovery (4-object pipeline: VW_1 → DT_2 → DT_3A → DT_3)
 try:
     try:
-        from src.mart_factory.mcp_tools import register_mart_factory_tools
+        from src.wright.mcp_tools import register_mart_factory_tools
     except ImportError:
-        from mart_factory.mcp_tools import register_mart_factory_tools
+        from wright.mcp_tools import register_mart_factory_tools
 
-    mart_factory = register_mart_factory_tools(mcp, settings)
-    log_action("SYSTEM", "mart_factory_init", "Mart Factory tools registered (10 tools)")
+    wright = register_mart_factory_tools(mcp, settings)
+    log_action("SYSTEM", "wright_init", "Wright (Dimension & Fact Builder) tools registered (10 tools)")
 except ImportError as e:
-    print(f"Warning: Mart Factory module not loaded: {e}")
+    print(f"Warning: Wright module not loaded: {e}")
 
 
 # =============================================================================
@@ -1884,6 +1885,24 @@ try:
     log_action("SYSTEM", "data_catalog_init", "Data Catalog tools registered (15 tools)")
 except ImportError as e:
     print(f"Warning: Data Catalog module not loaded: {e}")
+
+
+# =============================================================================
+# Phase 30: Data Versioning - Unified Version Control
+# =============================================================================
+
+# Register Data Versioning tools for object version control with snapshots,
+# change tracking, diff, and rollback support
+try:
+    try:
+        from src.versioning.mcp_tools import register_versioning_tools
+    except ImportError:
+        from versioning.mcp_tools import register_versioning_tools
+
+    register_versioning_tools(mcp)
+    log_action("SYSTEM", "versioning_init", "Data Versioning tools registered (12 tools)")
+except ImportError as e:
+    print(f"Warning: Data Versioning module not loaded: {e}")
 
 
 # =============================================================================

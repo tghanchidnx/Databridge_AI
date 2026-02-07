@@ -1,7 +1,7 @@
 # DataBridge AI: Project Configuration & Rules
 
 ## 🎯 Purpose
-A headless, MCP-native data reconciliation engine with **275 MCP tools** across nineteen major modules:
+A headless, MCP-native data reconciliation engine with **285 MCP tools** across twenty major modules:
 
 1. **Data Reconciliation Engine** - Bridges messy sources (OCR/PDF/SQL) with structured comparison pipelines
 2. **Hierarchy Knowledge Base Builder** - Creates and manages hierarchical data structures for reporting systems
@@ -18,12 +18,13 @@ A headless, MCP-native data reconciliation engine with **275 MCP tools** across 
 13. **Console Dashboard** - Real-time WebSocket streaming for agent activity monitoring
 14. **dbt Integration** - Generate dbt projects, models, and CI/CD pipelines from hierarchies
 15. **Data Quality** - Expectation suites, data contracts, and validation inspired by Great Expectations
-16. **Mart Factory** - Hierarchy-driven data mart generation with 4-object pipeline and AI discovery
+16. **Wright** - Hierarchy-driven dimension & fact builder with 4-object pipeline and AI discovery
 17. **Lineage & Impact Analysis** - Column-level lineage tracking, impact analysis, and dependency visualization
 18. **Git/CI-CD Integration** - Git operations, GitHub PRs, and automated workflow generation
 19. **Data Catalog** - Centralized metadata registry with business glossary, data discovery, and classification
+20. **Data Versioning** - Unified version control for DataBridge objects with snapshots, diff, and rollback
 
-## 🔧 Available Tool Categories (275 Tools)
+## 🔧 Available Tool Categories (285 Tools)
 
 ### File Discovery & Staging (3 tools)
 Tools for finding and staging files when paths are unknown or files are in inconvenient locations.
@@ -992,8 +993,8 @@ sla:
   alert_on_failure: true
 ```
 
-### Mart Factory (10 tools)
-Hierarchy-driven data mart generation using the 4-object pipeline pattern (VW_1 → DT_2 → DT_3A → DT_3) with AI-powered discovery.
+### Wright - Dimension & Fact Builder (10 tools)
+Hierarchy-driven dimension and fact builder using the 4-object pipeline pattern (VW_1 → DT_2 → DT_3A → DT_3) with AI-powered discovery. Named after the Wright Brothers, pioneers of building and flying.
 
 **Configuration Management (3):**
 - **`create_mart_config`** - Create data mart pipeline configuration with 7 variables
@@ -1016,7 +1017,7 @@ Hierarchy-driven data mart generation using the 4-object pipeline pattern (VW_1 
 **Architecture:**
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                 Data Mart Factory Module                        │
+│               Wright - Dimension & Fact Builder                 │
 │  ┌─────────────────────────────────────────────────────────┐   │
 │  │         MartConfigGenerator (7 Config Variables)         │   │
 │  │  - JOIN_PATTERNS[]      - Dynamic UNION ALL branches     │   │
@@ -1403,6 +1404,85 @@ catalog_get_stats()
 | `HIERARCHY_PROJECT` | DataBridge hierarchy projects |
 | `SEMANTIC_MODEL` | Cortex Analyst semantic models |
 | `DATA_MART` | Mart Factory data marts |
+
+### Data Versioning (12 tools)
+Unified version control for DataBridge objects with semantic versioning, snapshots, diff, and rollback support.
+
+**Version Creation (3):**
+- **`version_create`** - Create a versioned snapshot of any object
+- **`version_create_hierarchy`** - Version a hierarchy project with all hierarchies
+- **`version_create_catalog_asset`** - Version a catalog asset
+
+**Version History (3):**
+- **`version_get`** - Get a specific version by number or "latest"
+- **`version_list`** - List version history for an object
+- **`version_search`** - Search versions across all objects
+
+**Comparison (2):**
+- **`version_diff`** - Compare two versions and show differences
+- **`version_diff_latest`** - Compare current state to a previous version
+
+**Rollback (2):**
+- **`version_rollback`** - Rollback object to a previous version
+- **`version_preview_rollback`** - Preview what rollback would restore
+
+**Tags & Metadata (2):**
+- **`version_tag`** - Add/remove tags on a version
+- **`version_get_stats`** - Get versioning statistics
+
+**Versioned Object Types:**
+| Type | Description |
+|------|-------------|
+| `HIERARCHY_PROJECT` | DataBridge hierarchy projects |
+| `HIERARCHY` | Individual hierarchies |
+| `CATALOG_ASSET` | Data catalog assets |
+| `GLOSSARY_TERM` | Business glossary terms |
+| `SEMANTIC_MODEL` | Cortex Analyst semantic models |
+| `DATA_CONTRACT` | Data quality contracts |
+| `EXPECTATION_SUITE` | Data quality expectation suites |
+| `FORMULA_GROUP` | Calculation formula groups |
+| `SOURCE_MAPPING` | Hierarchy source mappings |
+
+**Example - Version and Rollback:**
+```python
+# 1. Create version when updating hierarchy
+version_create(
+    object_type="hierarchy",
+    object_id="revenue-pl",
+    snapshot='{"name": "Revenue P&L", "hierarchies": [...]}',
+    change_description="Added new cost center mappings",
+    version_bump="minor"
+)
+
+# 2. List version history
+version_list(
+    object_type="hierarchy",
+    object_id="revenue-pl",
+    limit=10
+)
+
+# 3. Compare versions
+version_diff(
+    object_type="hierarchy",
+    object_id="revenue-pl",
+    from_version="1.0.0",
+    to_version="1.1.0"
+)
+
+# 4. Preview rollback
+version_preview_rollback(
+    object_type="hierarchy",
+    object_id="revenue-pl",
+    to_version="1.0.0"
+)
+
+# 5. Rollback to previous version
+version_rollback(
+    object_type="hierarchy",
+    object_id="revenue-pl",
+    to_version="1.0.0"
+)
+```
 
 ## 📋 Available Templates (20 Templates)
 
