@@ -7,7 +7,7 @@
 
 ## Overview
 
-DataBridge AI provides **234 tools** across these categories:
+DataBridge AI provides **245 tools** across these categories:
 
 | Category | Tools |
 |----------|-------|
@@ -36,6 +36,7 @@ DataBridge AI provides **234 tools** across these categories:
 | dbt Integration | 8 tools for dbt project generation |
 | Data Quality | 7 tools for expectations and data contracts |
 | Mart Factory | 10 tools for hierarchy-driven data mart generation |
+| Lineage & Impact Analysis | 11 tools for column-level lineage tracking and impact analysis |
 | Documentation | update_manifest |
 
 ---

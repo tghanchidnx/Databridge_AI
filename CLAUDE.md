@@ -1,7 +1,7 @@
 # DataBridge AI: Project Configuration & Rules
 
 ## 🎯 Purpose
-A headless, MCP-native data reconciliation engine with **234 MCP tools** across sixteen major modules:
+A headless, MCP-native data reconciliation engine with **245 MCP tools** across seventeen major modules:
 
 1. **Data Reconciliation Engine** - Bridges messy sources (OCR/PDF/SQL) with structured comparison pipelines
 2. **Hierarchy Knowledge Base Builder** - Creates and manages hierarchical data structures for reporting systems
@@ -19,8 +19,9 @@ A headless, MCP-native data reconciliation engine with **234 MCP tools** across 
 14. **dbt Integration** - Generate dbt projects, models, and CI/CD pipelines from hierarchies
 15. **Data Quality** - Expectation suites, data contracts, and validation inspired by Great Expectations
 16. **Mart Factory** - Hierarchy-driven data mart generation with 4-object pipeline and AI discovery
+17. **Lineage & Impact Analysis** - Column-level lineage tracking, impact analysis, and dependency visualization
 
-## 🔧 Available Tool Categories (234 Tools)
+## 🔧 Available Tool Categories (245 Tools)
 
 ### File Discovery & Staging (3 tools)
 Tools for finding and staging files when paths are unknown or files are in inconvenient locations.
@@ -1086,6 +1087,106 @@ discover_hierarchy_pattern(
 | P3 | DT_3 | Gross Profit = Revenue - Taxes - Deducts |
 | P4 | DT_3 | Operating Income = Gross Profit - OpEx |
 | P5 | DT_3 | Cash Flow = Operating Income - CapEx |
+
+### Lineage & Impact Analysis (11 tools)
+Column-level data lineage tracking, impact analysis for hierarchy changes, and dependency graph visualization.
+
+**Lineage Tracking (4):**
+- **`add_lineage_node`** - Add a node (table, view, hierarchy) to the lineage graph
+- **`track_column_lineage`** - Track column-level lineage with transformation type
+- **`get_column_lineage`** - Get upstream/downstream lineage for a column
+- **`get_table_lineage`** - Get full lineage for a table/object
+
+**Impact Analysis (3):**
+- **`analyze_change_impact`** - Analyze impact of column removal/rename/changes
+- **`get_downstream_impact`** - Get all objects affected by changes to a node
+- **`get_upstream_dependencies`** - Get all upstream dependencies of a node
+
+**Visualization & Validation (4):**
+- **`build_dependency_graph`** - Build dependency graph for visualization
+- **`export_lineage_diagram`** - Export as Mermaid or DOT diagram
+- **`validate_lineage`** - Validate lineage completeness and detect issues
+- **`list_lineage_graphs`** - List all lineage graphs
+
+**Architecture:**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Lineage & Impact Analysis                    │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │              LineageTracker                              │   │
+│  │  - Column-level lineage tracking                         │   │
+│  │  - Auto-discovery from hierarchy projects                │   │
+│  │  - Integration with Mart Factory pipeline                │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                           ↓                                     │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │              ImpactAnalyzer                              │   │
+│  │  - Column removal/rename impact analysis                 │   │
+│  │  - Hierarchy change impact detection                     │   │
+│  │  - Severity scoring based on node type and distance      │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                           ↓                                     │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │              DependencyGraph                             │   │
+│  │  - Mermaid diagram export (graph TD)                     │   │
+│  │  - DOT/Graphviz diagram export                           │   │
+│  │  - Node-level coloring by type                           │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Example - Track Data Mart Lineage:**
+```python
+# 1. Add nodes to lineage graph
+add_lineage_node(
+    graph_name="finance_lineage",
+    node_name="DIM_ACCOUNT",
+    node_type="TABLE",
+    database="ANALYTICS",
+    schema_name="PUBLIC",
+    columns='[{"name": "ACCOUNT_CODE", "data_type": "VARCHAR"}]'
+)
+
+# 2. Add pipeline nodes
+add_lineage_node(graph_name="finance_lineage", node_name="VW_1_TRANSLATED", node_type="VIEW")
+add_lineage_node(graph_name="finance_lineage", node_name="DT_3_GROSS", node_type="DATA_MART")
+
+# 3. Track column lineage
+track_column_lineage(
+    graph_name="finance_lineage",
+    source_node="DIM_ACCOUNT",
+    source_columns="ACCOUNT_CODE,ACCOUNT_NAME",
+    target_node="VW_1_TRANSLATED",
+    target_column="RESOLVED_VALUE",
+    transformation_type="CASE"
+)
+
+# 4. Analyze impact of removing a column
+analyze_change_impact(
+    graph_name="finance_lineage",
+    node="DIM_ACCOUNT",
+    change_type="REMOVE_COLUMN",
+    column="ACCOUNT_CODE"
+)
+
+# 5. Export visualization
+export_lineage_diagram(
+    graph_name="finance_lineage",
+    node="DIM_ACCOUNT",
+    direction="downstream",
+    format="mermaid"
+)
+```
+
+**Impact Severity Levels:**
+| Change Type | Target Type | Severity |
+|-------------|-------------|----------|
+| REMOVE_COLUMN | DATA_MART | CRITICAL |
+| REMOVE_COLUMN | DYNAMIC_TABLE | HIGH |
+| REMOVE_COLUMN | VIEW | HIGH |
+| RENAME_COLUMN | DATA_MART | HIGH |
+| REMOVE_NODE | DATA_MART | CRITICAL |
+| MODIFY_FORMULA | DATA_MART | HIGH |
 
 ## 📋 Available Templates (20 Templates)
 

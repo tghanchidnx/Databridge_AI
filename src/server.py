@@ -1834,6 +1834,24 @@ except ImportError as e:
 
 
 # =============================================================================
+# Phase 27: Lineage & Impact Analysis
+# =============================================================================
+
+# Register Lineage tools for column-level lineage tracking, impact analysis,
+# and dependency graph visualization
+try:
+    try:
+        from src.lineage.mcp_tools import register_lineage_tools
+    except ImportError:
+        from lineage.mcp_tools import register_lineage_tools
+
+    lineage = register_lineage_tools(mcp, settings)
+    log_action("SYSTEM", "lineage_init", "Lineage & Impact Analysis tools registered (11 tools)")
+except ImportError as e:
+    print(f"Warning: Lineage module not loaded: {e}")
+
+
+# =============================================================================
 # Entry Point
 # =============================================================================
 
