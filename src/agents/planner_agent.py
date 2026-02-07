@@ -216,6 +216,15 @@ DEFAULT_AGENTS: list[AgentInfo] = [
         input_schema={"book_name": "str", "connection_id": "str", "analysis_type": "str"},
         output_schema={"validation": "dict", "profile": "dict", "comparison": "dict"},
     ),
+    # Cortex Agent for Snowflake Cortex AI integration
+    AgentInfo(
+        name="cortex_agent",
+        agent_type="CortexAgent",
+        description="Executes Snowflake Cortex AI functions with orchestrated reasoning. Handles text generation, summarization, sentiment analysis, and multi-step data cleaning tasks.",
+        capabilities=["complete", "summarize", "sentiment", "translate", "extract_answer", "reason", "analyze_data", "clean_data"],
+        input_schema={"goal": "str", "table_name": "str", "context": "dict"},
+        output_schema={"result": "str", "thinking_steps": "list", "conversation_id": "str"},
+    ),
 ]
 
 

@@ -1,7 +1,7 @@
 # DataBridge AI: Project Configuration & Rules
 
 ## 🎯 Purpose
-A headless, MCP-native data reconciliation engine with **161 MCP tools** across ten major modules:
+A headless, MCP-native data reconciliation engine with **173 MCP tools** across eleven major modules:
 
 1. **Data Reconciliation Engine** - Bridges messy sources (OCR/PDF/SQL) with structured comparison pipelines
 2. **Hierarchy Knowledge Base Builder** - Creates and manages hierarchical data structures for reporting systems
@@ -13,8 +13,9 @@ A headless, MCP-native data reconciliation engine with **161 MCP tools** across 
 8. **Smart Recommendation Engine** - Context-aware recommendations for CSV imports using skills, templates, and knowledge base
 9. **Diff Utilities** - Character-level text/data comparison using Python's difflib for AI agents
 10. **Unified AI Agent** - Cross-system operations between Book (Python), Librarian (NestJS), and Researcher (NestJS)
+11. **Cortex Agent** - Snowflake Cortex AI integration with orchestrated reasoning loop
 
-## 🔧 Available Tool Categories (161 Tools)
+## 🔧 Available Tool Categories (173 Tools)
 
 ### File Discovery & Staging (3 tools)
 Tools for finding and staging files when paths are unknown or files are in inconvenient locations.
@@ -455,6 +456,85 @@ Three new agent types are available for workflow planning:
 ### Auto-Sync Feature
 All hierarchy write operations (create, update, delete) **automatically sync** to the NestJS backend.
 Use `configure_auto_sync(enabled=False)` to disable if needed.
+
+### Cortex Agent (12 tools)
+Snowflake Cortex AI integration with orchestrated reasoning loop (Observe → Plan → Execute → Reflect).
+
+**Core Cortex Functions (5):**
+- **`cortex_complete`** - Text generation via Cortex COMPLETE()
+- **`cortex_summarize`** - Text summarization via SUMMARIZE()
+- **`cortex_sentiment`** - Sentiment analysis via SENTIMENT()
+- **`cortex_translate`** - Translation via TRANSLATE()
+- **`cortex_extract_answer`** - QA extraction via EXTRACT_ANSWER()
+
+**Reasoning Loop (3):**
+- **`cortex_reason`** - Run full reasoning loop for complex goals
+- **`cortex_analyze_data`** - AI-powered data analysis on table
+- **`cortex_clean_data`** - Data cleaning with proposed changes
+
+**Configuration & Console (4):**
+- **`configure_cortex_agent`** - Set connection and model config
+- **`get_cortex_agent_status`** - Get agent status and connection
+- **`get_cortex_console_log`** - Get console log entries
+- **`get_cortex_conversation`** - Get full conversation with thinking
+
+**Architecture:**
+```
+User Request ("Clean the product names")
+        ↓
+┌─────────────────────────────────────────────────────────────────┐
+│                    CortexAgent                                  │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │            Orchestrated Reasoning Loop                   │   │
+│  │                                                          │   │
+│  │  1. OBSERVE  → Analyze goal and current state           │   │
+│  │  2. PLAN     → Use Cortex to create execution plan      │   │
+│  │  3. EXECUTE  → Run next step via Cortex SQL             │   │
+│  │  4. UPDATE   → Update internal scratchpad               │   │
+│  │  5. REFLECT  → Is goal complete? If not, repeat         │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                           ↓                                     │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │              CortexClient (SQL Wrapper)                  │   │
+│  │  - COMPLETE()    - SUMMARIZE()    - SENTIMENT()         │   │
+│  │  - TRANSLATE()   - EXTRACT_ANSWER()                     │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                           ↓                                     │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │           CommunicationConsole (Observability)          │   │
+│  │  ┌────────┐ ┌───────────┐ ┌──────────┐ ┌──────────┐    │   │
+│  │  │  CLI   │ │ WebSocket │ │ Database │ │   File   │    │   │
+│  │  └────────┘ └───────────┘ └──────────┘ └──────────┘    │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+        ↓
+Snowflake Data Cloud (data never leaves)
+```
+
+**Example - Configure and Use Cortex:**
+```python
+# 1. Configure agent with Snowflake connection
+configure_cortex_agent(
+    connection_id="snowflake-prod",
+    cortex_model="mistral-large"
+)
+
+# 2. Simple text generation
+cortex_complete(prompt="Explain data reconciliation in one sentence")
+
+# 3. Run full reasoning loop for complex task
+cortex_reason(
+    goal="Analyze the data quality in PRODUCTS table",
+    context='{"table": "ANALYTICS.PUBLIC.PRODUCTS"}'
+)
+
+# 4. Check console log
+get_cortex_console_log(limit=20)
+```
+
+**PlannerAgent Integration:**
+The `cortex_agent` is registered in PlannerAgent and can be selected for AI-powered data tasks:
+- **Capabilities:** complete, summarize, sentiment, translate, extract_answer, reason, analyze_data, clean_data
 
 ## 📋 Available Templates (20 Templates)
 

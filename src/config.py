@@ -55,6 +55,26 @@ class Settings(BaseSettings):
         description="Data Matcher API endpoint"
     )
 
+    # Cortex Agent Configuration
+    cortex_default_model: str = Field(
+        default="mistral-large",
+        description="Default Cortex model (mistral-large, claude-3-sonnet, llama3-70b)"
+    )
+    cortex_max_reasoning_steps: int = Field(
+        default=10,
+        ge=1,
+        le=50,
+        description="Maximum steps in reasoning loop"
+    )
+    cortex_console_enabled: bool = Field(
+        default=True,
+        description="Enable communication console"
+    )
+    cortex_console_log_path: Path = Field(
+        default=Path("data/cortex_agent/console.jsonl"),
+        description="Console log file path"
+    )
+
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",

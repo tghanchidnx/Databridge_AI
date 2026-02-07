@@ -7,7 +7,7 @@
 
 ## Overview
 
-DataBridge AI provides **179 tools** across multiple categories:
+DataBridge AI provides **191 tools** across multiple categories:
 
 | Category | Tools |
 |----------|-------|
@@ -23,6 +23,7 @@ DataBridge AI provides **179 tools** across multiple categories:
 | Faux Objects | create_faux_project, add_faux_object, generate_faux_scripts, etc. |
 | SQL Translator | detect_sql_format, translate_sql_to_semantic_view, convert_sql_format |
 | AI Orchestrator | submit_orchestrated_task, plan_workflow, register_agent, etc. |
+| Cortex Agent | cortex_complete, cortex_reason, cortex_analyze_data, etc. |
 | Documentation | update_manifest |
 
 ---
