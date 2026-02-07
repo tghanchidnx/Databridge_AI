@@ -2,9 +2,24 @@
 
 [![PyPI version](https://badge.fury.io/py/databridge-ai.svg)](https://badge.fury.io/py/databridge-ai)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
 
 **DataBridge AI** is a headless, MCP-native data reconciliation engine with **292 tools** for hierarchy management, data quality, and analytics.
+
+---
+
+## ⚠️ CONFIDENTIALITY NOTICE
+
+**BY INSTALLING THIS SOFTWARE, YOU AGREE TO THE FOLLOWING:**
+
+1. This software contains **CONFIDENTIAL AND PROPRIETARY** information
+2. You agree to maintain strict confidentiality of all source code, algorithms, and documentation
+3. Unauthorized disclosure or distribution is **STRICTLY PROHIBITED**
+4. You accept the terms of the [License Agreement](LICENSE)
+
+**If you do not agree to these terms, do not install or use this software.**
+
+---
 
 ## Features
 
@@ -19,6 +34,8 @@
 - **dbt Integration** - Generate dbt projects from hierarchies
 
 ## Installation
+
+**By installing, you accept the [License Agreement](LICENSE) including confidentiality obligations.**
 
 ```bash
 # Basic installation
@@ -119,27 +136,17 @@ SNOWFLAKE_USER=your-user
 SNOWFLAKE_PASSWORD=your-password
 ```
 
-## Development
-
-```bash
-# Install dev dependencies
-pip install -e ".[dev]"
-
-# Run tests
-pytest tests/ -v
-
-# Build package
-python -m build
-
-# Upload to PyPI
-twine upload dist/*
-```
-
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+**Proprietary License** - This software is confidential and proprietary.
 
-## Links
+See [LICENSE](LICENSE) for the complete terms including:
+- Confidentiality obligations
+- Usage restrictions
+- Non-disclosure requirements
 
-- [GitHub Repository](https://github.com/tghanchidnx/Databridge_AI)
-- [Issue Tracker](https://github.com/tghanchidnx/Databridge_AI/issues)
+Copyright (c) 2024-2026 DataBridge AI Team. All Rights Reserved.
+
+## Support
+
+For licensing inquiries: support@databridge.ai

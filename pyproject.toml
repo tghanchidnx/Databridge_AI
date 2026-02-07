@@ -8,7 +8,7 @@ version = "0.31.0"
 description = "DataBridge AI - MCP-native data reconciliation engine with 292 tools for hierarchy management, data quality, and analytics"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = {file = "LICENSE"}
 authors = [
     {name = "DataBridge AI Team", email = "support@databridge.ai"}
 ]
@@ -22,7 +22,7 @@ classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Financial and Insurance Industry",
     "Intended Audience :: Information Technology",
-    "License :: OSI Approved :: MIT License",
+    "License :: Other/Proprietary License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",

@@ -1,21 +1,80 @@
-MIT License
+DATABRIDGE AI SOFTWARE LICENSE AGREEMENT
 
-Copyright (c) 2024-2026 DataBridge AI Team
+Copyright (c) 2024-2026 DataBridge AI Team. All Rights Reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+IMPORTANT: BY INSTALLING, COPYING, OR USING THIS SOFTWARE, YOU AGREE TO BE
+BOUND BY THE TERMS OF THIS LICENSE AGREEMENT. IF YOU DO NOT AGREE TO THESE
+TERMS, DO NOT INSTALL OR USE THE SOFTWARE.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. GRANT OF LICENSE
+Subject to the terms of this Agreement, DataBridge AI Team grants you a
+non-exclusive, non-transferable, limited license to use the Software for
+your internal business purposes.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+2. CONFIDENTIALITY
+a) The Software, including all source code, algorithms, designs, documentation,
+   and any related materials, constitutes confidential and proprietary
+   information of DataBridge AI Team ("Confidential Information").
+
+b) You agree to:
+   - Maintain the confidentiality of all Confidential Information
+   - Not disclose Confidential Information to any third party without prior
+     written consent from DataBridge AI Team
+   - Use Confidential Information solely for the purposes permitted under
+     this Agreement
+   - Protect Confidential Information using at least the same degree of care
+     used to protect your own confidential information, but in no event less
+     than reasonable care
+   - Promptly notify DataBridge AI Team of any unauthorized disclosure or use
+
+c) Confidentiality obligations survive termination of this Agreement for a
+   period of five (5) years.
+
+3. RESTRICTIONS
+You may NOT:
+a) Copy, modify, or distribute the Software except as expressly permitted
+b) Reverse engineer, decompile, or disassemble the Software
+c) Remove or alter any proprietary notices, labels, or marks
+d) Sublicense, rent, lease, or lend the Software to third parties
+e) Use the Software to develop competing products or services
+f) Share API keys, credentials, or access tokens with unauthorized parties
+
+4. DATA PROCESSING
+a) Any data processed through this Software remains your property
+b) DataBridge AI Team does not collect, store, or transmit your data
+c) You are responsible for ensuring compliance with applicable data
+   protection laws (GDPR, CCPA, etc.)
+
+5. INTELLECTUAL PROPERTY
+All intellectual property rights in the Software remain with DataBridge AI
+Team. This Agreement does not grant you any rights to trademarks, service
+marks, or logos of DataBridge AI Team.
+
+6. WARRANTY DISCLAIMER
+THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND. DATABRIDGE AI
+TEAM DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
+NON-INFRINGEMENT.
+
+7. LIMITATION OF LIABILITY
+IN NO EVENT SHALL DATABRIDGE AI TEAM BE LIABLE FOR ANY INDIRECT, INCIDENTAL,
+SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING OUT OF OR RELATED TO
+THIS AGREEMENT OR THE USE OF THE SOFTWARE.
+
+8. TERMINATION
+This Agreement terminates automatically if you breach any of its terms.
+Upon termination, you must destroy all copies of the Software and certify
+such destruction in writing.
+
+9. GOVERNING LAW
+This Agreement shall be governed by and construed in accordance with the
+laws of the State of Texas, USA, without regard to its conflict of laws
+principles.
+
+10. ACCEPTANCE
+BY INSTALLING OR USING THIS SOFTWARE, YOU ACKNOWLEDGE THAT YOU HAVE READ
+THIS AGREEMENT, UNDERSTAND IT, AND AGREE TO BE BOUND BY ITS TERMS AND
+CONDITIONS. YOU ALSO AGREE THAT THIS AGREEMENT IS THE COMPLETE AND EXCLUSIVE
+STATEMENT OF THE AGREEMENT BETWEEN YOU AND DATABRIDGE AI TEAM.
+
+For licensing inquiries: support@databridge.ai
