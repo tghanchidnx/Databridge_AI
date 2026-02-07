@@ -1,7 +1,7 @@
 # DataBridge AI: Project Configuration & Rules
 
 ## 🎯 Purpose
-A headless, MCP-native data reconciliation engine with **217 MCP tools** across fourteen major modules:
+A headless, MCP-native data reconciliation engine with **224 MCP tools** across fifteen major modules:
 
 1. **Data Reconciliation Engine** - Bridges messy sources (OCR/PDF/SQL) with structured comparison pipelines
 2. **Hierarchy Knowledge Base Builder** - Creates and manages hierarchical data structures for reporting systems
@@ -17,8 +17,9 @@ A headless, MCP-native data reconciliation engine with **217 MCP tools** across 
 12. **Cortex Analyst** - Natural language to SQL translation via semantic models
 13. **Console Dashboard** - Real-time WebSocket streaming for agent activity monitoring
 14. **dbt Integration** - Generate dbt projects, models, and CI/CD pipelines from hierarchies
+15. **Data Quality** - Expectation suites, data contracts, and validation inspired by Great Expectations
 
-## 🔧 Available Tool Categories (217 Tools)
+## 🔧 Available Tool Categories (224 Tools)
 
 ### File Discovery & Staging (3 tools)
 Tools for finding and staging files when paths are unknown or files are in inconvenient locations.
@@ -865,6 +866,126 @@ finance_analytics/
 ├── models/sources.yml
 ├── models/schema.yml
 └── .github/workflows/dbt_ci.yml
+```
+
+### Data Quality (7 tools)
+Data quality validation inspired by Great Expectations with expectation suites, data contracts, and validation runners.
+
+**Expectation Suites (3):**
+- **`generate_expectation_suite`** - Create suite from hierarchy mappings or configuration
+- **`add_column_expectation`** - Add column expectations (not_null, unique, in_set, regex, between)
+- **`list_expectation_suites`** - List all configured expectation suites
+
+**Data Contracts (2):**
+- **`create_data_contract`** - Create contract with schema, quality rules, and SLAs
+- **`export_data_contract`** - Export contract to YAML or JSON
+
+**Validation (2):**
+- **`run_validation`** - Execute suite against in-memory or database data
+- **`get_validation_results`** - Get historical validation results
+
+**Architecture:**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Data Quality Module                          │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │         ExpectationSuiteGenerator                        │   │
+│  │  - Create suites from hierarchies                        │   │
+│  │  - Add expectations: not_null, unique, regex, etc.       │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                           ↓                                     │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │         DataContractGenerator                            │   │
+│  │  - Schema definitions with column constraints            │   │
+│  │  - Quality rules (freshness, completeness)               │   │
+│  │  - SLAs with validation schedules                        │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                           ↓                                     │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │         ValidationRunner                                 │   │
+│  │  - Execute validations against data                      │   │
+│  │  - Generate markdown/JSON reports                        │   │
+│  │  - Store historical results                              │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Expectation Types:**
+| Type | Description | Example |
+|------|-------------|---------|
+| `not_null` | Column values should not be null | Required fields |
+| `unique` | Column values should be unique | Primary keys |
+| `in_set` | Values should be in specified set | Status codes |
+| `match_regex` | Values should match regex pattern | Account codes |
+| `between` | Values should be between min and max | Valid ranges |
+
+**Example - Create Expectation Suite:**
+```python
+# 1. Create suite from hierarchy mappings
+generate_expectation_suite(
+    name="gl_accounts_suite",
+    database="ANALYTICS",
+    schema_name="FINANCE",
+    table_name="GL_ACCOUNTS",
+    mappings='[{"source_column": "ACCOUNT_CODE", "source_uid": "4%"}]'
+)
+
+# 2. Add column expectations
+add_column_expectation(
+    suite_name="gl_accounts_suite",
+    column="ACCOUNT_CODE",
+    expectation_type="match_regex",
+    regex="^[4-9][0-9]{3}$",
+    severity="high"
+)
+
+# 3. Run validation
+run_validation(
+    suite_name="gl_accounts_suite",
+    data='[{"ACCOUNT_CODE": "4100", "ACCOUNT_NAME": "Revenue"}]'
+)
+```
+
+**Example - Create Data Contract:**
+```python
+# Create contract with quality rules
+create_data_contract(
+    name="gl_accounts_contract",
+    owner="finance-team",
+    database="ANALYTICS",
+    schema_name="FINANCE",
+    table_name="GL_ACCOUNTS",
+    columns='[{"name": "ACCOUNT_CODE", "type": "VARCHAR", "not_null": true, "unique": true}]',
+    freshness_hours=24,
+    completeness_percent=99.5,
+    validation_schedule="0 6 * * *"
+)
+
+# Export to YAML
+export_data_contract(
+    contract_name="gl_accounts_contract",
+    format="yaml",
+    output_path="./contracts/gl_accounts.yml"
+)
+```
+
+**Generated Contract YAML:**
+```yaml
+name: gl_accounts_contract
+version: 1.0.0
+owner: finance-team
+table_name: GL_ACCOUNTS
+columns:
+  - name: ACCOUNT_CODE
+    data_type: VARCHAR
+    not_null: true
+    unique: true
+quality:
+  freshness_max_age_hours: 24
+  completeness_min_percent: 99.5
+sla:
+  validation_schedule: "0 6 * * *"
+  alert_on_failure: true
 ```
 
 ## 📋 Available Templates (20 Templates)

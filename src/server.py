@@ -1798,6 +1798,24 @@ except ImportError as e:
 
 
 # =============================================================================
+# Phase 25: Data Quality - Expectation Suites and Data Contracts
+# =============================================================================
+
+# Register Data Quality tools for expectation suites, data contracts,
+# and validation of data against hierarchy-derived quality rules
+try:
+    try:
+        from src.data_quality.mcp_tools import register_data_quality_tools
+    except ImportError:
+        from data_quality.mcp_tools import register_data_quality_tools
+
+    data_quality = register_data_quality_tools(mcp, settings)
+    log_action("SYSTEM", "data_quality_init", "Data Quality tools registered (7 tools)")
+except ImportError as e:
+    print(f"Warning: Data Quality module not loaded: {e}")
+
+
+# =============================================================================
 # Entry Point
 # =============================================================================
 
