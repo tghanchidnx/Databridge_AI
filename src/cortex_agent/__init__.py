@@ -6,8 +6,9 @@ This module provides:
 2. Direct Cortex Integration - Execute Cortex LLM functions via SQL
 3. Communication Console - Full observability with CLI, File, Database outputs
 4. State Management - Manage conversation state for stateless Cortex functions
+5. Cortex Analyst - Natural language to SQL via semantic models (Phase 20)
 
-Phase 19 of DataBridge AI.
+Phase 19 & 20 of DataBridge AI.
 """
 
 from .types import (
@@ -33,8 +34,27 @@ from .console import (
 )
 from .reasoning_loop import CortexReasoningLoop
 
+# Phase 20: Cortex Analyst types
+from .analyst_types import (
+    SemanticModelConfig,
+    LogicalTable,
+    Dimension,
+    TimeDimension,
+    Metric,
+    Fact,
+    BaseTableRef,
+    TableRelationship,
+    AnalystMessage,
+    AnalystResponse,
+    AnalystConversation,
+    AnalystQueryResult,
+    QueryResult,
+)
+from .analyst_client import AnalystClient
+from .semantic_model import SemanticModelManager
+
 __all__ = [
-    # Types
+    # Phase 19 Types
     "MessageType",
     "AgentState",
     "CortexFunction",
@@ -45,15 +65,32 @@ __all__ = [
     "CortexAgentConfig",
     "Conversation",
     "AgentResponse",
-    # Core classes
+    # Phase 19 Core classes
     "CortexClient",
     "CortexAgentContext",
     "get_context",
     "CortexReasoningLoop",
-    # Console
+    # Phase 19 Console
     "ConsoleOutput",
     "CLIOutput",
     "FileOutput",
     "DatabaseOutput",
     "CommunicationConsole",
+    # Phase 20 Analyst Types
+    "SemanticModelConfig",
+    "LogicalTable",
+    "Dimension",
+    "TimeDimension",
+    "Metric",
+    "Fact",
+    "BaseTableRef",
+    "TableRelationship",
+    "AnalystMessage",
+    "AnalystResponse",
+    "AnalystConversation",
+    "AnalystQueryResult",
+    "QueryResult",
+    # Phase 20 Analyst Classes
+    "AnalystClient",
+    "SemanticModelManager",
 ]

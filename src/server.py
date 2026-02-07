@@ -1731,7 +1731,7 @@ except ImportError as e:
 
 
 # =============================================================================
-# Phase 19: Cortex Agent - Snowflake Cortex AI Integration
+# Phase 19 & 20: Cortex Agent - Snowflake Cortex AI Integration
 # =============================================================================
 
 # Register Cortex Agent tools for Snowflake Cortex AI functions
@@ -1746,6 +1746,19 @@ try:
     log_action("SYSTEM", "cortex_agent_init", "Cortex Agent tools registered (12 tools)")
 except ImportError as e:
     print(f"Warning: Cortex Agent module not loaded: {e}")
+
+# Phase 20: Register Cortex Analyst tools for natural language to SQL
+# via semantic models
+try:
+    try:
+        from src.cortex_agent.analyst_tools import register_analyst_tools
+    except ImportError:
+        from cortex_agent.analyst_tools import register_analyst_tools
+
+    analyst = register_analyst_tools(mcp, settings)
+    log_action("SYSTEM", "cortex_analyst_init", "Cortex Analyst tools registered (10 tools)")
+except ImportError as e:
+    print(f"Warning: Cortex Analyst module not loaded: {e}")
 
 
 # =============================================================================
