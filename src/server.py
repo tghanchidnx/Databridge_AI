@@ -1852,6 +1852,23 @@ except ImportError as e:
 
 
 # =============================================================================
+# Phase 28: Git/CI-CD Integration
+# =============================================================================
+
+# Register Git Integration tools for git operations, GitHub PRs, and CI/CD workflows
+try:
+    try:
+        from src.git_integration.mcp_tools import register_git_integration_tools
+    except ImportError:
+        from git_integration.mcp_tools import register_git_integration_tools
+
+    git_integration = register_git_integration_tools(mcp, settings)
+    log_action("SYSTEM", "git_integration_init", "Git/CI-CD Integration tools registered (12 tools)")
+except ImportError as e:
+    print(f"Warning: Git Integration module not loaded: {e}")
+
+
+# =============================================================================
 # Entry Point
 # =============================================================================
 

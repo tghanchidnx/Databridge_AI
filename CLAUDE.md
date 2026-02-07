@@ -1,7 +1,7 @@
 # DataBridge AI: Project Configuration & Rules
 
 ## 🎯 Purpose
-A headless, MCP-native data reconciliation engine with **245 MCP tools** across seventeen major modules:
+A headless, MCP-native data reconciliation engine with **257 MCP tools** across eighteen major modules:
 
 1. **Data Reconciliation Engine** - Bridges messy sources (OCR/PDF/SQL) with structured comparison pipelines
 2. **Hierarchy Knowledge Base Builder** - Creates and manages hierarchical data structures for reporting systems
@@ -20,8 +20,9 @@ A headless, MCP-native data reconciliation engine with **245 MCP tools** across 
 15. **Data Quality** - Expectation suites, data contracts, and validation inspired by Great Expectations
 16. **Mart Factory** - Hierarchy-driven data mart generation with 4-object pipeline and AI discovery
 17. **Lineage & Impact Analysis** - Column-level lineage tracking, impact analysis, and dependency visualization
+18. **Git/CI-CD Integration** - Git operations, GitHub PRs, and automated workflow generation
 
-## 🔧 Available Tool Categories (245 Tools)
+## 🔧 Available Tool Categories (257 Tools)
 
 ### File Discovery & Staging (3 tools)
 Tools for finding and staging files when paths are unknown or files are in inconvenient locations.
@@ -1187,6 +1188,105 @@ export_lineage_diagram(
 | RENAME_COLUMN | DATA_MART | HIGH |
 | REMOVE_NODE | DATA_MART | CRITICAL |
 | MODIFY_FORMULA | DATA_MART | HIGH |
+
+### Git/CI-CD Integration (12 tools)
+Git operations, GitHub integration, and CI/CD workflow generation for automated deployments.
+
+**Git Operations (5):**
+- **`configure_git`** - Configure git repository with authentication and settings
+- **`git_status`** - Get repository status (branch, staged, modified, untracked)
+- **`git_commit`** - Stage and commit changes with optional prefix
+- **`git_create_branch`** - Create feature/release/hotfix branches
+- **`git_push`** - Push commits to remote repository
+
+**GitHub Operations (4):**
+- **`github_create_pr`** - Create pull request with reviewers and labels
+- **`github_get_pr_status`** - Get PR status including check runs
+- **`github_list_prs`** - List pull requests with filtering
+- **`github_merge_pr`** - Merge PR using squash/merge/rebase
+
+**CI/CD Workflows (3):**
+- **`generate_dbt_workflow`** - Generate GitHub Actions for dbt CI/CD
+- **`generate_deploy_workflow`** - Generate deployment workflow for hierarchies
+- **`generate_mart_workflow`** - Generate Mart Factory pipeline workflow
+
+**Architecture:**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Git/CI-CD Integration                        │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │              GitClient (Local Operations)                │   │
+│  │  - init, status, add, commit, branch, push, pull         │   │
+│  │  - Branch strategies (feature, release, hotfix)          │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                           ↓                                     │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │              GitHubClient (API Operations)               │   │
+│  │  - Create/list/merge pull requests                       │   │
+│  │  - Check runs and status                                 │   │
+│  │  - Releases and comments                                 │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                           ↓                                     │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │              WorkflowGenerator                           │   │
+│  │  - dbt CI/CD workflows (lint, build, test, deploy)       │   │
+│  │  - DataBridge deployment workflows                       │   │
+│  │  - Mart Factory pipeline workflows                       │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Example - Complete CI/CD Setup:**
+```python
+# 1. Configure git with GitHub token
+configure_git(
+    repo_path="C:/projects/my-dbt",
+    remote_url="https://github.com/myorg/my-dbt.git",
+    username="databridge-bot",
+    email="bot@example.com",
+    token="ghp_xxxx",
+    branch_strategy="feature"
+)
+
+# 2. Create feature branch
+git_create_branch(
+    branch_name="add-revenue-hierarchy",
+    from_branch="main"
+)
+
+# 3. Commit generated files
+git_commit(
+    message="Add revenue hierarchy models",
+    files="models/staging/stg_revenue.sql,models/marts/fct_revenue.sql"
+)
+
+# 4. Push and create PR
+git_push(set_upstream=True)
+github_create_pr(
+    title="Add revenue hierarchy models",
+    body="## Summary\nAdds dbt models for revenue...",
+    head_branch="feature/add-revenue-hierarchy",
+    reviewers="john,jane",
+    labels="dbt,hierarchy"
+)
+
+# 5. Generate CI/CD workflow
+generate_dbt_workflow(
+    project_name="revenue_mart",
+    dbt_version="1.7.0",
+    run_commands="build,test",
+    output_path=".github/workflows/dbt-ci.yml"
+)
+```
+
+**Generated Workflow Jobs:**
+| Job | Description |
+|-----|-------------|
+| `lint` | SQL linting with sqlfluff |
+| `build` | dbt compile and build |
+| `test` | dbt test execution |
+| `docs` | dbt docs generation |
+| `deploy` | Production deployment |
 
 ## 📋 Available Templates (20 Templates)
 
