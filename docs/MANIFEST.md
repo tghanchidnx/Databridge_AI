@@ -1,36 +1,36 @@
 # DataBridge AI - Tool Manifest
 
 > Auto-generated documentation for all MCP tools.
-> Last updated: 2026-02-07 13:08:03
+> Last updated: 2026-02-07 15:01:10
 
 ---
 
 ## Overview
 
-DataBridge AI provides **285 tools** across 20 modules:
+DataBridge AI provides **292 tools** for data reconciliation and hierarchy management.
 
-| Module | Description |
-|--------|-------------|
-| File Discovery & Staging | find_files, stage_file, get_working_directory |
-| Data Reconciliation | load_csv, load_json, query_database, profile_data, compare_hashes |
-| Hierarchy Builder | create_hierarchy_project, create_hierarchy, add_source_mapping |
-| Templates & Skills | list_financial_templates, get_skill_details, get_client_knowledge |
-| AI Orchestrator | submit_orchestrated_task, register_agent, send_agent_message |
-| PlannerAgent | plan_workflow, analyze_request, suggest_agents |
-| Recommendations | get_smart_recommendations, smart_import_csv |
-| Diff Utilities | diff_text, diff_lists, diff_dicts, explain_diff |
-| Unified Agent | checkout_librarian_to_book, promote_book_to_librarian |
-| Faux Objects | create_faux_project, add_semantic_view, generate_faux_ddl |
-| Cortex Agent | cortex_complete, cortex_reason, cortex_analyze_data |
-| Cortex Analyst | analyst_ask, create_semantic_model, deploy_semantic_model |
-| Console Dashboard | start_console_server, broadcast_console_message |
-| dbt Integration | create_dbt_project, generate_dbt_model, generate_cicd_pipeline |
-| Data Quality | generate_expectation_suite, create_data_contract, run_validation |
-| Wright (Dim/Fact Builder) | create_mart_config, generate_mart_pipeline, discover_hierarchy_pattern |
-| Lineage & Impact | add_lineage_node, analyze_change_impact, export_lineage_diagram |
-| Git/CI-CD | configure_git, git_commit, github_create_pr |
-| Data Catalog | catalog_create_asset, catalog_search, catalog_scan_connection |
-| Data Versioning | version_create, version_diff, version_rollback, version_tag |
+| Category | Tools |
+|----------|-------|
+| File Discovery | find_files, stage_file, get_working_directory |
+| Data Loading | load_csv, load_json, query_database |
+| Profiling | profile_data, detect_schema_drift |
+| Comparison | compare_hashes, get_orphan_details, get_conflict_details |
+| Fuzzy Matching | fuzzy_match_columns, fuzzy_deduplicate |
+| PDF/OCR | extract_text_from_pdf, ocr_image, parse_table_from_text |
+| Workflow | save_workflow_step, get_workflow, clear_workflow, get_audit_log |
+| Transform | transform_column, merge_sources |
+| Hierarchy Builder | create_hierarchy_project, create_hierarchy, import_hierarchy_csv, etc. |
+| Templates & Skills | list_financial_templates, get_skill_prompt, etc. |
+| AI Orchestrator | submit_orchestrated_task, send_agent_message, etc. |
+| Cortex AI | cortex_complete, analyst_ask, cortex_reason, etc. |
+| Wright (Mart Factory) | create_mart_config, generate_mart_pipeline, validate_hierarchy_data_quality, etc. |
+| Data Catalog | catalog_create_asset, catalog_search, etc. |
+| Versioning | version_create, version_diff, version_rollback, etc. |
+| Lineage | track_column_lineage, analyze_change_impact, etc. |
+| Git/CI-CD | git_commit, github_create_pr, etc. |
+| dbt Integration | create_dbt_project, generate_dbt_model, etc. |
+| Data Quality | generate_expectation_suite, run_validation, etc. |
+| Diff Utilities | diff_text, diff_lists, diff_dicts, etc. |
 
 ---
 
@@ -82,8 +82,14 @@ Add a column expectation to a suite.
         Returns:
             Added expectation details
 
-
-... (truncated)
+        Example:
+            add_column_expectation(
+                suite_name="gl_accounts_suite",
+                column="ACCOUNT_CODE",
+                expectation_type="match_regex",
+                regex="^[4-9][0-9]{3}$",
+                severity="high"
+            )
 
 ---
 
@@ -114,8 +120,18 @@ Add a faux object configuration to the project.
             target_schema: Schema for the faux object
             selected_dimensions: Comma-separated dimension names (empty = all)
             selected_metrics: Comma-separated metric names (empty = all)
+            selected_facts: Comma-separated fact names (empty = all)
+            parameters: JSON array of procedure parameters (stored_procedure only).
+                        Each: {"name": "FISCAL_YEAR", "data_type": "INT", "default_value": "2025"}
+            warehouse: Warehouse name (for dynamic_table/task)
+            target_lag: Refresh interval (for dynamic_table, e.g., "2 hours")
+            schedule: CRON schedule (for task, e.g., "USING CRON 0 */4 * * * America/Chicago")
+            materialized_table: Target table for materialization (task only)
+            where_clause: Static WHERE filter (e.g., "fiscal_year = 2025")
+            comment: Object description
 
-... (truncated)
+        Returns:
+            JSON confirmation with the faux object details
 
 ---
 
@@ -224,8 +240,21 @@ Add a property to a hierarchy node.
             override_allowed: Whether children can override ("true"/"false")
             description: Property description
 
+        Returns:
+            JSON with updated hierarchy and property details.
 
-... (truncated)
+        Examples:
+            # Add aggregation type
+            add_hierarchy_property(project_id, "REVENUE_1", "aggregation_type", "SUM", "dimension")
+
+            # Add measure type
+            add_hierarchy_property(project_id, "NET_INCOME", "measure_type", "derived", "fact")
+
+            # Add display color
+            add_hierarchy_property(project_id, "REVENUE_1", "color", "#22c55e", "display")
+
+            # Add custom property
+            add_hierarchy_property(project_id, "WELL_1", "regulatory_reporting", "true", "custom")
 
 ---
 
@@ -256,8 +285,8 @@ Add a node to the lineage graph.
                 node_type="TABLE",
                 database="ANALYTICS",
                 schema_name="PUBLIC",
-
-... (truncated)
+                columns='[{"name": "ACCOUNT_ID", "data_type": "NUMBER", "is_primary_key": true}]'
+            )
 
 ---
 
@@ -316,8 +345,13 @@ Add a logical table with dimensions and metrics to a semantic model.
             Added table configuration
 
         Example:
-
-... (truncated)
+            add_semantic_table(
+                model_name="sales_analytics",
+                table_name="sales",
+                base_table="ANALYTICS.PUBLIC.SALES_FACT",
+                dimensions='[{"name": "region", "expr": "region_name", "description": "Sales region", "data_type": "VARCHAR"}]',
+                metrics='[{"name": "revenue", "expr": "SUM(amount)", "description": "Total revenue", "data_type": "NUMBER"}]'
+            )
 
 ---
 
@@ -420,8 +454,8 @@ Have a multi-turn conversation with Cortex Analyst.
             result2 = analyst_conversation(
                 question="Break that down by quarter",
                 semantic_model_file="@ANALYTICS.PUBLIC.MODELS/sales.yaml",
-
-... (truncated)
+                conversation_id=conv_id
+            )
 
 ---
 
@@ -475,6 +509,28 @@ Analyze impact of a proposed change.
                 node="DIM_ACCOUNT",
                 change_type="REMOVE_COLUMN",
                 column="ACCOUNT_CODE"
+            )
+
+---
+
+### `analyze_group_filter_precedence`
+
+Analyze GROUP_FILTER_PRECEDENCE patterns in mapping data.
+
+        Detects multi-round filtering patterns:
+        - Precedence 1: Primary dimension join
+        - Precedence 2: Secondary filter
+        - Precedence 3: Tertiary filter
+
+        Args:
+            mappings: JSON array of mapping records with GROUP_FILTER_PRECEDENCE
+
+        Returns:
+            Analysis with detected patterns and recommended SQL
+
+        Example:
+            analyze_group_filter_precedence(
+                mappings='[{"FILTER_GROUP_1": "Deducts", "GROUP_FILTER_PRECEDENCE": 1}]'
             )
 
 ---
@@ -647,8 +703,11 @@ Create a new data asset in the catalog.
                 name="CUSTOMER_DIM",
                 asset_type="table",
                 database="ANALYTICS",
-
-... (truncated)
+                schema_name="PUBLIC",
+                description="Customer dimension table",
+                classification="pii",
+                tags="customer,dimension,core"
+            )
 
 ---
 
@@ -1036,6 +1095,34 @@ Compare schemas between two tables from different database connections.
 
 ---
 
+### `compare_ddl_content`
+
+Compare generated DDL against baseline DDL.
+
+        Identifies:
+        - Overall similarity
+        - Column additions/removals/modifications
+        - JOIN clause changes
+        - WHERE clause changes
+        - Breaking changes and warnings
+
+        Args:
+            generated_ddl: The generated DDL content
+            baseline_ddl: The baseline DDL to compare against
+            generated_name: Name of generated file
+            baseline_name: Name of baseline file
+
+        Returns:
+            Comparison result with differences
+
+        Example:
+            compare_ddl_content(
+                generated_ddl="CREATE VIEW VW_1 AS SELECT col1 FROM table1",
+                baseline_ddl="CREATE VIEW VW_1 AS SELECT col1, col2 FROM table1"
+            )
+
+---
+
 ### `compare_hashes`
 
 Compare two CSV sources by hashing rows to identify orphans and conflicts.
@@ -1048,6 +1135,28 @@ Compare two CSV sources by hashing rows to identify orphans and conflicts.
 
     Returns:
         JSON statistical summary with orphan and conflict counts (no raw data).
+
+---
+
+### `compare_pipeline_to_baseline`
+
+Compare a generated pipeline against baseline DDL files.
+
+        Compares all 4 pipeline objects (VW_1, DT_2, DT_3A, DT_3)
+        against matching files in the baseline directory.
+
+        Args:
+            config_name: Name of the mart configuration
+            baseline_dir: Directory containing baseline DDL files
+
+        Returns:
+            Comparison results for each pipeline object
+
+        Example:
+            compare_pipeline_to_baseline(
+                config_name="upstream_gross",
+                baseline_dir="C:/data/baseline_ddl"
+            )
 
 ---
 
@@ -1147,8 +1256,8 @@ Configure git integration settings.
                 username="databridge-bot",
                 email="bot@example.com",
                 token="ghp_xxxx",
-
-... (truncated)
+                branch_strategy="feature"
+            )
 
 ---
 
@@ -1223,8 +1332,10 @@ Convert SQL from one format to another.
             JSON with converted SQL
 
         Example:
-
-... (truncated)
+            convert_sql_format('''
+                SELECT region, SUM(amount) as total_sales
+                FROM orders GROUP BY region
+            ''', "semantic_view_ddl", name="sales_summary", database="ANALYTICS")
 
 ---
 
@@ -1452,8 +1563,13 @@ Create a data contract with quality expectations.
             create_data_contract(
                 name="gl_accounts_contract",
                 owner="finance-team",
-
-... (truncated)
+                database="ANALYTICS",
+                schema_name="FINANCE",
+                table_name="GL_ACCOUNTS",
+                freshness_hours=24,
+                completeness_percent=99.5,
+                validation_schedule="0 6 * * *"
+            )
 
 ---
 
@@ -1484,8 +1600,11 @@ Create a new dbt project scaffold.
             create_dbt_project(
                 name="finance_analytics",
                 profile="snowflake_prod",
-
-... (truncated)
+                target_database="ANALYTICS",
+                target_schema="FINANCE",
+                hierarchy_project_id="revenue-pl",
+                include_cicd=True
+            )
 
 ---
 
@@ -1612,8 +1731,13 @@ Create a new data mart pipeline configuration.
 
         Example:
             create_mart_config(
-
-... (truncated)
+                project_name="upstream_gross",
+                report_type="GROSS",
+                hierarchy_table="ANALYTICS.PUBLIC.TBL_0_GROSS_LOS_REPORT_HIERARCHY_",
+                mapping_table="ANALYTICS.PUBLIC.TBL_0_GROSS_LOS_REPORT_HIERARCHY_MAPPING",
+                account_segment="GROSS",
+                has_group_filter_precedence=True
+            )
 
 ---
 
@@ -1741,8 +1865,9 @@ Create a workflow plan spanning Book, Librarian, and Researcher.
                     {"system": "book", "action": "apply_formula", "params": {"formula": "SUM"}},
                     {"system": "researcher", "action": "validate_sources", "params": {}},
                     {"system": "librarian", "action": "promote", "params": {}},
-
-... (truncated)
+                    {"system": "librarian", "action": "push_to_snowflake", "params": {}}
+                ]
+            )
 
 ---
 
@@ -1943,8 +2068,26 @@ Compare two dictionaries with value-level character diffs.
             - overall_similarity: Weighted similarity score
 
         Example:
-
-... (truncated)
+            >>> diff_dicts(
+            ...     {"name": "John Smith", "age": 30},
+            ...     {"name": "Jon Smyth", "age": 30, "city": "NYC"}
+            ... )
+            {
+                "added_keys": ["city"],
+                "changed_keys": ["name"],
+                "unchanged_keys": ["age"],
+                "differences": [
+                    {
+                        "key": "name",
+                        "value_a": "John Smith",
+                        "value_b": "Jon Smyth",
+                        "status": "changed",
+                        "similarity": 0.7273,
+                        "opcodes": [...]
+                    },
+                    ...
+                ]
+            }
 
 ---
 
@@ -1975,8 +2118,11 @@ Compare two lists and identify added, removed, and common items.
             >>> diff_lists(["a", "b", "c"], ["b", "c", "d"])
             {
                 "added": ["d"],
-
-... (truncated)
+                "removed": ["a"],
+                "common": ["b", "c"],
+                "jaccard_similarity": 0.5,
+                "jaccard_percent": "50.0%"
+            }
 
 ---
 
@@ -2007,8 +2153,21 @@ Compare two text strings with similarity scores and detailed diff analysis.
             - matching_blocks: Where the strings match (detailed only)
             - unified_diff: Standard patch format (detailed only)
             - ndiff: Character-level +/-/? markers (detailed only)
+            - html: HTML formatted diff (if include_html=True)
 
-... (truncated)
+        Example:
+            >>> diff_text("John Smith", "Jon Smyth")
+            {
+                "similarity": 0.7273,
+                "similarity_percent": "72.7%",
+                "is_identical": false,
+                "opcodes": [
+                    {"operation": "equal", "a_content": "Jo", "b_content": "Jo"},
+                    {"operation": "replace", "a_content": "hn", "b_content": "n"},
+                    ...
+                ],
+                "explanation": "Similarity: 72.7%\n  Changed: 'hn' -> 'n'\n  Changed: 'i' -> 'y'"
+            }
 
 ---
 
@@ -2104,8 +2263,8 @@ Generate a human-readable explanation of differences between two texts.
                 "similarity": 0.7273,
                 "is_identical": false,
                 "summary": "The customer name values are 72.7% similar with 2 changes",
-
-... (truncated)
+                "explanation": "Similarity: 72.7%\nChanges:\n  - Changed 'hn' to 'n'\n  - Changed 'i' to 'y'"
+            }
 
 ---
 
@@ -2394,8 +2553,12 @@ Find strings similar to a target from a list of candidates.
             >>> find_similar_strings("Revenue", ["Revnue", "Expenses", "Revenue Total", "Rev"])
             {
                 "target": "Revenue",
-
-... (truncated)
+                "matches": [
+                    {"candidate": "Revenue Total", "similarity": 0.8571, "rank": 1},
+                    {"candidate": "Revnue", "similarity": 0.8571, "rank": 2},
+                    {"candidate": "Rev", "similarity": 0.6667, "rank": 3}
+                ]
+            }
 
 ---
 
@@ -2506,8 +2669,16 @@ Generate a dbt model SQL file.
                 model_name="gl_accounts",
                 model_type="staging",
                 source_name="raw",
+                source_table="GL_ACCOUNTS"
+            )
 
-... (truncated)
+            # Dimension model
+            generate_dbt_model(
+                project_name="finance",
+                model_name="account_hierarchy",
+                model_type="dimension",
+                ref_models="stg_gl_accounts"
+            )
 
 ---
 
@@ -2683,6 +2854,26 @@ Generate SQL scripts for all faux objects in a project.
 
         Returns:
             JSON with generated scripts for each object
+
+---
+
+### `generate_filter_precedence_sql`
+
+Generate SQL for GROUP_FILTER_PRECEDENCE multi-round filtering.
+
+        Generates DT_2 CTEs and UNION ALL branch definitions
+        based on detected filter patterns.
+
+        Args:
+            mappings: JSON array of mapping records with GROUP_FILTER_PRECEDENCE
+
+        Returns:
+            SQL snippets for multi-round filtering
+
+        Example:
+            generate_filter_precedence_sql(
+                mappings='[{"FILTER_GROUP_1": "Taxes", "GROUP_FILTER_PRECEDENCE": 2}]'
+            )
 
 ---
 
@@ -2891,8 +3082,11 @@ Auto-generate a semantic model from Snowflake schema metadata.
         Example:
             generate_model_from_schema(
                 connection_id="snowflake-prod",
-
-... (truncated)
+                database="ANALYTICS",
+                schema_name="PUBLIC",
+                tables="SALES_FACT,DIM_CUSTOMER,DIM_PRODUCT",
+                model_name="sales_model"
+            )
 
 ---
 
@@ -2923,8 +3117,12 @@ Generate a patch in unified, context, or ndiff format.
             - has_changes: Boolean indicating if there are differences
 
         Example:
-
-... (truncated)
+            >>> generate_patch("line1\nline2", "line1\nline2 modified", format="unified")
+            {
+                "format": "unified",
+                "patch": "--- original\n+++ modified\n@@ -1,2 +1,2 @@\n line1\n-line2\n+line2 modified",
+                "has_changes": true
+            }
 
 ---
 
@@ -3404,6 +3602,18 @@ Get the complete hierarchy tree for a project.
 
 ---
 
+### `get_id_source_alias_report`
+
+Get a report of all ID_SOURCE aliases and mappings.
+
+        Returns:
+            Report with canonical mappings, aliases, and auto-detected corrections
+
+        Example:
+            get_id_source_alias_report()
+
+---
+
 ### `get_inherited_mappings`
 
 Get all mappings for a hierarchy including those inherited from children.
@@ -3452,8 +3662,8 @@ Get a formatted prompt for LLM validation of recommendations.
         Example:
             get_llm_validation_prompt(
                 file_path="C:/data/chart_of_accounts.csv",
-
-... (truncated)
+                user_intent="Create a standard P&L structure for manufacturing"
+            )
 
 ---
 
@@ -3682,8 +3892,21 @@ Get smart recommendations for importing a CSV file.
             target_schema: Target schema for deployment hints
             target_table: Target table for deployment hints
 
+        Returns:
+            JSON containing:
+            - data_profile: Analyzed data structure and patterns
+            - import_tier: Recommended tier (1-4) with reasoning
+            - skills: Top 3 skill recommendations with scores
+            - templates: Top 3 template recommendations with scores
+            - knowledge: Knowledge base matches (if client_id provided)
+            - summary: Human-readable summary of recommendations
 
-... (truncated)
+        Example:
+            get_smart_recommendations(
+                file_path="C:/data/gl_accounts.csv",
+                user_intent="Build a P&L hierarchy for upstream oil and gas",
+                industry="oil_gas"
+            )
 
 ---
 
@@ -4069,8 +4292,21 @@ Import hierarchies from flexible format with auto-detection.
             - hierarchies_created, mappings_created
             - created_hierarchies (list with IDs and names)
             - inferred_fields (what was auto-generated)
+            - errors (if any)
 
-... (truncated)
+        Example:
+            # Tier 1 import
+            import_flexible_hierarchy(
+                project_id="abc-123",
+                content="source_value,group_name\n4100,Revenue\n4200,Revenue\n5100,COGS",
+                source_defaults='{"database":"WAREHOUSE","schema":"FINANCE","table":"DIM_ACCOUNT","column":"ACCOUNT_CODE"}'
+            )
+
+            # Tier 2 import
+            import_flexible_hierarchy(
+                project_id="abc-123",
+                content="hierarchy_name,parent_name,source_value\nRevenue,,4%\nProduct Rev,Revenue,41%"
+            )
 
 ---
 
@@ -4494,6 +4730,29 @@ Merge two CSV sources on key columns.
 
 ---
 
+### `normalize_id_source_values`
+
+Normalize ID_SOURCE values in mapping data.
+
+        Corrects known typos like:
+        - BILLING_CATEGRY_CODE → BILLING_CATEGORY_CODE
+        - BILLING_CATEGORY_TYPE → BILLING_CATEGORY_TYPE_CODE
+
+        Args:
+            mappings: JSON array of mapping records
+            auto_detect: Whether to use fuzzy matching for unknown values
+            id_source_key: Key for ID_SOURCE field
+
+        Returns:
+            Normalized mappings and correction details
+
+        Example:
+            normalize_id_source_values(
+                mappings='[{"ID_SOURCE": "BILLING_CATEGRY_CODE", "ID": "4100"}]'
+            )
+
+---
+
 ### `ocr_image`
 
 Extract text from an image using OCR (Tesseract).
@@ -4806,8 +5065,7 @@ Run an expectation suite against data.
             run_validation(
                 suite_name="gl_accounts_suite",
                 connection_id="snowflake-prod"
-
-... (truncated)
+            )
 
 ---
 
@@ -4913,8 +5171,10 @@ Set dimension properties for a hierarchy.
                 }
 
         Returns:
+            JSON with updated hierarchy.
 
-... (truncated)
+        Example:
+            set_dimension_properties(project_id, "ACCOUNT", '{"aggregation_type": "SUM", "drill_enabled": true}')
 
 ---
 
@@ -4945,8 +5205,9 @@ Set display properties for a hierarchy.
         Returns:
             JSON with updated hierarchy.
 
-
-... (truncated)
+        Examples:
+            set_display_properties(project_id, "REVENUE", '{"color": "#22c55e", "icon": "dollar"}')
+            set_display_properties(project_id, "EXPENSES", '{"color": "#ef4444", "collapsed_by_default": true}')
 
 ---
 
@@ -4977,8 +5238,18 @@ Set fact/measure properties for a hierarchy.
                     "base_measure_ids": null        // IDs of measures used in calculation
                 }
 
+        Returns:
+            JSON with updated hierarchy.
 
-... (truncated)
+        Examples:
+            # Additive measure (revenue, expenses)
+            set_fact_properties(project_id, "REVENUE", '{"measure_type": "additive", "aggregation_type": "SUM"}')
+
+            # Semi-additive balance (uses last value for time)
+            set_fact_properties(project_id, "BALANCE", '{"measure_type": "semi_additive", "time_balance": "last"}')
+
+            # Derived ratio
+            set_fact_properties(project_id, "MARGIN_PCT", '{"measure_type": "non_additive", "format_string": "0.00%"}')
 
 ---
 
@@ -5009,8 +5280,18 @@ Set filter properties for a hierarchy.
                     "max_selections": null          // Max selections for multi-select
                 }
 
+        Returns:
+            JSON with updated hierarchy.
 
-... (truncated)
+        Examples:
+            # Multi-select with search
+            set_filter_properties(project_id, "ACCOUNT", '{"filter_behavior": "multi", "search_enabled": true}')
+
+            # Cascading filter (depends on parent)
+            set_filter_properties(project_id, "WELL", '{"filter_behavior": "cascading", "cascading_parent_id": "FIELD_1"}')
+
+            # Required single-select
+            set_filter_properties(project_id, "PERIOD", '{"filter_behavior": "single", "required": true}')
 
 ---
 
@@ -5041,8 +5322,11 @@ Smart CSV import with automatic recommendations.
 
         Example:
             smart_import_csv(
-
-... (truncated)
+                file_path="C:/data/los_hierarchy.csv",
+                project_name="Q4 LOS Hierarchy",
+                user_intent="Build Lease Operating Statement hierarchy",
+                industry="oil_gas"
+            )
 
 ---
 
@@ -5133,7 +5417,8 @@ Submit a task to the AI Orchestrator for managed execution.
             dependencies: JSON array of task IDs that must complete first
             callback_url: Webhook URL for completion notification
 
-... (truncated)
+        Returns:
+            JSON with task ID, status, and queue position
 
 ---
 
@@ -5179,8 +5464,7 @@ Suggest enrichment options after hierarchy import.
                 project_id="my-project",
                 file_path="C:/data/gl_hierarchy.csv",
                 user_intent="Add account names to the mapping export"
-
-... (truncated)
+            )
 
 ---
 
@@ -5312,8 +5596,7 @@ Add column-level lineage relationship.
                 target_column="RESOLVED_VALUE",
                 transformation_type="CASE",
                 transformation_expression="CASE WHEN ID_SOURCE = 'ACCOUNT_CODE' THEN ..."
-
-... (truncated)
+            )
 
 ---
 
@@ -5388,8 +5671,7 @@ Parse SQL into a SemanticViewDefinition.
                 SELECT region, SUM(amount) as total_sales
                 FROM orders
                 GROUP BY region
-
-... (truncated)
+            ''', name="sales_analysis")
 
 ---
 
@@ -5449,6 +5731,35 @@ Validate a dbt project structure and configuration.
 
         Example:
             validate_dbt_project(project_name="finance")
+
+---
+
+### `validate_hierarchy_data_quality`
+
+Validate hierarchy and mapping data for quality issues.
+
+        Detects:
+        - ID_SOURCE typos (e.g., BILLING_CATEGRY_CODE)
+        - Duplicate hierarchy keys
+        - Orphan nodes (no mappings)
+        - Orphan mappings (no hierarchy)
+        - FILTER_GROUP mismatches
+        - Formula reference issues
+
+        Args:
+            hierarchies: JSON array of hierarchy records
+            mappings: JSON array of mapping records
+            hierarchy_table: Name of hierarchy table
+            mapping_table: Name of mapping table
+
+        Returns:
+            Validation result with all detected issues
+
+        Example:
+            validate_hierarchy_data_quality(
+                hierarchies='[{"HIERARCHY_ID": 1, "ACTIVE_FLAG": true}]',
+                mappings='[{"FK_REPORT_KEY": 1, "ID_SOURCE": "BILLING_CATEGRY_CODE"}]'
+            )
 
 ---
 
