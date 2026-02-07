@@ -1,13 +1,13 @@
 # DataBridge AI - Tool Manifest
 
 > Auto-generated documentation for all MCP tools.
-> Last updated: 2026-02-06 23:14:36
+> Last updated: 2026-02-06 23:41:00
 
 ---
 
 ## Overview
 
-DataBridge AI provides **201 tools** across these categories:
+DataBridge AI provides **209 tools** across these categories:
 
 | Category | Tools |
 |----------|-------|
@@ -435,6 +435,34 @@ Apply a property template to a hierarchy.
 
             # Apply time dimension (replace existing)
             apply_property_template(project_id, "PERIOD", "time_dimension", "false")
+
+---
+
+### `broadcast_console_message`
+
+Broadcast a message to all connected console clients.
+
+        Sends a message to clients subscribed to the specified channel.
+        Useful for sending system notifications, status updates, or
+        custom messages to the dashboard.
+
+        Args:
+            message: The message text to broadcast
+            level: Log level (debug, info, warning, error, success)
+            source: Source identifier (e.g., tool name, agent name)
+            channel: Channel to broadcast on (console, reasoning, agents, cortex)
+            conversation_id: Optional conversation filter
+            metadata: Optional additional metadata
+
+        Returns:
+            Broadcast result with recipient count
+
+        Example:
+            broadcast_console_message(
+                message="Data reconciliation complete",
+                level="success",
+                source="reconciler"
+            )
 
 ---
 
@@ -1006,6 +1034,33 @@ Create a new hierarchy project.
 
         Returns:
             JSON with project ID and details (includes auto_sync status)
+
+---
+
+### `create_model_from_template`
+
+Create a semantic model from a template.
+
+        Loads a pre-built template and customizes it with your database/schema.
+        Templates include standard dimensions, metrics, and relationships.
+
+        Args:
+            template_id: Template ID (from list_semantic_templates)
+            model_name: Name for the new model
+            database: Target database name
+            schema_name: Target schema name
+            deploy_to_stage: Optional stage path to deploy immediately
+
+        Returns:
+            Created model configuration
+
+        Example:
+            create_model_from_template(
+                template_id="sales_analytics",
+                model_name="my_sales_model",
+                database="ANALYTICS",
+                schema_name="PUBLIC"
+            )
 
 ---
 
@@ -1840,6 +1895,41 @@ Auto-generate a semantic model from a DataBridge hierarchy project.
 
 ---
 
+### `generate_model_from_schema`
+
+Auto-generate a semantic model from Snowflake schema metadata.
+
+        Scans tables and intelligently maps column types:
+        - VARCHAR/TEXT -> Dimensions
+        - DATE/TIMESTAMP -> Time Dimensions
+        - NUMBER/FLOAT -> Facts (potential metrics)
+        - Columns ending in _ID -> Join keys
+
+        Also auto-detects relationships based on naming conventions.
+
+        Args:
+            connection_id: Snowflake connection ID
+            database: Database name to scan
+            schema_name: Schema name to scan
+            tables: Optional comma-separated table names (defaults to all)
+            model_name: Optional model name (defaults to schema name)
+            include_sample_values: Fetch sample values for dimensions
+            deploy_to_stage: Optional stage path to deploy immediately
+
+        Returns:
+            Generated model summary
+
+        Example:
+            generate_model_from_schema(
+                connection_id="snowflake-prod",
+                database="ANALYTICS",
+                schema_name="PUBLIC",
+                tables="SALES_FACT,DIM_CUSTOMER,DIM_PRODUCT",
+                model_name="sales_model"
+            )
+
+---
+
 ### `generate_patch`
 
 Generate a patch in unified, context, or ndiff format.
@@ -2087,6 +2177,46 @@ List all tables in a schema.
 
         Returns:
             JSON array of table names in the specified schema.
+
+---
+
+### `get_console_connections`
+
+List active WebSocket connections to the console server.
+
+        Returns information about each connected client including:
+        - Connection ID
+        - Client IP address
+        - Connection time
+        - Subscribed channels
+        - Message count
+        - Last activity time
+
+        Returns:
+            List of connection info
+
+        Example:
+            get_console_connections()
+
+---
+
+### `get_console_server_status`
+
+Get the current status of the console server.
+
+        Returns detailed information about:
+        - Server running state
+        - Host and port configuration
+        - Active connection count
+        - Broadcaster backend (memory/redis)
+        - Channel subscription counts
+        - Message history size
+
+        Returns:
+            Server status information
+
+        Example:
+            get_console_server_status()
 
 ---
 
@@ -3047,6 +3177,26 @@ List all configured semantic models.
 
 ---
 
+### `list_semantic_templates`
+
+List available semantic model templates.
+
+        Templates provide pre-built semantic models for common use cases
+        like sales analytics, financial reporting, and industry-specific models.
+
+        Args:
+            domain: Optional filter by domain (sales, finance, operations, marketing)
+            industry: Optional filter by industry (general, retail, oil_gas, etc.)
+
+        Returns:
+            List of available templates with metadata
+
+        Example:
+            list_semantic_templates(domain="finance")
+            list_semantic_templates(industry="oil_gas")
+
+---
+
 ### `load_csv`
 
 Load a CSV file and return a preview with schema information.
@@ -3653,6 +3803,44 @@ Copy a file to the DataBridge data directory for easy access.
     Example:
         stage_file("/Users/john/Downloads/my_data.csv")
         stage_file("/tmp/upload123.csv", new_name="quarterly_report.csv")
+
+---
+
+### `start_console_server`
+
+Start the WebSocket console server.
+
+        Opens a web-based dashboard for real-time monitoring of:
+        - Console log entries from all MCP tools
+        - Reasoning loop steps (OBSERVE → PLAN → EXECUTE → REFLECT)
+        - Agent activity and inter-agent messages
+        - Cortex AI queries and responses
+
+        Args:
+            port: Port number (default: 8080)
+            host: Host address (default: 0.0.0.0 for all interfaces)
+            redis_url: Optional Redis URL for multi-instance broadcasting
+
+        Returns:
+            Server status with URL
+
+        Example:
+            start_console_server(port=8080)
+            # Open http://localhost:8080 in browser
+
+---
+
+### `stop_console_server`
+
+Stop the WebSocket console server.
+
+        Gracefully shuts down the server and disconnects all clients.
+
+        Returns:
+            Success status
+
+        Example:
+            stop_console_server()
 
 ---
 

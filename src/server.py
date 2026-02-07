@@ -1762,6 +1762,24 @@ except ImportError as e:
 
 
 # =============================================================================
+# Phase 23: Console Dashboard - WebSocket Server for Real-time Streaming
+# =============================================================================
+
+# Register Console Dashboard tools for real-time agent activity monitoring
+# via WebSocket streaming (console logs, reasoning steps, agent activity)
+try:
+    try:
+        from src.console_ws.mcp_tools import register_console_tools
+    except ImportError:
+        from console_ws.mcp_tools import register_console_tools
+
+    console = register_console_tools(mcp, settings)
+    log_action("SYSTEM", "console_ws_init", "Console Dashboard tools registered (5 tools)")
+except ImportError as e:
+    print(f"Warning: Console Dashboard module not loaded: {e}")
+
+
+# =============================================================================
 # Entry Point
 # =============================================================================
 

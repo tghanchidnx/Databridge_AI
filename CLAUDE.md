@@ -1,7 +1,7 @@
 # DataBridge AI: Project Configuration & Rules
 
 ## 🎯 Purpose
-A headless, MCP-native data reconciliation engine with **204 MCP tools** across twelve major modules:
+A headless, MCP-native data reconciliation engine with **209 MCP tools** across thirteen major modules:
 
 1. **Data Reconciliation Engine** - Bridges messy sources (OCR/PDF/SQL) with structured comparison pipelines
 2. **Hierarchy Knowledge Base Builder** - Creates and manages hierarchical data structures for reporting systems
@@ -15,8 +15,9 @@ A headless, MCP-native data reconciliation engine with **204 MCP tools** across 
 10. **Unified AI Agent** - Cross-system operations between Book (Python), Librarian (NestJS), and Researcher (NestJS)
 11. **Cortex Agent** - Snowflake Cortex AI integration with orchestrated reasoning loop
 12. **Cortex Analyst** - Natural language to SQL translation via semantic models
+13. **Console Dashboard** - Real-time WebSocket streaming for agent activity monitoring
 
-## 🔧 Available Tool Categories (204 Tools)
+## 🔧 Available Tool Categories (209 Tools)
 
 ### File Discovery & Staging (3 tools)
 Tools for finding and staging files when paths are unknown or files are in inconvenient locations.
@@ -677,6 +678,89 @@ generate_model_from_hierarchy(
     deploy_to_stage="@ANALYTICS.PUBLIC.MODELS/revenue.yaml"
 )
 ```
+
+### Console Dashboard (5 tools)
+Real-time WebSocket server for monitoring agent activity, reasoning loops, and Cortex AI interactions. Provides a web-based dashboard for live streaming.
+
+**Server Control (3):**
+- **`start_console_server`** - Start WebSocket server on specified port
+- **`stop_console_server`** - Stop the WebSocket server gracefully
+- **`get_console_server_status`** - Get server status, connections, and stats
+
+**Client Management (1):**
+- **`get_console_connections`** - List active WebSocket connections with details
+
+**Broadcasting (1):**
+- **`broadcast_console_message`** - Send message to all connected clients
+
+**Architecture:**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    WebSocket Console                            │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │           FastAPI WebSocket Server                       │   │
+│  │  - /ws/console              - Live console stream       │   │
+│  │  - /ws/agent/{agent_id}     - Agent-specific stream     │   │
+│  │  - /ws/reasoning/{conv_id}  - Reasoning loop stream     │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                           ↓                                     │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │           Event Bus (Redis Pub/Sub or In-Memory)         │   │
+│  │  - console    - Console log entries                     │   │
+│  │  - reasoning  - Reasoning loop steps                    │   │
+│  │  - agents     - Agent activity updates                  │   │
+│  │  - cortex     - Cortex AI interactions                  │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                           ↓                                     │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │           Web Dashboard (HTML/JS)                        │   │
+│  │  - Live console log viewer                              │   │
+│  │  - Reasoning loop visualizer                            │   │
+│  │  - Agent activity monitor                               │   │
+│  │  - Cortex query/result display                          │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Example - Start Console and Monitor:**
+```python
+# 1. Start the console server
+start_console_server(port=8080)
+# Open http://localhost:8080 in browser
+
+# 2. Check connections
+get_console_connections()
+
+# 3. Broadcast a message
+broadcast_console_message(
+    message="Data reconciliation complete",
+    level="success",
+    source="reconciler"
+)
+
+# 4. Get server status
+get_console_server_status()
+
+# 5. Stop server when done
+stop_console_server()
+```
+
+**Message Types:**
+| Type | Channel | Description |
+|------|---------|-------------|
+| `console.log` | console | Log entries with level (debug/info/warning/error/success) |
+| `reasoning.step` | reasoning | Reasoning loop step (OBSERVE/PLAN/EXECUTE/REFLECT) |
+| `agent.status` | agents | Agent registration and status updates |
+| `agent.message` | agents | Inter-agent communication messages |
+| `cortex.query` | cortex | Cortex AI query submitted |
+| `cortex.result` | cortex | Cortex AI response received |
+
+**Dashboard Features:**
+- **Live Console**: Real-time log viewer with level filtering
+- **Reasoning Visualizer**: Step-by-step reasoning loop display
+- **Agent Monitor**: Active agents with status and current tasks
+- **Cortex Panel**: Query/response tracking for AI operations
+- **Export**: Download session logs as JSON
 
 ## 📋 Available Templates (20 Templates)
 
