@@ -7,7 +7,7 @@
 
 ## Overview
 
-DataBridge AI provides **257 tools** across these categories:
+DataBridge AI provides **260 tools** across these categories:
 
 | Category | Tools |
 |----------|-------|
@@ -31,7 +31,7 @@ DataBridge AI provides **257 tools** across these categories:
 | Unified Agent | 10 tools for cross-system operations |
 | Faux Objects | 18 tools for semantic view wrappers |
 | Cortex Agent | 12 tools for Cortex AI LLM functions |
-| Cortex Analyst | 10 tools for natural language to SQL |
+| Cortex Analyst | 13 tools for natural language to SQL |
 | Console Dashboard | 5 tools for WebSocket streaming |
 | dbt Integration | 8 tools for dbt project generation |
 | Data Quality | 7 tools for expectations and data contracts |
