@@ -1,7 +1,7 @@
 # DataBridge AI: Project Configuration & Rules
 
 ## 🎯 Purpose
-A headless, MCP-native data reconciliation engine with **209 MCP tools** across thirteen major modules:
+A headless, MCP-native data reconciliation engine with **217 MCP tools** across fourteen major modules:
 
 1. **Data Reconciliation Engine** - Bridges messy sources (OCR/PDF/SQL) with structured comparison pipelines
 2. **Hierarchy Knowledge Base Builder** - Creates and manages hierarchical data structures for reporting systems
@@ -16,8 +16,9 @@ A headless, MCP-native data reconciliation engine with **209 MCP tools** across 
 11. **Cortex Agent** - Snowflake Cortex AI integration with orchestrated reasoning loop
 12. **Cortex Analyst** - Natural language to SQL translation via semantic models
 13. **Console Dashboard** - Real-time WebSocket streaming for agent activity monitoring
+14. **dbt Integration** - Generate dbt projects, models, and CI/CD pipelines from hierarchies
 
-## 🔧 Available Tool Categories (209 Tools)
+## 🔧 Available Tool Categories (217 Tools)
 
 ### File Discovery & Staging (3 tools)
 Tools for finding and staging files when paths are unknown or files are in inconvenient locations.
@@ -761,6 +762,110 @@ stop_console_server()
 - **Agent Monitor**: Active agents with status and current tasks
 - **Cortex Panel**: Query/response tracking for AI operations
 - **Export**: Download session logs as JSON
+
+### dbt Integration (8 tools)
+Generate complete dbt projects from DataBridge hierarchies with models, sources, metrics, and CI/CD pipelines.
+
+**Project Management (2):**
+- **`create_dbt_project`** - Scaffold a new dbt project with directory structure
+- **`export_dbt_project`** - Export project to directory or ZIP file
+
+**Model Generation (2):**
+- **`generate_dbt_model`** - Generate staging, intermediate, or dimension models
+- **`generate_dbt_schema`** - Generate schema.yml with documentation and tests
+
+**Source & Metrics (2):**
+- **`generate_dbt_sources`** - Generate sources.yml from hierarchy mappings
+- **`generate_dbt_metrics`** - Generate metrics.yml from formula groups
+
+**CI/CD & Validation (2):**
+- **`generate_cicd_pipeline`** - Generate GitHub Actions, GitLab CI, or Azure DevOps pipeline
+- **`validate_dbt_project`** - Validate project structure and configuration
+
+**Architecture:**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    dbt Integration Module                       │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │           DbtProjectGenerator                            │   │
+│  │  - dbt_project.yml, profiles.yml                        │   │
+│  │  - Directory scaffolding                                │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                           ↓                                     │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │           DbtModelGenerator                              │   │
+│  │  - stg_* (staging), int_* (intermediate)                │   │
+│  │  - dim_* (dimensions), fct_* (facts)                    │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                           ↓                                     │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │           CiCdGenerator                                  │   │
+│  │  - GitHub Actions, GitLab CI, Azure DevOps              │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Example - Create dbt Project from Hierarchy:**
+```python
+# 1. Create dbt project
+create_dbt_project(
+    name="finance_analytics",
+    profile="snowflake_prod",
+    target_database="ANALYTICS",
+    target_schema="FINANCE",
+    hierarchy_project_id="revenue-pl",
+    include_cicd=True
+)
+
+# 2. Generate staging model from source
+generate_dbt_model(
+    project_name="finance_analytics",
+    model_name="gl_accounts",
+    model_type="staging",
+    source_name="raw",
+    source_table="GL_ACCOUNTS"
+)
+
+# 3. Generate sources from hierarchy mappings
+generate_dbt_sources(
+    project_name="finance_analytics",
+    source_name="raw",
+    database="RAW_DB",
+    schema_name="FINANCE"
+)
+
+# 4. Generate GitHub Actions pipeline
+generate_cicd_pipeline(
+    project_name="finance_analytics",
+    platform="github_actions",
+    trigger_branches="main,develop"
+)
+
+# 5. Export the project
+export_dbt_project(
+    project_name="finance_analytics",
+    output_dir="./my_dbt_project",
+    as_zip=True
+)
+```
+
+**Generated Project Structure:**
+```
+finance_analytics/
+├── dbt_project.yml
+├── profiles.yml.template
+├── packages.yml
+├── models/
+│   ├── staging/
+│   │   └── stg_gl_accounts.sql
+│   ├── intermediate/
+│   │   └── int_account_hierarchy.sql
+│   └── marts/
+│       └── dim_account.sql
+├── models/sources.yml
+├── models/schema.yml
+└── .github/workflows/dbt_ci.yml
+```
 
 ## 📋 Available Templates (20 Templates)
 

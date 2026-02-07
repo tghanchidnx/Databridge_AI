@@ -1,13 +1,13 @@
 # DataBridge AI - Tool Manifest
 
 > Auto-generated documentation for all MCP tools.
-> Last updated: 2026-02-06 23:41:00
+> Last updated: 2026-02-06 23:55:25
 
 ---
 
 ## Overview
 
-DataBridge AI provides **209 tools** across these categories:
+DataBridge AI provides **217 tools** across these categories:
 
 | Category | Tools |
 |----------|-------|
@@ -941,6 +941,41 @@ Create a new client knowledge base profile.
 
 ---
 
+### `create_dbt_project`
+
+Create a new dbt project scaffold.
+
+        Generates a complete dbt project structure including:
+        - dbt_project.yml configuration
+        - profiles.yml template
+        - Directory structure (models/, seeds/, tests/, etc.)
+        - README and .gitignore
+        - Optional CI/CD pipeline
+
+        Args:
+            name: Project name (will be converted to lowercase with underscores)
+            profile: dbt profile name for database connections
+            target_database: Target database name (optional)
+            target_schema: Target schema name (optional)
+            hierarchy_project_id: Link to DataBridge hierarchy project (optional)
+            include_cicd: Whether to include GitHub Actions CI/CD workflow
+            output_dir: Directory to write files (optional, for immediate export)
+
+        Returns:
+            Project details with generated file list
+
+        Example:
+            create_dbt_project(
+                name="finance_analytics",
+                profile="snowflake_prod",
+                target_database="ANALYTICS",
+                target_schema="FINANCE",
+                hierarchy_project_id="revenue-pl",
+                include_cicd=True
+            )
+
+---
+
 ### `create_faux_project`
 
 Create a new Faux Objects project.
@@ -1549,6 +1584,29 @@ Generate a human-readable explanation of a workflow plan.
 
 ---
 
+### `export_dbt_project`
+
+Export a dbt project to directory or ZIP file.
+
+        Writes all generated files to disk.
+
+        Args:
+            project_name: Name of the dbt project
+            output_dir: Directory to export to (default: ./dbt_export/{project_name})
+            as_zip: Whether to create a ZIP archive
+
+        Returns:
+            Export details with file paths
+
+        Example:
+            export_dbt_project(
+                project_name="finance",
+                output_dir="./my_dbt_project",
+                as_zip=True
+            )
+
+---
+
 ### `export_faux_scripts`
 
 Export all generated SQL scripts to individual files.
@@ -1762,6 +1820,140 @@ Find fuzzy matches between two columns using RapidFuzz.
 
     Returns:
         JSON with fuzzy match results including similarity scores.
+
+---
+
+### `generate_cicd_pipeline`
+
+Generate CI/CD pipeline configuration.
+
+        Creates automated build and deploy workflows for the dbt project.
+
+        Args:
+            project_name: Name of the dbt project
+            platform: CI/CD platform (github_actions, gitlab_ci, azure_devops)
+            trigger_branches: Comma-separated list of trigger branches
+            dbt_version: dbt version to use
+            run_tests: Whether to run dbt tests
+            run_docs: Whether to generate documentation
+
+        Returns:
+            Generated pipeline details
+
+        Example:
+            generate_cicd_pipeline(
+                project_name="finance",
+                platform="github_actions",
+                trigger_branches="main,develop"
+            )
+
+---
+
+### `generate_dbt_metrics`
+
+Generate metrics.yml from formula groups or manual definitions.
+
+        Creates dbt metrics for business calculations.
+
+        Args:
+            project_name: Name of the dbt project
+            formula_groups: JSON string of DataBridge formula groups
+            metrics: JSON list of metric definitions (alternative)
+
+        Returns:
+            Generated metrics details
+
+        Example:
+            generate_dbt_metrics(
+                project_name="finance",
+                metrics='[{"name": "total_revenue", "expression": "SUM(amount)", "type": "derived"}]'
+            )
+
+---
+
+### `generate_dbt_model`
+
+Generate a dbt model SQL file.
+
+        Creates staging, intermediate, dimension, or fact models based on type.
+
+        Args:
+            project_name: Name of the dbt project
+            model_name: Name for the model (prefix added automatically)
+            model_type: Type of model (staging, intermediate, dimension, fact)
+            source_name: Source name for staging models
+            source_table: Source table for staging models
+            ref_models: Comma-separated model references for non-staging models
+            columns: JSON list of column names to include
+            case_mappings: JSON list of CASE statement mappings
+            description: Model description
+
+        Returns:
+            Generated model details
+
+        Example:
+            # Staging model
+            generate_dbt_model(
+                project_name="finance",
+                model_name="gl_accounts",
+                model_type="staging",
+                source_name="raw",
+                source_table="GL_ACCOUNTS"
+            )
+
+            # Dimension model
+            generate_dbt_model(
+                project_name="finance",
+                model_name="account_hierarchy",
+                model_type="dimension",
+                ref_models="stg_gl_accounts"
+            )
+
+---
+
+### `generate_dbt_schema`
+
+Generate schema.yml with model documentation and tests.
+
+        Creates schema definitions for all models in the project.
+
+        Args:
+            project_name: Name of the dbt project
+            models: Optional JSON list of specific models to include
+
+        Returns:
+            Generated schema details
+
+        Example:
+            generate_dbt_schema(project_name="finance")
+
+---
+
+### `generate_dbt_sources`
+
+Generate sources.yml from hierarchy mappings or manual configuration.
+
+        Creates source definitions for dbt that reference raw tables.
+
+        Args:
+            project_name: Name of the dbt project
+            source_name: Name for the source (e.g., "raw", "finance")
+            mappings: JSON string of DataBridge hierarchy mappings
+            tables: JSON list of table definitions (alternative to mappings)
+            database: Database name for all tables
+            schema_name: Schema name for all tables
+
+        Returns:
+            Generated sources details
+
+        Example:
+            generate_dbt_sources(
+                project_name="finance",
+                source_name="raw",
+                database="RAW_DB",
+                schema_name="FINANCE",
+                tables='[{"name": "gl_accounts", "columns": ["account_code", "account_name"]}]'
+            )
 
 ---
 
@@ -4114,6 +4306,23 @@ Regenerate the MANIFEST.md documentation from tool docstrings.
 
     Returns:
         Confirmation message with tool count.
+
+---
+
+### `validate_dbt_project`
+
+Validate a dbt project structure and configuration.
+
+        Checks for required files, valid YAML, and model references.
+
+        Args:
+            project_name: Name of the dbt project
+
+        Returns:
+            Validation results with errors and warnings
+
+        Example:
+            validate_dbt_project(project_name="finance")
 
 ---
 

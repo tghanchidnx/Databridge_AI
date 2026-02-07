@@ -1780,6 +1780,24 @@ except ImportError as e:
 
 
 # =============================================================================
+# Phase 24: dbt Integration - Generate dbt Projects from Hierarchies
+# =============================================================================
+
+# Register dbt Integration tools for generating dbt projects, models,
+# sources, metrics, and CI/CD pipelines from DataBridge hierarchies
+try:
+    try:
+        from src.dbt_integration.mcp_tools import register_dbt_tools
+    except ImportError:
+        from dbt_integration.mcp_tools import register_dbt_tools
+
+    dbt = register_dbt_tools(mcp, settings)
+    log_action("SYSTEM", "dbt_integration_init", "dbt Integration tools registered (8 tools)")
+except ImportError as e:
+    print(f"Warning: dbt Integration module not loaded: {e}")
+
+
+# =============================================================================
 # Entry Point
 # =============================================================================
 
