@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "databridge-ai"
-version = "0.31.0"
-description = "DataBridge AI - MCP-native data reconciliation engine with 292 tools for hierarchy management, data quality, and analytics"
+version = "0.32.0"
+description = "DataBridge AI - An open-source, MCP-native data reconciliation engine with tools for hierarchy management, data quality, and analytics"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {file = "LICENSE"}
 authors = [
-    {name = "DataBridge AI Team", email = "support@databridge.ai"}
+    {name = "Your Name", email = "your-email@example.com"}
 ]
 keywords = [
     "data", "reconciliation", "analytics", "hierarchy", "mcp",
@@ -18,11 +18,11 @@ keywords = [
     "data-catalog", "lineage", "dbt", "data-mart"
 ]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Intended Audience :: Financial and Insurance Industry",
     "Intended Audience :: Information Technology",
-    "License :: Other/Proprietary License",
+    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
@@ -70,10 +70,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/tghanchidnx/Databridge_AI"
-Documentation = "https://github.com/tghanchidnx/Databridge_AI#readme"
-Repository = "https://github.com/tghanchidnx/Databridge_AI.git"
-Issues = "https://github.com/tghanchidnx/Databridge_AI/issues"
+Homepage = "https://github.com/your-username/Databridge_AI"
+Documentation = "https://github.com/your-username/Databridge_AI#readme"
+Repository = "https://github.com/your-username/Databridge_AI.git"
+Issues = "https://github.com/your-username/Databridge_AI/issues"
 
 [project.scripts]
 databridge = "src.server:main"

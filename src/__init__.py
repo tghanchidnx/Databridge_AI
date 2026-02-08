@@ -2,7 +2,7 @@
 """
 DataBridge AI - MCP-native data reconciliation engine.
 
-A headless platform with 292 tools for:
+A headless platform with 287 tools for:
 - Data Reconciliation
 - Hierarchy Management
 - Data Mart Generation (Wright Module)
@@ -14,5 +14,5 @@ A headless platform with 292 tools for:
 - dbt Integration
 """
 
-__version__ = "0.31.0"
+__version__ = "0.32.0"
 __author__ = "DataBridge AI Team"
