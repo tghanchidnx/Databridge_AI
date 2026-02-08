@@ -1,7 +1,7 @@
 # DataBridge AI: Project Configuration & Rules
 
 ## 🎯 Purpose
-A headless, MCP-native data reconciliation engine with **293 MCP tools** across twenty major modules:
+A headless, MCP-native data reconciliation engine with **287 MCP tools** across twenty major modules:
 
 1. **Data Reconciliation Engine** - Bridges messy sources (OCR/PDF/SQL) with structured comparison pipelines
 2. **Hierarchy Knowledge Base Builder** - Creates and manages hierarchical data structures for reporting systems
@@ -24,7 +24,7 @@ A headless, MCP-native data reconciliation engine with **293 MCP tools** across 
 19. **Data Catalog** - Centralized metadata registry with business glossary, data discovery, and classification
 20. **Data Versioning** - Unified version control for DataBridge objects with snapshots, diff, and rollback
 
-## 🔧 Available Tool Categories (293 Tools)
+## 🔧 Available Tool Categories (287 Tools)
 
 ### File Discovery & Staging (3 tools)
 Tools for finding and staging files when paths are unknown or files are in inconvenient locations.

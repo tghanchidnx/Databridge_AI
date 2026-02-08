@@ -7,7 +7,7 @@
 
 ## Overview
 
-DataBridge AI provides **292 tools** for data reconciliation and hierarchy management.
+DataBridge AI provides **287 tools** for data reconciliation and hierarchy management.
 
 | Category | Tools |
 |----------|-------|
