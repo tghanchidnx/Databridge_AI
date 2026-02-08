@@ -797,6 +797,11 @@
                         <span class="nav-icon">⚡</span> Workflow Editor
                     </a>
                 </li>
+                <li class="nav-item" data-page-id="wright">
+                    <a href="#" class="nav-link" onclick="showPage(event, 'wright')">
+                        <span class="nav-icon">✈️</span> Wright Builder
+                    </a>
+                </li>
                 <li class="nav-item" data-page-id="admin">
                     <a href="#" class="nav-link" onclick="showPage(event, 'admin')">
                         <span class="nav-icon">⚙️</span> Administration
@@ -1017,6 +1022,256 @@ Ready to process requests. Type a query below or use Quick Actions.</div>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Wright Pipeline Builder Page -->
+            <div id="wright" class="page">
+                <h1 class="page-header">✈️ Wright Pipeline Builder</h1>
+                <p style="color: var(--text-dim); margin-bottom: 20px;">Build hierarchy-driven data marts with the 4-object pipeline pattern. Configure each step and preview generated SQL.</p>
+
+                <!-- Configuration Panel -->
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3>Pipeline Configuration</h3>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                        <div class="form-group">
+                            <label>Project Name</label>
+                            <input type="text" id="wrightProjectName" placeholder="upstream_gross" value="upstream_gross">
+                        </div>
+                        <div class="form-group">
+                            <label>Report Type</label>
+                            <select id="wrightReportType">
+                                <option value="GROSS" selected>GROSS</option>
+                                <option value="NET">NET</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Account Segment</label>
+                            <select id="wrightAccountSegment">
+                                <option value="GROSS" selected>GROSS</option>
+                                <option value="NET">NET</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Target Database</label>
+                            <input type="text" id="wrightDatabase" placeholder="ANALYTICS" value="ANALYTICS">
+                        </div>
+                        <div class="form-group">
+                            <label>Target Schema</label>
+                            <input type="text" id="wrightSchema" placeholder="PUBLIC" value="PUBLIC">
+                        </div>
+                        <div class="form-group">
+                            <label>Measure Prefix</label>
+                            <input type="text" id="wrightMeasurePrefix" placeholder="GROSS_" value="GROSS_">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px;">
+                        <div class="form-group">
+                            <label>Hierarchy Table</label>
+                            <input type="text" id="wrightHierarchyTable" placeholder="TBL_0_GROSS_LOS_REPORT_HIERARCHY" value="TBL_0_GROSS_LOS_REPORT_HIERARCHY">
+                        </div>
+                        <div class="form-group">
+                            <label>Mapping Table</label>
+                            <input type="text" id="wrightMappingTable" placeholder="TBL_0_GROSS_LOS_REPORT_HIERARCHY_MAPPING" value="TBL_0_GROSS_LOS_REPORT_HIERARCHY_MAPPING">
+                        </div>
+                        <div class="form-group">
+                            <label>Fact Table</label>
+                            <input type="text" id="wrightFactTable" placeholder="FCT_GL_TRANSACTIONS" value="FCT_GL_TRANSACTIONS">
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 20px; margin-top: 15px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="wrightHasSignChange"> Has Sign Change
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="wrightHasExclusions" checked> Has Exclusions
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="wrightHasGroupFilter" checked> Has Group Filter Precedence
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Pipeline Steps -->
+                <div class="tab-container">
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" onclick="showWrightTab(event, 'vw1-tab')">VW_1 Translation</button>
+                        <button class="tab-btn" onclick="showWrightTab(event, 'dt2-tab')">DT_2 Granularity</button>
+                        <button class="tab-btn" onclick="showWrightTab(event, 'dt3a-tab')">DT_3A Pre-Agg</button>
+                        <button class="tab-btn" onclick="showWrightTab(event, 'dt3-tab')">DT_3 Data Mart</button>
+                    </div>
+
+                    <!-- VW_1 Tab -->
+                    <div id="vw1-tab" class="tab-content active">
+                        <div class="card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h3 style="margin: 0;">VW_1: Translation View</h3>
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn" onclick="copyCode('vw1Code')">Copy</button>
+                                    <button class="btn primary" onclick="generateVW1()">Generate</button>
+                                </div>
+                            </div>
+                            <p style="color: var(--text-dim); margin-bottom: 15px;">Translates ID_SOURCE column values to physical database columns using CASE statements.</p>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                <div class="form-group">
+                                    <label>ID_SOURCE Column Mappings</label>
+                                    <select id="vw1IdSourceMappings" multiple style="height: 100px;">
+                                        <option value="ACCOUNT_CODE" selected>ACCOUNT_CODE → FK_ACCOUNT_KEY</option>
+                                        <option value="BILLING_CATEGORY_CODE" selected>BILLING_CATEGORY_CODE → FK_BILLING_KEY</option>
+                                        <option value="PRODUCT_CODE">PRODUCT_CODE → FK_PRODUCT_KEY</option>
+                                        <option value="DEDUCT_CODE">DEDUCT_CODE → FK_DEDUCT_KEY</option>
+                                        <option value="WELL_ID">WELL_ID → FK_WELL_KEY</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Additional Columns</label>
+                                    <select id="vw1AdditionalCols" multiple style="height: 100px;">
+                                        <option value="HIERARCHY_ID" selected>HIERARCHY_ID</option>
+                                        <option value="HIERARCHY_NAME" selected>HIERARCHY_NAME</option>
+                                        <option value="PRECEDENCE_GROUP">PRECEDENCE_GROUP</option>
+                                        <option value="SORT_ORDER">SORT_ORDER</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <pre id="vw1Code" class="code-block" style="background: var(--bg-tertiary); padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 12px; max-height: 400px;">-- Click "Generate" to create VW_1 Translation View SQL</pre>
+                        </div>
+                    </div>
+
+                    <!-- DT_2 Tab -->
+                    <div id="dt2-tab" class="tab-content">
+                        <div class="card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h3 style="margin: 0;">DT_2: Granularity Table</h3>
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn" onclick="copyCode('dt2Code')">Copy</button>
+                                    <button class="btn primary" onclick="generateDT2()">Generate</button>
+                                </div>
+                            </div>
+                            <p style="color: var(--text-dim); margin-bottom: 15px;">UNPIVOT operation to normalize data and apply exclusion filters.</p>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                <div class="form-group">
+                                    <label>Unpivot Measures</label>
+                                    <select id="dt2UnpivotMeasures" multiple style="height: 100px;">
+                                        <option value="AMOUNT" selected>AMOUNT</option>
+                                        <option value="QUANTITY">QUANTITY</option>
+                                        <option value="VOLUME" selected>VOLUME</option>
+                                        <option value="BOE">BOE</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Exclusion Categories</label>
+                                    <select id="dt2Exclusions" multiple style="height: 100px;">
+                                        <option value="Hedge Gains" selected>Hedge Gains</option>
+                                        <option value="DD&A" selected>DD&A</option>
+                                        <option value="Intercompany">Intercompany</option>
+                                        <option value="Eliminations">Eliminations</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <pre id="dt2Code" class="code-block" style="background: var(--bg-tertiary); padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 12px; max-height: 400px;">-- Click "Generate" to create DT_2 Granularity Table SQL</pre>
+                        </div>
+                    </div>
+
+                    <!-- DT_3A Tab -->
+                    <div id="dt3a-tab" class="tab-content">
+                        <div class="card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h3 style="margin: 0;">DT_3A: Pre-Aggregation Fact</h3>
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn" onclick="copyCode('dt3aCode')">Copy</button>
+                                    <button class="btn primary" onclick="generateDT3A()">Generate</button>
+                                </div>
+                            </div>
+                            <p style="color: var(--text-dim); margin-bottom: 15px;">UNION ALL branches for different join patterns. Each branch handles different dimension combinations.</p>
+
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label>Join Patterns (UNION ALL Branches)</label>
+                                <div id="joinPatternsContainer">
+                                    <div class="join-pattern" style="display: grid; grid-template-columns: 1fr 2fr 2fr auto; gap: 10px; margin-bottom: 10px; align-items: end;">
+                                        <div class="form-group" style="margin: 0;">
+                                            <label style="font-size: 11px;">Branch Name</label>
+                                            <input type="text" value="account" placeholder="Branch name">
+                                        </div>
+                                        <div class="form-group" style="margin: 0;">
+                                            <label style="font-size: 11px;">Hierarchy Filter Columns</label>
+                                            <input type="text" value="LOS_ACCOUNT_ID_FILTER" placeholder="Filter columns">
+                                        </div>
+                                        <div class="form-group" style="margin: 0;">
+                                            <label style="font-size: 11px;">Fact Join Keys</label>
+                                            <input type="text" value="FK_ACCOUNT_KEY" placeholder="Fact keys">
+                                        </div>
+                                        <button class="btn" onclick="this.parentElement.remove()" style="height: 36px;">✕</button>
+                                    </div>
+                                    <div class="join-pattern" style="display: grid; grid-template-columns: 1fr 2fr 2fr auto; gap: 10px; margin-bottom: 10px; align-items: end;">
+                                        <div class="form-group" style="margin: 0;">
+                                            <input type="text" value="deduct_product" placeholder="Branch name">
+                                        </div>
+                                        <div class="form-group" style="margin: 0;">
+                                            <input type="text" value="LOS_DEDUCT_CODE_FILTER, LOS_PRODUCT_CODE_FILTER" placeholder="Filter columns">
+                                        </div>
+                                        <div class="form-group" style="margin: 0;">
+                                            <input type="text" value="FK_DEDUCT_KEY, FK_PRODUCT_KEY" placeholder="Fact keys">
+                                        </div>
+                                        <button class="btn" onclick="this.parentElement.remove()" style="height: 36px;">✕</button>
+                                    </div>
+                                </div>
+                                <button class="btn" onclick="addJoinPattern()" style="margin-top: 10px;">+ Add Join Pattern</button>
+                            </div>
+
+                            <pre id="dt3aCode" class="code-block" style="background: var(--bg-tertiary); padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 12px; max-height: 400px;">-- Click "Generate" to create DT_3A Pre-Aggregation SQL</pre>
+                        </div>
+                    </div>
+
+                    <!-- DT_3 Tab -->
+                    <div id="dt3-tab" class="tab-content">
+                        <div class="card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h3 style="margin: 0;">DT_3: Final Data Mart</h3>
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn" onclick="copyCode('dt3Code')">Copy</button>
+                                    <button class="btn primary" onclick="generateDT3()">Generate</button>
+                                </div>
+                            </div>
+                            <p style="color: var(--text-dim); margin-bottom: 15px;">Final data mart with formula precedence cascade and surrogate key generation.</p>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                <div class="form-group">
+                                    <label>Formula Precedence Levels</label>
+                                    <select id="dt3FormulaPrecedence" multiple style="height: 120px;">
+                                        <option value="P1" selected>P1: Base Totals (Revenue, Taxes, Deducts)</option>
+                                        <option value="P2" selected>P2: Combined Totals</option>
+                                        <option value="P3" selected>P3: Gross Profit Calculation</option>
+                                        <option value="P4" selected>P4: Operating Income</option>
+                                        <option value="P5">P5: Cash Flow</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Dimension Keys to Include</label>
+                                    <select id="dt3DimensionKeys" multiple style="height: 120px;">
+                                        <option value="FK_DATE_KEY" selected>FK_DATE_KEY</option>
+                                        <option value="FK_ENTITY_KEY" selected>FK_ENTITY_KEY</option>
+                                        <option value="FK_ACCOUNT_KEY" selected>FK_ACCOUNT_KEY</option>
+                                        <option value="FK_PRODUCT_KEY">FK_PRODUCT_KEY</option>
+                                        <option value="FK_WELL_KEY">FK_WELL_KEY</option>
+                                        <option value="FK_FIELD_KEY">FK_FIELD_KEY</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <pre id="dt3Code" class="code-block" style="background: var(--bg-tertiary); padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 12px; max-height: 400px;">-- Click "Generate" to create DT_3 Data Mart SQL</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 15px; margin-top: 20px;">
+                    <button class="btn primary" onclick="generateAllPipeline()">Generate Full Pipeline</button>
+                    <button class="btn" onclick="exportPipelineZip()">Export as ZIP</button>
+                    <button class="btn" onclick="saveWrightConfig()">Save Configuration</button>
                 </div>
             </div>
 
@@ -1351,6 +1606,399 @@ print(f"Loaded {len(tools)} tools")
         if (tabId === 'overview-tab') {
             setTimeout(() => mermaid.run(), 100);
         }
+    }
+
+    // ============ WRIGHT PIPELINE BUILDER ============
+
+    function showWrightTab(event, tabId) {
+        // Handle Wright-specific tabs within the Wright page
+        const wrightPage = document.getElementById('wright');
+        wrightPage.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        wrightPage.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        event.target.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+    }
+
+    function getWrightConfig() {
+        return {
+            projectName: document.getElementById('wrightProjectName').value,
+            reportType: document.getElementById('wrightReportType').value,
+            accountSegment: document.getElementById('wrightAccountSegment').value,
+            database: document.getElementById('wrightDatabase').value,
+            schema: document.getElementById('wrightSchema').value,
+            measurePrefix: document.getElementById('wrightMeasurePrefix').value,
+            hierarchyTable: document.getElementById('wrightHierarchyTable').value,
+            mappingTable: document.getElementById('wrightMappingTable').value,
+            factTable: document.getElementById('wrightFactTable').value,
+            hasSignChange: document.getElementById('wrightHasSignChange').checked,
+            hasExclusions: document.getElementById('wrightHasExclusions').checked,
+            hasGroupFilter: document.getElementById('wrightHasGroupFilter').checked
+        };
+    }
+
+    function getSelectedValues(selectId) {
+        const select = document.getElementById(selectId);
+        return Array.from(select.selectedOptions).map(opt => opt.value);
+    }
+
+    function generateVW1() {
+        const config = getWrightConfig();
+        const idSourceMappings = getSelectedValues('vw1IdSourceMappings');
+        const additionalCols = getSelectedValues('vw1AdditionalCols');
+
+        const mappingCases = idSourceMappings.map(m => {
+            const [src, tgt] = m.includes('→') ? m.split('→').map(s => s.trim()) : [m, 'FK_' + m.replace('_CODE', '_KEY')];
+            return `            WHEN ID_SOURCE = '${src}' THEN ${src}`;
+        }).join('\n');
+
+        const sql = `-- VW_1: Translation View for ${config.projectName}
+-- Generated by Wright Pipeline Builder
+-- Report Type: ${config.reportType} | Segment: ${config.accountSegment}
+
+CREATE OR REPLACE VIEW ${config.database}.${config.schema}.VW_1_${config.reportType}_${config.projectName.toUpperCase()}_TRANSLATED AS
+SELECT
+    h.HIERARCHY_ID,
+    h.HIERARCHY_NAME,
+    m.MAPPING_INDEX,
+    m.SOURCE_DATABASE,
+    m.SOURCE_SCHEMA,
+    m.SOURCE_TABLE,
+    m.SOURCE_COLUMN,
+    m.SOURCE_UID,
+    m.PRECEDENCE_GROUP,
+    -- ID_SOURCE Translation (CASE statement)
+    CASE m.ID_SOURCE
+${mappingCases}
+            ELSE NULL
+    END AS RESOLVED_FILTER_VALUE,
+    m.ID_SOURCE,
+    -- Additional hierarchy columns
+${additionalCols.map(c => `    h.${c}`).join(',\n')},
+    -- Flags
+    m.INCLUDE_FLAG,
+    m.EXCLUDE_FLAG,
+    h.SIGN_CHANGE_FLAG
+FROM ${config.database}.${config.schema}.${config.hierarchyTable} h
+JOIN ${config.database}.${config.schema}.${config.mappingTable} m
+    ON h.HIERARCHY_ID = m.HIERARCHY_ID
+WHERE h.INCLUDE_FLAG = TRUE
+  AND m.INCLUDE_FLAG = TRUE;
+
+-- Row count verification
+-- SELECT COUNT(*) FROM ${config.database}.${config.schema}.VW_1_${config.reportType}_${config.projectName.toUpperCase()}_TRANSLATED;`;
+
+        document.getElementById('vw1Code').textContent = sql;
+        showNotification('VW_1 Translation View generated', 'success');
+    }
+
+    function generateDT2() {
+        const config = getWrightConfig();
+        const measures = getSelectedValues('dt2UnpivotMeasures');
+        const exclusions = getSelectedValues('dt2Exclusions');
+
+        const unpivotCols = measures.map(m => `${config.measurePrefix}${m}`).join(', ');
+        const exclusionList = exclusions.map(e => `'${e}'`).join(', ');
+
+        const sql = `-- DT_2: Granularity Table for ${config.projectName}
+-- Generated by Wright Pipeline Builder
+-- Applies UNPIVOT and exclusion filters
+
+CREATE OR REPLACE DYNAMIC TABLE ${config.database}.${config.schema}.DT_2_${config.reportType}_${config.projectName.toUpperCase()}_GRANULARITY
+    TARGET_LAG = '1 hour'
+    WAREHOUSE = TRANSFORM_WH
+AS
+WITH source_data AS (
+    SELECT
+        v.*,
+        f.FK_DATE_KEY,
+        f.FK_ENTITY_KEY,
+${measures.map(m => `        f.${config.measurePrefix}${m}`).join(',\n')}
+    FROM ${config.database}.${config.schema}.VW_1_${config.reportType}_${config.projectName.toUpperCase()}_TRANSLATED v
+    JOIN ${config.database}.${config.schema}.${config.factTable} f
+        ON v.RESOLVED_FILTER_VALUE = f.FK_ACCOUNT_KEY
+),
+unpivoted AS (
+    SELECT *
+    FROM source_data
+    UNPIVOT (
+        MEASURE_VALUE FOR MEASURE_NAME IN (${unpivotCols})
+    )
+)
+SELECT
+    u.*,
+    -- Exclude specified categories
+    CASE WHEN u.HIERARCHY_NAME NOT IN (${exclusionList}) THEN TRUE ELSE FALSE END AS INCLUDE_IN_REPORT
+FROM unpivoted u
+${config.hasExclusions ? `WHERE u.HIERARCHY_NAME NOT IN (${exclusionList})` : '-- No exclusions applied'};
+
+-- Exclusion summary
+-- Categories excluded: ${exclusions.join(', ')}
+-- Row count: SELECT COUNT(*) FROM ${config.database}.${config.schema}.DT_2_${config.reportType}_${config.projectName.toUpperCase()}_GRANULARITY;`;
+
+        document.getElementById('dt2Code').textContent = sql;
+        showNotification('DT_2 Granularity Table generated', 'success');
+    }
+
+    function generateDT3A() {
+        const config = getWrightConfig();
+        const joinPatterns = getJoinPatterns();
+
+        const unionBranches = joinPatterns.map((pattern, idx) => {
+            const filterCols = pattern.filterColumns.split(',').map(c => c.trim());
+            const factKeys = pattern.factKeys.split(',').map(k => k.trim());
+            const joinConditions = filterCols.map((col, i) =>
+                `        h.${col} = f.${factKeys[i] || factKeys[0]}`
+            ).join('\n    AND ');
+
+            return `    -- Branch ${idx + 1}: ${pattern.name}
+    SELECT
+        h.HIERARCHY_ID,
+        h.HIERARCHY_NAME,
+        h.PRECEDENCE_GROUP,
+        f.FK_DATE_KEY,
+        f.FK_ENTITY_KEY,
+        SUM(f.${config.measurePrefix}AMOUNT) AS ${config.measurePrefix}AMOUNT,
+        SUM(f.${config.measurePrefix}VOLUME) AS ${config.measurePrefix}VOLUME
+    FROM ${config.database}.${config.schema}.${config.hierarchyTable} h
+    JOIN ${config.database}.${config.schema}.${config.factTable} f
+    ON ${joinConditions}
+    WHERE h.INCLUDE_FLAG = TRUE
+      AND h.${filterCols[0]} IS NOT NULL
+    GROUP BY 1, 2, 3, 4, 5`;
+        }).join('\n\n    UNION ALL\n\n');
+
+        const sql = `-- DT_3A: Pre-Aggregation Fact for ${config.projectName}
+-- Generated by Wright Pipeline Builder
+-- ${joinPatterns.length} UNION ALL branch(es) for different join patterns
+
+CREATE OR REPLACE DYNAMIC TABLE ${config.database}.${config.schema}.DT_3A_${config.reportType}_${config.projectName.toUpperCase()}_PREAGG
+    TARGET_LAG = '1 hour'
+    WAREHOUSE = TRANSFORM_WH
+AS
+${unionBranches};
+
+-- Branch summary:
+${joinPatterns.map((p, i) => `-- ${i + 1}. ${p.name}: ${p.filterColumns} → ${p.factKeys}`).join('\n')}
+
+-- Row count: SELECT COUNT(*) FROM ${config.database}.${config.schema}.DT_3A_${config.reportType}_${config.projectName.toUpperCase()}_PREAGG;`;
+
+        document.getElementById('dt3aCode').textContent = sql;
+        showNotification('DT_3A Pre-Aggregation generated', 'success');
+    }
+
+    function generateDT3() {
+        const config = getWrightConfig();
+        const precedenceLevels = getSelectedValues('dt3FormulaPrecedence');
+        const dimensionKeys = getSelectedValues('dt3DimensionKeys');
+
+        const dimKeyList = dimensionKeys.join(',\n        ');
+
+        // Build formula precedence CTEs
+        const formulaCTEs = [];
+        if (precedenceLevels.includes('P1')) {
+            formulaCTEs.push(`    -- P1: Base aggregations
+    p1_base AS (
+        SELECT
+            ${dimKeyList},
+            HIERARCHY_ID,
+            HIERARCHY_NAME,
+            PRECEDENCE_GROUP,
+            ${config.measurePrefix}AMOUNT,
+            ${config.measurePrefix}VOLUME
+        FROM ${config.database}.${config.schema}.DT_3A_${config.reportType}_${config.projectName.toUpperCase()}_PREAGG
+    )`);
+        }
+        if (precedenceLevels.includes('P2')) {
+            formulaCTEs.push(`    -- P2: Combined totals
+    p2_combined AS (
+        SELECT
+            ${dimKeyList},
+            'COMBINED_TOTAL' AS HIERARCHY_NAME,
+            SUM(${config.measurePrefix}AMOUNT) AS ${config.measurePrefix}AMOUNT
+        FROM p1_base
+        WHERE PRECEDENCE_GROUP IN ('TAXES', 'DEDUCTS')
+        GROUP BY ${dimensionKeys.map((_, i) => i + 1).join(', ')}
+    )`);
+        }
+        if (precedenceLevels.includes('P3')) {
+            formulaCTEs.push(`    -- P3: Gross Profit = Revenue - Taxes - Deducts
+    p3_gross_profit AS (
+        SELECT
+            ${dimKeyList},
+            'GROSS_PROFIT' AS HIERARCHY_NAME,
+            SUM(CASE WHEN PRECEDENCE_GROUP = 'REVENUE' THEN ${config.measurePrefix}AMOUNT ELSE 0 END)
+            - SUM(CASE WHEN PRECEDENCE_GROUP IN ('TAXES', 'DEDUCTS') THEN ${config.measurePrefix}AMOUNT ELSE 0 END)
+            AS ${config.measurePrefix}AMOUNT
+        FROM p1_base
+        GROUP BY ${dimensionKeys.map((_, i) => i + 1).join(', ')}
+    )`);
+        }
+        if (precedenceLevels.includes('P4')) {
+            formulaCTEs.push(`    -- P4: Operating Income = Gross Profit - OpEx
+    p4_operating_income AS (
+        SELECT
+            gp.${dimensionKeys[0]},
+            'OPERATING_INCOME' AS HIERARCHY_NAME,
+            gp.${config.measurePrefix}AMOUNT
+            - COALESCE(opex.${config.measurePrefix}AMOUNT, 0) AS ${config.measurePrefix}AMOUNT
+        FROM p3_gross_profit gp
+        LEFT JOIN p1_base opex
+            ON gp.${dimensionKeys[0]} = opex.${dimensionKeys[0]}
+            AND opex.PRECEDENCE_GROUP = 'OPEX'
+    )`);
+        }
+        if (precedenceLevels.includes('P5')) {
+            formulaCTEs.push(`    -- P5: Cash Flow = Operating Income - CapEx
+    p5_cash_flow AS (
+        SELECT
+            oi.${dimensionKeys[0]},
+            'CASH_FLOW' AS HIERARCHY_NAME,
+            oi.${config.measurePrefix}AMOUNT
+            - COALESCE(capex.${config.measurePrefix}AMOUNT, 0) AS ${config.measurePrefix}AMOUNT
+        FROM p4_operating_income oi
+        LEFT JOIN p1_base capex
+            ON oi.${dimensionKeys[0]} = capex.${dimensionKeys[0]}
+            AND capex.PRECEDENCE_GROUP = 'CAPEX'
+    )`);
+        }
+
+        const sql = `-- DT_3: Final Data Mart for ${config.projectName}
+-- Generated by Wright Pipeline Builder
+-- Formula Precedence Levels: ${precedenceLevels.join(' → ')}
+
+CREATE OR REPLACE DYNAMIC TABLE ${config.database}.${config.schema}.DT_3_${config.reportType}_${config.projectName.toUpperCase()}_MART
+    TARGET_LAG = '1 hour'
+    WAREHOUSE = TRANSFORM_WH
+AS
+WITH
+${formulaCTEs.join(',\n\n')}
+
+-- Final union of all precedence levels
+SELECT
+    MD5(CONCAT_WS('|', ${dimensionKeys.join(', ')}, HIERARCHY_NAME)) AS SURROGATE_KEY,
+    ${dimKeyList},
+    HIERARCHY_NAME,
+    ${config.measurePrefix}AMOUNT,
+    CURRENT_TIMESTAMP() AS LOAD_TIMESTAMP
+FROM (
+${precedenceLevels.map(p => `    SELECT * FROM ${p.toLowerCase()}_${p === 'P1' ? 'base' : p === 'P2' ? 'combined' : p === 'P3' ? 'gross_profit' : p === 'P4' ? 'operating_income' : 'cash_flow'}`).join('\n    UNION ALL\n')}
+);
+
+-- Formula Precedence Documentation:
+-- P1: Base totals (Revenue, Taxes, Deducts, OpEx, CapEx)
+-- P2: Combined totals (Taxes + Deducts)
+-- P3: Gross Profit = Revenue - Taxes - Deducts
+-- P4: Operating Income = Gross Profit - OpEx
+-- P5: Cash Flow = Operating Income - CapEx
+
+-- Row count: SELECT COUNT(*) FROM ${config.database}.${config.schema}.DT_3_${config.reportType}_${config.projectName.toUpperCase()}_MART;`;
+
+        document.getElementById('dt3Code').textContent = sql;
+        showNotification('DT_3 Data Mart generated', 'success');
+    }
+
+    function getJoinPatterns() {
+        const patterns = [];
+        const container = document.getElementById('joinPatternsContainer');
+        const rows = container.querySelectorAll('.join-pattern');
+        rows.forEach(row => {
+            const inputs = row.querySelectorAll('input[type="text"]');
+            if (inputs.length >= 3) {
+                patterns.push({
+                    name: inputs[0].value || 'unnamed',
+                    filterColumns: inputs[1].value || '',
+                    factKeys: inputs[2].value || ''
+                });
+            }
+        });
+        return patterns;
+    }
+
+    function addJoinPattern() {
+        const container = document.getElementById('joinPatternsContainer');
+        const newPattern = document.createElement('div');
+        newPattern.className = 'join-pattern';
+        newPattern.style = 'display: grid; grid-template-columns: 1fr 2fr 2fr auto; gap: 10px; margin-bottom: 10px; align-items: end;';
+        newPattern.innerHTML = `
+            <div class="form-group" style="margin: 0;">
+                <input type="text" placeholder="Branch name">
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <input type="text" placeholder="Filter columns (comma-separated)">
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <input type="text" placeholder="Fact join keys (comma-separated)">
+            </div>
+            <button class="btn" onclick="this.parentElement.remove()" style="height: 36px;">✕</button>
+        `;
+        container.appendChild(newPattern);
+    }
+
+    function copyCode(elementId) {
+        const codeElement = document.getElementById(elementId);
+        const text = codeElement.textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            showNotification('Code copied to clipboard', 'success');
+        }).catch(err => {
+            showNotification('Failed to copy: ' + err, 'error');
+        });
+    }
+
+    function generateAllPipeline() {
+        generateVW1();
+        generateDT2();
+        generateDT3A();
+        generateDT3();
+        showNotification('Full pipeline generated (4 objects)', 'success');
+    }
+
+    async function exportPipelineZip() {
+        const config = getWrightConfig();
+
+        // Collect all generated SQL
+        const files = [
+            { name: `VW_1_${config.reportType}_${config.projectName.toUpperCase()}.sql`, content: document.getElementById('vw1Code').textContent },
+            { name: `DT_2_${config.reportType}_${config.projectName.toUpperCase()}.sql`, content: document.getElementById('dt2Code').textContent },
+            { name: `DT_3A_${config.reportType}_${config.projectName.toUpperCase()}.sql`, content: document.getElementById('dt3aCode').textContent },
+            { name: `DT_3_${config.reportType}_${config.projectName.toUpperCase()}.sql`, content: document.getElementById('dt3Code').textContent },
+            { name: 'pipeline_config.json', content: JSON.stringify(config, null, 2) }
+        ];
+
+        // Create a simple text bundle (for full ZIP, would need JSZip library)
+        const bundleContent = files.map(f =>
+            `${'='.repeat(60)}\n-- FILE: ${f.name}\n${'='.repeat(60)}\n\n${f.content}\n\n`
+        ).join('');
+
+        const blob = new Blob([bundleContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `wright_pipeline_${config.projectName}_${new Date().toISOString().slice(0,10)}.sql`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        showNotification('Pipeline exported as SQL bundle', 'success');
+    }
+
+    function saveWrightConfig() {
+        const config = getWrightConfig();
+        config.joinPatterns = getJoinPatterns();
+        config.vw1 = {
+            idSourceMappings: getSelectedValues('vw1IdSourceMappings'),
+            additionalCols: getSelectedValues('vw1AdditionalCols')
+        };
+        config.dt2 = {
+            unpivotMeasures: getSelectedValues('dt2UnpivotMeasures'),
+            exclusions: getSelectedValues('dt2Exclusions')
+        };
+        config.dt3 = {
+            formulaPrecedence: getSelectedValues('dt3FormulaPrecedence'),
+            dimensionKeys: getSelectedValues('dt3DimensionKeys')
+        };
+
+        // Save to localStorage
+        localStorage.setItem('wrightConfig_' + config.projectName, JSON.stringify(config));
+        showNotification(`Configuration saved: ${config.projectName}`, 'success');
     }
 
     // ============ DASHBOARD ============
