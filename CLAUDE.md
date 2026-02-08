@@ -3,10 +3,10 @@
 > **Compact Config** - Detailed docs in GEMINI.md. Query Gemini via `ask_claude_gemini.py` for examples.
 
 ## Project Summary
-- **Version:** 0.34.0 | **Tools:** 292 | **License:** MIT
+- **Version:** 0.35.0 | **Tools:** 296 | **License:** MIT
 - **Type:** Headless MCP-native data reconciliation engine
 
-## Tool Categories (292 total)
+## Tool Categories (296 total)
 
 | Module | Tools | Key Tools |
 |--------|-------|-----------|
@@ -30,7 +30,7 @@
 | Wright Module | 18 | `create_mart_config`, `generate_mart_pipeline` |
 | Lineage & Impact | 11 | `track_column_lineage`, `analyze_change_impact` |
 | Git/CI-CD | 12 | `git_commit`, `github_create_pr` |
-| Data Catalog | 15 | `catalog_scan_connection`, `catalog_search` |
+| Data Catalog | 19 | `catalog_scan_connection`, `catalog_search`, `catalog_auto_lineage_from_sql` |
 | Data Versioning | 12 | `version_create`, `version_diff`, `version_rollback` |
 
 ## Development Rules

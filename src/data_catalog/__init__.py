@@ -9,16 +9,19 @@ This module provides:
 5. Data Ownership - Track owners, stewards, and access policies
 6. Data Classification - Classify data by sensitivity (PII, PHI, PCI)
 7. Quality Metrics - Track data quality scores
+8. Automated Lineage - Extract lineage from SQL and dbt artifacts
 
-Phase 29 of DataBridge AI.
+Phase 29 of DataBridge AI (updated with lineage extraction).
 
-MCP Tools (15):
+MCP Tools (19):
 - Asset Management: catalog_create_asset, catalog_get_asset, catalog_update_asset,
                    catalog_list_assets, catalog_delete_asset
 - Discovery: catalog_scan_connection, catalog_scan_table, catalog_refresh_asset
 - Glossary: catalog_create_term, catalog_get_term, catalog_list_terms, catalog_link_term
 - Search: catalog_search, catalog_get_stats
 - Tags: catalog_manage_tags
+- Lineage: catalog_auto_lineage_from_sql, catalog_auto_lineage_from_dbt,
+          catalog_lineage_visualization, catalog_impact_from_asset
 """
 
 from .types import (
@@ -50,6 +53,11 @@ from .types import (
 
 from .catalog_store import CatalogStore
 from .scanner import CatalogScanner
+from .lineage_extractor import (
+    SQLLineageExtractor,
+    DbtLineageExtractor,
+    LineageGraphBuilder,
+)
 from .mcp_tools import register_data_catalog_tools
 
 __all__ = [
@@ -80,6 +88,10 @@ __all__ = [
     # Classes
     "CatalogStore",
     "CatalogScanner",
+    # Lineage Extraction
+    "SQLLineageExtractor",
+    "DbtLineageExtractor",
+    "LineageGraphBuilder",
     # Registration
     "register_data_catalog_tools",
 ]

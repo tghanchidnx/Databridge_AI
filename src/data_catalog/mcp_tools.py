@@ -1157,9 +1157,460 @@ def register_data_catalog_tools(mcp, settings):
             logger.error(f"Tag operation failed: {e}")
             return {"error": f"Tag operation failed: {e}"}
 
-    logger.info("Registered 15 Data Catalog MCP tools")
+    # =========================================================================
+    # Lineage Extraction (4) - NEW
+    # =========================================================================
+
+    @mcp.tool()
+    def catalog_auto_lineage_from_sql(
+        sql: str,
+        target_name: Optional[str] = None,
+        target_type: str = "VIEW",
+        graph_name: str = "catalog_lineage",
+        add_to_lineage_graph: bool = True,
+    ) -> Dict[str, Any]:
+        """
+        Parse SQL to automatically extract lineage.
+
+        Analyzes CREATE VIEW, CREATE TABLE AS, dbt models, and SELECT statements
+        to extract source tables, transformations, and column-level lineage.
+
+        Args:
+            sql: SQL statement to parse (CREATE VIEW, SELECT, dbt model)
+            target_name: Name of the target object (extracted from SQL if None)
+            target_type: Type of target object (VIEW, TABLE, MODEL, DYNAMIC_TABLE)
+            graph_name: Name of lineage graph to add results to
+            add_to_lineage_graph: Whether to add extracted lineage to the lineage module
+
+        Returns:
+            Extracted lineage with sources, transformations, and column lineage
+
+        Example:
+            catalog_auto_lineage_from_sql(
+                sql=\"\"\"
+                CREATE VIEW VW_REVENUE AS
+                SELECT
+                    a.account_id,
+                    SUM(t.amount) AS total_revenue
+                FROM dim_account a
+                JOIN fct_transactions t ON a.id = t.account_id
+                WHERE a.account_type = 'REVENUE'
+                GROUP BY a.account_id
+                \"\"\",
+                target_name="VW_REVENUE"
+            )
+        """
+        try:
+            from .lineage_extractor import SQLLineageExtractor, LineageGraphBuilder
+
+            extractor = SQLLineageExtractor()
+            extraction = extractor.extract_from_sql(sql, target_name, target_type)
+
+            builder = LineageGraphBuilder()
+            graph = builder.build_from_extraction(extraction)
+
+            # Generate Mermaid diagram
+            mermaid = builder.generate_mermaid_diagram(graph)
+
+            # Optionally add to the lineage module
+            lineage_added = False
+            if add_to_lineage_graph:
+                try:
+                    from src.lineage import LineageTracker, NodeType, TransformationType
+
+                    tracker = LineageTracker()
+                    lin_graph = tracker.get_or_create_graph(graph_name)
+
+                    # Add nodes
+                    for node in graph.get("nodes", []):
+                        try:
+                            node_type = NodeType(node.get("node_type", "TABLE"))
+                        except ValueError:
+                            node_type = NodeType.TABLE
+
+                        tracker.add_node(
+                            graph_name=graph_name,
+                            name=node.get("name"),
+                            node_type=node_type,
+                        )
+
+                    # Add edges and column lineage
+                    for edge in graph.get("edges", []):
+                        try:
+                            trans_type = TransformationType(edge.get("transformation_type", "DIRECT"))
+                        except ValueError:
+                            trans_type = TransformationType.DIRECT
+
+                        tracker.add_edge(
+                            graph_name=graph_name,
+                            source_node=edge.get("source"),
+                            target_node=edge.get("target"),
+                            transformation_type=trans_type,
+                        )
+
+                    for col_lin in graph.get("column_lineage", []):
+                        if col_lin.get("source_node") and col_lin.get("target_node"):
+                            try:
+                                trans_type = TransformationType(col_lin.get("transformation_type", "DIRECT"))
+                            except ValueError:
+                                trans_type = TransformationType.DIRECT
+
+                            tracker.add_column_lineage(
+                                graph_name=graph_name,
+                                source_node=col_lin.get("source_node"),
+                                source_columns=col_lin.get("source_columns", []),
+                                target_node=col_lin.get("target_node"),
+                                target_column=col_lin.get("target_column"),
+                                transformation_type=trans_type,
+                            )
+
+                    lineage_added = True
+                except ImportError:
+                    logger.warning("Lineage module not available")
+                except Exception as e:
+                    logger.warning(f"Failed to add to lineage graph: {e}")
+
+            return {
+                "status": "extracted",
+                "target": extraction.get("target"),
+                "source_count": len(extraction.get("sources", [])),
+                "sources": extraction.get("sources", []),
+                "transformation_types": [t.get("type") for t in extraction.get("transformations", [])],
+                "column_lineage_count": len(extraction.get("column_lineage", [])),
+                "column_lineage": extraction.get("column_lineage", [])[:10],  # Limit for response size
+                "lineage_graph_name": graph_name if lineage_added else None,
+                "mermaid_diagram": mermaid,
+            }
+
+        except Exception as e:
+            logger.error(f"SQL lineage extraction failed: {e}")
+            return {"error": f"SQL lineage extraction failed: {e}"}
+
+    @mcp.tool()
+    def catalog_auto_lineage_from_dbt(
+        manifest_path: str,
+        model_name: Optional[str] = None,
+        graph_name: str = "dbt_lineage",
+    ) -> Dict[str, Any]:
+        """
+        Parse dbt manifest.json to extract lineage.
+
+        Reads dbt's compiled manifest to extract:
+        - Model dependencies (ref() and source() calls)
+        - Column-level lineage from compiled SQL
+        - Source definitions
+
+        Args:
+            manifest_path: Path to dbt manifest.json file
+            model_name: Specific model to extract (None = all models)
+            graph_name: Name of lineage graph to add results to
+
+        Returns:
+            Extracted lineage for dbt project
+
+        Example:
+            catalog_auto_lineage_from_dbt(
+                manifest_path="./target/manifest.json",
+                model_name="fct_revenue"
+            )
+        """
+        try:
+            from .lineage_extractor import DbtLineageExtractor, LineageGraphBuilder
+
+            extractor = DbtLineageExtractor()
+
+            if model_name:
+                # Extract column lineage for specific model
+                extraction = extractor.extract_column_lineage_from_model(
+                    manifest_path, model_name
+                )
+
+                if "error" in extraction:
+                    return extraction
+
+                builder = LineageGraphBuilder()
+                graph = builder.build_from_extraction(extraction)
+                mermaid = builder.generate_mermaid_diagram(graph)
+
+                return {
+                    "status": "extracted",
+                    "model_name": model_name,
+                    "target": extraction.get("target"),
+                    "source_count": len(extraction.get("sources", [])),
+                    "sources": extraction.get("sources", []),
+                    "column_lineage_count": len(extraction.get("column_lineage", [])),
+                    "column_lineage": extraction.get("column_lineage", [])[:10],
+                    "mermaid_diagram": mermaid,
+                }
+            else:
+                # Extract full project lineage
+                manifest_data = extractor.extract_from_manifest(manifest_path)
+
+                return {
+                    "status": "extracted",
+                    "project_name": manifest_data.get("project_name"),
+                    "dbt_version": manifest_data.get("dbt_version"),
+                    "model_count": len(manifest_data.get("nodes", [])),
+                    "source_count": len(manifest_data.get("sources", [])),
+                    "edge_count": len(manifest_data.get("edges", [])),
+                    "models": [
+                        {
+                            "name": n.get("name"),
+                            "materialized": n.get("materialized"),
+                            "depends_on_count": len(n.get("depends_on", [])),
+                        }
+                        for n in manifest_data.get("nodes", [])
+                    ],
+                    "sources": [
+                        {
+                            "name": s.get("name"),
+                            "schema": s.get("schema"),
+                            "database": s.get("database"),
+                        }
+                        for s in manifest_data.get("sources", [])
+                    ],
+                }
+
+        except FileNotFoundError as e:
+            return {"error": str(e)}
+        except Exception as e:
+            logger.error(f"dbt lineage extraction failed: {e}")
+            return {"error": f"dbt lineage extraction failed: {e}"}
+
+    @mcp.tool()
+    def catalog_lineage_visualization(
+        asset_id: Optional[str] = None,
+        asset_name: Optional[str] = None,
+        direction: str = "both",
+        format: str = "mermaid",
+        max_depth: int = 5,
+    ) -> Dict[str, Any]:
+        """
+        Generate lineage visualization for a catalog asset.
+
+        Creates a Mermaid or DOT diagram showing upstream and downstream
+        dependencies for the specified asset.
+
+        Args:
+            asset_id: Catalog asset ID
+            asset_name: Asset name (alternative to ID)
+            direction: Direction to traverse (upstream, downstream, both)
+            format: Output format (mermaid, dot)
+            max_depth: Maximum depth to traverse
+
+        Returns:
+            Lineage diagram and dependency list
+
+        Example:
+            catalog_lineage_visualization(
+                asset_name="DIM_ACCOUNT",
+                direction="downstream",
+                format="mermaid"
+            )
+        """
+        try:
+            catalog = _ensure_catalog(settings)
+
+            # Get asset
+            if asset_id:
+                asset = catalog.get_asset(asset_id)
+            elif asset_name:
+                asset = catalog.get_asset_by_name(asset_name)
+            else:
+                return {"error": "Either asset_id or asset_name is required"}
+
+            if not asset:
+                return {"error": "Asset not found"}
+
+            # Build lineage visualization
+            from .lineage_extractor import LineageGraphBuilder
+
+            builder = LineageGraphBuilder()
+
+            # Get upstream/downstream from catalog
+            lineage = catalog.get_asset_lineage(asset.id, direction)
+
+            nodes = [{"name": asset.name, "node_type": asset.asset_type.value.upper()}]
+            edges = []
+
+            for up_asset in lineage.get("upstream", []):
+                nodes.append({
+                    "name": up_asset.name,
+                    "node_type": up_asset.asset_type.value.upper(),
+                })
+                edges.append({
+                    "source": up_asset.name,
+                    "target": asset.name,
+                    "transformation_type": "DIRECT",
+                })
+
+            for down_asset in lineage.get("downstream", []):
+                nodes.append({
+                    "name": down_asset.name,
+                    "node_type": down_asset.asset_type.value.upper(),
+                })
+                edges.append({
+                    "source": asset.name,
+                    "target": down_asset.name,
+                    "transformation_type": "DIRECT",
+                })
+
+            graph = {"nodes": nodes, "edges": edges}
+
+            # Generate diagram
+            if format == "mermaid":
+                diagram = builder.generate_mermaid_diagram(graph, "TD")
+            else:
+                # DOT format
+                lines = ['digraph G {', '    rankdir=TB;', '    node [shape=box];']
+                for node in nodes:
+                    lines.append(f'    "{node["name"]}" [label="{node["name"]}"];')
+                for edge in edges:
+                    lines.append(f'    "{edge["source"]}" -> "{edge["target"]}";')
+                lines.append("}")
+                diagram = "\n".join(lines)
+
+            return {
+                "asset": {
+                    "id": asset.id,
+                    "name": asset.name,
+                    "type": asset.asset_type.value,
+                },
+                "direction": direction,
+                "upstream_count": len(lineage.get("upstream", [])),
+                "downstream_count": len(lineage.get("downstream", [])),
+                "upstream": [
+                    {"id": a.id, "name": a.name, "type": a.asset_type.value}
+                    for a in lineage.get("upstream", [])
+                ],
+                "downstream": [
+                    {"id": a.id, "name": a.name, "type": a.asset_type.value}
+                    for a in lineage.get("downstream", [])
+                ],
+                "diagram_format": format,
+                "diagram": diagram,
+            }
+
+        except Exception as e:
+            logger.error(f"Lineage visualization failed: {e}")
+            return {"error": f"Lineage visualization failed: {e}"}
+
+    @mcp.tool()
+    def catalog_impact_from_asset(
+        asset_id: Optional[str] = None,
+        asset_name: Optional[str] = None,
+        change_type: str = "MODIFY",
+        column_name: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Analyze impact of changes to a catalog asset.
+
+        Traverses lineage graph to find all downstream assets that would
+        be affected by changes to the specified asset.
+
+        Args:
+            asset_id: Catalog asset ID
+            asset_name: Asset name (alternative to ID)
+            change_type: Type of change (REMOVE, MODIFY, RENAME)
+            column_name: Specific column being changed (optional)
+
+        Returns:
+            List of affected assets with impact severity
+
+        Example:
+            catalog_impact_from_asset(
+                asset_name="DIM_ACCOUNT",
+                change_type="REMOVE",
+                column_name="ACCOUNT_CODE"
+            )
+        """
+        try:
+            catalog = _ensure_catalog(settings)
+
+            # Get asset
+            if asset_id:
+                asset = catalog.get_asset(asset_id)
+            elif asset_name:
+                asset = catalog.get_asset_by_name(asset_name)
+            else:
+                return {"error": "Either asset_id or asset_name is required"}
+
+            if not asset:
+                return {"error": "Asset not found"}
+
+            # Get downstream assets from catalog
+            lineage = catalog.get_asset_lineage(asset.id, "downstream")
+            downstream = lineage.get("downstream", [])
+
+            # Calculate impact for each downstream asset
+            impacted = []
+            severity_counts = {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0}
+
+            for idx, down_asset in enumerate(downstream):
+                # Determine severity based on asset type and distance
+                distance = idx + 1  # Simple distance approximation
+
+                if down_asset.asset_type.value in ("data_mart", "report", "dashboard"):
+                    severity = "CRITICAL"
+                elif down_asset.asset_type.value in ("view", "dbt_model"):
+                    severity = "HIGH" if distance <= 2 else "MEDIUM"
+                else:
+                    severity = "MEDIUM" if distance <= 2 else "LOW"
+
+                # Higher severity for column removal
+                if change_type.upper() == "REMOVE" and column_name:
+                    if severity == "MEDIUM":
+                        severity = "HIGH"
+                    elif severity == "LOW":
+                        severity = "MEDIUM"
+
+                severity_counts[severity] += 1
+
+                impacted.append({
+                    "asset_id": down_asset.id,
+                    "asset_name": down_asset.name,
+                    "asset_type": down_asset.asset_type.value,
+                    "severity": severity,
+                    "distance": distance,
+                    "description": f"{'Column ' + column_name + ' in ' if column_name else ''}{asset.name} impacts {down_asset.name}",
+                })
+
+            # Determine overall severity
+            if severity_counts["CRITICAL"] > 0:
+                overall_severity = "CRITICAL"
+            elif severity_counts["HIGH"] > 0:
+                overall_severity = "HIGH"
+            elif severity_counts["MEDIUM"] > 0:
+                overall_severity = "MEDIUM"
+            else:
+                overall_severity = "LOW"
+
+            return {
+                "source_asset": {
+                    "id": asset.id,
+                    "name": asset.name,
+                    "type": asset.asset_type.value,
+                },
+                "change_type": change_type,
+                "column": column_name,
+                "overall_severity": overall_severity,
+                "total_impacted": len(impacted),
+                "severity_breakdown": severity_counts,
+                "impacted_assets": impacted,
+                "recommendation": (
+                    "Review all CRITICAL and HIGH severity assets before making changes. "
+                    "Consider updating dependent views/models to handle the change."
+                    if impacted else "No downstream assets found. Change is safe to proceed."
+                ),
+            }
+
+        except Exception as e:
+            logger.error(f"Impact analysis failed: {e}")
+            return {"error": f"Impact analysis failed: {e}"}
+
+    logger.info("Registered 19 Data Catalog MCP tools")
     return {
-        "tools_registered": 15,
+        "tools_registered": 19,
         "categories": {
             "asset_management": [
                 "catalog_create_asset",
@@ -1185,6 +1636,12 @@ def register_data_catalog_tools(mcp, settings):
             ],
             "tags_classification": [
                 "catalog_manage_tags",
+            ],
+            "lineage": [
+                "catalog_auto_lineage_from_sql",
+                "catalog_auto_lineage_from_dbt",
+                "catalog_lineage_visualization",
+                "catalog_impact_from_asset",
             ],
         },
     }

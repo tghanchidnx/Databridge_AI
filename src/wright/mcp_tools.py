@@ -57,7 +57,10 @@ Utility (1):
 
 import json
 import logging
-from typing import Any, Dict, List, Optional
+import re
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Set, Tuple
+from enum import Enum
 
 from .types import (
     MartConfig,
@@ -77,6 +80,968 @@ from .filter_engine import GroupFilterPrecedenceEngine, analyze_group_filter_pre
 from .ddl_diff import DDLDiffComparator, compare_generated_ddl
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# Test Suggestion Engine - Sophisticated dbt Test Generation
+# =============================================================================
+
+
+class ColumnCategory(Enum):
+    """Categories of columns for test suggestion."""
+    PRIMARY_KEY = "primary_key"
+    SURROGATE_KEY = "surrogate_key"
+    FOREIGN_KEY = "foreign_key"
+    NATURAL_KEY = "natural_key"
+    DATE = "date"
+    DATETIME = "datetime"
+    FLAG = "flag"
+    CODE = "code"
+    AMOUNT = "amount"
+    QUANTITY = "quantity"
+    PERCENT = "percent"
+    NAME = "name"
+    DESCRIPTION = "description"
+    STATUS = "status"
+    TYPE = "type"
+    IDENTIFIER = "identifier"
+    UNKNOWN = "unknown"
+
+
+class DataClassification(Enum):
+    """Data classification for meta fields."""
+    PII = "pii"
+    PHI = "phi"
+    PCI = "pci"
+    CONFIDENTIAL = "confidential"
+    INTERNAL = "internal"
+    PUBLIC = "public"
+
+
+@dataclass
+class ColumnAnalysis:
+    """Analysis result for a single column."""
+    name: str
+    category: ColumnCategory
+    data_type: Optional[str] = None
+    is_nullable: bool = True
+    is_unique: bool = False
+    classification: DataClassification = DataClassification.INTERNAL
+    referenced_table: Optional[str] = None
+    referenced_column: Optional[str] = None
+    accepted_values: List[str] = field(default_factory=list)
+    pattern_regex: Optional[str] = None
+    min_value: Optional[float] = None
+    max_value: Optional[float] = None
+    freshness_field: bool = False
+
+
+@dataclass
+class SchemaTest:
+    """A schema-level test (in schema.yml)."""
+    column: str
+    test_type: str
+    config: Dict[str, Any] = field(default_factory=dict)
+    reason: str = ""
+
+
+@dataclass
+class SingularTest:
+    """A singular test (standalone SQL file)."""
+    name: str
+    sql: str
+    description: str
+    severity: str = "warn"
+    tags: List[str] = field(default_factory=list)
+
+
+@dataclass
+class RelationshipTest:
+    """A relationship/referential integrity test."""
+    from_column: str
+    to_model: str
+    to_column: str
+    reason: str = ""
+
+
+class TestSuggestionEngine:
+    """
+    Sophisticated test suggestion engine for dbt models.
+
+    Analyzes:
+    - Column naming patterns (FK_, SK_, _ID, _DATE, _FLAG, _CODE, _AMOUNT)
+    - Wright formula groups for calculation tests
+    - Referential integrity based on join patterns
+    - SQL structure for data quality tests
+    """
+
+    # Column pattern definitions
+    COLUMN_PATTERNS: Dict[str, Tuple[ColumnCategory, List[str]]] = {
+        # Primary/Surrogate Keys
+        r'^SK_': (ColumnCategory.SURROGATE_KEY, ['unique', 'not_null']),
+        r'^SURROGATE_KEY$': (ColumnCategory.SURROGATE_KEY, ['unique', 'not_null']),
+        r'^PK_': (ColumnCategory.PRIMARY_KEY, ['unique', 'not_null']),
+
+        # Foreign Keys
+        r'^FK_': (ColumnCategory.FOREIGN_KEY, ['not_null']),
+        r'_KEY$': (ColumnCategory.FOREIGN_KEY, ['not_null']),
+
+        # Identifiers
+        r'_ID$': (ColumnCategory.IDENTIFIER, ['not_null']),
+        r'^ID$': (ColumnCategory.IDENTIFIER, ['not_null']),
+        r'_UID$': (ColumnCategory.IDENTIFIER, []),
+
+        # Dates and Times
+        r'_DATE$': (ColumnCategory.DATE, []),
+        r'_DT$': (ColumnCategory.DATETIME, []),
+        r'_DATETIME$': (ColumnCategory.DATETIME, []),
+        r'_TIMESTAMP$': (ColumnCategory.DATETIME, []),
+        r'^CREATED_AT$': (ColumnCategory.DATETIME, ['not_null']),
+        r'^UPDATED_AT$': (ColumnCategory.DATETIME, []),
+        r'^LOADED_AT$': (ColumnCategory.DATETIME, ['not_null']),
+        r'^VALID_FROM$': (ColumnCategory.DATETIME, ['not_null']),
+        r'^VALID_TO$': (ColumnCategory.DATETIME, []),
+
+        # Flags and Booleans
+        r'_FLAG$': (ColumnCategory.FLAG, []),
+        r'^IS_': (ColumnCategory.FLAG, []),
+        r'^HAS_': (ColumnCategory.FLAG, []),
+        r'_IND$': (ColumnCategory.FLAG, []),
+
+        # Codes and Types
+        r'_CODE$': (ColumnCategory.CODE, ['not_null']),
+        r'_TYPE$': (ColumnCategory.TYPE, []),
+        r'_STATUS$': (ColumnCategory.STATUS, []),
+        r'_CATEGORY$': (ColumnCategory.TYPE, []),
+
+        # Amounts and Quantities
+        r'_AMOUNT$': (ColumnCategory.AMOUNT, []),
+        r'_AMT$': (ColumnCategory.AMOUNT, []),
+        r'_QUANTITY$': (ColumnCategory.QUANTITY, []),
+        r'_QTY$': (ColumnCategory.QUANTITY, []),
+        r'_COUNT$': (ColumnCategory.QUANTITY, []),
+        r'_PERCENT$': (ColumnCategory.PERCENT, []),
+        r'_PCT$': (ColumnCategory.PERCENT, []),
+        r'_RATE$': (ColumnCategory.PERCENT, []),
+
+        # Names and Descriptions
+        r'_NAME$': (ColumnCategory.NAME, []),
+        r'_DESC$': (ColumnCategory.DESCRIPTION, []),
+        r'_DESCRIPTION$': (ColumnCategory.DESCRIPTION, []),
+    }
+
+    # PII column patterns for classification
+    PII_PATTERNS = [
+        r'EMAIL', r'PHONE', r'SSN', r'SOCIAL_SECURITY', r'DOB', r'BIRTH_DATE',
+        r'ADDRESS', r'ZIP', r'POSTAL', r'FIRST_NAME', r'LAST_NAME', r'FULL_NAME',
+        r'DRIVER_LICENSE', r'PASSPORT', r'TAX_ID', r'NATIONAL_ID'
+    ]
+
+    # PHI patterns
+    PHI_PATTERNS = [
+        r'DIAGNOSIS', r'TREATMENT', r'MEDICATION', r'MEDICAL', r'HEALTH',
+        r'PATIENT', r'PRESCRIPTION', r'INSURANCE_ID', r'MEMBER_ID'
+    ]
+
+    # PCI patterns
+    PCI_PATTERNS = [
+        r'CREDIT_CARD', r'CARD_NUMBER', r'CVV', r'CVC', r'EXPIRY', r'PAN',
+        r'ACCOUNT_NUMBER', r'ROUTING_NUMBER', r'BANK_ACCOUNT'
+    ]
+
+    # Status value patterns
+    STATUS_VALUES = {
+        'STATUS': ['ACTIVE', 'INACTIVE', 'PENDING', 'DELETED', 'ARCHIVED'],
+        'TYPE': ['PRIMARY', 'SECONDARY', 'TERTIARY'],
+        'FLAG': ['Y', 'N', 'TRUE', 'FALSE', '0', '1'],
+    }
+
+    def __init__(self, config: Optional[MartConfig] = None):
+        """Initialize with optional Wright config for context."""
+        self.config = config
+        self._column_cache: Dict[str, ColumnAnalysis] = {}
+
+    def analyze_sql(self, sql: str) -> Dict[str, Any]:
+        """
+        Parse SQL thoroughly to detect patterns.
+
+        Returns:
+            Dict with columns, joins, CTEs, aggregations detected
+        """
+        sql_upper = sql.upper()
+
+        analysis = {
+            "columns": [],
+            "tables": [],
+            "joins": [],
+            "ctes": [],
+            "aggregations": [],
+            "where_clauses": [],
+            "group_by_columns": [],
+            "has_surrogate_key": False,
+            "has_foreign_keys": False,
+            "is_incremental": False,
+            "has_window_functions": False,
+        }
+
+        # Detect CTEs
+        cte_pattern = r'WITH\s+(\w+)\s+AS\s*\('
+        analysis["ctes"] = re.findall(cte_pattern, sql_upper)
+
+        # Detect SELECT columns - improved parsing
+        # First, try to find the main SELECT...FROM block
+        # Handle CTEs by finding the last SELECT before FROM
+        select_matches = list(re.finditer(
+            r'SELECT\s+([\s\S]*?)\s+FROM\s',
+            sql_upper,
+            re.IGNORECASE
+        ))
+
+        columns = []
+        if select_matches:
+            # Use the last SELECT (main query, not CTEs)
+            select_clause = select_matches[-1].group(1)
+
+            # Method 1: Extract explicit AS aliases (most reliable)
+            as_cols = re.findall(r'\sAS\s+([A-Z_][A-Z0-9_]*)', select_clause)
+            columns.extend(as_cols)
+
+            # Method 2: Extract simple column references (TABLE.COLUMN or COLUMN)
+            # Split by comma first, then extract the last identifier
+            parts = re.split(r',(?![^(]*\))', select_clause)  # Split by comma, not inside parens
+            for part in parts:
+                part = part.strip()
+                if not part:
+                    continue
+
+                # If has AS, we already got it
+                if ' AS ' in part:
+                    continue
+
+                # Extract last identifier (handles TABLE.COLUMN -> COLUMN)
+                # Also handles expressions like SUM(AMOUNT) -> skip function
+                if not re.search(r'[A-Z_]+\s*\(', part):  # Not a function
+                    match = re.search(r'\.?([A-Z_][A-Z0-9_]*)$', part)
+                    if match:
+                        columns.append(match.group(1))
+
+            # Remove duplicates and exclude keywords
+            keywords = {'DISTINCT', 'ALL', 'TOP', 'CASE', 'WHEN', 'THEN', 'ELSE', 'END', 'AND', 'OR', 'AS'}
+            analysis["columns"] = list(set(c for c in columns if c not in keywords))
+
+        # Detect table references
+        from_pattern = r'FROM\s+([A-Z_][A-Z0-9_\.]+)'
+        analysis["tables"] = re.findall(from_pattern, sql_upper)
+
+        # Detect JOINs
+        join_pattern = r'(LEFT|RIGHT|INNER|OUTER|CROSS)?\s*JOIN\s+([A-Z_][A-Z0-9_\.]+)\s+(?:AS\s+)?(\w+)?\s+ON\s+([^WHERE|LEFT|RIGHT|INNER|GROUP|ORDER]+)'
+        joins = re.findall(join_pattern, sql_upper, re.DOTALL)
+        for join in joins:
+            analysis["joins"].append({
+                "type": join[0] or "INNER",
+                "table": join[1],
+                "alias": join[2],
+                "condition": join[3].strip(),
+            })
+
+        # Detect aggregations
+        agg_pattern = r'(SUM|COUNT|AVG|MIN|MAX|LISTAGG)\s*\('
+        analysis["aggregations"] = list(set(re.findall(agg_pattern, sql_upper)))
+
+        # Detect GROUP BY
+        group_pattern = r'GROUP\s+BY\s+([^ORDER|HAVING|LIMIT|;]+)'
+        group_match = re.search(group_pattern, sql_upper)
+        if group_match:
+            analysis["group_by_columns"] = [
+                c.strip() for c in group_match.group(1).split(',')
+            ]
+
+        # Detect window functions
+        if re.search(r'OVER\s*\(', sql_upper):
+            analysis["has_window_functions"] = True
+
+        # Detect incremental pattern
+        if 'IS_INCREMENTAL' in sql_upper or 'INCREMENTAL' in sql_upper:
+            analysis["is_incremental"] = True
+
+        # Check for surrogate/foreign keys
+        analysis["has_surrogate_key"] = bool(
+            re.search(r'(SURROGATE_KEY|SK_)', sql_upper)
+        )
+        analysis["has_foreign_keys"] = bool(
+            re.search(r'FK_\w+', sql_upper)
+        )
+
+        return analysis
+
+    def analyze_column(self, col_name: str) -> ColumnAnalysis:
+        """Analyze a column by its name pattern."""
+        if col_name in self._column_cache:
+            return self._column_cache[col_name]
+
+        col_upper = col_name.upper()
+        category = ColumnCategory.UNKNOWN
+        tests = []
+        classification = DataClassification.INTERNAL
+        accepted_values: List[str] = []
+        pattern_regex: Optional[str] = None
+        referenced_table: Optional[str] = None
+        referenced_column: Optional[str] = None
+
+        # Check column patterns
+        for pattern, (cat, default_tests) in self.COLUMN_PATTERNS.items():
+            if re.search(pattern, col_upper):
+                category = cat
+                tests = default_tests
+                break
+
+        # Detect data classification
+        for pii_pattern in self.PII_PATTERNS:
+            if re.search(pii_pattern, col_upper):
+                classification = DataClassification.PII
+                break
+        for phi_pattern in self.PHI_PATTERNS:
+            if re.search(phi_pattern, col_upper):
+                classification = DataClassification.PHI
+                break
+        for pci_pattern in self.PCI_PATTERNS:
+            if re.search(pci_pattern, col_upper):
+                classification = DataClassification.PCI
+                break
+
+        # Determine accepted values for known patterns
+        if category == ColumnCategory.FLAG:
+            accepted_values = ['true', 'false']
+        elif category == ColumnCategory.STATUS:
+            accepted_values = ['ACTIVE', 'INACTIVE', 'PENDING', 'DELETED']
+
+        # Detect foreign key references
+        if category == ColumnCategory.FOREIGN_KEY:
+            # FK_ACCOUNT_KEY -> ref('dim_account')
+            fk_match = re.match(r'FK_(\w+)_KEY', col_upper)
+            if fk_match:
+                referenced_table = f"dim_{fk_match.group(1).lower()}"
+                referenced_column = f"{fk_match.group(1).lower()}_key"
+
+        # Detect freshness fields
+        freshness_field = col_upper in [
+            'LOADED_AT', 'UPDATED_AT', 'CREATED_AT', 'ETL_TIMESTAMP',
+            'LAST_MODIFIED', 'MODIFIED_DATE', 'LOAD_DATE'
+        ]
+
+        analysis = ColumnAnalysis(
+            name=col_name,
+            category=category,
+            classification=classification,
+            accepted_values=accepted_values,
+            pattern_regex=pattern_regex,
+            referenced_table=referenced_table,
+            referenced_column=referenced_column,
+            freshness_field=freshness_field,
+        )
+
+        self._column_cache[col_name] = analysis
+        return analysis
+
+    def suggest_schema_tests(
+        self,
+        columns: List[str],
+        sql_analysis: Dict[str, Any],
+    ) -> List[SchemaTest]:
+        """
+        Suggest schema-level tests for columns.
+
+        Returns list of SchemaTest objects for schema.yml generation.
+        """
+        tests: List[SchemaTest] = []
+
+        for col_name in columns:
+            analysis = self.analyze_column(col_name)
+
+            # Basic tests based on category
+            if analysis.category == ColumnCategory.SURROGATE_KEY:
+                tests.append(SchemaTest(
+                    column=col_name,
+                    test_type="unique",
+                    reason="Surrogate key must be unique"
+                ))
+                tests.append(SchemaTest(
+                    column=col_name,
+                    test_type="not_null",
+                    reason="Surrogate key must not be null"
+                ))
+
+            elif analysis.category == ColumnCategory.PRIMARY_KEY:
+                tests.append(SchemaTest(
+                    column=col_name,
+                    test_type="unique",
+                    reason="Primary key must be unique"
+                ))
+                tests.append(SchemaTest(
+                    column=col_name,
+                    test_type="not_null",
+                    reason="Primary key must not be null"
+                ))
+
+            elif analysis.category == ColumnCategory.FOREIGN_KEY:
+                tests.append(SchemaTest(
+                    column=col_name,
+                    test_type="not_null",
+                    reason="Foreign key should not be null for referential integrity"
+                ))
+                # Add relationship test if we can infer the reference
+                if analysis.referenced_table:
+                    tests.append(SchemaTest(
+                        column=col_name,
+                        test_type="relationships",
+                        config={
+                            "to": f"ref('{analysis.referenced_table}')",
+                            "field": analysis.referenced_column or col_name.lower(),
+                        },
+                        reason=f"Referential integrity to {analysis.referenced_table}"
+                    ))
+
+            elif analysis.category == ColumnCategory.FLAG:
+                tests.append(SchemaTest(
+                    column=col_name,
+                    test_type="accepted_values",
+                    config={"values": analysis.accepted_values or ['true', 'false']},
+                    reason="Boolean flag should only contain true/false"
+                ))
+
+            elif analysis.category == ColumnCategory.STATUS:
+                tests.append(SchemaTest(
+                    column=col_name,
+                    test_type="accepted_values",
+                    config={
+                        "values": analysis.accepted_values or
+                                  ['ACTIVE', 'INACTIVE', 'PENDING', 'DELETED']
+                    },
+                    reason="Status column should contain known values"
+                ))
+
+            elif analysis.category == ColumnCategory.CODE:
+                tests.append(SchemaTest(
+                    column=col_name,
+                    test_type="not_null",
+                    reason="Code columns typically should not be null"
+                ))
+
+            elif analysis.category == ColumnCategory.DATE:
+                # Date recency test for certain columns
+                if any(kw in col_name.upper() for kw in ['LOADED', 'UPDATED', 'CREATED']):
+                    tests.append(SchemaTest(
+                        column=col_name,
+                        test_type="dbt_utils.recency",
+                        config={
+                            "datepart": "day",
+                            "field": col_name.lower(),
+                            "interval": 1,
+                        },
+                        reason="Freshness check - data should be recent"
+                    ))
+
+            elif analysis.category == ColumnCategory.PERCENT:
+                tests.append(SchemaTest(
+                    column=col_name,
+                    test_type="dbt_utils.accepted_range",
+                    config={"min_value": 0, "max_value": 100},
+                    reason="Percentage should be between 0 and 100"
+                ))
+
+        return tests
+
+    def suggest_relationship_tests(
+        self,
+        sql_analysis: Dict[str, Any],
+    ) -> List[RelationshipTest]:
+        """
+        Suggest relationship tests based on JOIN patterns.
+        """
+        tests: List[RelationshipTest] = []
+
+        for join in sql_analysis.get("joins", []):
+            condition = join.get("condition", "")
+            table = join.get("table", "")
+
+            # Parse ON condition for column mappings
+            # e.g., "a.FK_ACCOUNT_KEY = dim.ACCOUNT_KEY"
+            on_match = re.search(
+                r'(\w+)\.(\w+)\s*=\s*(\w+)\.(\w+)',
+                condition,
+                re.IGNORECASE
+            )
+            if on_match:
+                from_col = on_match.group(2)
+                to_col = on_match.group(4)
+
+                # Infer model name from table
+                model_name = table.split('.')[-1].lower()
+                if model_name.startswith('tbl_'):
+                    model_name = model_name[4:]
+
+                tests.append(RelationshipTest(
+                    from_column=from_col,
+                    to_model=model_name,
+                    to_column=to_col,
+                    reason=f"Referential integrity from JOIN to {table}"
+                ))
+
+        return tests
+
+    def suggest_singular_tests(
+        self,
+        model_name: str,
+        sql_analysis: Dict[str, Any],
+        config: Optional[MartConfig] = None,
+    ) -> List[SingularTest]:
+        """
+        Suggest singular tests (SQL files) for complex validations.
+        """
+        tests: List[SingularTest] = []
+
+        # 1. Duplicate check on surrogate key
+        if sql_analysis.get("has_surrogate_key"):
+            tests.append(SingularTest(
+                name=f"assert_{model_name}_no_duplicate_keys",
+                sql=f"""-- Assert no duplicate surrogate keys
+SELECT
+    SURROGATE_KEY,
+    COUNT(*) as occurrence_count
+FROM {{{{ ref('{model_name}') }}}}
+GROUP BY SURROGATE_KEY
+HAVING COUNT(*) > 1
+""",
+                description="Ensure surrogate keys are unique across all records",
+                severity="error",
+                tags=["data-quality", "keys"]
+            ))
+
+        # 2. Foreign key orphan check
+        for col in sql_analysis.get("columns", []):
+            if col.upper().startswith("FK_"):
+                fk_match = re.match(r'FK_(\w+)_KEY', col.upper())
+                if fk_match:
+                    dim_name = fk_match.group(1).lower()
+                    tests.append(SingularTest(
+                        name=f"assert_{model_name}_{col.lower()}_valid",
+                        sql=f"""-- Assert all foreign keys have matching dimension records
+SELECT
+    src.{col},
+    COUNT(*) as orphan_count
+FROM {{{{ ref('{model_name}') }}}} src
+LEFT JOIN {{{{ ref('dim_{dim_name}') }}}} dim
+    ON src.{col} = dim.{dim_name}_key
+WHERE dim.{dim_name}_key IS NULL
+  AND src.{col} IS NOT NULL
+GROUP BY src.{col}
+""",
+                        description=f"Ensure all {col} values exist in dim_{dim_name}",
+                        severity="warn",
+                        tags=["referential-integrity", "data-quality"]
+                    ))
+
+        # 3. Date sanity checks
+        date_cols = [
+            c for c in sql_analysis.get("columns", [])
+            if any(d in c.upper() for d in ['_DATE', '_DT', '_TIMESTAMP'])
+        ]
+        if date_cols:
+            col = date_cols[0]
+            tests.append(SingularTest(
+                name=f"assert_{model_name}_date_sanity",
+                sql=f"""-- Assert dates are within reasonable range
+SELECT
+    '{col}' as column_name,
+    MIN({col}) as min_date,
+    MAX({col}) as max_date,
+    COUNT(CASE WHEN {col} > CURRENT_DATE() THEN 1 END) as future_dates,
+    COUNT(CASE WHEN {col} < '1900-01-01' THEN 1 END) as ancient_dates
+FROM {{{{ ref('{model_name}') }}}}
+HAVING future_dates > 0 OR ancient_dates > 0
+""",
+                description="Ensure dates are within reasonable historical range",
+                severity="warn",
+                tags=["data-quality", "dates"]
+            ))
+
+        # 4. Amount/quantity non-negative check
+        amount_cols = [
+            c for c in sql_analysis.get("columns", [])
+            if any(a in c.upper() for a in ['_AMOUNT', '_AMT', '_QTY', '_QUANTITY', '_COUNT'])
+        ]
+        if amount_cols:
+            col = amount_cols[0]
+            tests.append(SingularTest(
+                name=f"assert_{model_name}_amounts_valid",
+                sql=f"""-- Check for unexpected negative amounts
+SELECT
+    '{col}' as column_name,
+    COUNT(*) as negative_count,
+    SUM({col}) as negative_total
+FROM {{{{ ref('{model_name}') }}}}
+WHERE {col} < 0
+HAVING negative_count > 0
+""",
+                description="Identify unexpected negative values in amount columns",
+                severity="warn",
+                tags=["data-quality", "amounts"]
+            ))
+
+        # 5. Wright formula validation (if config provided)
+        if config:
+            measure_prefix = config.effective_measure_prefix
+            tests.append(SingularTest(
+                name=f"assert_{model_name}_formula_integrity",
+                sql=f"""-- Validate Wright formula calculations
+WITH base_checks AS (
+    SELECT
+        COUNT(*) as total_rows,
+        COUNT(SURROGATE_KEY) as non_null_keys,
+        COUNT(DISTINCT SURROGATE_KEY) as unique_keys,
+        SUM(CASE WHEN {measure_prefix}AMOUNT IS NULL THEN 1 ELSE 0 END) as null_amounts
+    FROM {{{{ ref('{model_name}') }}}}
+)
+SELECT
+    *,
+    CASE
+        WHEN total_rows != non_null_keys THEN 'MISSING_KEYS'
+        WHEN total_rows != unique_keys THEN 'DUPLICATE_KEYS'
+        WHEN null_amounts > total_rows * 0.5 THEN 'EXCESSIVE_NULL_AMOUNTS'
+        ELSE 'OK'
+    END as validation_result
+FROM base_checks
+WHERE total_rows != non_null_keys
+   OR total_rows != unique_keys
+   OR null_amounts > total_rows * 0.5
+""",
+                description="Validate Wright pipeline formula calculations and key integrity",
+                severity="error",
+                tags=["wright", "formulas", "data-quality"]
+            ))
+
+            # 6. Formula group balance check
+            tests.append(SingularTest(
+                name=f"assert_{model_name}_formula_group_balance",
+                sql=f"""-- Validate formula group calculations balance
+WITH group_totals AS (
+    SELECT
+        FORMULA_GROUP,
+        SUM({measure_prefix}AMOUNT) as group_total
+    FROM {{{{ ref('{model_name}') }}}}
+    WHERE FORMULA_GROUP IS NOT NULL
+    GROUP BY FORMULA_GROUP
+),
+calculated_rows AS (
+    SELECT
+        HIERARCHY_NAME,
+        {measure_prefix}AMOUNT as calculated_amount,
+        FORMULA_GROUP
+    FROM {{{{ ref('{model_name}') }}}}
+    WHERE PRECEDENCE_LEVEL IS NOT NULL
+)
+SELECT
+    c.HIERARCHY_NAME,
+    c.calculated_amount,
+    c.FORMULA_GROUP,
+    g.group_total,
+    ABS(c.calculated_amount - g.group_total) as variance
+FROM calculated_rows c
+JOIN group_totals g ON c.FORMULA_GROUP = g.FORMULA_GROUP
+WHERE ABS(c.calculated_amount - g.group_total) > 0.01
+""",
+                description="Ensure formula group calculated rows match component sums",
+                severity="warn",
+                tags=["wright", "formulas", "calculations"]
+            ))
+
+        # 7. Row count trend check (for incremental models)
+        if sql_analysis.get("is_incremental"):
+            tests.append(SingularTest(
+                name=f"assert_{model_name}_row_count_trend",
+                sql=f"""-- Check for unexpected row count changes
+{{%- set old_count = 1000 -%}}  -- Set baseline
+SELECT
+    (SELECT COUNT(*) FROM {{{{ ref('{model_name}') }}}}) as current_count,
+    {{{{ old_count }}}} as baseline_count,
+    ABS((SELECT COUNT(*) FROM {{{{ ref('{model_name}') }}}}) - {{{{ old_count }}}}) / NULLIF({{{{ old_count }}}}, 0) * 100 as pct_change
+WHERE ABS((SELECT COUNT(*) FROM {{{{ ref('{model_name}') }}}}) - {{{{ old_count }}}}) / NULLIF({{{{ old_count }}}}, 0) > 0.5
+""",
+                description="Alert on significant row count changes (>50%)",
+                severity="warn",
+                tags=["trend", "monitoring"]
+            ))
+
+        return tests
+
+    def suggest_formula_tests(
+        self,
+        model_name: str,
+        formulas: List[FormulaPrecedence],
+    ) -> List[SingularTest]:
+        """
+        Generate tests based on Wright formula definitions.
+        """
+        tests: List[SingularTest] = []
+
+        for formula in formulas:
+            # Build the expected calculation SQL
+            if formula.logic.value == "SUM":
+                expected = f"SUM({formula.param_ref})"
+            elif formula.logic.value == "SUBTRACT":
+                expected = f"({formula.param_ref}) - ({formula.param2_ref})"
+            else:
+                continue
+
+            tests.append(SingularTest(
+                name=f"assert_{model_name}_formula_{formula.formula_group.lower().replace(' ', '_')}",
+                sql=f"""-- Validate {formula.formula_group} calculation
+WITH expected AS (
+    SELECT
+        {expected} as expected_value
+    FROM {{{{ ref('{model_name}') }}}}
+),
+actual AS (
+    SELECT
+        SUM(AMOUNT) as actual_value
+    FROM {{{{ ref('{model_name}') }}}}
+    WHERE FORMULA_GROUP = '{formula.formula_group}'
+)
+SELECT
+    e.expected_value,
+    a.actual_value,
+    ABS(e.expected_value - a.actual_value) as variance
+FROM expected e, actual a
+WHERE ABS(e.expected_value - a.actual_value) > 0.01
+""",
+                description=f"Validate {formula.formula_group} formula (P{formula.precedence_level})",
+                severity="error",
+                tags=["wright", "formula", f"p{formula.precedence_level}"]
+            ))
+
+        return tests
+
+    def generate_all_tests(
+        self,
+        model_name: str,
+        sql: str,
+        config: Optional[MartConfig] = None,
+        formulas: Optional[List[FormulaPrecedence]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Generate all test suggestions for a model.
+
+        Returns:
+            Dict with schema_tests, singular_tests, relationship_tests
+        """
+        sql_analysis = self.analyze_sql(sql)
+        columns = sql_analysis.get("columns", [])
+
+        schema_tests = self.suggest_schema_tests(columns, sql_analysis)
+        relationship_tests = self.suggest_relationship_tests(sql_analysis)
+        singular_tests = self.suggest_singular_tests(
+            model_name, sql_analysis, config
+        )
+
+        # Add formula tests if formulas provided
+        if formulas:
+            singular_tests.extend(
+                self.suggest_formula_tests(model_name, formulas)
+            )
+
+        return {
+            "schema_tests": schema_tests,
+            "singular_tests": singular_tests,
+            "relationship_tests": relationship_tests,
+            "sql_analysis": sql_analysis,
+        }
+
+
+class SchemaYmlGenerator:
+    """
+    Enhanced schema.yml generator with sophisticated column analysis.
+    """
+
+    def __init__(self, test_engine: TestSuggestionEngine):
+        self.test_engine = test_engine
+
+    def generate_column_description(self, col_name: str) -> str:
+        """Generate rich description based on column patterns."""
+        analysis = self.test_engine.analyze_column(col_name)
+        col_upper = col_name.upper()
+
+        # Build description based on category
+        descriptions = {
+            ColumnCategory.SURROGATE_KEY: "Unique surrogate key generated for this record. Used as the primary identifier for joins and lookups.",
+            ColumnCategory.PRIMARY_KEY: f"Primary key identifier for the {col_upper.replace('PK_', '').replace('_', ' ').lower()} entity.",
+            ColumnCategory.FOREIGN_KEY: f"Foreign key linking to the {col_upper.replace('FK_', '').replace('_KEY', '').lower()} dimension table.",
+            ColumnCategory.IDENTIFIER: f"Business identifier for {col_upper.replace('_ID', '').replace('_', ' ').lower()}.",
+            ColumnCategory.DATE: f"Date value representing {col_upper.replace('_DATE', '').replace('_', ' ').lower()}.",
+            ColumnCategory.DATETIME: f"Timestamp recording when {col_upper.replace('_DT', '').replace('_DATETIME', '').replace('_TIMESTAMP', '').replace('_', ' ').lower()} occurred.",
+            ColumnCategory.FLAG: f"Boolean indicator for {col_upper.replace('_FLAG', '').replace('IS_', '').replace('HAS_', '').replace('_', ' ').lower()}. Values: true/false.",
+            ColumnCategory.CODE: f"Code value representing {col_upper.replace('_CODE', '').replace('_', ' ').lower()}.",
+            ColumnCategory.STATUS: f"Current status of the record. Expected values: ACTIVE, INACTIVE, PENDING, etc.",
+            ColumnCategory.TYPE: f"Type classification for {col_upper.replace('_TYPE', '').replace('_CATEGORY', '').replace('_', ' ').lower()}.",
+            ColumnCategory.AMOUNT: f"Monetary amount for {col_upper.replace('_AMOUNT', '').replace('_AMT', '').replace('_', ' ').lower()}. Currency: USD.",
+            ColumnCategory.QUANTITY: f"Quantity/count of {col_upper.replace('_QUANTITY', '').replace('_QTY', '').replace('_COUNT', '').replace('_', ' ').lower()}.",
+            ColumnCategory.PERCENT: f"Percentage value for {col_upper.replace('_PERCENT', '').replace('_PCT', '').replace('_RATE', '').replace('_', ' ').lower()}. Range: 0-100.",
+            ColumnCategory.NAME: f"Display name for {col_upper.replace('_NAME', '').replace('_', ' ').lower()}.",
+            ColumnCategory.DESCRIPTION: f"Descriptive text for {col_upper.replace('_DESC', '').replace('_DESCRIPTION', '').replace('_', ' ').lower()}.",
+        }
+
+        base_desc = descriptions.get(
+            analysis.category,
+            col_upper.replace('_', ' ').title()
+        )
+
+        # Add classification note if sensitive
+        if analysis.classification == DataClassification.PII:
+            base_desc += " **Contains PII - handle with care.**"
+        elif analysis.classification == DataClassification.PHI:
+            base_desc += " **Contains PHI - HIPAA compliance required.**"
+        elif analysis.classification == DataClassification.PCI:
+            base_desc += " **Contains PCI data - PCI-DSS compliance required.**"
+
+        return base_desc
+
+    def generate_meta_fields(self, col_name: str) -> Dict[str, Any]:
+        """Generate meta fields for data classification and ownership."""
+        analysis = self.test_engine.analyze_column(col_name)
+
+        meta = {
+            "contains_pii": analysis.classification == DataClassification.PII,
+        }
+
+        # Add classification
+        if analysis.classification != DataClassification.INTERNAL:
+            meta["data_classification"] = analysis.classification.value
+
+        # Add ownership hints based on patterns
+        col_upper = col_name.upper()
+        if any(f in col_upper for f in ['FINANCE', 'REVENUE', 'COST', 'AMOUNT']):
+            meta["domain"] = "finance"
+        elif any(f in col_upper for f in ['CUSTOMER', 'CLIENT', 'USER']):
+            meta["domain"] = "customer"
+        elif any(f in col_upper for f in ['PRODUCT', 'SKU', 'ITEM']):
+            meta["domain"] = "product"
+        elif any(f in col_upper for f in ['ORDER', 'TRANSACTION', 'INVOICE']):
+            meta["domain"] = "orders"
+
+        return meta
+
+    def generate_freshness_config(
+        self,
+        columns: List[str],
+        default_hours: int = 24,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Generate freshness configuration if date columns detected.
+        """
+        # Look for load/update timestamp columns
+        freshness_cols = [
+            c for c in columns
+            if any(f in c.upper() for f in [
+                'LOADED_AT', 'UPDATED_AT', 'CREATED_AT', 'ETL_TIMESTAMP',
+                'LAST_MODIFIED', 'MODIFIED_DATE', 'LOAD_DATE'
+            ])
+        ]
+
+        if freshness_cols:
+            return {
+                "loaded_at_field": freshness_cols[0].lower(),
+                "warn_after": {"count": default_hours, "period": "hour"},
+                "error_after": {"count": default_hours * 2, "period": "hour"},
+            }
+        return None
+
+    def generate_schema_yml(
+        self,
+        model_name: str,
+        columns: List[str],
+        sql_analysis: Dict[str, Any],
+        schema_tests: List[SchemaTest],
+        config: Optional[MartConfig] = None,
+        include_freshness: bool = True,
+    ) -> str:
+        """
+        Generate complete schema.yml content.
+        """
+        # Build column definitions
+        column_yaml_parts = []
+        for col in columns[:50]:  # Limit to 50 columns
+            desc = self.generate_column_description(col)
+            meta = self.generate_meta_fields(col)
+
+            # Find tests for this column
+            col_tests = [t for t in schema_tests if t.column == col]
+
+            col_entry = f"      - name: {col}\n"
+            col_entry += f'        description: "{desc}"\n'
+
+            # Add meta if present
+            if meta:
+                col_entry += "        meta:\n"
+                for key, value in meta.items():
+                    if isinstance(value, bool):
+                        col_entry += f"          {key}: {str(value).lower()}\n"
+                    else:
+                        col_entry += f'          {key}: "{value}"\n'
+
+            # Add tests
+            if col_tests:
+                col_entry += "        tests:\n"
+                for test in col_tests:
+                    if test.config:
+                        col_entry += f"          - {test.test_type}:\n"
+                        for key, value in test.config.items():
+                            if isinstance(value, list):
+                                col_entry += f"              {key}: {value}\n"
+                            else:
+                                col_entry += f"              {key}: {value}\n"
+                    else:
+                        col_entry += f"          - {test.test_type}\n"
+
+            column_yaml_parts.append(col_entry)
+
+        # Build model description
+        config_desc = ""
+        if config:
+            config_desc = f" for {config.report_type} {config.project_name} reporting"
+
+        # Build freshness config
+        freshness_yml = ""
+        if include_freshness:
+            freshness = self.generate_freshness_config(columns)
+            if freshness:
+                freshness_yml = f"""
+    freshness:
+      loaded_at_field: {freshness['loaded_at_field']}
+      warn_after:
+        count: {freshness['warn_after']['count']}
+        period: {freshness['warn_after']['period']}
+      error_after:
+        count: {freshness['error_after']['count']}
+        period: {freshness['error_after']['period']}
+"""
+
+        # Assemble full YAML
+        schema_yml = f'''version: 2
+
+models:
+  - name: {model_name}
+    description: "Wright pipeline model{config_desc}. Auto-generated schema documentation."
+    config:
+      tags: ['wright', 'data-mart']
+      materialized: table{freshness_yml}
+    meta:
+      owner: "data-engineering"
+      sla: "daily"
+      data_quality_tier: "gold"
+    columns:
+{chr(10).join(column_yaml_parts)}
+'''
+
+        return schema_yml
 
 
 def register_mart_factory_tools(mcp, settings=None) -> Dict[str, Any]:
@@ -2110,17 +3075,26 @@ dbt-test:
         model_path: str,
         config_name: str = None,
         connection_id: str = None,
+        include_freshness: bool = True,
+        include_meta: bool = True,
+        data_quality_tier: str = "gold",
     ) -> Dict[str, Any]:
         """
         Use Snowflake Cortex AI to auto-generate dbt schema.yml documentation.
 
-        Analyzes the SQL model file and uses Cortex COMPLETE() to generate
-        meaningful column descriptions, tests, and documentation.
+        Enhanced to:
+        1. Generate rich column descriptions based on naming patterns
+        2. Add meta fields for data classification (PII, PHI, PCI)
+        3. Include freshness configuration for timestamp columns
+        4. Suggest comprehensive tests (unique, not_null, accepted_values, relationships)
 
         Args:
             model_path: Path to the dbt model SQL file
             config_name: Optional Wright config for context
-            connection_id: Snowflake connection for Cortex
+            connection_id: Snowflake connection for Cortex AI enhancement
+            include_freshness: Include freshness configuration (default True)
+            include_meta: Include meta fields for classification (default True)
+            data_quality_tier: Data quality tier - gold/silver/bronze (default "gold")
 
         Returns:
             Generated schema.yml content with AI-powered documentation
@@ -2128,7 +3102,9 @@ dbt-test:
         Example:
             cortex_generate_dbt_schema_yml(
                 model_path="./models/marts/fct_upstream_gross.sql",
-                config_name="upstream_gross"
+                config_name="upstream_gross",
+                include_freshness=True,
+                data_quality_tier="gold"
             )
         """
         try:
@@ -2144,80 +3120,146 @@ dbt-test:
             # Extract model name from path
             model_name = os.path.splitext(os.path.basename(model_path))[0]
 
-            # Extract column names from SQL
-            import re
-            select_pattern = r'SELECT\s+(.*?)\s+FROM'
-            select_match = re.search(select_pattern, model_sql, re.IGNORECASE | re.DOTALL)
+            # Get config if available
+            config = _configs.get(config_name) if config_name else None
 
-            columns = []
-            if select_match:
-                select_clause = select_match.group(1)
-                # Parse column definitions (simplified)
-                col_pattern = r'(?:^|,)\s*(?:[^,]+\s+AS\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*(?:,|$)'
-                cols = re.findall(r'AS\s+([A-Za-z_][A-Za-z0-9_]*)', select_clause, re.IGNORECASE)
-                if not cols:
-                    cols = re.findall(r'([A-Za-z_][A-Za-z0-9_]*)\s*(?:,|$)', select_clause)
-                columns = [c.strip().upper() for c in cols if c.strip()]
+            # Initialize test suggestion engine with config context
+            test_engine = TestSuggestionEngine(config=config)
+            schema_generator = SchemaYmlGenerator(test_engine)
 
-            # Generate AI prompt for column descriptions
-            cortex_prompt = f"""Analyze this dbt model SQL and generate YAML documentation for each column.
+            # Analyze SQL thoroughly
+            sql_analysis = test_engine.analyze_sql(model_sql)
+            columns = sql_analysis.get("columns", [])
 
-Model SQL:
-{model_sql[:3000]}
+            # Get schema tests
+            schema_tests = test_engine.suggest_schema_tests(columns, sql_analysis)
 
-Columns detected: {', '.join(columns[:20])}
-
-For each column, provide:
-1. A clear business description (1-2 sentences)
-2. Suggested tests (not_null, unique, accepted_values, etc.)
-
-Format as YAML column definitions."""
-
-            # Try to use Cortex if available
+            # Try to enhance with Cortex AI
+            ai_enhanced = False
             ai_descriptions = {}
             try:
                 from src.cortex.cortex_client import CortexClient
                 cortex = CortexClient(connection_id=connection_id)
+
+                # Build intelligent prompt
+                cortex_prompt = f"""Analyze this dbt model SQL and provide business context for documentation.
+
+Model SQL (truncated):
+{model_sql[:2500]}
+
+Columns detected: {', '.join(columns[:25])}
+
+For each column, provide a brief business description (1 sentence).
+Focus on business meaning, not technical details.
+Format: COLUMN_NAME: description"""
+
                 ai_response = cortex.complete(cortex_prompt)
+
                 # Parse AI response for column descriptions
-                for col in columns:
-                    if col.upper() in ai_response.upper():
-                        # Extract description from AI response
-                        ai_descriptions[col] = f"AI-generated: {col.replace('_', ' ').title()}"
+                for line in ai_response.split('\n'):
+                    if ':' in line:
+                        parts = line.split(':', 1)
+                        col_name = parts[0].strip().upper()
+                        if col_name in [c.upper() for c in columns]:
+                            ai_descriptions[col_name] = parts[1].strip()
+                            ai_enhanced = True
+
             except Exception as cortex_error:
-                logger.warning(f"Cortex not available, using fallback descriptions: {cortex_error}")
+                logger.warning(f"Cortex not available, using pattern-based descriptions: {cortex_error}")
 
-            # Generate schema.yml with fallback descriptions
-            column_yaml = []
-            for col in columns[:50]:  # Limit to 50 columns
-                desc = ai_descriptions.get(col) or _get_column_description(col)
-                tests = _suggest_column_tests(col)
+            # Build enhanced column definitions
+            column_yaml_parts = []
+            pii_columns = []
+            phi_columns = []
+            pci_columns = []
 
-                col_entry = f"""      - name: {col}
-        description: "{desc}"
-"""
-                if tests:
+            for col in columns[:50]:
+                col_upper = col.upper()
+
+                # Get description (AI or pattern-based)
+                if col_upper in ai_descriptions:
+                    desc = ai_descriptions[col_upper]
+                else:
+                    desc = schema_generator.generate_column_description(col)
+
+                # Get meta fields
+                meta = schema_generator.generate_meta_fields(col) if include_meta else {}
+
+                # Track sensitive columns
+                analysis = test_engine.analyze_column(col)
+                if analysis.classification == DataClassification.PII:
+                    pii_columns.append(col)
+                elif analysis.classification == DataClassification.PHI:
+                    phi_columns.append(col)
+                elif analysis.classification == DataClassification.PCI:
+                    pci_columns.append(col)
+
+                # Find tests for this column
+                col_tests = [t for t in schema_tests if t.column == col]
+
+                # Build YAML entry
+                col_entry = f"      - name: {col}\n"
+                col_entry += f'        description: "{desc}"\n'
+
+                if meta and include_meta:
+                    col_entry += "        meta:\n"
+                    for key, value in meta.items():
+                        if isinstance(value, bool):
+                            col_entry += f"          {key}: {str(value).lower()}\n"
+                        else:
+                            col_entry += f'          {key}: "{value}"\n'
+
+                if col_tests:
                     col_entry += "        tests:\n"
-                    for test in tests:
-                        col_entry += f"          - {test}\n"
+                    for test in col_tests:
+                        if test.config:
+                            col_entry += f"          - {test.test_type}:\n"
+                            for key, value in test.config.items():
+                                if isinstance(value, list):
+                                    col_entry += f"              {key}: {value}\n"
+                                else:
+                                    col_entry += f"              {key}: {value}\n"
+                        else:
+                            col_entry += f"          - {test.test_type}\n"
 
-                column_yaml.append(col_entry)
+                column_yaml_parts.append(col_entry)
 
-            # Get config context if available
+            # Build model description
             config_desc = ""
-            if config_name and config_name in _configs:
-                config = _configs[config_name]
+            if config:
                 config_desc = f" for {config.report_type} {config.project_name} reporting"
 
+            # Build freshness config
+            freshness_yml = ""
+            if include_freshness:
+                freshness = schema_generator.generate_freshness_config(columns)
+                if freshness:
+                    freshness_yml = f"""
+    freshness:
+      loaded_at_field: {freshness['loaded_at_field']}
+      warn_after:
+        count: {freshness['warn_after']['count']}
+        period: {freshness['warn_after']['period']}
+      error_after:
+        count: {freshness['error_after']['count']}
+        period: {freshness['error_after']['period']}"""
+
+            # Assemble full YAML
             schema_yml = f'''version: 2
 
 models:
   - name: {model_name}
-    description: "Wright pipeline model{config_desc}"
+    description: "Wright pipeline model{config_desc}. Auto-generated schema documentation."
     config:
-      tags: ['wright']
+      tags: ['wright', 'data-mart']
+      materialized: table{freshness_yml}
+    meta:
+      owner: "data-engineering"
+      sla: "daily"
+      data_quality_tier: "{data_quality_tier}"
+      ai_enhanced: {str(ai_enhanced).lower()}
     columns:
-{chr(10).join(column_yaml)}
+{chr(10).join(column_yaml_parts)}
 '''
 
             result = {
@@ -2226,7 +3268,20 @@ models:
                 "model_name": model_name,
                 "column_count": len(columns),
                 "schema_yml": schema_yml,
-                "ai_enhanced": len(ai_descriptions) > 0,
+                "ai_enhanced": ai_enhanced,
+                "test_count": len(schema_tests),
+                "data_classification": {
+                    "pii_columns": pii_columns,
+                    "phi_columns": phi_columns,
+                    "pci_columns": pci_columns,
+                },
+                "sql_analysis_summary": {
+                    "has_surrogate_key": sql_analysis.get("has_surrogate_key", False),
+                    "has_foreign_keys": sql_analysis.get("has_foreign_keys", False),
+                    "join_count": len(sql_analysis.get("joins", [])),
+                    "aggregation_count": len(sql_analysis.get("aggregations", [])),
+                    "is_incremental": sql_analysis.get("is_incremental", False),
+                },
             }
 
             # Write schema.yml next to model
@@ -2247,26 +3302,39 @@ models:
         config_name: str = None,
         connection_id: str = None,
         auto_apply: bool = False,
+        include_relationship_tests: bool = True,
+        include_formula_tests: bool = True,
     ) -> Dict[str, Any]:
         """
-        Use Snowflake Cortex AI to suggest dbt tests for a model.
+        Use Snowflake Cortex AI to suggest comprehensive dbt tests for a model.
 
-        Analyzes model SQL and data patterns to recommend appropriate tests
-        including schema tests, data tests, and custom singular tests.
+        Enhanced with TestSuggestionEngine that analyzes:
+        1. Column naming patterns (FK_, SK_, _ID, _DATE, _FLAG, _CODE, _AMOUNT)
+        2. Wright formula groups for calculation validation tests
+        3. Referential integrity based on JOIN patterns
+        4. Date recency, accepted values, and range tests
+
+        Generates both:
+        - Schema tests (in schema.yml format)
+        - Singular tests (standalone SQL files)
 
         Args:
             model_path: Path to the dbt model SQL file
             config_name: Optional Wright config for formula context
-            connection_id: Snowflake connection for Cortex
+            connection_id: Snowflake connection for Cortex AI enhancement
             auto_apply: Whether to automatically write test files
+            include_relationship_tests: Include referential integrity tests (default True)
+            include_formula_tests: Include Wright formula validation tests (default True)
 
         Returns:
-            Suggested tests with reasoning
+            Comprehensive test suggestions with reasoning
 
         Example:
             cortex_suggest_dbt_tests(
                 model_path="./models/marts/fct_upstream_gross.sql",
-                auto_apply=True
+                config_name="upstream_gross",
+                auto_apply=True,
+                include_relationship_tests=True
             )
         """
         try:
@@ -2280,89 +3348,123 @@ models:
 
             model_name = os.path.splitext(os.path.basename(model_path))[0]
 
-            # Analyze SQL for test opportunities
-            suggestions = {
-                "schema_tests": [],
-                "singular_tests": [],
-                "generic_tests": [],
-            }
+            # Get config if available
+            config = _configs.get(config_name) if config_name else None
 
-            # Detect key columns
-            if "SURROGATE_KEY" in model_sql.upper():
-                suggestions["schema_tests"].append({
-                    "column": "SURROGATE_KEY",
-                    "tests": ["unique", "not_null"],
-                    "reason": "Primary key column should be unique and not null"
+            # Initialize the sophisticated test suggestion engine
+            test_engine = TestSuggestionEngine(config=config)
+
+            # Thorough SQL analysis
+            sql_analysis = test_engine.analyze_sql(model_sql)
+            columns = sql_analysis.get("columns", [])
+
+            # Get all test suggestions
+            all_tests = test_engine.generate_all_tests(
+                model_name=model_name,
+                sql=model_sql,
+                config=config,
+                formulas=formula_engine.get_formulas(config_name) if config_name and include_formula_tests else None,
+            )
+
+            # Build structured output
+            schema_tests_output = []
+            for test in all_tests["schema_tests"]:
+                schema_tests_output.append({
+                    "column": test.column,
+                    "test_type": test.test_type,
+                    "config": test.config,
+                    "reason": test.reason,
                 })
 
-            if "FK_" in model_sql.upper():
-                import re
-                fk_cols = re.findall(r'(FK_[A-Z_]+)', model_sql.upper())
-                for fk in set(fk_cols):
-                    suggestions["schema_tests"].append({
-                        "column": fk,
-                        "tests": ["not_null"],
-                        "reason": f"Foreign key {fk} should not be null"
+            singular_tests_output = []
+            for test in all_tests["singular_tests"]:
+                singular_tests_output.append({
+                    "name": test.name,
+                    "sql": test.sql,
+                    "description": test.description,
+                    "severity": test.severity,
+                    "tags": test.tags,
+                })
+
+            relationship_tests_output = []
+            if include_relationship_tests:
+                for test in all_tests["relationship_tests"]:
+                    relationship_tests_output.append({
+                        "from_column": test.from_column,
+                        "to_model": test.to_model,
+                        "to_column": test.to_column,
+                        "reason": test.reason,
                     })
 
-            # Wright-specific tests
-            if config_name and config_name in _configs:
-                config = _configs[config_name]
-
-                # Add formula validation test
-                suggestions["singular_tests"].append({
-                    "name": f"test_{model_name}_formula_validation",
-                    "sql": f"""-- Validate Wright formula calculations
-WITH checks AS (
-    SELECT
-        COUNT(*) as total_rows,
-        SUM(CASE WHEN SURROGATE_KEY IS NULL THEN 1 ELSE 0 END) as null_keys,
-        SUM(CASE WHEN {config.measure_prefix}AMOUNT IS NULL THEN 1 ELSE 0 END) as null_amounts
-    FROM {{{{ ref('{model_name}') }}}}
-)
-SELECT * FROM checks WHERE null_keys > 0 OR null_amounts > total_rows * 0.5
-""",
-                    "reason": "Validate Wright pipeline formulas and data integrity"
-                })
-
-            # Generic data quality tests
-            suggestions["singular_tests"].append({
-                "name": f"test_{model_name}_no_duplicates",
-                "sql": f"""-- Check for duplicate records
-SELECT SURROGATE_KEY, COUNT(*) as cnt
-FROM {{{{ ref('{model_name}') }}}}
-GROUP BY SURROGATE_KEY
-HAVING COUNT(*) > 1
-""",
-                "reason": "Ensure no duplicate records in mart"
-            })
-
-            # Try Cortex for additional suggestions
+            # Try Cortex for additional AI-powered suggestions
+            ai_suggestions = []
+            ai_enhanced = False
             try:
                 from src.cortex.cortex_client import CortexClient
                 cortex = CortexClient(connection_id=connection_id)
 
-                ai_prompt = f"""Analyze this dbt model and suggest additional data quality tests:
+                ai_prompt = f"""Analyze this dbt model and suggest 2-3 specific data quality tests.
 
-{model_sql[:2000]}
+Model: {model_name}
+Columns detected: {', '.join(columns[:20])}
 
-Suggest 2-3 specific tests with SQL that would catch data quality issues."""
+SQL (truncated):
+{model_sql[:1500]}
+
+For each test, provide:
+1. Test name (snake_case)
+2. Test type (schema or singular)
+3. Brief SQL or test description
+4. Reason why this test is important
+
+Focus on business logic validation, not just technical checks."""
 
                 ai_response = cortex.complete(ai_prompt)
-                suggestions["ai_suggestions"] = ai_response
-            except Exception:
-                suggestions["ai_suggestions"] = "Cortex not available for AI suggestions"
+
+                # Parse AI response for structured suggestions
+                ai_suggestions.append({
+                    "source": "cortex_ai",
+                    "raw_response": ai_response,
+                })
+                ai_enhanced = True
+
+            except Exception as cortex_err:
+                logger.warning(f"Cortex not available for AI suggestions: {cortex_err}")
+                ai_suggestions.append({
+                    "source": "fallback",
+                    "message": "Cortex AI not available - using pattern-based suggestions only",
+                })
+
+            # Generate schema.yml snippet for schema tests
+            schema_yml_snippet = _generate_schema_tests_yml(model_name, schema_tests_output)
 
             result = {
                 "success": True,
                 "model_path": model_path,
                 "model_name": model_name,
-                "suggestions": suggestions,
-                "total_suggestions": (
-                    len(suggestions["schema_tests"]) +
-                    len(suggestions["singular_tests"]) +
-                    len(suggestions["generic_tests"])
-                ),
+                "ai_enhanced": ai_enhanced,
+                "suggestions": {
+                    "schema_tests": schema_tests_output,
+                    "singular_tests": singular_tests_output,
+                    "relationship_tests": relationship_tests_output,
+                    "ai_suggestions": ai_suggestions,
+                },
+                "totals": {
+                    "schema_tests": len(schema_tests_output),
+                    "singular_tests": len(singular_tests_output),
+                    "relationship_tests": len(relationship_tests_output),
+                    "total": len(schema_tests_output) + len(singular_tests_output) + len(relationship_tests_output),
+                },
+                "schema_yml_snippet": schema_yml_snippet,
+                "sql_analysis": {
+                    "columns_detected": len(columns),
+                    "joins_detected": len(sql_analysis.get("joins", [])),
+                    "ctes_detected": len(sql_analysis.get("ctes", [])),
+                    "has_surrogate_key": sql_analysis.get("has_surrogate_key", False),
+                    "has_foreign_keys": sql_analysis.get("has_foreign_keys", False),
+                    "is_incremental": sql_analysis.get("is_incremental", False),
+                    "has_window_functions": sql_analysis.get("has_window_functions", False),
+                },
             }
 
             # Auto-apply tests if requested
@@ -2371,14 +3473,31 @@ Suggest 2-3 specific tests with SQL that would catch data quality issues."""
                 os.makedirs(tests_dir, exist_ok=True)
 
                 files_written = []
-                for test in suggestions["singular_tests"]:
+
+                # Write singular tests
+                for test in singular_tests_output:
+                    test_file_content = f"""-- {test['description']}
+-- Severity: {test['severity']}
+-- Tags: {', '.join(test['tags'])}
+
+{test['sql']}
+"""
                     test_path = os.path.join(tests_dir, f"{test['name']}.sql")
                     with open(test_path, 'w') as f:
-                        f.write(test["sql"])
+                        f.write(test_file_content)
                     files_written.append(test_path)
 
+                # Write schema tests to a yml file
+                schema_test_path = os.path.join(
+                    os.path.dirname(model_path),
+                    f"_schema_tests_{model_name}.yml"
+                )
+                with open(schema_test_path, 'w') as f:
+                    f.write(schema_yml_snippet)
+                files_written.append(schema_test_path)
+
                 result["files_written"] = files_written
-                result["message"] = f"Applied {len(files_written)} test files"
+                result["message"] = f"Applied {len(files_written)} test files ({len(singular_tests_output)} singular, 1 schema yml)"
 
             return result
 
@@ -2473,40 +3592,137 @@ Suggest 2-3 specific tests with SQL that would catch data quality issues."""
 
     # Helper functions for AI-powered tools
     def _get_column_description(col_name: str) -> str:
-        """Generate a default description based on column name patterns."""
+        """Generate a default description based on column name patterns.
+
+        Enhanced version uses TestSuggestionEngine for sophisticated analysis.
+        This is a fallback for simple cases.
+        """
         col_upper = col_name.upper()
-        if col_upper.startswith("FK_"):
-            return f"Foreign key to {col_upper.replace('FK_', '').replace('_KEY', '').title()} dimension"
-        elif col_upper.startswith("SK_") or col_upper == "SURROGATE_KEY":
-            return "Surrogate key for this record"
-        elif col_upper.endswith("_ID"):
-            return f"{col_upper.replace('_ID', '').replace('_', ' ').title()} identifier"
-        elif col_upper.endswith("_DATE"):
-            return f"{col_upper.replace('_DATE', '').replace('_', ' ').title()} date"
-        elif col_upper.endswith("_AMOUNT") or col_upper.endswith("_AMT"):
-            return f"{col_upper.replace('_AMOUNT', '').replace('_AMT', '').replace('_', ' ').title()} amount"
-        elif col_upper.endswith("_FLAG"):
-            return f"Boolean flag indicating {col_upper.replace('_FLAG', '').replace('_', ' ').lower()}"
-        elif col_upper.endswith("_NAME"):
-            return f"{col_upper.replace('_NAME', '').replace('_', ' ').title()} name"
-        else:
-            return col_upper.replace('_', ' ').title()
+
+        # Use simplified pattern matching for basic descriptions
+        patterns = {
+            ("FK_",): f"Foreign key to {col_upper.replace('FK_', '').replace('_KEY', '').replace('_', ' ').title()} dimension",
+            ("SK_", "SURROGATE_KEY"): "Surrogate key uniquely identifying this record",
+            ("_ID",): f"{col_upper.replace('_ID', '').replace('_', ' ').title()} identifier",
+            ("_DATE",): f"{col_upper.replace('_DATE', '').replace('_', ' ').title()} date",
+            ("_DATETIME", "_TIMESTAMP", "_DT"): f"{col_upper.replace('_DATETIME', '').replace('_TIMESTAMP', '').replace('_DT', '').replace('_', ' ').title()} timestamp",
+            ("_AMOUNT", "_AMT"): f"{col_upper.replace('_AMOUNT', '').replace('_AMT', '').replace('_', ' ').title()} monetary amount",
+            ("_QTY", "_QUANTITY", "_COUNT"): f"{col_upper.replace('_QTY', '').replace('_QUANTITY', '').replace('_COUNT', '').replace('_', ' ').title()} quantity/count",
+            ("_FLAG",): f"Boolean flag indicating {col_upper.replace('_FLAG', '').replace('_', ' ').lower()}",
+            ("IS_", "HAS_"): f"Boolean indicator for {col_upper.replace('IS_', '').replace('HAS_', '').replace('_', ' ').lower()}",
+            ("_NAME",): f"{col_upper.replace('_NAME', '').replace('_', ' ').title()} name",
+            ("_DESC", "_DESCRIPTION"): f"Description for {col_upper.replace('_DESC', '').replace('_DESCRIPTION', '').replace('_', ' ').lower()}",
+            ("_CODE",): f"{col_upper.replace('_CODE', '').replace('_', ' ').title()} code value",
+            ("_TYPE", "_CATEGORY"): f"{col_upper.replace('_TYPE', '').replace('_CATEGORY', '').replace('_', ' ').title()} type/category",
+            ("_STATUS",): f"Current status - typically ACTIVE, INACTIVE, PENDING, etc.",
+            ("_PCT", "_PERCENT", "_RATE"): f"{col_upper.replace('_PCT', '').replace('_PERCENT', '').replace('_RATE', '').replace('_', ' ').title()} percentage (0-100)",
+            ("CREATED_AT", "UPDATED_AT", "LOADED_AT"): f"Timestamp recording when record was {'created' if 'CREATED' in col_upper else 'updated' if 'UPDATED' in col_upper else 'loaded'}",
+        }
+
+        for patterns_tuple, desc in patterns.items():
+            for pattern in patterns_tuple:
+                if col_upper.startswith(pattern) or col_upper.endswith(pattern) or col_upper == pattern:
+                    return desc
+
+        return col_upper.replace('_', ' ').title()
 
     def _suggest_column_tests(col_name: str) -> List[str]:
-        """Suggest tests based on column name patterns."""
+        """Suggest tests based on column name patterns.
+
+        Enhanced version with more test types.
+        For full analysis, use TestSuggestionEngine.
+        """
         col_upper = col_name.upper()
         tests = []
 
-        if col_upper.startswith("FK_") or col_upper.endswith("_KEY"):
-            tests.append("not_null")
-        elif col_upper.startswith("SK_") or col_upper == "SURROGATE_KEY":
+        # Surrogate/Primary keys - must be unique and not null
+        if col_upper.startswith("SK_") or col_upper == "SURROGATE_KEY" or col_upper.startswith("PK_"):
             tests.extend(["unique", "not_null"])
-        elif col_upper.endswith("_ID") and "HIERARCHY" in col_upper:
+
+        # Foreign keys - should not be null for referential integrity
+        elif col_upper.startswith("FK_") or col_upper.endswith("_KEY"):
             tests.append("not_null")
-        elif col_upper.endswith("_FLAG"):
-            tests.append("accepted_values:\n            values: [true, false]")
+
+        # Identifiers - typically not null
+        elif col_upper.endswith("_ID"):
+            if "HIERARCHY" in col_upper or "ENTITY" in col_upper:
+                tests.append("not_null")
+
+        # Flags - should be boolean values
+        elif col_upper.endswith("_FLAG") or col_upper.startswith("IS_") or col_upper.startswith("HAS_"):
+            tests.append("accepted_values:\n            values: ['true', 'false']")
+
+        # Status columns - typically have known values
+        elif col_upper.endswith("_STATUS"):
+            tests.append("accepted_values:\n            values: ['ACTIVE', 'INACTIVE', 'PENDING', 'DELETED']")
+
+        # Codes - should not be null
+        elif col_upper.endswith("_CODE"):
+            tests.append("not_null")
+
+        # Percentages - should be within range
+        elif col_upper.endswith("_PCT") or col_upper.endswith("_PERCENT") or col_upper.endswith("_RATE"):
+            tests.append("dbt_utils.accepted_range:\n            min_value: 0\n            max_value: 100")
+
+        # Load/update timestamps - should not be null
+        elif col_upper in ("CREATED_AT", "LOADED_AT", "ETL_TIMESTAMP"):
+            tests.append("not_null")
 
         return tests
+
+    def _generate_schema_tests_yml(model_name: str, schema_tests: List[Dict]) -> str:
+        """Generate schema.yml snippet for schema tests.
+
+        Args:
+            model_name: Name of the dbt model
+            schema_tests: List of schema test dictionaries
+
+        Returns:
+            YAML string for schema tests
+        """
+        # Group tests by column
+        tests_by_column: Dict[str, List[Dict]] = {}
+        for test in schema_tests:
+            col = test.get("column", "")
+            if col not in tests_by_column:
+                tests_by_column[col] = []
+            tests_by_column[col].append(test)
+
+        # Build YAML
+        column_yaml_parts = []
+        for col, col_tests in tests_by_column.items():
+            col_entry = f"      - name: {col}\n"
+            col_entry += "        tests:\n"
+            for test in col_tests:
+                test_type = test.get("test_type", "")
+                config = test.get("config", {})
+                reason = test.get("reason", "")
+
+                if config:
+                    col_entry += f"          - {test_type}:  # {reason}\n"
+                    for key, value in config.items():
+                        if isinstance(value, list):
+                            col_entry += f"              {key}: {value}\n"
+                        elif isinstance(value, str) and value.startswith("ref("):
+                            col_entry += f"              {key}: {value}\n"
+                        else:
+                            col_entry += f"              {key}: {value}\n"
+                else:
+                    col_entry += f"          - {test_type}  # {reason}\n"
+
+            column_yaml_parts.append(col_entry)
+
+        schema_yml = f'''version: 2
+
+# Auto-generated schema tests by TestSuggestionEngine
+# Review and customize as needed
+
+models:
+  - name: {model_name}
+    columns:
+{chr(10).join(column_yaml_parts)}
+'''
+        return schema_yml
 
     # Return registration info
     return {

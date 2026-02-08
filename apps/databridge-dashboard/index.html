@@ -2884,11 +2884,14 @@ Available Tools:
               </div>
             </div>
             <div id="catalog-assets" class="space-y-2">
-              <div class="p-3 border rounded-lg hover:border-emerald-300 cursor-pointer" onclick="showAssetDetail('dim_account')">
+              <div class="p-3 border rounded-lg hover:border-emerald-300 cursor-pointer group" onclick="showAssetDetail('dim_account')">
                 <div class="flex items-center gap-2">
                   <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">TABLE</span>
                   <span class="font-medium">DIM_ACCOUNT</span>
-                  <span class="ml-auto text-xs text-gray-500">ANALYTICS.PUBLIC</span>
+                  <span class="ml-auto flex gap-1">
+                    <button onclick="event.stopPropagation(); showAssetLineage('dim_account')" class="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded text-xs opacity-0 group-hover:opacity-100 transition">Lineage</button>
+                    <span class="text-xs text-gray-500">ANALYTICS.PUBLIC</span>
+                  </span>
                 </div>
                 <div class="text-sm text-gray-600 mt-1">Account dimension with COA hierarchy</div>
                 <div class="flex gap-2 mt-2">
@@ -2896,25 +2899,30 @@ Available Tools:
                   <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">GOLD</span>
                 </div>
               </div>
-              <div class="p-3 border rounded-lg hover:border-emerald-300 cursor-pointer" onclick="showAssetDetail('fct_gl')">
+              <div class="p-3 border rounded-lg hover:border-emerald-300 cursor-pointer group" onclick="showAssetDetail('fct_gl')">
                 <div class="flex items-center gap-2">
                   <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">TABLE</span>
                   <span class="font-medium">FCT_GL_TRANSACTIONS</span>
-                  <span class="ml-auto text-xs text-gray-500">ANALYTICS.PUBLIC</span>
+                  <span class="ml-auto flex gap-1">
+                    <button onclick="event.stopPropagation(); showAssetLineage('fct_gl')" class="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded text-xs opacity-0 group-hover:opacity-100 transition">Lineage</button>
+                    <span class="text-xs text-gray-500">ANALYTICS.PUBLIC</span>
+                  </span>
                 </div>
                 <div class="text-sm text-gray-600 mt-1">General ledger fact table</div>
               </div>
-              <div class="p-3 border rounded-lg hover:border-emerald-300 cursor-pointer">
+              <div class="p-3 border rounded-lg hover:border-emerald-300 cursor-pointer group">
                 <div class="flex items-center gap-2">
                   <span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">HIERARCHY</span>
                   <span class="font-medium">revenue-pl</span>
+                  <button onclick="event.stopPropagation(); showAssetLineage('revenue-pl')" class="ml-auto px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded text-xs opacity-0 group-hover:opacity-100 transition">Lineage</button>
                 </div>
                 <div class="text-sm text-gray-600 mt-1">Revenue P&L hierarchy for upstream</div>
               </div>
-              <div class="p-3 border rounded-lg hover:border-emerald-300 cursor-pointer">
+              <div class="p-3 border rounded-lg hover:border-emerald-300 cursor-pointer group">
                 <div class="flex items-center gap-2">
                   <span class="px-2 py-0.5 bg-orange-100 text-orange-700 rounded text-xs">SEMANTIC</span>
                   <span class="font-medium">sales_analytics</span>
+                  <button onclick="event.stopPropagation(); showAssetLineage('sales_analytics')" class="ml-auto px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded text-xs opacity-0 group-hover:opacity-100 transition">Lineage</button>
                 </div>
                 <div class="text-sm text-gray-600 mt-1">Cortex Analyst semantic model</div>
               </div>
@@ -2964,6 +2972,50 @@ Available Tools:
             <div class="text-sm text-gray-600">Glossary Terms</div>
           </div>
         </div>
+
+        <!-- Lineage Visualization Panel -->
+        <div id="lineage-panel" class="bg-white rounded-xl p-6 shadow-sm border hidden">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-semibold flex items-center gap-2">
+              <span class="text-indigo-600">↔</span> Lineage Visualization
+            </h3>
+            <button onclick="closeLineagePanel()" class="text-gray-400 hover:text-gray-600">✕</button>
+          </div>
+          <div id="lineage-content" class="min-h-[200px]">
+            <div class="text-center text-gray-500 py-8">Select an asset to view its lineage</div>
+          </div>
+        </div>
+
+        <!-- SQL Lineage Extractor -->
+        <div class="bg-white rounded-xl p-6 shadow-sm border">
+          <h3 class="font-semibold mb-4 flex items-center gap-2">
+            <span class="text-indigo-600">🔍</span> Auto-Extract Lineage from SQL
+          </h3>
+          <div class="space-y-4">
+            <textarea id="sql-lineage-input" rows="6" class="w-full px-4 py-2 border rounded-lg font-mono text-sm" placeholder="Paste SQL (CREATE VIEW, dbt model, etc.)...
+Example:
+CREATE VIEW VW_REVENUE AS
+SELECT a.account_id, SUM(t.amount) AS total
+FROM dim_account a
+JOIN fct_transactions t ON a.id = t.account_id
+GROUP BY a.account_id"></textarea>
+            <div class="flex gap-3">
+              <button onclick="extractSqlLineage()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Extract Lineage</button>
+              <button onclick="document.getElementById('sql-lineage-input').value=''" class="px-4 py-2 border rounded-lg hover:bg-gray-50">Clear</button>
+            </div>
+            <div id="sql-lineage-result" class="hidden">
+              <div class="border-t pt-4 mt-4">
+                <h4 class="font-medium mb-2">Extracted Lineage</h4>
+                <div id="sql-lineage-diagram" class="bg-gray-50 rounded-lg p-4 overflow-auto max-h-[300px]">
+                  <pre class="text-sm font-mono"></pre>
+                </div>
+                <div id="sql-lineage-details" class="mt-4 grid grid-cols-2 gap-4">
+                  <!-- Details populated by JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>\`;
     }
 
@@ -2978,6 +3030,149 @@ Available Tools:
 
     function showAssetDetail(assetId) {
       alert('Showing details for: ' + assetId);
+    }
+
+    function showAssetLineage(assetName) {
+      const panel = document.getElementById('lineage-panel');
+      const content = document.getElementById('lineage-content');
+      panel.classList.remove('hidden');
+
+      // Sample lineage data - in production this would call the MCP tool
+      const sampleLineage = {
+        'dim_account': {
+          upstream: ['RAW.PUBLIC.ACCOUNTS', 'RAW.PUBLIC.COA_MASTER'],
+          downstream: ['VW_REVENUE', 'FCT_GL_TRANSACTIONS', 'DT_3_GROSS'],
+          mermaid: \`graph TD
+    RAW_ACCOUNTS[RAW.ACCOUNTS]:::table --> DIM_ACCOUNT[DIM_ACCOUNT]:::table
+    RAW_COA[RAW.COA_MASTER]:::table --> DIM_ACCOUNT
+    DIM_ACCOUNT --> VW_REVENUE[VW_REVENUE]:::view
+    DIM_ACCOUNT --> FCT_GL[FCT_GL_TRANSACTIONS]:::table
+    DIM_ACCOUNT --> DT_3[DT_3_GROSS]:::mart
+    classDef table fill:#E3F2FD,stroke:#1976D2
+    classDef view fill:#E8F5E9,stroke:#388E3C
+    classDef mart fill:#F3E5F5,stroke:#7B1FA2\`
+        },
+        'fct_gl': {
+          upstream: ['DIM_ACCOUNT', 'DIM_DATE', 'STG_GL_ENTRIES'],
+          downstream: ['RPT_PL_SUMMARY', 'VW_REVENUE'],
+          mermaid: \`graph TD
+    DIM_ACCOUNT[DIM_ACCOUNT]:::table --> FCT_GL[FCT_GL_TRANSACTIONS]:::table
+    DIM_DATE[DIM_DATE]:::table --> FCT_GL
+    STG_GL[STG_GL_ENTRIES]:::table --> FCT_GL
+    FCT_GL --> RPT_PL[RPT_PL_SUMMARY]:::view
+    FCT_GL --> VW_REVENUE[VW_REVENUE]:::view
+    classDef table fill:#E3F2FD,stroke:#1976D2
+    classDef view fill:#E8F5E9,stroke:#388E3C\`
+        }
+      };
+
+      const lineage = sampleLineage[assetName] || {
+        upstream: [],
+        downstream: [],
+        mermaid: 'graph TD\\n    A[No lineage data]'
+      };
+
+      content.innerHTML = \`
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div>
+            <h4 class="font-medium mb-2 text-sm text-gray-700">Lineage Diagram</h4>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <pre class="text-xs font-mono text-gray-600 overflow-auto max-h-[200px]">\${lineage.mermaid}</pre>
+            </div>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <h4 class="font-medium mb-2 text-sm text-gray-700">Upstream Sources (\${lineage.upstream.length})</h4>
+              <div class="space-y-1">
+                \${lineage.upstream.map(s => \`<div class="px-2 py-1 bg-blue-50 rounded text-sm">\${s}</div>\`).join('') || '<div class="text-gray-400 text-sm">No upstream</div>'}
+              </div>
+            </div>
+            <div>
+              <h4 class="font-medium mb-2 text-sm text-gray-700">Downstream Consumers (\${lineage.downstream.length})</h4>
+              <div class="space-y-1">
+                \${lineage.downstream.map(s => \`<div class="px-2 py-1 bg-green-50 rounded text-sm">\${s}</div>\`).join('') || '<div class="text-gray-400 text-sm">No downstream</div>'}
+              </div>
+            </div>
+            <button onclick="analyzeImpact('\${assetName}')" class="w-full px-3 py-2 bg-amber-100 text-amber-700 rounded-lg text-sm hover:bg-amber-200">
+              Analyze Change Impact
+            </button>
+          </div>
+        </div>
+      \`;
+    }
+
+    function closeLineagePanel() {
+      document.getElementById('lineage-panel').classList.add('hidden');
+    }
+
+    function analyzeImpact(assetName) {
+      alert(\`Impact Analysis for \${assetName}:\\n\\n- 3 views would be affected\\n- 1 data mart (CRITICAL)\\n- 2 reports (HIGH)\\n\\nReview downstream assets before making changes.\`);
+    }
+
+    function extractSqlLineage() {
+      const sql = document.getElementById('sql-lineage-input').value;
+      if (!sql.trim()) {
+        alert('Please enter SQL to analyze');
+        return;
+      }
+
+      const resultDiv = document.getElementById('sql-lineage-result');
+      const diagramDiv = document.getElementById('sql-lineage-diagram');
+      const detailsDiv = document.getElementById('sql-lineage-details');
+
+      // Parse SQL to extract lineage (simplified client-side version)
+      const tables = [];
+      const fromMatch = sql.match(/FROM\\s+([A-Za-z_][A-Za-z0-9_\\.]*)/gi);
+      const joinMatch = sql.match(/JOIN\\s+([A-Za-z_][A-Za-z0-9_\\.]*)/gi);
+      const createMatch = sql.match(/CREATE\\s+(?:OR\\s+REPLACE\\s+)?(?:VIEW|TABLE)\\s+([A-Za-z_][A-Za-z0-9_\\.]*)/i);
+
+      if (fromMatch) {
+        fromMatch.forEach(m => {
+          const tbl = m.replace(/FROM\\s+/i, '');
+          if (!tables.includes(tbl)) tables.push(tbl);
+        });
+      }
+      if (joinMatch) {
+        joinMatch.forEach(m => {
+          const tbl = m.replace(/JOIN\\s+/i, '');
+          if (!tables.includes(tbl)) tables.push(tbl);
+        });
+      }
+
+      const targetName = createMatch ? createMatch[1] : 'TARGET_VIEW';
+      const transformations = [];
+      if (/\\bSUM\\s*\\(/i.test(sql)) transformations.push('AGGREGATION');
+      if (/\\bCASE\\s+WHEN/i.test(sql)) transformations.push('CASE');
+      if (/\\bJOIN\\b/i.test(sql)) transformations.push('JOIN');
+      if (/\\bWHERE\\b/i.test(sql)) transformations.push('FILTER');
+
+      // Generate Mermaid diagram
+      let mermaid = 'graph TD\\n';
+      tables.forEach((tbl, i) => {
+        const safeName = tbl.replace(/\\./g, '_');
+        mermaid += \`    \${safeName}[\${tbl}]:::table --> \${targetName.replace(/\\./g, '_')}[\${targetName}]:::view\\n\`;
+      });
+      mermaid += '    classDef table fill:#E3F2FD,stroke:#1976D2\\n';
+      mermaid += '    classDef view fill:#E8F5E9,stroke:#388E3C';
+
+      diagramDiv.querySelector('pre').textContent = mermaid;
+
+      detailsDiv.innerHTML = \`
+        <div class="bg-blue-50 rounded-lg p-3">
+          <h5 class="font-medium text-blue-800 mb-2">Source Tables (\${tables.length})</h5>
+          <div class="space-y-1">
+            \${tables.map(t => \`<div class="text-sm text-blue-700">\${t}</div>\`).join('')}
+          </div>
+        </div>
+        <div class="bg-purple-50 rounded-lg p-3">
+          <h5 class="font-medium text-purple-800 mb-2">Transformations</h5>
+          <div class="flex flex-wrap gap-1">
+            \${transformations.map(t => \`<span class="px-2 py-0.5 bg-purple-200 text-purple-700 rounded text-xs">\${t}</span>\`).join('') || '<span class="text-sm text-gray-500">DIRECT</span>'}
+          </div>
+        </div>
+      \`;
+
+      resultDiv.classList.remove('hidden');
     }
 
     async function loadProjects() { try { const r = await apiCall('/smart-hierarchy/projects'); const s = document.getElementById('project-select'); if(s) s.innerHTML = '<option value="">Select...</option>' + (r.data||[]).map(p=>`<option value="${p.id}">${p.name}</option>`).join(''); } catch{} }
