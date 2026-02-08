@@ -5,7 +5,8 @@ from typing import Dict, List, Optional, Any
 
 from .types import (
     VersionedObjectType, ChangeType, Version,
-    VersionHistory, VersionDiff, VersionQuery
+    VersionHistory, VersionDiff, VersionQuery,
+    VersionStats, RollbackPreview
 )
 from .version_store import VersionStore
 
@@ -26,6 +27,7 @@ class VersionManager:
         user: str = None,
         bump: str = "patch",
         tags: List[str] = None,
+        object_name: str = None,
     ) -> Version:
         """Create a versioned snapshot of an object."""
         return self.store.create_version(
@@ -37,6 +39,7 @@ class VersionManager:
             changed_by=user,
             version_bump=bump,
             tags=tags,
+            object_name=object_name,
         )
 
     def diff(
@@ -87,24 +90,29 @@ class VersionManager:
         object_type: VersionedObjectType,
         object_id: str,
         to_version: str,
-    ) -> Dict[str, Any]:
+    ) -> RollbackPreview:
         """Preview what rollback would restore without executing."""
         version = self.store.get_version(object_type, object_id, to_version)
         if not version:
             raise ValueError(f"Version {to_version} not found")
-        
+
         current = self.store.get_version(object_type, object_id)
         diff = self._compute_diff(current, version) if current else None
-        
-        return {
-            "target_version": to_version,
-            "snapshot": version.snapshot,
-            "diff_from_current": diff.model_dump() if diff else None,
-        }
+
+        return RollbackPreview(
+            current_version=current.version if current else "0.0.0",
+            target_version=to_version,
+            snapshot=version.snapshot,
+            diff=diff,
+        )
 
     def get_latest(self, object_type: VersionedObjectType, object_id: str) -> Optional[Version]:
         """Get the latest version."""
         return self.store.get_version(object_type, object_id)
+
+    def get_version(self, object_type: VersionedObjectType, object_id: str, version: str = None) -> Optional[Version]:
+        """Get a specific version or latest."""
+        return self.store.get_version(object_type, object_id, version)
 
     def get_history(self, object_type: VersionedObjectType, object_id: str, limit: int = 20) -> List[Version]:
         """Get version history."""
@@ -124,15 +132,38 @@ class VersionManager:
     ) -> bool:
         """Add or remove a tag from a version."""
         if remove:
-            v = self.store.get_version(object_type, object_id, version)
-            if v and tag in v.tags:
-                v.tags.remove(tag)
-                self.store._save()
-                return True
-            return False
+            return self.store.remove_tag(object_type, object_id, version, tag)
         return self.store.add_tag(object_type, object_id, version, tag)
 
-    def get_stats(self) -> Dict[str, Any]:
+    def untag_version(
+        self,
+        object_type: VersionedObjectType,
+        object_id: str,
+        version: str,
+        tag: str,
+    ) -> bool:
+        """Remove a tag from a version."""
+        return self.store.remove_tag(object_type, object_id, version, tag)
+
+    def list_objects(
+        self,
+        object_type: Optional[VersionedObjectType] = None,
+        limit: int = 50,
+    ) -> List[Dict[str, Any]]:
+        """List versioned objects."""
+        results = []
+        for key, history in self.store._histories.items():
+            if object_type and history.object_type != object_type:
+                continue
+            results.append({
+                "object_type": history.object_type.value,
+                "object_id": history.object_id,
+                "current_version": history.current_version,
+                "version_count": len(history.versions),
+            })
+        return results[:limit]
+
+    def get_stats(self) -> VersionStats:
         """Get versioning statistics."""
         return self.store.get_stats()
 

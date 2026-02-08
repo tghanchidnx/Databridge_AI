@@ -8,16 +8,21 @@ from datetime import datetime
 
 from .types import (
     VersionedObjectType, ChangeType, VersionBump, Version,
-    VersionHistory, VersionQuery
+    VersionHistory, VersionQuery, VersionStats
 )
 
 
 class VersionStore:
     """Persistence layer for version history."""
 
+    # Threshold for storing snapshots in separate files (10KB)
+    SNAPSHOT_FILE_THRESHOLD = 10000
+
     def __init__(self, data_dir: str = "data/versioning"):
         self.data_dir = Path(data_dir)
         self.data_dir.mkdir(parents=True, exist_ok=True)
+        self.snapshots_dir = self.data_dir / "snapshots"
+        self.snapshots_dir.mkdir(parents=True, exist_ok=True)
         self._histories: Dict[str, VersionHistory] = {}
         self._load()
 
@@ -39,6 +44,7 @@ class VersionStore:
         changed_by: Optional[str] = None,
         version_bump: Union[str, VersionBump] = "patch",
         tags: List[str] = None,
+        object_name: Optional[str] = None,
     ) -> Version:
         """Create a new version for an object."""
         # Convert VersionBump enum to string if needed
@@ -51,12 +57,15 @@ class VersionStore:
             history = VersionHistory(
                 object_type=object_type,
                 object_id=object_id,
+                object_name=object_name,
                 current_version="0.0.0",
                 current_version_number=0,
             )
             self._histories[key] = history
         else:
             history = self._histories[key]
+            if object_name:
+                history.object_name = object_name
 
         new_version = self._bump_version(history.current_version, version_bump)
         new_version_number = history.current_version_number + 1
@@ -77,6 +86,11 @@ class VersionStore:
         history.versions.append(version)
         history.current_version = new_version
         history.current_version_number = new_version_number
+
+        # Save large snapshots to separate files
+        snapshot_str = json.dumps(snapshot, default=str)
+        if len(snapshot_str) > self.SNAPSHOT_FILE_THRESHOLD:
+            self._save_snapshot_file(object_type, object_id, new_version, snapshot)
 
         self._save()
         return version
@@ -135,18 +149,50 @@ class VersionStore:
             return True
         return False
 
-    def get_stats(self) -> Dict[str, Any]:
+    def remove_tag(self, object_type: VersionedObjectType, object_id: str, version: str, tag: str) -> bool:
+        """Remove a tag from a version."""
+        v = self.get_version(object_type, object_id, version)
+        if v and tag in v.tags:
+            v.tags.remove(tag)
+            self._save()
+            return True
+        return False
+
+    def delete_version(self, object_type: VersionedObjectType, object_id: str, version: str) -> bool:
+        """Delete a specific version."""
+        key = self._get_key(object_type, object_id)
+        history = self._histories.get(key)
+        if not history:
+            return False
+        for i, v in enumerate(history.versions):
+            if v.version == version:
+                history.versions.pop(i)
+                if history.versions:
+                    history.current_version = history.versions[-1].version
+                    history.current_version_number = history.versions[-1].version_number
+                else:
+                    history.current_version = "0.0.0"
+                    history.current_version_number = 0
+                self._save()
+                return True
+        return False
+
+    def get_stats(self) -> VersionStats:
         """Get versioning statistics."""
         total_objects = len(self._histories)
         total_versions = sum(len(h.versions) for h in self._histories.values())
-        by_type = {}
+        objects_by_type = {}
+        versions_by_type = {}
         for history in self._histories.values():
             t = history.object_type.value
-            if t not in by_type:
-                by_type[t] = {"objects": 0, "versions": 0}
-            by_type[t]["objects"] += 1
-            by_type[t]["versions"] += len(history.versions)
-        return {"total_objects": total_objects, "total_versions": total_versions, "by_type": by_type}
+            objects_by_type[t] = objects_by_type.get(t, 0) + 1
+            versions_by_type[t] = versions_by_type.get(t, 0) + len(history.versions)
+        return VersionStats(
+            total_objects=total_objects,
+            total_versions=total_versions,
+            objects_by_type=objects_by_type,
+            versions_by_type=versions_by_type,
+        )
 
     def _bump_version(self, current: str, bump: str) -> str:
         """Increment version number."""
@@ -159,6 +205,33 @@ class VersionStore:
             return f"{parts[0]}.{parts[1] + 1}.0"
         else:
             return f"{parts[0]}.{parts[1]}.{parts[2] + 1}"
+
+    def _save_snapshot_file(
+        self,
+        object_type: VersionedObjectType,
+        object_id: str,
+        version: str,
+        snapshot: Dict[str, Any],
+    ) -> None:
+        """Save large snapshot to separate file."""
+        snapshot_dir = self.snapshots_dir / object_type.value / object_id
+        snapshot_dir.mkdir(parents=True, exist_ok=True)
+        snapshot_file = snapshot_dir / f"v{version}.json"
+        with open(snapshot_file, "w", encoding="utf-8") as f:
+            json.dump(snapshot, f, indent=2, default=str)
+
+    def _load_snapshot_file(
+        self,
+        object_type: VersionedObjectType,
+        object_id: str,
+        version: str,
+    ) -> Optional[Dict[str, Any]]:
+        """Load snapshot from file if it exists."""
+        snapshot_file = self.snapshots_dir / object_type.value / object_id / f"v{version}.json"
+        if snapshot_file.exists():
+            with open(snapshot_file, "r", encoding="utf-8") as f:
+                return json.load(f)
+        return None
 
     def _save(self) -> None:
         """Persist to disk."""

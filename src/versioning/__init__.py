@@ -10,6 +10,8 @@ from .types import (
     VersionHistory,
     VersionDiff,
     VersionQuery,
+    VersionStats,
+    RollbackPreview,
 )
 from .version_store import VersionStore
 from .version_manager import VersionManager
