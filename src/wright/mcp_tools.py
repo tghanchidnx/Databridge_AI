@@ -1294,9 +1294,655 @@ WHERE ABS(gross_profit - (revenue - deductions)) > 0.01;"""
             logger.error(f"Failed to analyze pipeline health: {e}")
             return {"success": False, "error": str(e)}
 
+    # --- Wright-dbt Integration Tools ---
+
+    @mcp.tool()
+    def wright_generate_dbt_sources(
+        config_name: str,
+        output_path: str = None,
+    ) -> Dict[str, Any]:
+        """
+        Generate dbt sources.yml from Wright hierarchy and mapping tables.
+
+        Creates a sources.yml file that defines the hierarchy and mapping
+        tables as dbt sources with freshness checks and descriptions.
+
+        Args:
+            config_name: Name of the Wright pipeline configuration
+            output_path: Optional path to write sources.yml file
+
+        Returns:
+            Generated sources.yml content and file path if written
+        """
+        try:
+            config = _configs.get(config_name)
+            if not config:
+                return {"success": False, "error": f"Config not found: {config_name}"}
+
+            db = config.target_database
+            schema = config.target_schema
+
+            sources_yaml = f'''version: 2
+
+sources:
+  - name: {config.project_name}_raw
+    description: "Source tables for {config.project_name} Wright pipeline"
+    database: {db}
+    schema: {schema}
+
+    tables:
+      - name: {config.hierarchy_table}
+        description: "Hierarchy definitions for {config.report_type} reporting"
+        columns:
+          - name: HIERARCHY_ID
+            description: "Unique identifier for hierarchy node"
+            tests:
+              - unique
+              - not_null
+          - name: HIERARCHY_NAME
+            description: "Display name of hierarchy node"
+          - name: PARENT_ID
+            description: "Parent hierarchy node ID"
+          - name: INCLUDE_FLAG
+            description: "Whether to include in reports"
+          - name: FORMULA_GROUP
+            description: "Formula group for calculations"
+        freshness:
+          warn_after: {{count: 24, period: hour}}
+          error_after: {{count: 48, period: hour}}
+        loaded_at_field: LOAD_TIMESTAMP
+
+      - name: {config.mapping_table}
+        description: "Source mappings linking hierarchies to database columns"
+        columns:
+          - name: HIERARCHY_ID
+            description: "Foreign key to hierarchy table"
+            tests:
+              - not_null
+              - relationships:
+                  to: source('{config.project_name}_raw', '{config.hierarchy_table}')
+                  field: HIERARCHY_ID
+          - name: ID_SOURCE
+            description: "Type of source mapping (ACCOUNT_CODE, PRODUCT_CODE, etc.)"
+          - name: SOURCE_UID
+            description: "Filter value or pattern for source data"
+          - name: PRECEDENCE_GROUP
+            description: "Precedence group for multi-round filtering"
+        freshness:
+          warn_after: {{count: 24, period: hour}}
+          error_after: {{count: 48, period: hour}}
+        loaded_at_field: LOAD_TIMESTAMP
+
+      - name: {config.fact_table or 'FCT_GL_TRANSACTIONS'}
+        description: "Fact table with transactional data"
+        freshness:
+          warn_after: {{count: 6, period: hour}}
+          error_after: {{count: 12, period: hour}}
+        loaded_at_field: LOAD_TIMESTAMP
+'''
+
+            result = {
+                "success": True,
+                "config_name": config_name,
+                "sources_yaml": sources_yaml,
+            }
+
+            if output_path:
+                import os
+                os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                with open(output_path, 'w') as f:
+                    f.write(sources_yaml)
+                result["output_path"] = output_path
+                result["message"] = f"sources.yml written to {output_path}"
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Failed to generate dbt sources: {e}")
+            return {"success": False, "error": str(e)}
+
+    @mcp.tool()
+    def wright_generate_dbt_tests(
+        config_name: str,
+        output_path: str = None,
+    ) -> Dict[str, Any]:
+        """
+        Generate dbt data tests for Wright pipeline formula validation.
+
+        Creates singular tests and generic tests to validate:
+        - Formula calculations (Gross Profit = Revenue - Taxes - Deducts)
+        - Row count progression through pipeline
+        - Null checks on key columns
+        - Referential integrity
+
+        Args:
+            config_name: Name of the Wright pipeline configuration
+            output_path: Optional directory to write test files
+
+        Returns:
+            Generated test SQL files content
+        """
+        try:
+            config = _configs.get(config_name)
+            if not config:
+                return {"success": False, "error": f"Config not found: {config_name}"}
+
+            db = config.target_database
+            schema = config.target_schema
+            prefix = f"{config.report_type}_{config.project_name.upper()}"
+            measure = config.measure_prefix
+
+            tests = {}
+
+            # Test 1: Formula validation - Gross Profit
+            tests["test_formula_gross_profit.sql"] = f'''-- Test: Gross Profit = Revenue - Taxes - Deducts
+-- Fails if any date has variance > $0.01
+
+WITH calculations AS (
+    SELECT
+        FK_DATE_KEY,
+        SUM(CASE WHEN PRECEDENCE_GROUP = 'REVENUE' THEN {measure}AMOUNT ELSE 0 END) as revenue,
+        SUM(CASE WHEN PRECEDENCE_GROUP IN ('TAXES', 'DEDUCTS') THEN {measure}AMOUNT ELSE 0 END) as deductions,
+        SUM(CASE WHEN HIERARCHY_NAME = 'GROSS_PROFIT' THEN {measure}AMOUNT ELSE 0 END) as gross_profit_actual
+    FROM {{{{ ref('DT_3_{prefix}_MART') }}}}
+    GROUP BY FK_DATE_KEY
+)
+SELECT
+    FK_DATE_KEY,
+    revenue,
+    deductions,
+    gross_profit_actual,
+    revenue - deductions as gross_profit_expected,
+    ABS(gross_profit_actual - (revenue - deductions)) as variance
+FROM calculations
+WHERE ABS(gross_profit_actual - (revenue - deductions)) > 0.01
+'''
+
+            # Test 2: Row count progression
+            tests["test_pipeline_row_progression.sql"] = f'''-- Test: Pipeline row counts are reasonable
+-- Fails if any step has 0 rows or if DT_3 has more rows than DT_3A
+
+WITH row_counts AS (
+    SELECT 'VW_1' as step, 1 as step_order, COUNT(*) as cnt FROM {{{{ ref('VW_1_{prefix}_TRANSLATED') }}}}
+    UNION ALL
+    SELECT 'DT_2', 2, COUNT(*) FROM {{{{ ref('DT_2_{prefix}_GRANULARITY') }}}}
+    UNION ALL
+    SELECT 'DT_3A', 3, COUNT(*) FROM {{{{ ref('DT_3A_{prefix}_PREAGG') }}}}
+    UNION ALL
+    SELECT 'DT_3', 4, COUNT(*) FROM {{{{ ref('DT_3_{prefix}_MART') }}}}
+)
+SELECT *
+FROM row_counts
+WHERE cnt = 0
+   OR (step = 'DT_3' AND cnt > (SELECT cnt FROM row_counts WHERE step = 'DT_3A'))
+'''
+
+            # Test 3: Null surrogate keys
+            tests["test_null_surrogate_keys.sql"] = f'''-- Test: No null surrogate keys in final mart
+SELECT *
+FROM {{{{ ref('DT_3_{prefix}_MART') }}}}
+WHERE SURROGATE_KEY IS NULL
+'''
+
+            # Test 4: Orphan hierarchy check
+            tests["test_orphan_hierarchies.sql"] = f'''-- Test: All hierarchies have at least one mapping
+WITH hierarchy_mapping_counts AS (
+    SELECT
+        h.HIERARCHY_ID,
+        h.HIERARCHY_NAME,
+        COUNT(m.HIERARCHY_ID) as mapping_count
+    FROM {{{{ source('{config.project_name}_raw', '{config.hierarchy_table}') }}}} h
+    LEFT JOIN {{{{ source('{config.project_name}_raw', '{config.mapping_table}') }}}} m
+        ON h.HIERARCHY_ID = m.HIERARCHY_ID
+    WHERE h.INCLUDE_FLAG = TRUE
+    GROUP BY h.HIERARCHY_ID, h.HIERARCHY_NAME
+)
+SELECT *
+FROM hierarchy_mapping_counts
+WHERE mapping_count = 0
+'''
+
+            # Test 5: Duplicate surrogate keys
+            tests["test_duplicate_surrogate_keys.sql"] = f'''-- Test: No duplicate surrogate keys
+SELECT
+    SURROGATE_KEY,
+    COUNT(*) as cnt
+FROM {{{{ ref('DT_3_{prefix}_MART') }}}}
+GROUP BY SURROGATE_KEY
+HAVING COUNT(*) > 1
+'''
+
+            result = {
+                "success": True,
+                "config_name": config_name,
+                "test_count": len(tests),
+                "tests": tests,
+            }
+
+            if output_path:
+                import os
+                os.makedirs(output_path, exist_ok=True)
+                for filename, content in tests.items():
+                    filepath = os.path.join(output_path, filename)
+                    with open(filepath, 'w') as f:
+                        f.write(content)
+                result["output_path"] = output_path
+                result["files_written"] = list(tests.keys())
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Failed to generate dbt tests: {e}")
+            return {"success": False, "error": str(e)}
+
+    @mcp.tool()
+    def wright_generate_dbt_metrics(
+        config_name: str,
+        output_path: str = None,
+    ) -> Dict[str, Any]:
+        """
+        Generate dbt semantic metrics from Wright formula groups.
+
+        Creates metrics.yml with semantic layer definitions for:
+        - Revenue, COGS, Gross Profit
+        - Operating metrics based on formula precedence
+
+        Args:
+            config_name: Name of the Wright pipeline configuration
+            output_path: Optional path to write metrics.yml file
+
+        Returns:
+            Generated metrics.yml content
+        """
+        try:
+            config = _configs.get(config_name)
+            if not config:
+                return {"success": False, "error": f"Config not found: {config_name}"}
+
+            prefix = f"{config.report_type}_{config.project_name.upper()}"
+            measure = config.measure_prefix
+
+            metrics_yaml = f'''version: 2
+
+metrics:
+  # === Base Metrics (P1) ===
+  - name: total_revenue
+    label: "Total Revenue"
+    description: "Sum of all revenue line items"
+    type: simple
+    type_params:
+      measure: {measure}amount
+    model: ref('DT_3_{prefix}_MART')
+    filter: |
+      {{{{ dimension('precedence_group') }}}} = 'REVENUE'
+    time_grains: [day, week, month, quarter, year]
+    dimensions:
+      - entity
+      - account
+      - date
+
+  - name: total_taxes
+    label: "Total Taxes"
+    description: "Sum of all tax deductions"
+    type: simple
+    type_params:
+      measure: {measure}amount
+    model: ref('DT_3_{prefix}_MART')
+    filter: |
+      {{{{ dimension('precedence_group') }}}} = 'TAXES'
+
+  - name: total_deductions
+    label: "Total Deductions"
+    description: "Sum of all deductions"
+    type: simple
+    type_params:
+      measure: {measure}amount
+    model: ref('DT_3_{prefix}_MART')
+    filter: |
+      {{{{ dimension('precedence_group') }}}} = 'DEDUCTS'
+
+  # === Calculated Metrics (P2-P5) ===
+  - name: gross_profit
+    label: "Gross Profit"
+    description: "Revenue minus Taxes and Deductions (P3 calculation)"
+    type: derived
+    type_params:
+      expr: total_revenue - total_taxes - total_deductions
+      metrics:
+        - total_revenue
+        - total_taxes
+        - total_deductions
+
+  - name: gross_margin_pct
+    label: "Gross Margin %"
+    description: "Gross Profit as percentage of Revenue"
+    type: derived
+    type_params:
+      expr: "SAFE_DIVIDE(gross_profit, total_revenue) * 100"
+      metrics:
+        - gross_profit
+        - total_revenue
+
+  # === Volume Metrics ===
+  - name: total_volume
+    label: "Total Volume"
+    description: "Sum of volume measures"
+    type: simple
+    type_params:
+      measure: {measure}volume
+    model: ref('DT_3_{prefix}_MART')
+
+  - name: revenue_per_unit
+    label: "Revenue per Unit"
+    description: "Average revenue per unit of volume"
+    type: derived
+    type_params:
+      expr: "SAFE_DIVIDE(total_revenue, total_volume)"
+      metrics:
+        - total_revenue
+        - total_volume
+
+semantic_models:
+  - name: {config.project_name}_mart
+    description: "Semantic model for {config.project_name} {config.report_type} reporting"
+    model: ref('DT_3_{prefix}_MART')
+
+    entities:
+      - name: surrogate_key
+        type: primary
+        expr: SURROGATE_KEY
+      - name: date
+        type: foreign
+        expr: FK_DATE_KEY
+      - name: entity
+        type: foreign
+        expr: FK_ENTITY_KEY
+      - name: account
+        type: foreign
+        expr: FK_ACCOUNT_KEY
+
+    dimensions:
+      - name: hierarchy_name
+        type: categorical
+        expr: HIERARCHY_NAME
+      - name: precedence_group
+        type: categorical
+        expr: PRECEDENCE_GROUP
+      - name: report_type
+        type: categorical
+        expr: "'{config.report_type}'"
+
+    measures:
+      - name: {measure}amount
+        agg: sum
+        expr: {measure}AMOUNT
+      - name: {measure}volume
+        agg: sum
+        expr: {measure}VOLUME
+      - name: row_count
+        agg: count
+        expr: "1"
+'''
+
+            result = {
+                "success": True,
+                "config_name": config_name,
+                "metrics_yaml": metrics_yaml,
+            }
+
+            if output_path:
+                import os
+                os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else '.', exist_ok=True)
+                with open(output_path, 'w') as f:
+                    f.write(metrics_yaml)
+                result["output_path"] = output_path
+                result["message"] = f"metrics.yml written to {output_path}"
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Failed to generate dbt metrics: {e}")
+            return {"success": False, "error": str(e)}
+
+    @mcp.tool()
+    def wright_generate_dbt_ci(
+        config_name: str,
+        platform: str = "github_actions",
+        output_path: str = None,
+    ) -> Dict[str, Any]:
+        """
+        Generate CI/CD pipeline for Wright-powered dbt project.
+
+        Creates CI workflow that:
+        - Runs dbt build and test
+        - Validates Wright formulas
+        - Compares against baseline DDL
+        - Posts results to PR comments
+
+        Args:
+            config_name: Name of the Wright pipeline configuration
+            platform: CI platform (github_actions, gitlab_ci, azure_devops)
+            output_path: Optional path to write workflow file
+
+        Returns:
+            Generated CI workflow content
+        """
+        try:
+            config = _configs.get(config_name)
+            if not config:
+                return {"success": False, "error": f"Config not found: {config_name}"}
+
+            if platform == "github_actions":
+                workflow = f'''name: Wright dbt CI - {config.project_name}
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'models/**'
+      - 'tests/**'
+      - 'dbt_project.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'models/**'
+      - 'tests/**'
+
+env:
+  DBT_PROFILES_DIR: ${{{{ github.workspace }}}}
+  SNOWFLAKE_ACCOUNT: ${{{{ secrets.SNOWFLAKE_ACCOUNT }}}}
+  SNOWFLAKE_USER: ${{{{ secrets.SNOWFLAKE_USER }}}}
+  SNOWFLAKE_PASSWORD: ${{{{ secrets.SNOWFLAKE_PASSWORD }}}}
+  SNOWFLAKE_ROLE: ${{{{ secrets.SNOWFLAKE_ROLE }}}}
+  SNOWFLAKE_WAREHOUSE: ${{{{ secrets.SNOWFLAKE_WAREHOUSE }}}}
+  SNOWFLAKE_DATABASE: {config.target_database}
+
+jobs:
+  wright-validate:
+    name: Wright Pipeline Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install dbt-snowflake databridge-ai
+          dbt deps
+
+      - name: Validate Wright Configuration
+        run: |
+          python -c "
+          from databridge_ai import wright
+          result = wright.validate_mart_config('{config_name}')
+          if not result['success']:
+              print('Wright validation failed:', result)
+              exit(1)
+          print('Wright config valid:', result)
+          "
+
+  dbt-build:
+    name: dbt Build & Test
+    needs: wright-validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dbt
+        run: pip install dbt-snowflake
+
+      - name: dbt deps
+        run: dbt deps
+
+      - name: dbt build
+        run: dbt build --select tag:{config.project_name}
+
+      - name: dbt test
+        run: dbt test --select tag:{config.project_name}
+
+      - name: Generate docs
+        run: dbt docs generate
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbt-artifacts
+          path: |
+            target/manifest.json
+            target/run_results.json
+            target/catalog.json
+
+  formula-validation:
+    name: Formula Validation
+    needs: dbt-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dbt-artifacts
+          path: target/
+
+      - name: Validate Gross Profit Formula
+        run: |
+          # Run formula validation query
+          dbt run-operation validate_gross_profit --args '{{config_name: {config_name}}}'
+
+      - name: Post Results to PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({{
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ Wright Pipeline Validation Passed\\n\\n' +
+                    '- Config: {config_name}\\n' +
+                    '- Report Type: {config.report_type}\\n' +
+                    '- Formula validation: PASSED'
+            }})
+
+  baseline-comparison:
+    name: DDL Baseline Comparison
+    needs: dbt-build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compare DDL to baseline
+        run: |
+          python -c "
+          from databridge_ai import wright
+          result = wright.compare_pipeline_to_baseline(
+              config_name='{config_name}',
+              baseline_dir='./baseline_ddl'
+          )
+          if result.get('total_breaking_changes', 0) > 0:
+              print('WARNING: Breaking changes detected!')
+              print(result['breaking_changes'])
+          "
+'''
+
+            elif platform == "gitlab_ci":
+                workflow = f'''stages:
+  - validate
+  - build
+  - test
+
+variables:
+  DBT_PROFILES_DIR: $CI_PROJECT_DIR
+  SNOWFLAKE_DATABASE: {config.target_database}
+
+wright-validate:
+  stage: validate
+  image: python:3.11
+  script:
+    - pip install databridge-ai
+    - python -c "from databridge_ai import wright; wright.validate_mart_config('{config_name}')"
+
+dbt-build:
+  stage: build
+  image: python:3.11
+  script:
+    - pip install dbt-snowflake
+    - dbt deps
+    - dbt build --select tag:{config.project_name}
+  artifacts:
+    paths:
+      - target/
+
+dbt-test:
+  stage: test
+  image: python:3.11
+  script:
+    - pip install dbt-snowflake
+    - dbt test --select tag:{config.project_name}
+  dependencies:
+    - dbt-build
+'''
+
+            else:
+                return {"success": False, "error": f"Unsupported platform: {platform}"}
+
+            result = {
+                "success": True,
+                "config_name": config_name,
+                "platform": platform,
+                "workflow": workflow,
+            }
+
+            if output_path:
+                import os
+                os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else '.', exist_ok=True)
+                with open(output_path, 'w') as f:
+                    f.write(workflow)
+                result["output_path"] = output_path
+                result["message"] = f"CI workflow written to {output_path}"
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Failed to generate dbt CI: {e}")
+            return {"success": False, "error": str(e)}
+
     # Return registration info
     return {
-        "tools_registered": 21,
+        "tools_registered": 25,
         "tools": [
             # Configuration Management
             "create_mart_config",
@@ -1326,6 +1972,11 @@ WHERE ABS(gross_profit - (revenue - deductions)) > 0.01;"""
             "wright_version_pipeline",
             "wright_generate_test_queries",
             "wright_analyze_pipeline_health",
+            # Wright-dbt Integration
+            "wright_generate_dbt_sources",
+            "wright_generate_dbt_tests",
+            "wright_generate_dbt_metrics",
+            "wright_generate_dbt_ci",
             # Utility
             "list_mart_configs",
         ],

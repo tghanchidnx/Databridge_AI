@@ -23,7 +23,7 @@ sys.path.insert(0, str(databridge_ce_dir))
 app = Flask(__name__, template_folder=str(ui_dir), static_folder=str(ui_dir))
 
 # Configuration
-TOOL_COUNT = 307  # Current tool count (v0.35.0)
+TOOL_COUNT = 311  # Current tool count (v0.35.0)
 
 # Get version from src/__init__.py
 try:
