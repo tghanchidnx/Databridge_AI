@@ -1904,6 +1904,20 @@ try:
 except ImportError as e:
     print(f"Warning: Data Versioning module not loaded: {e}")
 
+# =============================================================================
+# Phase 31: GraphRAG Engine
+# =============================================================================
+try:
+    try:
+        from src.graphrag.mcp_tools import register_graphrag_tools
+    except ImportError:
+        from graphrag.mcp_tools import register_graphrag_tools
+
+    register_graphrag_tools(mcp, settings)
+    log_action("SYSTEM", "graphrag_init", "GraphRAG Engine tools registered (10 tools)")
+except ImportError as e:
+    print(f"Warning: GraphRAG module not loaded: {e}")
+
 
 # =============================================================================
 # Entry Point

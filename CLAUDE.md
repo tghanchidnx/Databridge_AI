@@ -3,10 +3,10 @@
 > **Compact Config** - Detailed docs in GEMINI.md. Query Gemini via `ask_claude_gemini.py` for examples.
 
 ## Project Summary
-- **Version:** 0.37.0 | **Tools:** 316 | **License:** MIT
+- **Version:** 0.38.0 | **Tools:** 326 | **License:** MIT
 - **Type:** Headless MCP-native data reconciliation engine
 
-## Tool Categories (316 total)
+## Tool Categories (326 total)
 
 | Module | Tools | Key Tools |
 |--------|-------|-----------|
@@ -32,6 +32,7 @@
 | Git/CI-CD | 12 | `git_commit`, `github_create_pr` |
 | Data Catalog | 19 | `catalog_scan_connection`, `catalog_search`, `catalog_auto_lineage_from_sql` |
 | Data Versioning | 12 | `version_create`, `version_diff`, `version_rollback` |
+| GraphRAG Engine | 10 | `rag_search`, `rag_validate_output`, `rag_get_context`, `rag_entity_extract` |
 
 ## Development Rules
 
