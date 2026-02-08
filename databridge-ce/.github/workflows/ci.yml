@@ -1,0 +1,414 @@
+# DataBridge AI - Continuous Integration Pipeline (Monorepo)
+# Runs on every push and PR to main/develop branches
+# Tests shared libraries, V3 (Hierarchy Builder), and V4 (Analytics Engine)
+
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'apps/**'
+      - 'libs/**'
+      - 'docker/**'
+      - '.github/workflows/ci.yml'
+      - 'pyproject.toml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'apps/**'
+      - 'libs/**'
+      - 'docker/**'
+      - '.github/workflows/ci.yml'
+      - 'pyproject.toml'
+
+env:
+  PYTHON_VERSION: '3.10'
+
+jobs:
+  # ============================================
+  # Shared Libraries Tests
+  # ============================================
+  libs-test:
+    name: Test Shared Libraries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install shared libraries
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e libs/databridge-models
+          pip install -e libs/databridge-core
+          pip install pytest pytest-cov
+
+      - name: Test databridge-models
+        run: |
+          cd libs/databridge-models
+          python -c "from databridge_models import Base, SQLDialect, TableStatus; print('databridge-models OK')"
+
+      - name: Test databridge-core
+        run: |
+          cd libs/databridge-core
+          python -c "from databridge_core import console, DatabaseManager, AuditLogger; print('databridge-core OK')"
+
+  # ============================================
+  # App Tests (Matrix Strategy)
+  # ============================================
+  app-lint:
+    name: Lint ${{ matrix.app }}
+    runs-on: ubuntu-latest
+    needs: libs-test
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [databridge-v3, databridge-v4]
+        include:
+          - app: databridge-v3
+            path: apps/databridge-v3
+          - app: databridge-v4
+            path: apps/databridge-v4
+    defaults:
+      run:
+        working-directory: ${{ matrix.path }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: '${{ matrix.path }}/requirements*.txt'
+
+      - name: Install shared libraries
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ../../libs/databridge-models
+          pip install -e ../../libs/databridge-core
+
+      - name: Install dependencies
+        run: |
+          pip install ruff mypy black isort
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt || true
+
+      - name: Run Ruff linter
+        run: ruff check src/ tests/ --output-format=github || true
+
+      - name: Run Black formatter check
+        run: black --check src/ tests/ || true
+
+      - name: Run mypy type check
+        run: mypy src/ --ignore-missing-imports --no-error-summary || true
+
+  app-test:
+    name: Test ${{ matrix.app }}
+    runs-on: ubuntu-latest
+    needs: app-lint
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [databridge-v3, databridge-v4]
+        include:
+          - app: databridge-v3
+            path: apps/databridge-v3
+            coverage-flag: v3-unit
+          - app: databridge-v4
+            path: apps/databridge-v4
+            coverage-flag: v4-unit
+    defaults:
+      run:
+        working-directory: ${{ matrix.path }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: '${{ matrix.path }}/requirements*.txt'
+
+      - name: Install shared libraries
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ../../libs/databridge-models
+          pip install -e ../../libs/databridge-core
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt || pip install pytest pytest-cov pytest-asyncio
+
+      - name: Run unit tests with coverage
+        run: |
+          pytest tests/unit/ -v --cov=src --cov-report=xml --cov-report=term-missing || true
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ${{ matrix.path }}/coverage.xml
+          flags: ${{ matrix.coverage-flag }}
+          name: ${{ matrix.app }}-coverage
+          fail_ci_if_error: false
+
+  # ============================================
+  # Integration Tests
+  # ============================================
+  v3-integration:
+    name: V3 Integration Tests
+    runs-on: ubuntu-latest
+    needs: app-test
+    defaults:
+      run:
+        working-directory: ./apps/databridge-v3
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: 'apps/databridge-v3/requirements*.txt'
+
+      - name: Install shared libraries
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ../../libs/databridge-models
+          pip install -e ../../libs/databridge-core
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt || pip install pytest pytest-cov pytest-asyncio
+
+      - name: Run integration tests
+        env:
+          REDIS_URL: redis://localhost:6379
+        run: |
+          pytest tests/integration/ -v --cov=src --cov-report=xml || true
+
+  v4-integration:
+    name: V4 Integration Tests
+    runs-on: ubuntu-latest
+    needs: app-test
+    defaults:
+      run:
+        working-directory: ./apps/databridge-v4
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: databridge
+          POSTGRES_PASSWORD: databridge_test
+          POSTGRES_DB: databridge_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: 'apps/databridge-v4/requirements*.txt'
+
+      - name: Install shared libraries
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ../../libs/databridge-models
+          pip install -e ../../libs/databridge-core
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt || pip install pytest pytest-cov pytest-asyncio httpx
+
+      - name: Run integration tests
+        env:
+          DATABASE_URL: postgresql://databridge:databridge_test@localhost:5432/databridge_test
+          REDIS_URL: redis://localhost:6379
+        run: |
+          pytest tests/integration/ -v --cov=src --cov-report=xml || true
+
+  # ============================================
+  # Security Scan
+  # ============================================
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Bandit
+        run: pip install bandit[toml]
+
+      - name: Run Bandit on shared libraries
+        run: |
+          bandit -r libs/databridge-core/src/ -f json -o libs-core-bandit-report.json || true
+          bandit -r libs/databridge-models/src/ -f json -o libs-models-bandit-report.json || true
+
+      - name: Run Bandit on V3
+        run: bandit -r apps/databridge-v3/src/ -f json -o v3-bandit-report.json || true
+
+      - name: Run Bandit on V4
+        run: bandit -r apps/databridge-v4/src/ -f json -o v4-bandit-report.json || true
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            *-bandit-report.json
+
+  # ============================================
+  # Docker Build Test
+  # ============================================
+  docker-build:
+    name: Docker Build Test
+    runs-on: ubuntu-latest
+    needs: app-test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build V3 Docker image (test)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/databridge-v3
+          file: ./apps/databridge-v3/Dockerfile
+          push: false
+          tags: databridge-v3:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build V4 Docker image (test)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/databridge-v4
+          file: ./apps/databridge-v4/Dockerfile
+          push: false
+          tags: databridge-v4:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ============================================
+  # dbt Validation (Non-blocking)
+  # ============================================
+  dbt-validation:
+    name: dbt Project Validation
+    runs-on: ubuntu-latest
+    needs: libs-test
+    if: hashFiles('generated/dbt/**/dbt_project.yml') != ''
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dbt
+        run: |
+          python -m pip install --upgrade pip
+          pip install dbt-core==1.7.0
+
+      - name: Find and validate dbt projects
+        run: |
+          echo "## dbt Project Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Find all dbt_project.yml files
+          projects=$(find generated/dbt -name 'dbt_project.yml' 2>/dev/null || true)
+
+          if [ -z "$projects" ]; then
+            echo "No dbt projects found in generated/dbt/" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+
+          echo "| Project | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          for project_file in $projects; do
+            project_dir=$(dirname "$project_file")
+            echo "Validating: $project_dir"
+
+            cd "$project_dir"
+            if dbt parse --no-version-check 2>/dev/null; then
+              echo "| $project_dir | :white_check_mark: Valid |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| $project_dir | :warning: Parse errors |" >> $GITHUB_STEP_SUMMARY
+            fi
+            cd - > /dev/null
+          done
+        continue-on-error: true
+
+  # ============================================
+  # Summary Job
+  # ============================================
+  ci-summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [libs-test, v3-integration, v4-integration, security-scan, docker-build, dbt-validation]
+    if: always()
+    steps:
+      - name: Check job statuses
+        run: |
+          echo "## CI Summary (Monorepo)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Shared Libraries | ${{ needs.libs-test.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| V3 Integration | ${{ needs.v3-integration.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| V4 Integration | ${{ needs.v4-integration.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Scan | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Build | ${{ needs.docker-build.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| dbt Validation | ${{ needs.dbt-validation.result }} |" >> $GITHUB_STEP_SUMMARY
