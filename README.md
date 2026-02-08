@@ -149,4 +149,4 @@ Copyright (c) 2024-2026 DataBridge AI Team. All Rights Reserved.
 
 ## Support
 
-For licensing inquiries: support@databridge.ai
+For licensing inquiries: info@datanexum.com
