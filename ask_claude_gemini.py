@@ -12,6 +12,7 @@ from datetime import datetime
 GEMINI_CMD = r"C:\Users\telha\AppData\Roaming\npm\gemini.cmd"
 PROJECT_ROOT = Path(__file__).parent
 CONTEXT_FILE = PROJECT_ROOT / "CLAUDE.md"
+GEMINI_CONTEXT_FILE = PROJECT_ROOT / "GEMINI.md"
 SESSION_FILE = PROJECT_ROOT / "data" / "gemini_session.md"
 TEMP_PROMPT_FILE = PROJECT_ROOT / "data" / "gemini_prompt.txt"
 
@@ -57,10 +58,20 @@ def get_project_summary() -> str:
     return """DataBridge AI v0.34.0 - MCP-native data reconciliation engine with 292 tools.
 
 Key modules: Hierarchy Builder (44 tools), Data Reconciliation (38 tools), Cortex AI (25 tools),
-Wright Module/Mart Factory (18 tools), Data Catalog (15 tools), Versioning (12 tools),
-Git/CI-CD (12 tools), Lineage (11 tools), dbt Integration (8 tools), Data Quality (7 tools).
+Wright Module (18 tools), Data Catalog (15 tools), Versioning (12 tools), Git/CI-CD (12 tools),
+Lineage (11 tools), dbt Integration (8 tools), Data Quality (7 tools).
 
-Recent: Published v0.34.0 to PyPI, GitHub wiki set up, dark-theme UI in databridge-ce."""
+Docs: CLAUDE.md (compact rules), GEMINI.md (detailed reference with examples/architectures)."""
+
+def get_gemini_context() -> str:
+    """Load the detailed GEMINI.md context file."""
+    if GEMINI_CONTEXT_FILE.exists():
+        content = GEMINI_CONTEXT_FILE.read_text(encoding='utf-8')
+        # Truncate if too large (keep under 50k chars for reasonable prompt size)
+        if len(content) > 50000:
+            content = content[:50000] + "\n\n[... truncated for context limit ...]"
+        return content
+    return ""
 
 def main():
     """
@@ -70,13 +81,15 @@ def main():
         python ask_claude_gemini.py "Your question or task"
         python ask_claude_gemini.py --update "Context update to store"
         python ask_claude_gemini.py --status
-        python ask_claude_gemini.py --sync   (sync current state to Gemini)
+        python ask_claude_gemini.py --sync   (sync GEMINI.md to Gemini's context)
+        python ask_claude_gemini.py --load   (load full GEMINI.md without query)
     """
     if len(sys.argv) < 2:
         print(f"Usage: python {sys.argv[0]} \"Your request to the AI...\"")
         print(f"       python {sys.argv[0]} --update \"Context to store\"")
         print(f"       python {sys.argv[0]} --status")
-        print(f"       python {sys.argv[0]} --sync")
+        print(f"       python {sys.argv[0]} --sync   (sync full context)")
+        print(f"       python {sys.argv[0]} --load   (load GEMINI.md)")
         sys.exit(1)
 
     # Check for special commands
@@ -98,20 +111,44 @@ def main():
 
     if sys.argv[1] == "--sync":
         summary = get_project_summary()
+        gemini_context = get_gemini_context()
         ensure_session_file()
-        session = SESSION_FILE.read_text(encoding='utf-8')[:5000]
+        session = SESSION_FILE.read_text(encoding='utf-8')[:2000]
 
-        sync_prompt = f"""Please remember this project context for our session:
+        # Build sync prompt with detailed context
+        sync_prompt = f"""Please store this DataBridge AI project context in your memory for our session:
 
+## Project Summary
 {summary}
 
-Session history:
+## Detailed Reference (from GEMINI.md)
+{gemini_context[:30000]}
+
+## Session History
 {session}
 
-Confirm you have this context loaded."""
+Confirm you have loaded this context. You can now help Claude with detailed examples and architectures."""
 
-        print("Syncing project context to Gemini...")
+        print("Syncing full project context to Gemini (GEMINI.md)...")
         run_gemini_interactive(sync_prompt)
+        update_context("Full GEMINI.md context synced to Gemini for detailed reference.")
+        sys.exit(0)
+
+    if sys.argv[1] == "--load":
+        gemini_context = get_gemini_context()
+        if not gemini_context:
+            print("Error: GEMINI.md not found")
+            sys.exit(1)
+
+        load_prompt = f"""Load this DataBridge AI detailed reference into your context memory:
+
+{gemini_context}
+
+Confirm loaded. Ready to answer detailed questions about DataBridge AI tools, examples, and architectures."""
+
+        print(f"Loading GEMINI.md ({len(gemini_context)} chars) into Gemini...")
+        run_gemini_interactive(load_prompt)
+        update_context("GEMINI.md loaded into Gemini context memory.")
         sys.exit(0)
 
     # Regular query mode
