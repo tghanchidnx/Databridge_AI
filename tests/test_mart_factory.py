@@ -659,8 +659,8 @@ class TestMCPTools:
 
         result = register_mart_factory_tools(mock_mcp)
 
-        # Updated count to 18 with Phase 31 enhancements
-        assert result["tools_registered"] == 18
+        # Updated count to 29 with Phase 31 + dbt AI integration tools
+        assert result["tools_registered"] == 29
         assert "create_mart_config" in result["tools"]
         assert "add_mart_join_pattern" in result["tools"]
         assert "export_mart_config" in result["tools"]

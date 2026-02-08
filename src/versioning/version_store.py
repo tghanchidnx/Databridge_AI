@@ -3,11 +3,11 @@ Version Store - Persistence layer for version history.
 """
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Union
 from datetime import datetime
 
 from .types import (
-    VersionedObjectType, ChangeType, Version, 
+    VersionedObjectType, ChangeType, VersionBump, Version,
     VersionHistory, VersionQuery
 )
 
@@ -37,10 +37,14 @@ class VersionStore:
         change_type: ChangeType,
         change_description: Optional[str] = None,
         changed_by: Optional[str] = None,
-        version_bump: str = "patch",
+        version_bump: Union[str, VersionBump] = "patch",
         tags: List[str] = None,
     ) -> Version:
         """Create a new version for an object."""
+        # Convert VersionBump enum to string if needed
+        if isinstance(version_bump, VersionBump):
+            version_bump = version_bump.value
+
         key = self._get_key(object_type, object_id)
 
         if key not in self._histories:

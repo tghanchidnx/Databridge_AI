@@ -28,6 +28,13 @@ class ChangeType(str, Enum):
     RESTORE = "restore"
 
 
+class VersionBump(str, Enum):
+    """Version bump type for semantic versioning."""
+    MAJOR = "major"
+    MINOR = "minor"
+    PATCH = "patch"
+
+
 class Version(BaseModel):
     """A single version record."""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))

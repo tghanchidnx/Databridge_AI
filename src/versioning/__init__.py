@@ -5,6 +5,7 @@ Unified version control for DataBridge objects.
 from .types import (
     VersionedObjectType,
     ChangeType,
+    VersionBump,
     Version,
     VersionHistory,
     VersionDiff,
@@ -17,6 +18,7 @@ from .mcp_tools import register_versioning_tools
 __all__ = [
     "VersionedObjectType",
     "ChangeType",
+    "VersionBump",
     "Version",
     "VersionHistory",
     "VersionDiff",
