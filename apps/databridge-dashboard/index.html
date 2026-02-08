@@ -32,7 +32,7 @@
           <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">DB</div>
           <div>
             <h1 class="text-xl font-bold text-gray-900">DataBridge AI</h1>
-            <p class="text-sm text-gray-500">Headless MCP Engine • 315 Tools</p>
+            <p class="text-sm text-gray-500">Headless MCP Engine • 326 Tools</p>
           </div>
         </div>
         <div class="flex items-center gap-4">
@@ -337,6 +337,18 @@
         { name: 'get_template_details', desc: 'Get template details', params: 'template_id' },
         { name: 'list_available_skills', desc: 'List AI skills', params: '' },
         { name: 'get_skill_prompt', desc: 'Get skill system prompt', params: 'skill_id' },
+      ],
+      'GraphRAG Engine': [
+        { name: 'rag_configure', desc: 'Configure RAG settings', params: 'embedding_provider, vector_store, openai_api_key' },
+        { name: 'rag_index_catalog', desc: 'Index catalog assets for RAG', params: 'asset_types, reindex' },
+        { name: 'rag_index_hierarchies', desc: 'Index hierarchy projects for RAG', params: 'project_ids, reindex' },
+        { name: 'rag_search', desc: 'Search with hybrid retrieval', params: 'query, sources, top_k' },
+        { name: 'rag_get_context', desc: 'Get RAG context for query', params: 'query, include_lineage, include_templates' },
+        { name: 'rag_validate_output', desc: 'Validate AI output against graph', params: 'content, content_type' },
+        { name: 'rag_entity_extract', desc: 'Extract entities from text', params: 'text' },
+        { name: 'rag_explain_lineage', desc: 'Explain lineage for entity', params: 'entity_name, direction' },
+        { name: 'rag_suggest_similar', desc: 'Find similar tables/columns', params: 'name, entity_type, top_k' },
+        { name: 'rag_get_stats', desc: 'Get RAG index statistics', params: '' },
       ],
     };
 
@@ -1287,7 +1299,7 @@ To query: query_database(connection_id="${activeData.id}", query="SELECT ...")</
           try {
             const result = await simulateMcpCall('query_database', `connection_id="${activeData.id}", query="${sql.replace(/"/g, '\\"')}"`);
             if (result.rows && result.columns) {
-              output.innerHTML += `<span class="text-green-400">${result.columns.join(' | ')}\n${'─'.repeat(50)}\n${result.rows.slice(0, 10).map(r => r.join(' | ')).join('\n')}\n${result.rowCount > 10 ? `... and ${result.rowCount - 10} more rows` : ''}</span>\n\n`;
+              output.innerHTML += `<span class="text-green-400">${result.columns.join(' | ')}\n${'-'.repeat(50)}\n${result.rows.slice(0, 10).map(r => r.join(' | ')).join('\n')}\n${result.rowCount > 10 ? `... and ${result.rowCount - 10} more rows` : ''}</span>\n\n`;
             } else {
               output.innerHTML += `<span class="text-green-400">${escapeHtml(JSON.stringify(result, null, 2))}</span>\n\n`;
             }
@@ -2472,7 +2484,7 @@ Be concise and focus on execution.`;
             <div class="flex justify-between"><span>LLM APIs</span><span class="font-medium">${llmConnections.length}</span></div>
             <div class="flex justify-between"><span>Databases</span><span class="font-medium">${dbConnections.length}</span></div>
             <div class="flex justify-between"><span>Excel Files</span><span class="font-medium">${excelFiles.length}</span></div>
-            <div class="flex justify-between"><span>MCP Tools</span><span class="font-medium">${mcpStatus ? '315' : '-'}</span></div>
+            <div class="flex justify-between"><span>MCP Tools</span><span class="font-medium">${mcpStatus ? '326' : '-'}</span></div>
           </div>
         </div>
         <div class="bg-white rounded-xl p-6 shadow-sm border">
@@ -2489,7 +2501,7 @@ Be concise and focus on execution.`;
       <!-- MCP Tools Overview -->
       <div class="mt-6 bg-white rounded-xl p-6 shadow-sm border">
         <div class="flex justify-between items-center mb-4">
-          <h3 class="font-semibold">MCP Tools (315 Available)</h3>
+          <h3 class="font-semibold">MCP Tools (326 Available)</h3>
           <a href="http://localhost:6274" target="_blank" class="text-blue-600 hover:underline text-sm">Open MCP Inspector →</a>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
@@ -2650,7 +2662,7 @@ Be concise and focus on execution.`;
 
       // Generate sample DDL based on step
       const ddl = {
-        vw1: \`CREATE OR REPLACE VIEW ANALYTICS.PUBLIC.VW_1_\${reportType}_\${project.toUpperCase()}_TRANSLATED AS
+        vw1: `CREATE OR REPLACE VIEW ANALYTICS.PUBLIC.VW_1_${reportType}_${project.toUpperCase()}_TRANSLATED AS
 SELECT
   h.HIERARCHY_ID,
   h.HIERARCHY_NAME,
@@ -2663,36 +2675,36 @@ SELECT
   END AS RESOLVED_VALUE
 FROM ANALYTICS.PUBLIC.TBL_HIERARCHY h
 JOIN ANALYTICS.PUBLIC.TBL_MAPPING m ON h.HIERARCHY_ID = m.HIERARCHY_ID
-WHERE h.INCLUDE_FLAG = TRUE;\`,
-        dt2: \`CREATE OR REPLACE DYNAMIC TABLE ANALYTICS.PUBLIC.DT_2_\${reportType}_\${project.toUpperCase()}_GRANULARITY
+WHERE h.INCLUDE_FLAG = TRUE;`,
+        dt2: `CREATE OR REPLACE DYNAMIC TABLE ANALYTICS.PUBLIC.DT_2_${reportType}_${project.toUpperCase()}_GRANULARITY
   TARGET_LAG = '1 hour'
   WAREHOUSE = TRANSFORM_WH
 AS
 SELECT *
-FROM ANALYTICS.PUBLIC.VW_1_\${reportType}_\${project.toUpperCase()}_TRANSLATED
+FROM ANALYTICS.PUBLIC.VW_1_${reportType}_${project.toUpperCase()}_TRANSLATED
 UNPIVOT (MEASURE_VALUE FOR MEASURE_NAME IN (AMOUNT, VOLUME))
-WHERE EXCLUDE_FLAG = FALSE;\`,
-        dt3a: \`CREATE OR REPLACE DYNAMIC TABLE ANALYTICS.PUBLIC.DT_3A_\${reportType}_\${project.toUpperCase()}_PREAGG
+WHERE EXCLUDE_FLAG = FALSE;`,
+        dt3a: `CREATE OR REPLACE DYNAMIC TABLE ANALYTICS.PUBLIC.DT_3A_${reportType}_${project.toUpperCase()}_PREAGG
   TARGET_LAG = '1 hour'
   WAREHOUSE = TRANSFORM_WH
 AS
 -- Branch 1: Account dimension
-SELECT dt2.*, f.FK_DATE_KEY, f.FK_ENTITY_KEY, f.\${reportType}_AMOUNT
-FROM ANALYTICS.PUBLIC.DT_2_\${reportType}_\${project.toUpperCase()}_GRANULARITY dt2
+SELECT dt2.*, f.FK_DATE_KEY, f.FK_ENTITY_KEY, f.${reportType}_AMOUNT
+FROM ANALYTICS.PUBLIC.DT_2_${reportType}_${project.toUpperCase()}_GRANULARITY dt2
 JOIN ANALYTICS.PUBLIC.FCT_GL f ON dt2.LOS_ACCOUNT_ID_FILTER = f.FK_ACCOUNT_KEY
 UNION ALL
 -- Branch 2: Product dimension
-SELECT dt2.*, f.FK_DATE_KEY, f.FK_ENTITY_KEY, f.\${reportType}_AMOUNT
-FROM ANALYTICS.PUBLIC.DT_2_\${reportType}_\${project.toUpperCase()}_GRANULARITY dt2
-JOIN ANALYTICS.PUBLIC.FCT_GL f ON dt2.LOS_PRODUCT_CODE_FILTER = f.FK_PRODUCT_KEY;\`,
-        dt3: \`CREATE OR REPLACE DYNAMIC TABLE ANALYTICS.PUBLIC.DT_3_\${reportType}_\${project.toUpperCase()}_MART
+SELECT dt2.*, f.FK_DATE_KEY, f.FK_ENTITY_KEY, f.${reportType}_AMOUNT
+FROM ANALYTICS.PUBLIC.DT_2_${reportType}_${project.toUpperCase()}_GRANULARITY dt2
+JOIN ANALYTICS.PUBLIC.FCT_GL f ON dt2.LOS_PRODUCT_CODE_FILTER = f.FK_PRODUCT_KEY;`,
+        dt3: `CREATE OR REPLACE DYNAMIC TABLE ANALYTICS.PUBLIC.DT_3_${reportType}_${project.toUpperCase()}_MART
   TARGET_LAG = '1 hour'
   WAREHOUSE = TRANSFORM_WH
 AS
 WITH
   p1_base AS (
-    SELECT *, \${reportType}_AMOUNT AS BASE_AMOUNT
-    FROM ANALYTICS.PUBLIC.DT_3A_\${reportType}_\${project.toUpperCase()}_PREAGG
+    SELECT *, ${reportType}_AMOUNT AS BASE_AMOUNT
+    FROM ANALYTICS.PUBLIC.DT_3A_${reportType}_${project.toUpperCase()}_PREAGG
   ),
   p2_combined AS (
     SELECT *, SUM(BASE_AMOUNT) OVER (PARTITION BY FK_DATE_KEY, PRECEDENCE_GROUP) AS COMBINED
@@ -2708,7 +2720,7 @@ WITH
 SELECT
   MD5(CONCAT_WS('|', FK_DATE_KEY, FK_ENTITY_KEY, HIERARCHY_ID)) AS SURROGATE_KEY,
   *
-FROM p3_gross_profit;\`
+FROM p3_gross_profit;`
       };
 
       output.textContent = ddl[currentWrightStep];
@@ -2727,7 +2739,7 @@ FROM p3_gross_profit;\`
 
     // dbt Workflow Tab
     function renderDbtWorkflow() {
-      return \`
+      return `
       <div class="space-y-6">
         <!-- Header -->
         <div class="bg-gradient-to-r from-orange-500 to-red-500 rounded-xl p-6 text-white">
@@ -2814,7 +2826,7 @@ Available Tools:
             <button onclick="runDbtCommand('docs generate')" class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 text-sm font-medium">dbt docs</button>
           </div>
         </div>
-      </div>\`;
+      </div>`;
     }
 
     async function runDbtStep(step) {
@@ -2835,7 +2847,7 @@ Available Tools:
       const steps = ['convert', 'docs', 'tests', 'build', 'git'];
       for (const step of steps) {
         await new Promise(r => setTimeout(r, 500));
-        output.textContent += \`\\n--- Step: \${step} ---\\n\`;
+        output.textContent += `\n--- Step: ${step} ---\n`;
         await runDbtStep(step);
       }
       output.textContent += '\\n\\n✅ Workflow complete!';
@@ -2843,12 +2855,12 @@ Available Tools:
 
     async function runDbtCommand(cmd) {
       const output = document.getElementById('dbt-workflow-output');
-      output.textContent = \`Running dbt \${cmd}...\\n\\nThis will execute: run_dbt_command(command="\${cmd}")\`;
+      output.textContent = `Running dbt ${cmd}...\n\nThis will execute: run_dbt_command(command="${cmd}")`;
     }
 
     // Data Catalog Tab
     function renderDataCatalog() {
-      return \`
+      return `
       <div class="space-y-6">
         <!-- Header -->
         <div class="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl p-6 text-white">
@@ -3016,7 +3028,7 @@ GROUP BY a.account_id"></textarea>
             </div>
           </div>
         </div>
-      </div>\`;
+      </div>`;
     }
 
     function searchCatalog() {
@@ -3042,7 +3054,7 @@ GROUP BY a.account_id"></textarea>
         'dim_account': {
           upstream: ['RAW.PUBLIC.ACCOUNTS', 'RAW.PUBLIC.COA_MASTER'],
           downstream: ['VW_REVENUE', 'FCT_GL_TRANSACTIONS', 'DT_3_GROSS'],
-          mermaid: \`graph TD
+          mermaid: `graph TD
     RAW_ACCOUNTS[RAW.ACCOUNTS]:::table --> DIM_ACCOUNT[DIM_ACCOUNT]:::table
     RAW_COA[RAW.COA_MASTER]:::table --> DIM_ACCOUNT
     DIM_ACCOUNT --> VW_REVENUE[VW_REVENUE]:::view
@@ -3050,19 +3062,19 @@ GROUP BY a.account_id"></textarea>
     DIM_ACCOUNT --> DT_3[DT_3_GROSS]:::mart
     classDef table fill:#E3F2FD,stroke:#1976D2
     classDef view fill:#E8F5E9,stroke:#388E3C
-    classDef mart fill:#F3E5F5,stroke:#7B1FA2\`
+    classDef mart fill:#F3E5F5,stroke:#7B1FA2`
         },
         'fct_gl': {
           upstream: ['DIM_ACCOUNT', 'DIM_DATE', 'STG_GL_ENTRIES'],
           downstream: ['RPT_PL_SUMMARY', 'VW_REVENUE'],
-          mermaid: \`graph TD
+          mermaid: `graph TD
     DIM_ACCOUNT[DIM_ACCOUNT]:::table --> FCT_GL[FCT_GL_TRANSACTIONS]:::table
     DIM_DATE[DIM_DATE]:::table --> FCT_GL
     STG_GL[STG_GL_ENTRIES]:::table --> FCT_GL
     FCT_GL --> RPT_PL[RPT_PL_SUMMARY]:::view
     FCT_GL --> VW_REVENUE[VW_REVENUE]:::view
     classDef table fill:#E3F2FD,stroke:#1976D2
-    classDef view fill:#E8F5E9,stroke:#388E3C\`
+    classDef view fill:#E8F5E9,stroke:#388E3C`
         }
       };
 
@@ -3072,33 +3084,33 @@ GROUP BY a.account_id"></textarea>
         mermaid: 'graph TD\\n    A[No lineage data]'
       };
 
-      content.innerHTML = \`
+      content.innerHTML = `
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div>
             <h4 class="font-medium mb-2 text-sm text-gray-700">Lineage Diagram</h4>
             <div class="bg-gray-50 rounded-lg p-4">
-              <pre class="text-xs font-mono text-gray-600 overflow-auto max-h-[200px]">\${lineage.mermaid}</pre>
+              <pre class="text-xs font-mono text-gray-600 overflow-auto max-h-[200px]">${lineage.mermaid}</pre>
             </div>
           </div>
           <div class="space-y-4">
             <div>
-              <h4 class="font-medium mb-2 text-sm text-gray-700">Upstream Sources (\${lineage.upstream.length})</h4>
+              <h4 class="font-medium mb-2 text-sm text-gray-700">Upstream Sources (${lineage.upstream.length})</h4>
               <div class="space-y-1">
-                \${lineage.upstream.map(s => \`<div class="px-2 py-1 bg-blue-50 rounded text-sm">\${s}</div>\`).join('') || '<div class="text-gray-400 text-sm">No upstream</div>'}
+                ${lineage.upstream.map(s => `<div class="px-2 py-1 bg-blue-50 rounded text-sm">${s}</div>`).join('') || '<div class="text-gray-400 text-sm">No upstream</div>'}
               </div>
             </div>
             <div>
-              <h4 class="font-medium mb-2 text-sm text-gray-700">Downstream Consumers (\${lineage.downstream.length})</h4>
+              <h4 class="font-medium mb-2 text-sm text-gray-700">Downstream Consumers (${lineage.downstream.length})</h4>
               <div class="space-y-1">
-                \${lineage.downstream.map(s => \`<div class="px-2 py-1 bg-green-50 rounded text-sm">\${s}</div>\`).join('') || '<div class="text-gray-400 text-sm">No downstream</div>'}
+                ${lineage.downstream.map(s => `<div class="px-2 py-1 bg-green-50 rounded text-sm">${s}</div>`).join('') || '<div class="text-gray-400 text-sm">No downstream</div>'}
               </div>
             </div>
-            <button onclick="analyzeImpact('\${assetName}')" class="w-full px-3 py-2 bg-amber-100 text-amber-700 rounded-lg text-sm hover:bg-amber-200">
+            <button onclick="analyzeImpact('${assetName}')" class="w-full px-3 py-2 bg-amber-100 text-amber-700 rounded-lg text-sm hover:bg-amber-200">
               Analyze Change Impact
             </button>
           </div>
         </div>
-      \`;
+      `;
     }
 
     function closeLineagePanel() {
@@ -3106,7 +3118,7 @@ GROUP BY a.account_id"></textarea>
     }
 
     function analyzeImpact(assetName) {
-      alert(\`Impact Analysis for \${assetName}:\\n\\n- 3 views would be affected\\n- 1 data mart (CRITICAL)\\n- 2 reports (HIGH)\\n\\nReview downstream assets before making changes.\`);
+      alert(`Impact Analysis for ${assetName}:\n\n- 3 views would be affected\n- 1 data mart (CRITICAL)\n- 2 reports (HIGH)\n\nReview downstream assets before making changes.`);
     }
 
     function extractSqlLineage() {
@@ -3122,55 +3134,55 @@ GROUP BY a.account_id"></textarea>
 
       // Parse SQL to extract lineage (simplified client-side version)
       const tables = [];
-      const fromMatch = sql.match(/FROM\\s+([A-Za-z_][A-Za-z0-9_\\.]*)/gi);
-      const joinMatch = sql.match(/JOIN\\s+([A-Za-z_][A-Za-z0-9_\\.]*)/gi);
-      const createMatch = sql.match(/CREATE\\s+(?:OR\\s+REPLACE\\s+)?(?:VIEW|TABLE)\\s+([A-Za-z_][A-Za-z0-9_\\.]*)/i);
+      const fromMatch = sql.match(/FROM\s+([A-Za-z_][A-Za-z0-9_\.]*)/gi);
+      const joinMatch = sql.match(/JOIN\s+([A-Za-z_][A-Za-z0-9_\.]*)/gi);
+      const createMatch = sql.match(/CREATE\s+(?:OR\s+REPLACE\s+)?(?:VIEW|TABLE)\s+([A-Za-z_][A-Za-z0-9_\.]*)/i);
 
       if (fromMatch) {
         fromMatch.forEach(m => {
-          const tbl = m.replace(/FROM\\s+/i, '');
+          const tbl = m.replace(/FROM\s+/i, '');
           if (!tables.includes(tbl)) tables.push(tbl);
         });
       }
       if (joinMatch) {
         joinMatch.forEach(m => {
-          const tbl = m.replace(/JOIN\\s+/i, '');
+          const tbl = m.replace(/JOIN\s+/i, '');
           if (!tables.includes(tbl)) tables.push(tbl);
         });
       }
 
       const targetName = createMatch ? createMatch[1] : 'TARGET_VIEW';
       const transformations = [];
-      if (/\\bSUM\\s*\\(/i.test(sql)) transformations.push('AGGREGATION');
-      if (/\\bCASE\\s+WHEN/i.test(sql)) transformations.push('CASE');
-      if (/\\bJOIN\\b/i.test(sql)) transformations.push('JOIN');
-      if (/\\bWHERE\\b/i.test(sql)) transformations.push('FILTER');
+      if (/\bSUM\s*\(/i.test(sql)) transformations.push('AGGREGATION');
+      if (/\bCASE\s+WHEN/i.test(sql)) transformations.push('CASE');
+      if (/\bJOIN\b/i.test(sql)) transformations.push('JOIN');
+      if (/\bWHERE\b/i.test(sql)) transformations.push('FILTER');
 
       // Generate Mermaid diagram
-      let mermaid = 'graph TD\\n';
+      let mermaid = 'graph TD\n';
       tables.forEach((tbl, i) => {
-        const safeName = tbl.replace(/\\./g, '_');
-        mermaid += \`    \${safeName}[\${tbl}]:::table --> \${targetName.replace(/\\./g, '_')}[\${targetName}]:::view\\n\`;
+        const safeName = tbl.replace(/\./g, '_');
+        mermaid += `    ${safeName}[${tbl}]:::table --> ${targetName.replace(/\./g, '_')}[${targetName}]:::view\n`;
       });
-      mermaid += '    classDef table fill:#E3F2FD,stroke:#1976D2\\n';
+      mermaid += '    classDef table fill:#E3F2FD,stroke:#1976D2\n';
       mermaid += '    classDef view fill:#E8F5E9,stroke:#388E3C';
 
       diagramDiv.querySelector('pre').textContent = mermaid;
 
-      detailsDiv.innerHTML = \`
+      detailsDiv.innerHTML = `
         <div class="bg-blue-50 rounded-lg p-3">
-          <h5 class="font-medium text-blue-800 mb-2">Source Tables (\${tables.length})</h5>
+          <h5 class="font-medium text-blue-800 mb-2">Source Tables (${tables.length})</h5>
           <div class="space-y-1">
-            \${tables.map(t => \`<div class="text-sm text-blue-700">\${t}</div>\`).join('')}
+            ${tables.map(t => `<div class="text-sm text-blue-700">${t}</div>`).join('')}
           </div>
         </div>
         <div class="bg-purple-50 rounded-lg p-3">
           <h5 class="font-medium text-purple-800 mb-2">Transformations</h5>
           <div class="flex flex-wrap gap-1">
-            \${transformations.map(t => \`<span class="px-2 py-0.5 bg-purple-200 text-purple-700 rounded text-xs">\${t}</span>\`).join('') || '<span class="text-sm text-gray-500">DIRECT</span>'}
+            ${transformations.map(t => `<span class="px-2 py-0.5 bg-purple-200 text-purple-700 rounded text-xs">${t}</span>`).join('') || '<span class="text-sm text-gray-500">DIRECT</span>'}
           </div>
         </div>
-      \`;
+      `;
 
       resultDiv.classList.remove('hidden');
     }

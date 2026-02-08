@@ -30,19 +30,20 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         # API endpoints
         if self.path == '/api/health':
-            self._send_json({'status': 'ok', 'version': '0.36.0', 'tools': 315})
+            self._send_json({'status': 'ok', 'version': '0.38.0', 'tools': 326})
         elif self.path == '/api/stats':
             self._send_json({
-                'tool_count': 315,
-                'version': '0.36.0',
+                'tool_count': 326,
+                'version': '0.38.0',
                 'modules': {
                     'wright': 29,
                     'hierarchies': 44,
-                    'catalog': 15,
-                    'cortex': 25,
+                    'catalog': 19,
+                    'cortex': 27,
                     'dbt': 8,
                     'quality': 7,
-                    'versioning': 12
+                    'versioning': 12,
+                    'graphrag': 10
                 }
             })
         else:
@@ -74,20 +75,19 @@ def run_dashboard():
     """Run the dashboard server."""
     with socketserver.TCPServer(("", DASHBOARD_PORT), DashboardHandler) as httpd:
         print(f"""
-╔═══════════════════════════════════════════════════════════╗
-║           DataBridge AI Dashboard v0.36.0                 ║
-║                    315 MCP Tools                          ║
-╠═══════════════════════════════════════════════════════════╣
-║  Dashboard:  http://localhost:{DASHBOARD_PORT}                       ║
-║  MCP API:    http://localhost:8085 (run mcp_api.py)       ║
-╠═══════════════════════════════════════════════════════════╣
-║  Tabs:                                                    ║
-║  • Multi AI      - LLM orchestration                      ║
-║  • MCP CLI       - Tool execution                         ║
-║  • Wright Builder - 4-object pipeline                     ║
-║  • dbt Workflow  - AI-powered dbt                         ║
-║  • Data Catalog  - Metadata registry                      ║
-╚═══════════════════════════════════════════════════════════╝
+============================================================
+  DataBridge AI Dashboard v0.38.0 - 326 MCP Tools
+============================================================
+  Dashboard:  http://localhost:{DASHBOARD_PORT}
+  MCP API:    http://localhost:8085 (run mcp_api.py)
+------------------------------------------------------------
+  Tabs:
+  - Multi AI       - LLM orchestration
+  - MCP CLI        - Tool execution
+  - Wright Builder - 4-object pipeline
+  - dbt Workflow   - AI-powered dbt
+  - Data Catalog   - Metadata registry
+============================================================
         """)
         httpd.serve_forever()
 
