@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Databridge & Snowflake Cortex AI | Integration Guide</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --background-color: #ecf0f1;
+            --text-color: #34495e;
+            --header-color: #ffffff;
+            --border-color: #bdc3c7;
+            --pre-bg-color: #1e272e;
+            --pre-text-color: #d2dae2;
+            --log-thought-color: #95a5a6;
+            --log-action-color: #3498db;
+            --log-result-color: #2ecc71;
+            --log-error-color: #e74c3c;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        header {
+            background-color: var(--primary-color);
+            color: var(--header-color);
+            padding: 2rem 0;
+            text-align: center;
+            border-radius: 8px;
+        }
+        header h1 { margin: 0; font-size: 2.5rem; }
+        header p { margin: 0; font-size: 1.2rem; color: var(--secondary-color); }
+        .tabs {
+            display: flex;
+            margin: 2rem 0;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .tab-button {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            position: relative;
+            transition: color 0.3s;
+        }
+        .tab-button::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--secondary-color);
+            transform: scaleX(0);
+            transition: transform 0.3s ease-in-out;
+        }
+        .tab-button.active { color: var(--secondary-color); }
+        .tab-button.active::after { transform: scaleX(1); }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            animation: fadeIn 0.5s;
+        }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--background-color);
+            padding-bottom: 10px;
+        }
+        h3 { color: var(--primary-color); }
+        .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .pros, .cons { padding: 15px; border-radius: 5px; }
+        .pros { background-color: #e8f6f3; border-left: 4px solid #2ecc71; }
+        .cons { background-color: #fbeee6; border-left: 4px solid #e74c3c; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 10px; }
+        pre {
+            background-color: var(--pre-bg-color);
+            color: var(--pre-text-color);
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            font-size: 0.9rem;
+        }
+        code { background-color: #e0e0e0; padding: 2px 4px; border-radius: 3px; }
+        .log { border-left: 3px solid; padding-left: 10px; margin-bottom: 10px; }
+        .log.thought { border-color: var(--log-thought-color); }
+        .log.action { border-color: var(--log-action-color); }
+        .log.result { border-color: var(--log-result-color); }
+        .log .log-meta { font-size: 0.8em; color: #7f8c8d; }
+        .simulator {
+            padding: 20px;
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .simulator label { font-weight: 600; margin-bottom: 5px; display: block; }
+        .simulator textarea, .simulator button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .simulator button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 15px;
+        }
+        .simulator button:hover { background-color: #2980b9; }
+        #simulator-output { margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Databridge AI & Snowflake Cortex</h1>
+            <p>An Interactive Guide to the Integration Strategy</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="openTab(event, 'overview')">Overview</button>
+            <button class="tab-button" onclick="openTab(event, 'reasoning')">Agent Reasoning</button>
+            <button class="tab-button" onclick="openTab(event, 'simulator')">Reasoning Simulator</button>
+        </div>
+
+        <div id="overview" class="tab-content active">
+            <h2>What is Snowflake Cortex?</h2>
+            <p>Snowflake Cortex AI is a fully managed platform of AI and ML services built directly into the Snowflake Data Cloud. Its main purpose is to allow powerful AI operations on your data <strong>without moving it outside of Snowflake's secure environment</strong>.</p>
+            <h3>Core Services:</h3>
+            <ul>
+                <li><strong>LLM Functions:</strong> A suite of built-in SQL/Python functions like <code>COMPLETE</code>, <code>SUMMARY</code>, <code>TRANSLATE</code>, and <code>SENTIMENT</code>.</li>
+                <li><strong>Cortex Analyst:</strong> A service that translates natural language questions into SQL queries.</li>
+                <li><strong>Cortex Search:</strong> A service for semantic search on structured and unstructured data.</li>
+            </ul>
+        </div>
+
+        <div id="reasoning" class="tab-content">
+            <h2>Advanced Agent Architecture</h2>
+            <p>A simple tool-runner isn't enough. To truly leverage Cortex, our agents need to "think" through problems. This is achieved with an **Orchestrated Reasoning Loop** managed by our Databridge AI framework, as Cortex functions themselves are stateless.</p>
+            
+            <h3>The Reasoning Loop</h3>
+            <ol>
+                <li><strong>Goal Received:</strong> The `MetaAgent` gives the `CortexAgent` a high-level goal (e.g., "Clean the product names").</li>
+                <li><strong>Observe & Plan:</strong> The agent makes an initial call to Cortex to analyze the data and form a plan. This plan is stored in its internal "scratchpad".</li>
+                <li><strong>Execute Sub-Task:</strong> The agent executes the first step of its plan by generating and running a targeted Cortex SQL query.</li>
+                <li><strong>Reflect & Update:</strong> The agent gets the result, reflects on whether it was successful, updates its scratchpad, and decides the next step.</li>
+                <li><strong>Repeat:</strong> The loop continues until the overall goal is achieved.</li>
+            </ol>
+
+            <h3>The Communication Console</h3>
+            <p>To provide transparency, every step in the reasoning loop is captured as a structured log. This creates a "stream of consciousness" for the agent that can be viewed in a console, streamed to a web UI, or stored in a database for auditing.</p>
+            <pre>
+{
+  "timestamp": "2026-02-05T14:30:15Z",
+  "agent": "CortexAgent",
+  "log_type": "THOUGHT",
+  "message": "Goal received. Plan: Analyze a sample, then standardize row-by-row.",
+  "metadata": { "goal": "Clean product_name in products_table" }
+}
+
+{
+  "timestamp": "2026-02-05T14:30:16Z",
+  "agent": "CortexAgent",
+  "log_type": "ACTION",
+  "message": "Executing Cortex query to standardize 'LTP-15'.",
+  "metadata": { "sql_generated": "SELECT CORTEX_COMPLETE(...)" }
+}
+            </pre>
+        </div>
+
+        <div id="simulator" class="tab-content">
+            <h2>Reasoning Simulator</h2>
+            <p>Enter a high-level goal for the agent. The simulator will show a conceptual log from the **Communication Console**, demonstrating how the `CortexAgent` would use a reasoning loop to solve the problem.</p>
+            
+            <div class="simulator">
+                <label for="goal-input">Enter Your Goal:</label>
+                <textarea id="goal-input" rows="2">Clean the inconsistent 'product_name' column in the 'products' table.</textarea>
+                <button id="generate-btn" onclick="runSimulator()">Simulate Agent Reasoning</button>
+                
+                <div id="simulator-output">
+                    <h3>Agent Communication Console</h3>
+                    <pre id="console-output"></pre>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            let i, tabcontent, tabbuttons;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tabbuttons = document.getElementsByClassName("tab-button");
+            for (i = 0; i < tabbuttons.length; i++) {
+                tabbuttons[i].className = tabbuttons[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            document.querySelector('.tab-button').click();
+        });
+
+        function runSimulator() {
+            const goal = document.getElementById('goal-input').value;
+
+            const logTemplate = (timestamp, agent, type, message, metadata = {}) => {
+                const logEntry = {
+                    timestamp,
+                    agent,
+                    log_type: type,
+                    message,
+                    metadata
+                };
+                
+                let color;
+                switch(type) {
+                    case 'THOUGHT': color = 'var(--log-thought-color)'; break;
+                    case 'ACTION': color = 'var(--log-action-color)'; break;
+                    case 'RESULT': color = 'var(--log-result-color)'; break;
+                    default: color = 'var(--text-color)';
+                }
+
+                const jsonString = JSON.stringify(logEntry, null, 2);
+                return `<div class="log ${type.toLowerCase()}" style="border-color: ${color};">${jsonString}</div>`;
+            };
+
+            let fullLog = '';
+            fullLog += logTemplate('2026-02-05T14:30:15Z', 'MetaAgent', 'ACTION', 'Dispatching task to CortexAgent.', { goal });
+            fullLog += logTemplate('2026-02-05T14:30:15Z', 'CortexAgent', 'THOUGHT', 'Goal received. I need to clean the specified column. First, I will analyze a sample of the data to find inconsistency patterns.');
+            fullLog += logTemplate('2026-02-05T14:30:16Z', 'CortexAgent', 'ACTION', 'Executing Cortex query to describe inconsistencies in a sample.', { 
+                sql_generated: `SELECT CORTEX_COMPLETE('Describe the inconsistencies in these names: ' || sample_names) FROM (SELECT LISTAGG(product_name, ', ') WITHIN GROUP (ORDER BY product_name) AS sample_names FROM products SAMPLE (10 ROWS));`
+            });
+            fullLog += logTemplate('2026-02-05T14:30:18Z', 'CortexAgent', 'RESULT', `Cortex analysis: "The data contains a mix of proper names, abbreviations (LTP-15), and names with specs (laptop 15 inch)."`);
+            fullLog += logTemplate('2026-02-05T14:30:18Z', 'CortexAgent', 'THOUGHT', 'Pattern is clear. My plan is to create a standardized name for each distinct inconsistent value. I will start with "LTP-15".');
+            fullLog += logTemplate('2026-02-05T14:30:19Z', 'CortexAgent', 'ACTION', `Executing Cortex query to standardize 'LTP-15'.`, { 
+                sql_generated: `SELECT CORTEX_COMPLETE('Clean this product name into a standard format: LTP-15');`
+            });
+            fullLog += logTemplate('2026-02-05T14:30:20Z', 'CortexAgent', 'RESULT', `Cortex suggestion: "Laptop 15 inch".`);
+            fullLog += logTemplate('2026-02-05T14:30:20Z', 'CortexAgent', 'THOUGHT', 'Suggestion is reasonable. Adding to my proposed change map. I will now proceed to the next distinct inconsistent value: "laptop 15 inch".');
+             fullLog += logTemplate('2026-02-05T14:30:21Z', 'CortexAgent', 'ACTION', `Executing Cortex query to standardize 'laptop 15 inch'.`, { 
+                sql_generated: `SELECT CORTEX_COMPLETE('Clean this product name into a standard format: laptop 15 inch');`
+            });
+             fullLog += logTemplate('2026-02-05T14:30:22Z', 'CortexAgent', 'RESULT', `Cortex suggestion: "Laptop 15 inch".`);
+            fullLog += logTemplate('2026-02-05T14:30:22Z', 'CortexAgent', 'THOUGHT', 'All distinct inconsistencies processed. I will now present the proposed changes (a 'diff') to the user for approval before applying them.');
+
+            const consoleOutput = document.getElementById('console-output');
+            consoleOutput.innerHTML = fullLog;
+        }
+        
+    </script>
+
+</body>
+</html>

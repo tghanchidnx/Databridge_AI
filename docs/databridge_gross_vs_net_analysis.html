@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataBridge AI — Data Mart Factory Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --surface: #111827;
+  --surface-2: #1a2235;
+  --surface-3: #1f2a3f;
+  --border: #2a3650;
+  --text: #e2e8f0;
+  --text-dim: #8899b4;
+  --text-muted: #5a6a84;
+  --accent: #3b82f6;
+  --accent-glow: rgba(59,130,246,0.15);
+  --gross: #f59e0b;
+  --gross-dim: rgba(245,158,11,0.15);
+  --gross-border: rgba(245,158,11,0.3);
+  --net: #06b6d4;
+  --net-dim: rgba(6,182,212,0.15);
+  --net-border: rgba(6,182,212,0.3);
+  --green: #10b981;
+  --red: #ef4444;
+  --red-dim: rgba(239,68,68,0.12);
+  --purple: #a78bfa;
+  --pink: #f472b6;
+  --orange: #fb923c;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* Hero */
+.hero {
+  position: relative;
+  padding: 80px 40px 60px;
+  text-align: center;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(ellipse at 30% 50%, rgba(59,130,246,0.08) 0%, transparent 50%),
+              radial-gradient(ellipse at 70% 50%, rgba(6,182,212,0.06) 0%, transparent 50%),
+              radial-gradient(ellipse at 50% 80%, rgba(245,158,11,0.04) 0%, transparent 50%);
+  animation: heroPulse 12s ease-in-out infinite alternate;
+}
+@keyframes heroPulse {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-2%, -1%) scale(1.05); }
+}
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 3.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #e2e8f0 0%, #3b82f6 50%, #06b6d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+  margin-bottom: 12px;
+}
+.hero .subtitle {
+  font-size: 1.15rem;
+  color: var(--text-dim);
+  position: relative;
+  font-weight: 400;
+}
+.hero .badge-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 24px;
+  position: relative;
+  flex-wrap: wrap;
+}
+.badge {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+.badge.gross { background: var(--gross-dim); color: var(--gross); border: 1px solid var(--gross-border); }
+.badge.net { background: var(--net-dim); color: var(--net); border: 1px solid var(--net-border); }
+.badge.config { background: var(--accent-glow); color: var(--accent); border: 1px solid rgba(59,130,246,0.3); }
+.badge.quality { background: var(--red-dim); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+
+/* Navigation */
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(10,14,23,0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+}
+nav .nav-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 8px 0;
+}
+nav .nav-inner::-webkit-scrollbar { display: none; }
+nav button {
+  padding: 8px 18px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 8px;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+nav button:hover { color: var(--text); background: var(--surface); }
+nav button.active { color: var(--accent); background: var(--accent-glow); }
+
+/* Main layout */
+main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+/* Section */
+.section {
+  display: none;
+  animation: fadeIn 0.4s ease;
+}
+.section.active { display: block; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.section-desc {
+  color: var(--text-dim);
+  font-size: 0.95rem;
+  margin-bottom: 32px;
+  max-width: 700px;
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card-title .icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+/* Stat grid */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  text-align: center;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.stat-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+.stat-card .stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.stat-card .stat-label {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.stat-card.gross .stat-value { color: var(--gross); }
+.stat-card.net .stat-value { color: var(--net); }
+.stat-card.accent .stat-value { color: var(--accent); }
+.stat-card.green .stat-value { color: var(--green); }
+.stat-card.red .stat-value { color: var(--red); }
+
+/* Tables */
+.table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+th {
+  background: var(--surface-3);
+  color: var(--text-dim);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  white-space: nowrap;
+}
+td {
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(42,54,80,0.5);
+  vertical-align: top;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(59,130,246,0.04); }
+td code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  background: var(--surface-3);
+  padding: 2px 7px;
+  border-radius: 4px;
+  color: var(--accent);
+}
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.tag.high { background: var(--red-dim); color: var(--red); }
+.tag.med { background: rgba(251,146,60,0.15); color: var(--orange); }
+.tag.low { background: rgba(16,185,129,0.15); color: var(--green); }
+.tag.gross-tag { background: var(--gross-dim); color: var(--gross); }
+.tag.net-tag { background: var(--net-dim); color: var(--net); }
+.tag.both-tag { background: rgba(167,139,250,0.15); color: var(--purple); }
+.tag.yes { background: rgba(16,185,129,0.15); color: var(--green); }
+.tag.no { background: rgba(239,68,68,0.12); color: var(--red); }
+
+/* Grid layouts */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+/* Pipeline viz */
+.pipeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  padding: 24px 0;
+  margin-bottom: 24px;
+}
+.pipe-node {
+  flex-shrink: 0;
+  text-align: center;
+  padding: 16px 24px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  min-width: 160px;
+  transition: transform 0.2s;
+}
+.pipe-node:hover { transform: scale(1.03); }
+.pipe-node .pipe-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.pipe-node .pipe-name {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+.pipe-arrow {
+  flex-shrink: 0;
+  width: 40px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+}
+
+/* Branch visualizations */
+.branch-card {
+  border-left: 3px solid;
+  padding: 16px 20px;
+  background: var(--surface-2);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-bottom: 12px;
+}
+.branch-card.b1 { border-color: var(--accent); }
+.branch-card.b2 { border-color: var(--gross); }
+.branch-card.b3 { border-color: var(--pink); }
+.branch-header {
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.branch-detail {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+.branch-detail strong { color: var(--text); }
+
+/* Formula chain */
+.formula-chain {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.formula-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.formula-prec {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border: 2px solid;
+}
+.formula-prec.p1 { color: var(--accent); border-color: var(--accent); background: var(--accent-glow); }
+.formula-prec.p2 { color: var(--purple); border-color: var(--purple); background: rgba(167,139,250,0.1); }
+.formula-prec.p3 { color: var(--green); border-color: var(--green); background: rgba(16,185,129,0.1); }
+.formula-prec.p4 { color: var(--gross); border-color: var(--gross); background: var(--gross-dim); }
+.formula-prec.p5 { color: var(--pink); border-color: var(--pink); background: rgba(244,114,182,0.1); }
+.formula-body {
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+.formula-body .obj-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--surface-3);
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  display: inline-block;
+}
+.formula-body .calcs {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+/* YAML blocks */
+.yaml-block {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  line-height: 1.8;
+  color: var(--text-dim);
+  overflow-x: auto;
+  white-space: pre;
+}
+.yaml-block .yk { color: var(--accent); }
+.yaml-block .yv { color: var(--green); }
+.yaml-block .yn { color: var(--gross); }
+.yaml-block .yc { color: var(--text-muted); font-style: italic; }
+
+/* Config comparison */
+.config-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 100px 160px 160px 1fr;
+  gap: 0;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(42,54,80,0.5);
+  font-size: 0.84rem;
+}
+.config-row:last-child { border-bottom: none; }
+.config-row.header {
+  background: var(--surface-3);
+  font-weight: 600;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  position: sticky;
+  top: 0;
+}
+.config-row .num {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.config-row .var-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* Quality issues */
+.quality-card {
+  border: 1px solid;
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.quality-card.high { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05); }
+.quality-card.med { border-color: rgba(251,146,60,0.3); background: rgba(251,146,60,0.05); }
+.quality-card.low { border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.05); }
+.quality-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.quality-header h4 { font-size: 0.95rem; }
+.quality-body { font-size: 0.85rem; color: var(--text-dim); line-height: 1.7; }
+.quality-body strong { color: var(--text); }
+
+/* Roadmap */
+.roadmap-item {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.roadmap-phase {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+.roadmap-content {
+  flex: 1;
+  padding: 16px 20px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+.roadmap-content h4 { font-size: 0.92rem; margin-bottom: 4px; }
+.roadmap-content p { font-size: 0.82rem; color: var(--text-dim); }
+.roadmap-content .effort {
+  display: inline-block;
+  margin-top: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--green);
+  background: rgba(16,185,129,0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+@media (max-width: 900px) {
+  .two-col, .three-col { grid-template-columns: 1fr; }
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero h1 { font-size: 2.2rem; }
+  .config-row { grid-template-columns: 1fr; gap: 4px; font-size: 0.78rem; }
+  .config-row.header { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>DataBridge AI — Data Mart Factory</h1>
+  <p class="subtitle">Hierarchy-Driven Data Mart Automation · Technical Analysis Dashboard</p>
+  <div class="badge-row">
+    <span class="badge gross">GROSS LOS · 148 Nodes · 399 Mappings</span>
+    <span class="badge net">NET LOS · 136 Nodes · 222 Mappings</span>
+    <span class="badge config">7 Config Variables</span>
+    <span class="badge quality">5 Data Quality Issues</span>
+  </div>
+</div>
+
+<!-- NAVIGATION -->
+<nav>
+  <div class="nav-inner">
+    <button class="active" onclick="showSection('overview')">Overview</button>
+    <button onclick="showSection('pipeline')">Pipeline</button>
+    <button onclick="showSection('joins')">Join Patterns</button>
+    <button onclick="showSection('mapping')">ID_SOURCE Mapping</button>
+    <button onclick="showSection('formulas')">Formula Chains</button>
+    <button onclick="showSection('schema')">Schema Diff</button>
+    <button onclick="showSection('quality')">Data Quality</button>
+    <button onclick="showSection('filter')">GROUP_FILTER_PREC</button>
+    <button onclick="showSection('config')">Template Config</button>
+    <button onclick="showSection('yaml')">dbt YAML</button>
+    <button onclick="showSection('roadmap')">Roadmap</button>
+  </div>
+</nav>
+
+<main>
+
+<!-- ═══ OVERVIEW ═══ -->
+<div id="overview" class="section active">
+  <h2 class="section-title">Executive Overview</h2>
+  <p class="section-desc">Consolidated analysis of GROSS and NET Lease Operating Statement hierarchies. Template viability confirmed — 7 configuration variables parameterize all differences.</p>
+
+  <div class="stat-grid">
+    <div class="stat-card gross"><div class="stat-value">148</div><div class="stat-label">GROSS Nodes</div></div>
+    <div class="stat-card net"><div class="stat-value">136</div><div class="stat-label">NET Nodes</div></div>
+    <div class="stat-card gross"><div class="stat-value">399</div><div class="stat-label">GROSS Mappings</div></div>
+    <div class="stat-card net"><div class="stat-value">222</div><div class="stat-label">NET Mappings</div></div>
+    <div class="stat-card accent"><div class="stat-value">7</div><div class="stat-label">Config Variables</div></div>
+    <div class="stat-card green"><div class="stat-value">4</div><div class="stat-label">Pipeline Objects</div></div>
+    <div class="stat-card red"><div class="stat-value">5</div><div class="stat-label">Quality Issues</div></div>
+    <div class="stat-card accent"><div class="stat-value">5</div><div class="stat-label">Formula Levels</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon" style="background:var(--accent-glow);color:var(--accent)">⚡</span> Hierarchy Structure Comparison</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Metric</th><th>GROSS LOS</th><th>NET LOS</th><th>Match?</th></tr></thead>
+        <tbody>
+          <tr><td>Total Nodes</td><td>148</td><td>136</td><td><span class="tag med">Different</span></td></tr>
+          <tr><td>Active Nodes</td><td>123</td><td>131</td><td><span class="tag med">Different</span></td></tr>
+          <tr><td>Calculation Nodes</td><td>25</td><td>25</td><td><span class="tag yes">✓ Identical</span></td></tr>
+          <tr><td>Volume Nodes</td><td>4</td><td>4</td><td><span class="tag yes">✓ Identical</span></td></tr>
+          <tr><td>Hierarchy Group</td><td>Lease Operating Statement</td><td>Lease Operating Statement</td><td><span class="tag yes">✓ Identical</span></td></tr>
+          <tr><td>Hierarchy Levels</td><td>9 + 9 extension</td><td>9 + 9 extension</td><td><span class="tag yes">✓ Identical</span></td></tr>
+          <tr><td>Sort Columns</td><td>18</td><td>18</td><td><span class="tag yes">✓ Identical</span></td></tr>
+          <tr><td>Filter Groups</td><td>4 (FILTER_GROUP 1–4)</td><td>4 (FILTER_GROUP 1–4)</td><td><span class="tag yes">✓ Identical</span></td></tr>
+          <tr><td>Formula Columns</td><td>5</td><td>5</td><td><span class="tag yes">✓ Identical</span></td></tr>
+          <tr><td>Total Columns</td><td>42</td><td>41</td><td><span class="tag med">1 extra (GROUP_FILTER_PREC)</span></td></tr>
+          <tr><td>Mapping Avg / Node</td><td>3.3</td><td>2.0</td><td><span class="tag med">GROSS heavier</span></td></tr>
+          <tr><td>Mapping Max / Node</td><td>18</td><td>11</td><td><span class="tag med">GROSS heavier</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon" style="background:rgba(167,139,250,0.15);color:var(--purple)">📊</span> Level 2 Categories</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Level 2 Category</th><th>GROSS</th><th>NET</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Volumes</td><td>✓</td><td>✓</td><td>Both: Oil, Gas, NGL, Total MCFE</td></tr>
+          <tr><td>Revenue</td><td>✓</td><td>✓</td><td>Both: Oil, Gas, NGL sub-categories</td></tr>
+          <tr><td>Taxes</td><td>✓ (as "Taxes")</td><td>✓ (as "Taxes_New")</td><td>Different L2 naming</td></tr>
+          <tr><td>Deducts</td><td>✓ (30 nodes)</td><td>✓ (fewer)</td><td>GROSS has 195 deduct mappings; NET has 0</td></tr>
+          <tr><td>Royalties</td><td><span class="tag gross-tag">GROSS only</span></td><td>—</td><td>3 nodes + Total Royalties</td></tr>
+          <tr><td>Operating Expense</td><td>✓</td><td>✓</td><td>Both: LOE Recurring, Non-Recurring, COPAS, SWD</td></tr>
+          <tr><td>Capital Spend</td><td>✓</td><td>✓</td><td>Both: Tangible, Intangible sub-categories</td></tr>
+          <tr><td>Cumulative Cash Flow</td><td>✓</td><td>✓</td><td>Both: 5-level formula precedence cascade</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PIPELINE ═══ -->
+<div id="pipeline" class="section">
+  <h2 class="section-title">4-Object Pipeline</h2>
+  <p class="section-desc">The pipeline transforms hierarchy metadata into BI-ready data marts through 4 objects. The DT_3A → DT_3 two-stage split is essential for formula precedence correctness.</p>
+
+  <div class="pipeline">
+    <div class="pipe-node"><div class="pipe-label">VW_1</div><div class="pipe-name">Translation View</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><div class="pipe-label">DT_2</div><div class="pipe-name">Granularity Table</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><div class="pipe-label">DT_3A</div><div class="pipe-name">Pre-Aggregation Fact</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><div class="pipe-label">DT_3</div><div class="pipe-name">Data Mart</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node" style="border-color:var(--green)"><div class="pipe-label" style="color:var(--green)">BI</div><div class="pipe-name">Power BI / Tableau</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon" style="background:var(--accent-glow);color:var(--accent)">🔧</span> Layer-by-Layer Breakdown</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Layer</th><th>Object</th><th>Purpose</th><th>Key Logic</th></tr></thead>
+        <tbody>
+          <tr><td><code>1</code></td><td>VW_1 – Translation View</td><td>Parse hierarchy mapping metadata into join-ready columns</td><td>CASE on ID_SOURCE → dimension column routing</td></tr>
+          <tr><td><code>2</code></td><td>DT_2 – Granularity Table</td><td>Convert to lowest grain for fact joins</td><td>UNPIVOT + dynamic column mapping + exclusion filtering</td></tr>
+          <tr><td><code>3A</code></td><td>DT_3A – Pre-Aggregation Fact</td><td>Join hierarchy to fact table, compute base measures</td><td>UNION ALL per join pattern, SUM by hierarchy key</td></tr>
+          <tr><td><code>3B</code></td><td>DT_3 – Data Mart</td><td>Apply formulas, inject calcs, add surrogates</td><td>5-level cascading formulas, DENSE_RANK, backfill</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon" style="background:rgba(239,68,68,0.12);color:var(--red)">⚠️</span> Critical: Why DT_3A → DT_3 Must Be Separate</div>
+    <p style="font-size:0.88rem;color:var(--text-dim);line-height:1.7">Formula precedence requires base aggregations to complete before higher-level calculations reference them. Gross Profit (Precedence 3) subtracts Total Taxes (Precedence 1) and Total Deducts (Precedence 1) — both must exist as aggregated rows before subtraction. Merging DT_3A and DT_3 into a single object would break this dependency chain.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon" style="background:rgba(167,139,250,0.15);color:var(--purple)">🤖</span> AI Agent Integration Strategy</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Agent</th><th>Role</th><th>Technology</th></tr></thead>
+        <tbody>
+          <tr><td>Hierarchy Discovery</td><td>Scans new hierarchy tables, identifies structure patterns</td><td><code>Cortex COMPLETE()</code></td></tr>
+          <tr><td>Template Configuration</td><td>Generates YAML config from discovered hierarchy</td><td><code>Cortex COMPLETE() + dbt vars</code></td></tr>
+          <tr><td>DDL Generation</td><td>Produces pipeline DDL from config</td><td><code>dbt macros + Jinja2</code></td></tr>
+          <tr><td>Validation</td><td>Tests generated DDL against source data</td><td><code>dbt tests + SQL assertions</code></td></tr>
+          <tr><td>Monitoring</td><td>Tracks data quality, alerts on drift</td><td><code>Snowflake tasks + alerts</code></td></tr>
+          <tr><td>Documentation</td><td>Auto-generates pipeline documentation</td><td><code>Cortex COMPLETE()</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ JOIN PATTERNS ═══ -->
+<div id="joins" class="section">
+  <h2 class="section-title">Join Pattern Analysis</h2>
+  <p class="section-desc">The most architecturally significant finding. GROSS and NET use structurally different join patterns that are NOT subsets of each other.</p>
+
+  <div class="two-col">
+    <div class="card" style="border-color:var(--gross-border)">
+      <div class="card-title" style="color:var(--gross)"><span class="icon" style="background:var(--gross-dim);color:var(--gross)">G</span> GROSS: 3 UNION ALL Branches</div>
+      <div class="branch-card b1">
+        <div class="branch-header"><span style="color:var(--accent)">●</span> Branch 1 — Account Only</div>
+        <div class="branch-detail">
+          <strong>Join:</strong> LOS_ACCOUNT_ID_FILTER → FK_ACCOUNT_KEY<br>
+          <strong>Nodes:</strong> 88 · <strong>Categories:</strong> Revenue, Volumes, OpEx, CapEx
+        </div>
+      </div>
+      <div class="branch-card b2">
+        <div class="branch-header"><span style="color:var(--gross)">●</span> Branch 2 — Deduct + Product</div>
+        <div class="branch-detail">
+          <strong>Join:</strong> LOS_DEDUCT_CODE_FILTER + LOS_PRODUCT_CODE_FILTER → FK_DEDUCT_KEY + FK_PRODUCT_KEY<br>
+          <strong>Nodes:</strong> 30 · <strong>Categories:</strong> Taxes, Deducts
+        </div>
+      </div>
+      <div class="branch-card b3">
+        <div class="branch-header"><span style="color:var(--pink)">●</span> Branch 3 — Product + Royalty</div>
+        <div class="branch-detail">
+          <strong>Join:</strong> LOS_PRODUCT_CODE_FILTER → FK_PRODUCT_KEY<br>
+          <strong>Filter:</strong> <code>ROYALTY_FILTER = 'Y'</code><br>
+          <strong>Nodes:</strong> 3 · <strong>Categories:</strong> Royalties
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="border-color:var(--net-border)">
+      <div class="card-title" style="color:var(--net)"><span class="icon" style="background:var(--net-dim);color:var(--net)">N</span> NET: 2 UNION ALL Branches</div>
+      <div class="branch-card b1">
+        <div class="branch-header"><span style="color:var(--accent)">●</span> Branch 1 — Account Only</div>
+        <div class="branch-detail">
+          <strong>Join:</strong> LOS_ACCOUNT_ID_FILTER → FK_ACCOUNT_KEY<br>
+          <strong>Nodes:</strong> 101 · <strong>Categories:</strong> All except tax-product nodes
+        </div>
+      </div>
+      <div class="branch-card b2">
+        <div class="branch-header"><span style="color:var(--gross)">●</span> Branch 2 — Account + Product</div>
+        <div class="branch-detail">
+          <strong>Join:</strong> LOS_ACCOUNT_ID_FILTER + LOS_PRODUCT_CODE_FILTER → FK_ACCOUNT_KEY + FK_PRODUCT_KEY<br>
+          <strong>Nodes:</strong> 9 · <strong>Categories:</strong> Tax nodes needing product filter
+        </div>
+      </div>
+      <div style="margin-top:24px;padding:16px;background:var(--surface-3);border-radius:var(--radius-sm);font-size:0.82rem;color:var(--text-dim)">
+        <strong style="color:var(--net)">No Branch 3.</strong> NET has no Royalties category and no DEDUCT dimension joins.
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="border-color:rgba(239,68,68,0.3)">
+    <div class="card-title" style="color:var(--red)"><span class="icon" style="background:var(--red-dim);color:var(--red)">!</span> Structural Implication</div>
+    <p style="font-size:0.88rem;color:var(--text-dim);line-height:1.7">NET Branch 2 uses <code>ACCOUNT+PRODUCT</code> join — which doesn't exist in GROSS. GROSS Branch 2 uses <code>DEDUCT+PRODUCT</code> — which doesn't exist in NET. GROSS Branch 3 uses <code>PRODUCT</code> only with a WHERE filter — which doesn't exist in NET. The <code>JOIN_PATTERNS[]</code> config must be a full array-of-objects, not a simple toggle or count.</p>
+  </div>
+</div>
+
+<!-- ═══ ID_SOURCE MAPPING ═══ -->
+<div id="mapping" class="section">
+  <h2 class="section-title">Dimension Table & ID_SOURCE Mapping</h2>
+  <p class="section-desc">How hierarchy nodes map to physical dimension tables. GROSS relies heavily on DIM_DEDUCT (195 mappings); NET has zero deduct mappings.</p>
+
+  <div class="stat-grid">
+    <div class="stat-card gross"><div class="stat-value">399</div><div class="stat-label">GROSS Total Mappings</div></div>
+    <div class="stat-card net"><div class="stat-value">222</div><div class="stat-label">NET Total Mappings</div></div>
+    <div class="stat-card gross"><div class="stat-value">3.3</div><div class="stat-label">GROSS Avg / Node</div></div>
+    <div class="stat-card net"><div class="stat-value">2.0</div><div class="stat-label">NET Avg / Node</div></div>
+  </div>
+
+  <div class="two-col">
+    <div class="card" style="border-color:var(--gross-border)">
+      <div class="card-title" style="color:var(--gross)"><span class="icon" style="background:var(--gross-dim);color:var(--gross)">G</span> GROSS ID_TABLE × ID_SOURCE</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID_TABLE</th><th>ID_SOURCE</th><th>Count</th></tr></thead>
+          <tbody>
+            <tr><td>DIM_ACCOUNT</td><td><code>BILLING_CATEGORY_CODE</code></td><td>128</td></tr>
+            <tr><td>DIM_ACCOUNT</td><td><code>BILLING_CATEGORY_TYPE_CODE</code></td><td>16</td></tr>
+            <tr><td>DIM_ACCOUNT</td><td><code>ACCOUNT_CODE</code></td><td>13</td></tr>
+            <tr><td>DIM_DEDUCT</td><td><code>DEDUCT_CODE</code></td><td>195</td></tr>
+            <tr><td>DIM_PRODUCT</td><td><code>PRODUCT_CODE</code></td><td>44</td></tr>
+            <tr><td>DT_1_FACT_FINANCIAL_ACTUALS</td><td><code>ROYALTY_FILTER</code></td><td>3</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card" style="border-color:var(--net-border)">
+      <div class="card-title" style="color:var(--net)"><span class="icon" style="background:var(--net-dim);color:var(--net)">N</span> NET ID_TABLE × ID_SOURCE</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID_TABLE</th><th>ID_SOURCE</th><th>Count</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>DIM_ACCOUNT</td><td><code>BILLING_CATEGORY_CODE</code></td><td>124</td><td></td></tr>
+            <tr><td>DIM_ACCOUNT</td><td><code>ACCOUNT_CODE</code></td><td>53</td><td></td></tr>
+            <tr><td>DIM_ACCOUNT</td><td><code>MINOR_CODE</code></td><td>20</td><td><span class="tag net-tag">NET only</span></td></tr>
+            <tr><td>DIM_ACCOUNT</td><td><code>BILLING_CATEGORY_TYPE_CODE</code></td><td>13</td><td></td></tr>
+            <tr><td>DIM_ACCOUNT</td><td><code>BILLING_CATEGRY_CODE</code></td><td>2</td><td><span class="tag high">⚠ TYPO</span></td></tr>
+            <tr><td>DIM_ACCOUNT</td><td><code>BILLING_CATEGORY_TYPE</code></td><td>1</td><td><span class="tag high">⚠ TYPO</span></td></tr>
+            <tr><td>DIM_PRODUCT</td><td><code>PRODUCT_CODE</code></td><td>9</td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FORMULA CHAINS ═══ -->
+<div id="formulas" class="section">
+  <h2 class="section-title">Formula Precedence Chains</h2>
+  <p class="section-desc">Both hierarchies use an identical 5-level cascade. The formula engine reads FORMULA_PARAM_REF dynamically from DT_2 — no code changes between hierarchies.</p>
+
+  <div class="two-col">
+    <div class="card" style="border-color:var(--gross-border)">
+      <div class="card-title" style="color:var(--gross)"><span class="icon" style="background:var(--gross-dim);color:var(--gross)">G</span> GROSS Formula Chain</div>
+      <div class="formula-chain">
+        <div class="formula-step"><div class="formula-prec p1">1</div><div class="formula-body"><span class="obj-tag">DT_3A</span><div class="calcs">Total MCFE, Total Revenue, Total Taxes, Total Deducts, Total OpEx, Total CapEx, <strong style="color:var(--gross)">Total Royalties</strong></div></div></div>
+        <div class="formula-step"><div class="formula-prec p2">2</div><div class="formula-body"><span class="obj-tag">DT_3</span><div class="calcs">Total Taxes and Deducts = Taxes + Deducts</div></div></div>
+        <div class="formula-step"><div class="formula-prec p3">3</div><div class="formula-body"><span class="obj-tag">DT_3</span><div class="calcs">Gross Profit = Revenue − Taxes − Deducts − <strong style="color:var(--gross)">Royalties</strong></div></div></div>
+        <div class="formula-step"><div class="formula-prec p4">4</div><div class="formula-body"><span class="obj-tag">DT_3</span><div class="calcs">Operating Income = Revenue − Taxes − Deducts − OpEx − <strong style="color:var(--gross)">Royalties</strong></div></div></div>
+        <div class="formula-step"><div class="formula-prec p5">5</div><div class="formula-body"><span class="obj-tag">DT_3</span><div class="calcs">Cash Flow = Revenue − Taxes − Deducts − OpEx − CapEx − <strong style="color:var(--gross)">Royalties</strong></div></div></div>
+      </div>
+    </div>
+    <div class="card" style="border-color:var(--net-border)">
+      <div class="card-title" style="color:var(--net)"><span class="icon" style="background:var(--net-dim);color:var(--net)">N</span> NET Formula Chain</div>
+      <div class="formula-chain">
+        <div class="formula-step"><div class="formula-prec p1">1</div><div class="formula-body"><span class="obj-tag">DT_3A</span><div class="calcs">Total MCFE, Total Revenue, Total Taxes, Total Deducts, Total OpEx, Total CapEx, <strong style="color:var(--net)">Total LOE Non-Recurring</strong></div></div></div>
+        <div class="formula-step"><div class="formula-prec p2">2</div><div class="formula-body"><span class="obj-tag">DT_3</span><div class="calcs">Total Taxes and Deducts = Taxes + Deducts</div></div></div>
+        <div class="formula-step"><div class="formula-prec p3">3</div><div class="formula-body"><span class="obj-tag">DT_3</span><div class="calcs">Gross Profit = Revenue − Taxes − Deducts</div></div></div>
+        <div class="formula-step"><div class="formula-prec p4">4</div><div class="formula-body"><span class="obj-tag">DT_3</span><div class="calcs">Operating Income = Revenue − Taxes − Deducts − OpEx − <strong style="color:var(--net)">Non-Recurring</strong></div></div></div>
+        <div class="formula-step"><div class="formula-prec p5">5</div><div class="formula-body"><span class="obj-tag">DT_3</span><div class="calcs">Cash Flow = Revenue − Taxes − Deducts − OpEx − <strong style="color:var(--net)">Non-Recurring</strong> − CapEx</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon" style="background:rgba(16,185,129,0.1);color:var(--green)">✓</span> Key Insight</div>
+    <p style="font-size:0.88rem;color:var(--text-dim);line-height:1.7">GROSS subtracts Royalties at Precedences 3–5. NET subtracts Non-Recurring LOE instead. The formula engine handles this automatically because it reads <code>FORMULA_PARAM_REF</code> (e.g., "Total Royalties" vs "Total LOE Non-Recurring") from hierarchy metadata — <strong style="color:var(--green)">no template code change required</strong>.</p>
+  </div>
+</div>
+
+<!-- ═══ SCHEMA DIFF ═══ -->
+<div id="schema" class="section">
+  <h2 class="section-title">Schema Differences</h2>
+  <p class="section-desc">Structural differences between GROSS and NET hierarchy and mapping table schemas.</p>
+
+  <div class="card">
+    <div class="card-title"><span class="icon" style="background:var(--accent-glow);color:var(--accent)">📋</span> Hierarchy Table Schema</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Feature</th><th>GROSS (42 cols)</th><th>NET (41 cols)</th><th>Impact</th></tr></thead>
+        <tbody>
+          <tr><td><code>GROUP_FILTER_PRECEDENCE</code></td><td><span class="tag yes">Present (1–3)</span></td><td><span class="tag no">Absent</span></td><td>Multi-round filtering in GROSS; single-round in NET</td></tr>
+          <tr><td><code>SIGN_CHANGE_FLAG</code></td><td>All false (0 nodes)</td><td><span class="tag net-tag">7 nodes true</span> (Volumes + Revenue)</td><td>NET multiplies by −1 for sign-changed nodes</td></tr>
+          <tr><td>LEVEL structure</td><td>9 levels + 9 extensions</td><td>9 levels + 9 extensions</td><td><span class="tag yes">✓ Identical</span></td></tr>
+          <tr><td>Sort columns</td><td>18 (LEVEL_n_SORT)</td><td>18 (LEVEL_n_SORT)</td><td><span class="tag yes">✓ Identical</span></td></tr>
+          <tr><td>Filter groups</td><td>4 (FILTER_GROUP 1–4)</td><td>4 (FILTER_GROUP 1–4)</td><td><span class="tag yes">✓ Identical</span></td></tr>
+          <tr><td>Formula columns</td><td>5 (GROUP, PREC, PARAM, LOGIC, PARAM2)</td><td>5 (identical)</td><td><span class="tag yes">✓ Identical</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon" style="background:var(--accent-glow);color:var(--accent)">🔗</span> Mapping Table Schema</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Feature</th><th>GROSS (48 cols)</th><th>NET (31 cols)</th><th>Impact</th></tr></thead>
+        <tbody>
+          <tr><td><code>LEVEL_1..LEVEL_9</code> (denormalized)</td><td><span class="tag yes">Present (18 extra cols)</span></td><td><span class="tag no">Absent</span></td><td>GROSS pre-joins hierarchy levels; NET requires join at query time</td></tr>
+          <tr><td><code>SIGN_CHANGE_FLAG</code></td><td><span class="tag no">Absent</span></td><td><span class="tag yes">Present</span></td><td>NET includes sign info in mapping</td></tr>
+          <tr><td>Core mapping columns</td><td colspan="2">FK_REPORT_KEY, ID, ID_NAME, ID_SOURCE, ID_TABLE, ID_SCHEMA, ID_DATABASE, EXCLUSION_FLAG</td><td><span class="tag yes">✓ Identical</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DATA QUALITY ═══ -->
+<div id="quality" class="section">
+  <h2 class="section-title">Data Quality Findings</h2>
+  <p class="section-desc">Five data quality issues discovered during source data analysis, each requiring remediation.</p>
+
+  <div class="quality-card high">
+    <div class="quality-header"><span class="tag high">HIGH</span><h4>9.1 NET ID_SOURCE Typos (3 mapping rows)</h4></div>
+    <div class="quality-body">
+      <strong>Issue:</strong> Two distinct typos in NET mapping table's ID_SOURCE column.<br>
+      <code>BILLING_CATEGRY_CODE</code> (2 rows) — missing 'O' in CATEGORY<br>
+      <code>BILLING_CATEGORY_TYPE</code> (1 row) — missing '_CODE' suffix<br><br>
+      <strong>Impact:</strong> CASE statement in DT_2 won't match → NULL join columns → <strong>silent data loss</strong>.<br>
+      <strong>Fix:</strong> Correct source data OR add alias normalization in DYNAMIC_COLUMN_MAP.
+    </div>
+  </div>
+
+  <div class="quality-card med">
+    <div class="quality-header"><span class="tag med">MEDIUM</span><h4>9.2 GROSS Duplicate Cash Flow Rows</h4></div>
+    <div class="quality-body">
+      <strong>Issue:</strong> Keys 217 and 218 both subtract Total Royalties from Cash Flow at Precedence 5.<br>
+      <strong>Impact:</strong> Double-counting of royalty deduction unless DDL deduplicates.<br>
+      <strong>Fix:</strong> Confirm one should be removed — appears to be data entry error.
+    </div>
+  </div>
+
+  <div class="quality-card med">
+    <div class="quality-header"><span class="tag med">MEDIUM</span><h4>9.3 GROSS FILTER_GROUP_2 Mismatches</h4></div>
+    <div class="quality-body">
+      <strong>Issue:</strong> 30 FILTER_GROUP_2 values in mapping don't appear in hierarchy; 21 hierarchy values don't appear in mappings.<br>
+      <strong>Cause:</strong> (a) 25 calc nodes have no mappings, (b) concatenation logic drifts between tables.<br>
+      <strong>Example:</strong> Hierarchy: <code>Capital SpendUpstream CAPEXIntangibleFacility Cost</code><br>
+      Mapping: <code>Capital SpendUpstream CAPEXFacility Cost</code> (missing "Intangible")
+    </div>
+  </div>
+
+  <div class="quality-card low">
+    <div class="quality-header"><span class="tag low">LOW</span><h4>9.4 GROSS Orphan Active Node</h4></div>
+    <div class="quality-body">
+      <strong>Issue:</strong> Key 148 ("Operating Expense > Recurring > Operated COPAS Overhead") — active, non-calc, but 0 mapping rows.<br>
+      <strong>Impact:</strong> Would produce zero fact rows in DT_3. Either intentional placeholder or missing mapping data.
+    </div>
+  </div>
+
+  <div class="quality-card low">
+    <div class="quality-header"><span class="tag low">LOW</span><h4>9.5 GROSS Zero Exclusions</h4></div>
+    <div class="quality-body">
+      <strong>Issue:</strong> GROSS has 0 exclusion rows (all EXCLUSION_FLAG = false). NET has 3 exclusions (FK=1, FK=5, FK=123).<br>
+      <strong>Impact:</strong> Template's NOT IN subquery must handle zero-exclusion case gracefully (skip subquery entirely).
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GROUP_FILTER_PRECEDENCE ═══ -->
+<div id="filter" class="section">
+  <h2 class="section-title">GROUP_FILTER_PRECEDENCE</h2>
+  <p class="section-desc">GROSS-only feature. Drives multi-round filtering logic (values 1–3). NET uses single-round joins for all nodes.</p>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title"><span class="icon" style="background:var(--gross-dim);color:var(--gross)">🔁</span> By FILTER_GROUP_1</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>FILTER_GROUP_1</th><th>Precedence Values</th><th>Pattern</th></tr></thead>
+          <tbody>
+            <tr><td>Revenue</td><td>1 only</td><td>Single-round</td></tr>
+            <tr><td>Volumes</td><td>1 only</td><td>Single-round</td></tr>
+            <tr><td>Royalties</td><td>1 only</td><td>Single-round</td></tr>
+            <tr><td>Capital Spend</td><td>1, 2</td><td>Two-round</td></tr>
+            <tr><td>Operating Expense</td><td>1, 2</td><td>Two-round</td></tr>
+            <tr><td>Taxes</td><td>1, 2</td><td>Two-round</td></tr>
+            <tr><td>Deducts</td><td>1, 2, 3</td><td>Three-round</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="icon" style="background:var(--gross-dim);color:var(--gross)">📊</span> By ID_TABLE</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID_TABLE</th><th>Prec 1</th><th>Prec 2</th><th>Total</th></tr></thead>
+          <tbody>
+            <tr><td>DIM_ACCOUNT</td><td>24</td><td>133</td><td>157</td></tr>
+            <tr><td>DIM_DEDUCT</td><td>105</td><td>90</td><td>195</td></tr>
+            <tr><td>DIM_PRODUCT</td><td>24</td><td>20</td><td>44</td></tr>
+            <tr><td>DT_1_FACT_FINANCIAL_ACTUALS</td><td>3</td><td>—</td><td>3</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top:12px;font-size:0.82rem;color:var(--text-dim)"><strong>Interpretation:</strong> Precedence 1 = primary dimension join. Precedence 2 = secondary filter applied after primary resolves.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TEMPLATE CONFIG ═══ -->
+<div id="config" class="section">
+  <h2 class="section-title">Template Configuration</h2>
+  <p class="section-desc">7 variables fully parameterize all differences. Everything else is structurally identical between GROSS and NET.</p>
+
+  <div class="card">
+    <div class="card-title"><span class="icon" style="background:var(--accent-glow);color:var(--accent)">⚙️</span> 7 Configuration Variables</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Variable</th><th>Type</th><th>GROSS Value</th><th>NET Value</th><th>DDL Impact</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><code>JOIN_PATTERNS[]</code></td><td>Array&lt;Object&gt;</td><td><span class="tag gross-tag">3 branches</span></td><td><span class="tag net-tag">2 branches</span></td><td>DT_3A/DT_3 UNION ALL structure</td></tr>
+          <tr><td>2</td><td><code>DYNAMIC_COLUMN_MAP{}</code></td><td>Object</td><td><span class="tag gross-tag">3 entries</span></td><td><span class="tag net-tag">5+ entries</span></td><td>DT_2 CASE statement</td></tr>
+          <tr><td>3</td><td><code>ACCOUNT_SEGMENT</code></td><td>String</td><td>'GROSS'</td><td>'NET'</td><td>DT_2 WHERE, DT_3A filter</td></tr>
+          <tr><td>4</td><td><code>MEASURE_PREFIX</code></td><td>String</td><td>'GROSS'</td><td>'NET'</td><td>Column names: GROSS_AMOUNT vs NET_AMOUNT</td></tr>
+          <tr><td>5</td><td><code>HAS_SIGN_CHANGE</code></td><td>Boolean</td><td><span class="tag no">false</span></td><td><span class="tag yes">true (7 nodes)</span></td><td>DT_3A: multiply by −1 when flag true</td></tr>
+          <tr><td>6</td><td><code>HAS_EXCLUSIONS</code></td><td>Boolean</td><td><span class="tag no">false</span></td><td><span class="tag yes">true (3 exclusions)</span></td><td>DT_2: NOT IN subquery generation</td></tr>
+          <tr><td>7</td><td><code>HAS_GROUP_FILTER_PRECEDENCE</code></td><td>Boolean</td><td><span class="tag yes">true (1–3)</span></td><td><span class="tag no">false</span></td><td>VW_1 join logic, DT_2 filter rounds</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title"><span class="icon" style="background:var(--accent-glow);color:var(--accent)">🔗</span> JOIN_PATTERNS[] Detail</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Property</th><th>Description</th><th>Example (GROSS Branch 2)</th></tr></thead>
+          <tbody>
+            <tr><td><code>name</code></td><td>Human-readable ID</td><td>deduct_product</td></tr>
+            <tr><td><code>join_keys[]</code></td><td>DT_2 ON clause columns</td><td>[LOS_DEDUCT_CODE_FILTER, LOS_PRODUCT_CODE_FILTER]</td></tr>
+            <tr><td><code>fact_keys[]</code></td><td>Fact table FK columns</td><td>[FK_DEDUCT_KEY, FK_PRODUCT_KEY]</td></tr>
+            <tr><td><code>filter</code></td><td>Optional WHERE condition</td><td>null (or "ROYALTY_FILTER = 'Y'")</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="icon" style="background:var(--accent-glow);color:var(--accent)">🗺️</span> DYNAMIC_COLUMN_MAP{} Detail</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID_SOURCE Key</th><th>Physical Column</th><th>Scope</th></tr></thead>
+          <tbody>
+            <tr><td><code>BILLING_CATEGORY_CODE</code></td><td>ACCT.ACCOUNT_BILLING_CATEGORY_CODE</td><td><span class="tag both-tag">Both</span></td></tr>
+            <tr><td><code>BILLING_CATEGORY_TYPE_CODE</code></td><td>ACCT.ACCOUNT_BILLING_CATEGORY_TYPE_CODE</td><td><span class="tag both-tag">Both</span></td></tr>
+            <tr><td><code>ACCOUNT_CODE</code></td><td>ACCT.ACCOUNT_CODE</td><td><span class="tag both-tag">Both</span></td></tr>
+            <tr><td><code>MINOR_CODE</code></td><td>ACCT.ACCOUNT_MINOR_CODE</td><td><span class="tag net-tag">NET only</span></td></tr>
+            <tr><td><code>BILLING_CATEGRY_CODE</code></td><td>ACCT.ACCOUNT_BILLING_CATEGORY_CODE</td><td><span class="tag high">Typo alias</span></td></tr>
+            <tr><td><code>BILLING_CATEGORY_TYPE</code></td><td>ACCT.ACCOUNT_BILLING_CATEGORY_TYPE_CODE</td><td><span class="tag high">Typo alias</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ dbt YAML ═══ -->
+<div id="yaml" class="section">
+  <h2 class="section-title">dbt YAML Configuration</h2>
+  <p class="section-desc">Proposed configuration schema for dbt_project.yml vars or --vars CLI. One config per hierarchy project.</p>
+
+  <div class="two-col">
+    <div class="card" style="border-color:var(--gross-border)">
+      <div class="card-title" style="color:var(--gross)"><span class="icon" style="background:var(--gross-dim);color:var(--gross)">G</span> GROSS LOS Config</div>
+      <div class="yaml-block"><span class="yc"># --- GROSS LOS Config ---</span>
+<span class="yk">project_name:</span> <span class="yv">UPSTREAM_GROSS</span>
+<span class="yk">report_type:</span> <span class="yv">GROSS</span>
+<span class="yk">hierarchy_table:</span> <span class="yv">TBL_0_GROSS_LOS_REPORT_HIERARCHY_</span>
+<span class="yk">mapping_table:</span> <span class="yv">TBL_0_GROSS_LOS_REPORT_HIERARCHY_MAPPING</span>
+<span class="yk">account_segment:</span> <span class="yv">GROSS</span>
+<span class="yk">measure_prefix:</span> <span class="yv">GROSS</span>
+<span class="yk">has_sign_change:</span> <span class="yn">false</span>
+<span class="yk">has_exclusions:</span> <span class="yn">false</span>
+<span class="yk">has_group_filter_precedence:</span> <span class="yn">true</span>
+
+<span class="yk">dynamic_column_map:</span>
+  <span class="yk">BILLING_CATEGORY_CODE:</span> <span class="yv">ACCT.ACCOUNT_BILLING_CATEGORY_CODE</span>
+  <span class="yk">BILLING_CATEGORY_TYPE_CODE:</span> <span class="yv">ACCT.ACCOUNT_BILLING_CATEGORY_TYPE_CODE</span>
+  <span class="yk">ACCOUNT_CODE:</span> <span class="yv">ACCT.ACCOUNT_CODE</span>
+
+<span class="yk">join_patterns:</span>
+  - <span class="yk">name:</span> <span class="yv">account</span>
+    <span class="yk">join_keys:</span> <span class="yv">[LOS_ACCOUNT_ID_FILTER]</span>
+    <span class="yk">fact_keys:</span> <span class="yv">[FK_ACCOUNT_KEY]</span>
+    <span class="yk">filter:</span> <span class="yn">null</span>
+  - <span class="yk">name:</span> <span class="yv">deduct_product</span>
+    <span class="yk">join_keys:</span> <span class="yv">[LOS_DEDUCT_CODE_FILTER, LOS_PRODUCT_CODE_FILTER]</span>
+    <span class="yk">fact_keys:</span> <span class="yv">[FK_DEDUCT_KEY, FK_PRODUCT_KEY]</span>
+    <span class="yk">filter:</span> <span class="yn">null</span>
+  - <span class="yk">name:</span> <span class="yv">royalty</span>
+    <span class="yk">join_keys:</span> <span class="yv">[LOS_PRODUCT_CODE_FILTER]</span>
+    <span class="yk">fact_keys:</span> <span class="yv">[FK_PRODUCT_KEY]</span>
+    <span class="yk">filter:</span> <span class="yv">"ROYALTY_FILTER = 'Y'"</span></div>
+    </div>
+
+    <div class="card" style="border-color:var(--net-border)">
+      <div class="card-title" style="color:var(--net)"><span class="icon" style="background:var(--net-dim);color:var(--net)">N</span> NET LOS Config</div>
+      <div class="yaml-block"><span class="yc"># --- NET LOS Config ---</span>
+<span class="yk">project_name:</span> <span class="yv">UPSTREAM_NET</span>
+<span class="yk">report_type:</span> <span class="yv">NET</span>
+<span class="yk">hierarchy_table:</span> <span class="yv">TBL_0_NET_LOS_REPORT_HIERARCHY</span>
+<span class="yk">mapping_table:</span> <span class="yv">TBL_0_NET_LOS_REPORT_HIERARCHY_MAPPING</span>
+<span class="yk">account_segment:</span> <span class="yv">NET</span>
+<span class="yk">measure_prefix:</span> <span class="yv">NET</span>
+<span class="yk">has_sign_change:</span> <span class="yn">true</span>
+<span class="yk">has_exclusions:</span> <span class="yn">true</span>
+<span class="yk">has_group_filter_precedence:</span> <span class="yn">false</span>
+
+<span class="yk">dynamic_column_map:</span>
+  <span class="yk">BILLING_CATEGORY_CODE:</span> <span class="yv">ACCT.ACCOUNT_BILLING_CATEGORY_CODE</span>
+  <span class="yk">BILLING_CATEGORY_TYPE_CODE:</span> <span class="yv">ACCT.ACCOUNT_BILLING_CATEGORY_TYPE_CODE</span>
+  <span class="yk">ACCOUNT_CODE:</span> <span class="yv">ACCT.ACCOUNT_CODE</span>
+  <span class="yk">MINOR_CODE:</span> <span class="yv">ACCT.ACCOUNT_MINOR_CODE</span>
+  <span class="yk">BILLING_CATEGRY_CODE:</span> <span class="yv">ACCT.ACCOUNT_BILLING_CATEGORY_CODE</span>  <span class="yc"># typo alias</span>
+  <span class="yk">BILLING_CATEGORY_TYPE:</span> <span class="yv">ACCT.ACCOUNT_BILLING_CATEGORY_TYPE_CODE</span>  <span class="yc"># typo alias</span>
+
+<span class="yk">join_patterns:</span>
+  - <span class="yk">name:</span> <span class="yv">account</span>
+    <span class="yk">join_keys:</span> <span class="yv">[LOS_ACCOUNT_ID_FILTER]</span>
+    <span class="yk">fact_keys:</span> <span class="yv">[FK_ACCOUNT_KEY]</span>
+    <span class="yk">filter:</span> <span class="yn">null</span>
+  - <span class="yk">name:</span> <span class="yv">account_product</span>
+    <span class="yk">join_keys:</span> <span class="yv">[LOS_ACCOUNT_ID_FILTER, LOS_PRODUCT_CODE_FILTER]</span>
+    <span class="yk">fact_keys:</span> <span class="yv">[FK_ACCOUNT_KEY, FK_PRODUCT_KEY]</span>
+    <span class="yk">filter:</span> <span class="yn">null</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ROADMAP ═══ -->
+<div id="roadmap" class="section">
+  <h2 class="section-title">Implementation Roadmap</h2>
+  <p class="section-desc">Five phases from foundation scaffolding through AI-driven automation.</p>
+
+  <div class="roadmap-item">
+    <div class="roadmap-phase">P1</div>
+    <div class="roadmap-content">
+      <h4>Foundation</h4>
+      <p>dbt project scaffold, YAML config schema, base macros for VW_1 and DT_2</p>
+      <span class="effort">2–3 weeks</span>
+    </div>
+  </div>
+  <div class="roadmap-item">
+    <div class="roadmap-phase">P2</div>
+    <div class="roadmap-content">
+      <h4>Core Pipeline</h4>
+      <p>DT_3A and DT_3 macros, formula precedence engine, UNION ALL branch generator</p>
+      <span class="effort">3–4 weeks</span>
+    </div>
+  </div>
+  <div class="roadmap-item">
+    <div class="roadmap-phase">P3</div>
+    <div class="roadmap-content">
+      <h4>Validation</h4>
+      <p>Diff-test generated DDL vs hand-written scripts, data reconciliation, edge case testing</p>
+      <span class="effort">1–2 weeks</span>
+    </div>
+  </div>
+  <div class="roadmap-item">
+    <div class="roadmap-phase">P4</div>
+    <div class="roadmap-content">
+      <h4>NET Deployment</h4>
+      <p>Apply template to NET LOS, validate output, fix data quality issues</p>
+      <span class="effort">1–2 weeks</span>
+    </div>
+  </div>
+  <div class="roadmap-item">
+    <div class="roadmap-phase">P5</div>
+    <div class="roadmap-content">
+      <h4>AI Agents</h4>
+      <p>Cortex COMPLETE() hierarchy discovery, auto-config generation, monitoring dashboard</p>
+      <span class="effort">4–6 weeks</span>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:24px">
+    <div class="card-title"><span class="icon" style="background:rgba(244,114,182,0.1);color:var(--pink)">❓</span> Open Questions</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Question</th><th>Impact</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Should GROUP_FILTER_PRECEDENCE multi-round be a configurable loop or GROSS-specific hardcode?</td><td>Template flexibility vs complexity</td></tr>
+          <tr><td>2</td><td>How to parameterize extension hierarchy join ("Operation Team Financial Group") for projects without it?</td><td>Template portability</td></tr>
+          <tr><td>3</td><td>One dbt project per hierarchy, or multi-project monorepo?</td><td>CI/CD and deployment model</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="card-title"><span class="icon" style="background:rgba(16,185,129,0.1);color:var(--green)">🎯</span> Immediate Action Items</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Action</th><th>Priority</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Resolve FILTER_GROUP_2 mismatch (30 affected rows)</td><td><span class="tag high">High</span></td></tr>
+          <tr><td>2</td><td>Correct NET ID_SOURCE typos (3 rows) or add alias normalization</td><td><span class="tag high">High</span></td></tr>
+          <tr><td>3</td><td>Investigate GROSS duplicate Cash Flow rows (keys 217/218)</td><td><span class="tag med">Medium</span></td></tr>
+          <tr><td>4</td><td>Begin dbt macro development: VW_1 + DT_2</td><td><span class="tag med">Medium</span></td></tr>
+          <tr><td>5</td><td>Identify third hierarchy project for template portability validation</td><td><span class="tag low">Low</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<footer style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:0.78rem;border-top:1px solid var(--border)">
+  DataBridge AI — Data Mart Factory Analysis · DataNexum Consulting · February 2026
+</footer>
+
+<script>
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo({ top: document.querySelector('nav').offsetTop, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
