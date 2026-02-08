@@ -828,7 +828,7 @@
                         <div class="stat-label">Workflow Steps</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value">v0.32</div>
+                        <div class="stat-value" id="appVersion">--</div>
                         <div class="stat-label">Version</div>
                     </div>
                 </div>
@@ -1057,7 +1057,7 @@ Ready to process requests. Type a query below or use Quick Actions.</div>
                     <!-- Overview Tab -->
                     <div id="overview-tab" class="tab-content active">
                         <div class="doc-section">
-                            <h3>DataBridge AI v0.32.0</h3>
+                            <h3>DataBridge AI <span id="docVersion">v0.34.0</span></h3>
                             <p>A headless, MCP-native data reconciliation engine with <strong>292 MCP tools</strong> across twenty major modules.</p>
 
                             <div class="card" style="margin-top: 20px;">
@@ -1363,6 +1363,8 @@ print(f"Loaded {len(tools)} tools")
             document.getElementById('toolCountHeader').textContent = data.tool_count || '292';
             document.getElementById('projectCount').textContent = data.project_count || '0';
             document.getElementById('workflowSteps').textContent = data.workflow_steps || '0';
+            document.getElementById('appVersion').textContent = 'v' + (data.version || '0.34.0');
+            document.getElementById('docVersion').textContent = 'v' + (data.version || '0.34.0');
 
             const tbody = document.getElementById('recentActivity');
             if (data.recent_activity && data.recent_activity.length > 0) {

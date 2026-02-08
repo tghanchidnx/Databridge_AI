@@ -166,43 +166,67 @@ class SmartSQLAnalyzer:
         return filters
 
     def parse_case_statements(self, sql: str) -> List[CaseHierarchy]:
-        """Extract CASE statements from SQL."""
-        hierarchies = []
+        """
+        Extract CASE statements from SQL, supporting UNION ALL.
+        Each SELECT statement in a UNION ALL can contain its own CASE statements.
+        Hierarchies with the same alias are merged.
+        """
+        all_hierarchies: List[CaseHierarchy] = []
 
-        # Pattern for CASE ... END AS alias
-        case_pattern = r'CASE\s+(.*?)\s+END\s+AS\s+(\w+)'
+        # Split SQL by UNION ALL to process each SELECT statement independently
+        # Use regex to split, but not if UNION ALL is inside parentheses (subqueries)
+        select_statements = re.split(r'\s+UNION\s+ALL\s+(?![^()]*\))', sql, flags=re.IGNORECASE | re.DOTALL)
 
-        for match in re.finditer(case_pattern, sql, re.IGNORECASE | re.DOTALL):
-            case_body = match.group(1)
-            alias = match.group(2)
+        for statement in select_statements:
+            # Pattern for CASE ... END AS alias
+            case_pattern = r'CASE\s+(.*?)\s+END\s+AS\s+(\w+)'
 
-            hierarchy = CaseHierarchy(name=alias, source_column='')
+            for match in re.finditer(case_pattern, statement, re.IGNORECASE | re.DOTALL):
+                case_body = match.group(1)
+                alias = match.group(2)
 
-            # Extract WHEN clauses
-            when_pattern = r'WHEN\s+(.+?)\s+THEN\s+([\'"]?)([^\'"]+)\2'
-            for when_match in re.finditer(when_pattern, case_body, re.IGNORECASE | re.DOTALL):
-                condition = when_match.group(1).strip()
-                result = when_match.group(3).strip()
+                hierarchy = CaseHierarchy(name=alias, source_column='')
 
-                # Parse condition to get column, operator, values
-                mapping = self._parse_condition(condition, result)
-                if mapping:
-                    hierarchy.mappings.append(mapping)
-                    if not hierarchy.source_column and mapping.condition_values:
-                        # Infer source column from condition
-                        col_match = re.search(r'(\w+(?:\.\w+)?)\s*(?:ILIKE|LIKE|IN|=|<>)', condition, re.IGNORECASE)
-                        if col_match:
-                            hierarchy.source_column = col_match.group(1).split('.')[-1]
+                # Extract WHEN clauses
+                when_pattern = r'WHEN\s+(.+?)\s+THEN\s+([\'"]?)([^\'"]+)\2'
+                for when_match in re.finditer(when_pattern, case_body, re.IGNORECASE | re.DOTALL):
+                    condition = when_match.group(1).strip()
+                    result = when_match.group(3).strip()
 
-            # Extract ELSE clause
-            else_match = re.search(r'ELSE\s+([\'"]?)([^\'"]+)\1\s*$', case_body, re.IGNORECASE)
-            if else_match:
-                hierarchy.else_value = else_match.group(2).strip()
+                    # Parse condition to get column, operator, values
+                    mapping = self._parse_condition(condition, result)
+                    if mapping:
+                        hierarchy.mappings.append(mapping)
+                        if not hierarchy.source_column and mapping.condition_values:
+                            # Infer source column from condition
+                            col_match = re.search(r'(\w+(?:\.\w+)?)\s*(?:ILIKE|LIKE|IN|=|<>)', condition, re.IGNORECASE)
+                            if col_match:
+                                hierarchy.source_column = col_match.group(1).split('.')[-1]
 
-            if hierarchy.mappings:
-                hierarchies.append(hierarchy)
+                # Extract ELSE clause
+                else_match = re.search(r'ELSE\s+([\'"]?)([^\'"]+)\1\s*$', case_body, re.IGNORECASE)
+                if else_match:
+                    hierarchy.else_value = else_match.group(2).strip()
 
-        return hierarchies
+                if hierarchy.mappings or hierarchy.else_value:
+                    all_hierarchies.append(hierarchy)
+
+        # Merge hierarchies with the same alias (from different UNION ALL blocks)
+        merged: Dict[str, CaseHierarchy] = {}
+        for h in all_hierarchies:
+            if h.name in merged:
+                # Merge mappings
+                merged[h.name].mappings.extend(h.mappings)
+                # Keep first else_value found
+                if h.else_value and not merged[h.name].else_value:
+                    merged[h.name].else_value = h.else_value
+                # Keep first source_column found
+                if h.source_column and not merged[h.name].source_column:
+                    merged[h.name].source_column = h.source_column
+            else:
+                merged[h.name] = h
+
+        return list(merged.values())
 
     def _parse_condition(self, condition: str, result: str) -> Optional[CaseMapping]:
         """Parse a WHEN condition into a CaseMapping."""

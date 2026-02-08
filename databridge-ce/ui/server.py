@@ -24,6 +24,12 @@ app = Flask(__name__, template_folder=str(ui_dir), static_folder=str(ui_dir))
 
 # Configuration
 TOOL_COUNT = 292  # Current tool count
+
+# Get version from src/__init__.py
+try:
+    from src import __version__ as VERSION
+except ImportError:
+    VERSION = "0.34.0"  # Fallback
 PROJECTS_DIR = project_root / 'use_cases_by_claude'
 BOOK_PROJECTS_DIR = project_root / 'Book' / 'use_cases'
 CLAUDE_MD_PATH = project_root / 'CLAUDE.md'
@@ -42,6 +48,7 @@ def get_dashboard_stats():
         'tool_count': TOOL_COUNT,
         'project_count': 0,
         'workflow_steps': 0,
+        'version': VERSION,
         'recent_activity': []
     }
 
