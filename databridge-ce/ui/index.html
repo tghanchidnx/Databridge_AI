@@ -1426,7 +1426,8 @@ print(f"Loaded {len(tools)} tools")
     async function loadTools() {
         try {
             const resp = await fetch('/api/tools');
-            availableTools = await resp.json();
+            const data = await resp.json();
+            availableTools = data.tools || [];
             renderToolList();
         } catch (e) {
             console.log('Load tools error:', e);
