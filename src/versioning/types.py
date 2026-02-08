@@ -1,9 +1,7 @@
 """
-Data Versioning Types - Pydantic models for version control.
-
-Phase 30: Unified version control system for DataBridge objects.
+Data Versioning Types - Phase 30
+Unified version control for DataBridge objects.
 """
-
 from enum import Enum
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
@@ -20,8 +18,6 @@ class VersionedObjectType(str, Enum):
     SEMANTIC_MODEL = "semantic_model"
     DATA_CONTRACT = "data_contract"
     EXPECTATION_SUITE = "expectation_suite"
-    FORMULA_GROUP = "formula_group"
-    SOURCE_MAPPING = "source_mapping"
 
 
 class ChangeType(str, Enum):
@@ -30,19 +26,6 @@ class ChangeType(str, Enum):
     UPDATE = "update"
     DELETE = "delete"
     RESTORE = "restore"
-
-
-class VersionBump(str, Enum):
-    """Version increment type."""
-    MAJOR = "major"
-    MINOR = "minor"
-    PATCH = "patch"
-
-
-def _utc_now() -> datetime:
-    """Get current UTC time."""
-    from datetime import timezone
-    return datetime.now(timezone.utc)
 
 
 class Version(BaseModel):
@@ -57,10 +40,10 @@ class Version(BaseModel):
     change_type: ChangeType
     change_description: Optional[str] = None
     changed_by: Optional[str] = None
-    changed_at: datetime = Field(default_factory=_utc_now)
+    changed_at: datetime = Field(default_factory=datetime.utcnow)
 
-    # Snapshot - full object state at this version
-    snapshot: Dict[str, Any]
+    # Snapshot
+    snapshot: Dict[str, Any]  # Full object state at this version
 
     # Diff from previous (optional, computed on demand)
     changes: Optional[Dict[str, Any]] = None
@@ -69,17 +52,18 @@ class Version(BaseModel):
     tags: List[str] = Field(default_factory=list)
     is_major: bool = False  # Flag for significant versions
 
+    class Config:
+        json_encoders = {datetime: lambda v: v.isoformat()}
+
 
 class VersionHistory(BaseModel):
     """Version history for an object."""
     object_type: VersionedObjectType
     object_id: str
-    object_name: Optional[str] = None  # Human-readable name
-    current_version: str = "0.0.0"
-    current_version_number: int = 0
+    current_version: str
+    current_version_number: int
     versions: List[Version] = Field(default_factory=list)
-    created_at: datetime = Field(default_factory=_utc_now)
-    updated_at: datetime = Field(default_factory=_utc_now)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class VersionDiff(BaseModel):
@@ -88,13 +72,9 @@ class VersionDiff(BaseModel):
     object_id: str
     from_version: str
     to_version: str
-
-    # Changes
     added: Dict[str, Any] = Field(default_factory=dict)
     removed: Dict[str, Any] = Field(default_factory=dict)
-    modified: Dict[str, Dict[str, Any]] = Field(default_factory=dict)  # {field: {old, new}}
-
-    # Summary
+    modified: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
     total_changes: int = 0
     change_summary: str = ""
 
@@ -108,56 +88,4 @@ class VersionQuery(BaseModel):
     changed_by: Optional[str] = None
     change_type: Optional[ChangeType] = None
     tag: Optional[str] = None
-    is_major: Optional[bool] = None
     limit: int = 50
-    offset: int = 0
-
-
-class VersionStats(BaseModel):
-    """Statistics about versioned objects."""
-    total_objects: int = 0
-    total_versions: int = 0
-    objects_by_type: Dict[str, int] = Field(default_factory=dict)
-    versions_by_type: Dict[str, int] = Field(default_factory=dict)
-    recent_changes: int = 0  # Last 24 hours
-    top_changers: List[Dict[str, Any]] = Field(default_factory=list)
-
-
-class RollbackPreview(BaseModel):
-    """Preview of what a rollback would restore."""
-    object_type: VersionedObjectType
-    object_id: str
-    current_version: str
-    target_version: str
-    snapshot: Dict[str, Any]
-    diff: Optional[VersionDiff] = None
-    warning: Optional[str] = None
-
-
-class VersionTag(BaseModel):
-    """A tag attached to a version."""
-    tag: str
-    added_at: datetime = Field(default_factory=datetime.utcnow)
-    added_by: Optional[str] = None
-
-
-class VersionCreateRequest(BaseModel):
-    """Request to create a new version."""
-    object_type: VersionedObjectType
-    object_id: str
-    object_name: Optional[str] = None
-    snapshot: Dict[str, Any]
-    change_type: ChangeType = ChangeType.UPDATE
-    change_description: Optional[str] = None
-    changed_by: Optional[str] = None
-    version_bump: VersionBump = VersionBump.PATCH
-    tags: List[str] = Field(default_factory=list)
-
-
-class VersionResult(BaseModel):
-    """Result of a version operation."""
-    success: bool
-    message: str
-    version: Optional[Version] = None
-    history: Optional[VersionHistory] = None
-    diff: Optional[VersionDiff] = None

@@ -1085,9 +1085,218 @@ def register_mart_factory_tools(mcp, settings=None) -> Dict[str, Any]:
             logger.error(f"Failed to compare pipeline: {e}")
             return {"success": False, "error": str(e)}
 
+    # --- Phase 31 Enhancements ---
+
+    @mcp.tool()
+    def wright_version_pipeline(
+        config_name: str,
+        description: str = None,
+        bump: str = "patch",
+        user: str = None,
+    ) -> Dict[str, Any]:
+        """
+        Create a versioned snapshot of a Wright pipeline configuration.
+        Integrates with Data Versioning module (Phase 30).
+
+        Args:
+            config_name: Name of the pipeline configuration
+            description: Description of changes made
+            bump: Version bump type (major, minor, patch)
+            user: User creating the version
+
+        Returns:
+            Version record with snapshot of pipeline config
+        """
+        try:
+            config = _configs.get(config_name)
+            if not config:
+                return {"success": False, "error": f"Config not found: {config_name}"}
+
+            # Try to use versioning module
+            try:
+                from src.versioning import VersionManager, VersionedObjectType, ChangeType
+                manager = VersionManager()
+                version = manager.snapshot(
+                    object_type=VersionedObjectType.HIERARCHY_PROJECT,
+                    object_id=f"wright:{config_name}",
+                    data=config.model_dump(),
+                    change_type=ChangeType.UPDATE,
+                    description=description or f"Wright pipeline update: {config_name}",
+                    user=user,
+                    bump=bump,
+                )
+                return {
+                    "success": True,
+                    "config_name": config_name,
+                    "version": version.version,
+                    "version_number": version.version_number,
+                    "changed_at": str(version.changed_at),
+                }
+            except ImportError:
+                return {
+                    "success": False,
+                    "error": "Versioning module not available. Install Phase 30 first.",
+                }
+
+        except Exception as e:
+            logger.error(f"Failed to version pipeline: {e}")
+            return {"success": False, "error": str(e)}
+
+    @mcp.tool()
+    def wright_generate_test_queries(
+        config_name: str,
+        test_type: str = "all",
+    ) -> Dict[str, Any]:
+        """
+        Generate SQL test queries to validate Wright pipeline output.
+
+        Args:
+            config_name: Name of the pipeline configuration
+            test_type: Type of tests (row_count, null_check, formula_validation, all)
+
+        Returns:
+            Dictionary of SQL test queries for pipeline validation
+        """
+        try:
+            config = _configs.get(config_name)
+            if not config:
+                return {"success": False, "error": f"Config not found: {config_name}"}
+
+            tests = {}
+            db = config.target_database
+            schema = config.target_schema
+            prefix = f"{config.report_type}_{config.project_name.upper()}"
+
+            if test_type in ["row_count", "all"]:
+                tests["row_count_vw1"] = f"SELECT COUNT(*) as row_count FROM {db}.{schema}.VW_1_{prefix}_TRANSLATED;"
+                tests["row_count_dt2"] = f"SELECT COUNT(*) as row_count FROM {db}.{schema}.DT_2_{prefix}_GRANULARITY;"
+                tests["row_count_dt3a"] = f"SELECT COUNT(*) as row_count FROM {db}.{schema}.DT_3A_{prefix}_PREAGG;"
+                tests["row_count_dt3"] = f"SELECT COUNT(*) as row_count FROM {db}.{schema}.DT_3_{prefix}_MART;"
+                tests["row_count_progression"] = f"""
+-- Verify row count progression through pipeline
+WITH counts AS (
+    SELECT 'VW_1' as step, COUNT(*) as cnt FROM {db}.{schema}.VW_1_{prefix}_TRANSLATED
+    UNION ALL SELECT 'DT_2', COUNT(*) FROM {db}.{schema}.DT_2_{prefix}_GRANULARITY
+    UNION ALL SELECT 'DT_3A', COUNT(*) FROM {db}.{schema}.DT_3A_{prefix}_PREAGG
+    UNION ALL SELECT 'DT_3', COUNT(*) FROM {db}.{schema}.DT_3_{prefix}_MART
+)
+SELECT * FROM counts ORDER BY step;"""
+
+            if test_type in ["null_check", "all"]:
+                tests["null_check_keys"] = f"""
+-- Check for null surrogate keys in final mart
+SELECT COUNT(*) as null_key_count
+FROM {db}.{schema}.DT_3_{prefix}_MART
+WHERE SURROGATE_KEY IS NULL;"""
+
+            if test_type in ["formula_validation", "all"]:
+                tests["formula_gross_profit"] = f"""
+-- Validate Gross Profit = Revenue - Taxes - Deducts
+WITH calcs AS (
+    SELECT
+        FK_DATE_KEY,
+        SUM(CASE WHEN PRECEDENCE_GROUP = 'REVENUE' THEN {config.measure_prefix}AMOUNT ELSE 0 END) as revenue,
+        SUM(CASE WHEN PRECEDENCE_GROUP IN ('TAXES', 'DEDUCTS') THEN {config.measure_prefix}AMOUNT ELSE 0 END) as deductions,
+        SUM(CASE WHEN HIERARCHY_NAME = 'GROSS_PROFIT' THEN {config.measure_prefix}AMOUNT ELSE 0 END) as gross_profit
+    FROM {db}.{schema}.DT_3_{prefix}_MART
+    GROUP BY FK_DATE_KEY
+)
+SELECT *,
+    revenue - deductions as expected_gross_profit,
+    ABS(gross_profit - (revenue - deductions)) as variance
+FROM calcs
+WHERE ABS(gross_profit - (revenue - deductions)) > 0.01;"""
+
+            return {
+                "success": True,
+                "config_name": config_name,
+                "test_type": test_type,
+                "test_count": len(tests),
+                "tests": tests,
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to generate test queries: {e}")
+            return {"success": False, "error": str(e)}
+
+    @mcp.tool()
+    def wright_analyze_pipeline_health(
+        config_name: str,
+    ) -> Dict[str, Any]:
+        """
+        Analyze the health and completeness of a Wright pipeline configuration.
+
+        Args:
+            config_name: Name of the pipeline configuration
+
+        Returns:
+            Health report with issues, warnings, and recommendations
+        """
+        try:
+            config = _configs.get(config_name)
+            if not config:
+                return {"success": False, "error": f"Config not found: {config_name}"}
+
+            issues = []
+            warnings = []
+            recommendations = []
+            score = 100
+
+            # Check required fields
+            if not config.hierarchy_table:
+                issues.append("Missing hierarchy_table - pipeline cannot generate")
+                score -= 30
+            if not config.mapping_table:
+                issues.append("Missing mapping_table - pipeline cannot generate")
+                score -= 30
+
+            # Check join patterns
+            if not config.join_patterns:
+                warnings.append("No join patterns defined - DT_3A will be empty")
+                score -= 10
+            elif len(config.join_patterns) < 2:
+                recommendations.append("Consider adding more join patterns for comprehensive dimension coverage")
+
+            # Check feature flags
+            if not config.has_group_filter_precedence:
+                recommendations.append("Enable has_group_filter_precedence for multi-round filtering")
+            if not config.has_exclusions:
+                recommendations.append("Enable has_exclusions if you need to filter out specific categories")
+
+            # Check dynamic column map
+            if not config.dynamic_column_map:
+                warnings.append("No ID_SOURCE mappings defined - VW_1 CASE statement will be empty")
+                score -= 15
+
+            # Determine health status
+            if score >= 90:
+                status = "HEALTHY"
+            elif score >= 70:
+                status = "WARNING"
+            elif score >= 50:
+                status = "DEGRADED"
+            else:
+                status = "CRITICAL"
+
+            return {
+                "success": True,
+                "config_name": config_name,
+                "health_score": score,
+                "status": status,
+                "issue_count": len(issues),
+                "warning_count": len(warnings),
+                "issues": issues,
+                "warnings": warnings,
+                "recommendations": recommendations,
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to analyze pipeline health: {e}")
+            return {"success": False, "error": str(e)}
+
     # Return registration info
     return {
-        "tools_registered": 18,
+        "tools_registered": 21,
         "tools": [
             # Configuration Management
             "create_mart_config",
@@ -1113,6 +1322,10 @@ def register_mart_factory_tools(mcp, settings=None) -> Dict[str, Any]:
             # DDL Comparison (Phase 31)
             "compare_ddl_content",
             "compare_pipeline_to_baseline",
+            # Phase 31 Enhancements
+            "wright_version_pipeline",
+            "wright_generate_test_queries",
+            "wright_analyze_pipeline_health",
             # Utility
             "list_mart_configs",
         ],
