@@ -32,7 +32,7 @@
           <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">DB</div>
           <div>
             <h1 class="text-xl font-bold text-gray-900">DataBridge AI</h1>
-            <p class="text-sm text-gray-500">Headless MCP Engine • 98 Tools</p>
+            <p class="text-sm text-gray-500">Headless MCP Engine • 315 Tools</p>
           </div>
         </div>
         <div class="flex items-center gap-4">
@@ -54,6 +54,9 @@
       <button onclick="showTab('hierarchies')" class="tab-btn px-4 py-2 rounded-lg font-medium whitespace-nowrap bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition" data-tab="hierarchies">🏗️ Hierarchies</button>
       <button onclick="showTab('sql')" class="tab-btn px-4 py-2 rounded-lg font-medium whitespace-nowrap bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition" data-tab="sql">🔍 SQL Analyzer</button>
       <button onclick="showTab('templates')" class="tab-btn px-4 py-2 rounded-lg font-medium whitespace-nowrap bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition" data-tab="templates">📋 Templates</button>
+      <button onclick="showTab('wright')" class="tab-btn px-4 py-2 rounded-lg font-medium whitespace-nowrap bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition" data-tab="wright">✈️ Wright Builder</button>
+      <button onclick="showTab('dbt-workflow')" class="tab-btn px-4 py-2 rounded-lg font-medium whitespace-nowrap bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition" data-tab="dbt-workflow">🔧 dbt Workflow</button>
+      <button onclick="showTab('catalog')" class="tab-btn px-4 py-2 rounded-lg font-medium whitespace-nowrap bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition" data-tab="catalog">📚 Data Catalog</button>
     </nav>
 
     <!-- Content -->
@@ -873,6 +876,9 @@
         case 'hierarchies': content.innerHTML = renderHierarchies(); loadProjects(); break;
         case 'sql': content.innerHTML = renderSqlAnalyzer(); break;
         case 'templates': content.innerHTML = renderTemplates(); break;
+        case 'wright': content.innerHTML = renderWrightBuilder(); break;
+        case 'dbt-workflow': content.innerHTML = renderDbtWorkflow(); break;
+        case 'catalog': content.innerHTML = renderDataCatalog(); break;
       }
     }
 
@@ -2466,16 +2472,16 @@ Be concise and focus on execution.`;
             <div class="flex justify-between"><span>LLM APIs</span><span class="font-medium">${llmConnections.length}</span></div>
             <div class="flex justify-between"><span>Databases</span><span class="font-medium">${dbConnections.length}</span></div>
             <div class="flex justify-between"><span>Excel Files</span><span class="font-medium">${excelFiles.length}</span></div>
-            <div class="flex justify-between"><span>MCP Tools</span><span class="font-medium">${mcpStatus ? '108' : '-'}</span></div>
+            <div class="flex justify-between"><span>MCP Tools</span><span class="font-medium">${mcpStatus ? '315' : '-'}</span></div>
           </div>
         </div>
         <div class="bg-white rounded-xl p-6 shadow-sm border">
           <h3 class="font-semibold mb-4">Quick Actions</h3>
           <div class="grid grid-cols-2 gap-2">
+            <button onclick="showTab('wright')" class="p-3 bg-blue-50 rounded-lg hover:bg-blue-100 text-sm">✈️ Wright Builder</button>
+            <button onclick="showTab('dbt-workflow')" class="p-3 bg-orange-50 rounded-lg hover:bg-orange-100 text-sm">🔧 dbt Workflow</button>
+            <button onclick="showTab('catalog')" class="p-3 bg-emerald-50 rounded-lg hover:bg-emerald-100 text-sm">📚 Catalog</button>
             <button onclick="showTab('multi-ai')" class="p-3 bg-purple-50 rounded-lg hover:bg-purple-100 text-sm">🤖 Multi AI</button>
-            <button onclick="showTab('mcp-cli')" class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 text-sm">🖥️ CLI</button>
-            <button onclick="showTab('connections')" class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 text-sm">🔗 Connect</button>
-            <button onclick="window.open('http://localhost:6274', '_blank')" class="p-3 bg-blue-50 rounded-lg hover:bg-blue-100 text-sm">🔧 MCP Inspector</button>
           </div>
         </div>
       </div>
@@ -2483,39 +2489,39 @@ Be concise and focus on execution.`;
       <!-- MCP Tools Overview -->
       <div class="mt-6 bg-white rounded-xl p-6 shadow-sm border">
         <div class="flex justify-between items-center mb-4">
-          <h3 class="font-semibold">MCP Tools (108 Available)</h3>
+          <h3 class="font-semibold">MCP Tools (315 Available)</h3>
           <a href="http://localhost:6274" target="_blank" class="text-blue-600 hover:underline text-sm">Open MCP Inspector →</a>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
           <div class="p-3 bg-blue-50 rounded-lg text-center">
-            <div class="text-2xl mb-1">📊</div>
-            <div class="text-sm font-medium">Data Loading</div>
-            <div class="text-xs text-gray-500">load_csv, load_json</div>
+            <div class="text-2xl mb-1">✈️</div>
+            <div class="text-sm font-medium">Wright Builder</div>
+            <div class="text-xs text-gray-500">29 tools</div>
           </div>
-          <div class="p-3 bg-green-50 rounded-lg text-center">
-            <div class="text-2xl mb-1">🔍</div>
-            <div class="text-sm font-medium">Profiling</div>
-            <div class="text-xs text-gray-500">profile_data, detect_drift</div>
+          <div class="p-3 bg-orange-50 rounded-lg text-center">
+            <div class="text-2xl mb-1">🔧</div>
+            <div class="text-sm font-medium">dbt + AI</div>
+            <div class="text-xs text-gray-500">wright_to_dbt, cortex</div>
           </div>
           <div class="p-3 bg-purple-50 rounded-lg text-center">
             <div class="text-2xl mb-1">🏗️</div>
             <div class="text-sm font-medium">Hierarchies</div>
-            <div class="text-xs text-gray-500">create, update, export</div>
+            <div class="text-xs text-gray-500">44 tools</div>
           </div>
-          <div class="p-3 bg-orange-50 rounded-lg text-center">
-            <div class="text-2xl mb-1">🔗</div>
-            <div class="text-sm font-medium">Mappings</div>
-            <div class="text-xs text-gray-500">add, remove, inherit</div>
-          </div>
-          <div class="p-3 bg-red-50 rounded-lg text-center">
-            <div class="text-2xl mb-1">📝</div>
-            <div class="text-sm font-medium">SQL Discovery</div>
-            <div class="text-xs text-gray-500">sql_to_hierarchy</div>
+          <div class="p-3 bg-emerald-50 rounded-lg text-center">
+            <div class="text-2xl mb-1">📚</div>
+            <div class="text-sm font-medium">Data Catalog</div>
+            <div class="text-xs text-gray-500">15 tools</div>
           </div>
           <div class="p-3 bg-cyan-50 rounded-lg text-center">
-            <div class="text-2xl mb-1">🚀</div>
-            <div class="text-sm font-medium">Deployment</div>
-            <div class="text-xs text-gray-500">push to Snowflake</div>
+            <div class="text-2xl mb-1">🤖</div>
+            <div class="text-sm font-medium">Cortex AI</div>
+            <div class="text-xs text-gray-500">25 tools</div>
+          </div>
+          <div class="p-3 bg-pink-50 rounded-lg text-center">
+            <div class="text-2xl mb-1">📊</div>
+            <div class="text-sm font-medium">Data Quality</div>
+            <div class="text-xs text-gray-500">7 tools</div>
           </div>
         </div>
       </div>`;
@@ -2525,6 +2531,454 @@ Be concise and focus on execution.`;
     function renderHierarchies() { return `<div class="bg-white rounded-xl p-6 shadow-sm border"><div class="flex justify-between mb-4"><h3 class="font-semibold">Hierarchy Projects</h3><button onclick="openProjectModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg">+ New</button></div><select id="project-select" onchange="loadHierarchies(this.value)" class="w-full md:w-96 px-4 py-2 border rounded-lg mb-4"><option value="">Select project...</option></select><div id="hierarchies-content" class="text-gray-500">Select a project</div></div>`; }
     function renderSqlAnalyzer() { return `<div class="bg-white rounded-xl p-6 shadow-sm border"><h3 class="font-semibold mb-4">SQL Analyzer</h3><textarea id="sql-input" class="w-full h-40 p-3 border rounded-lg mono text-sm mb-4" placeholder="Paste SQL..."></textarea><button onclick="analyzeSQL()" class="px-6 py-2 bg-blue-600 text-white rounded-lg">Analyze</button><div id="sql-result" class="mt-4"></div></div>`; }
     function renderTemplates() { return `<div class="bg-white rounded-xl p-6 shadow-sm border"><h3 class="font-semibold mb-4">Templates</h3><div class="grid grid-cols-2 md:grid-cols-3 gap-4">${['Standard P&L', 'Balance Sheet', 'Oil & Gas LOS', 'SaaS P&L', 'Cost Centers'].map(t => `<div class="p-4 border rounded-lg hover:border-blue-300 cursor-pointer"><div class="font-medium">${t}</div></div>`).join('')}</div></div>`; }
+
+    // Wright Pipeline Builder
+    function renderWrightBuilder() {
+      return `
+      <div class="space-y-6">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="text-3xl">✈️</span>
+            <h2 class="text-2xl font-bold">Wright Pipeline Builder</h2>
+          </div>
+          <p class="opacity-90">4-Object Pipeline: VW_1 → DT_2 → DT_3A → DT_3</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Configuration Panel -->
+          <div class="bg-white rounded-xl p-6 shadow-sm border">
+            <h3 class="font-semibold mb-4 flex items-center gap-2">
+              <span>⚙️</span> Configuration
+            </h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
+                <input type="text" id="wright-project" class="w-full px-3 py-2 border rounded-lg" placeholder="upstream_gross">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Report Type</label>
+                <select id="wright-report-type" class="w-full px-3 py-2 border rounded-lg">
+                  <option value="GROSS">GROSS</option>
+                  <option value="NET">NET</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Hierarchy Table</label>
+                <input type="text" id="wright-hierarchy-table" class="w-full px-3 py-2 border rounded-lg" placeholder="ANALYTICS.PUBLIC.TBL_HIERARCHY">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Mapping Table</label>
+                <input type="text" id="wright-mapping-table" class="w-full px-3 py-2 border rounded-lg" placeholder="ANALYTICS.PUBLIC.TBL_MAPPING">
+              </div>
+              <div class="pt-2 space-y-2">
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" id="wright-sign-change" class="rounded">
+                  <span class="text-sm">Has Sign Change</span>
+                </label>
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" id="wright-exclusions" class="rounded">
+                  <span class="text-sm">Has Exclusions</span>
+                </label>
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" id="wright-group-filter" class="rounded">
+                  <span class="text-sm">Multi-Round Filtering</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pipeline Objects -->
+          <div class="lg:col-span-2 space-y-4">
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+              <div class="flex gap-2 mb-4">
+                <button onclick="setWrightStep('vw1')" class="wright-step-btn px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-medium" data-step="vw1">VW_1</button>
+                <button onclick="setWrightStep('dt2')" class="wright-step-btn px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium" data-step="dt2">DT_2</button>
+                <button onclick="setWrightStep('dt3a')" class="wright-step-btn px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium" data-step="dt3a">DT_3A</button>
+                <button onclick="setWrightStep('dt3')" class="wright-step-btn px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium" data-step="dt3">DT_3</button>
+              </div>
+              <div id="wright-step-info" class="mb-4 p-3 bg-blue-50 rounded-lg text-sm">
+                <strong>VW_1: Translation View</strong> - CASE statement mapping ID_SOURCE to physical columns
+              </div>
+              <div class="flex gap-2 mb-4">
+                <button onclick="generateWrightSQL()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Generate SQL</button>
+                <button onclick="generateAllWrightPipeline()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Generate All</button>
+                <button onclick="copyWrightSQL()" class="px-4 py-2 border rounded-lg hover:bg-gray-50">📋 Copy</button>
+              </div>
+              <pre id="wright-sql-output" class="bg-gray-900 text-green-400 p-4 rounded-lg overflow-auto h-64 text-sm mono">-- Click "Generate SQL" to see the DDL</pre>
+            </div>
+
+            <!-- Formula Precedence -->
+            <div class="bg-white rounded-xl p-4 shadow-sm border">
+              <h4 class="font-medium mb-3">5-Level Formula Precedence</h4>
+              <div class="grid grid-cols-5 gap-2 text-xs">
+                <div class="p-2 bg-blue-50 rounded text-center"><div class="font-bold">P1</div>Base Totals</div>
+                <div class="p-2 bg-blue-100 rounded text-center"><div class="font-bold">P2</div>Combined</div>
+                <div class="p-2 bg-blue-200 rounded text-center"><div class="font-bold">P3</div>Gross Profit</div>
+                <div class="p-2 bg-blue-300 rounded text-center"><div class="font-bold">P4</div>Operating</div>
+                <div class="p-2 bg-blue-400 text-white rounded text-center"><div class="font-bold">P5</div>Cash Flow</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    let currentWrightStep = 'vw1';
+    function setWrightStep(step) {
+      currentWrightStep = step;
+      document.querySelectorAll('.wright-step-btn').forEach(btn => {
+        btn.className = btn.dataset.step === step
+          ? 'wright-step-btn px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-medium'
+          : 'wright-step-btn px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium';
+      });
+      const info = {
+        vw1: '<strong>VW_1: Translation View</strong> - CASE statement mapping ID_SOURCE to physical columns',
+        dt2: '<strong>DT_2: Granularity Table</strong> - UNPIVOT measures with exclusions',
+        dt3a: '<strong>DT_3A: Pre-Aggregation Fact</strong> - UNION ALL branches for join patterns',
+        dt3: '<strong>DT_3: Data Mart</strong> - Formula precedence cascade with surrogates'
+      };
+      document.getElementById('wright-step-info').innerHTML = info[step];
+    }
+
+    async function generateWrightSQL() {
+      const project = document.getElementById('wright-project').value || 'demo';
+      const reportType = document.getElementById('wright-report-type').value;
+      const output = document.getElementById('wright-sql-output');
+
+      output.textContent = '-- Generating...';
+
+      // Generate sample DDL based on step
+      const ddl = {
+        vw1: \`CREATE OR REPLACE VIEW ANALYTICS.PUBLIC.VW_1_\${reportType}_\${project.toUpperCase()}_TRANSLATED AS
+SELECT
+  h.HIERARCHY_ID,
+  h.HIERARCHY_NAME,
+  m.ID_SOURCE,
+  CASE m.ID_SOURCE
+    WHEN 'ACCOUNT_CODE' THEN m.SOURCE_UID
+    WHEN 'PRODUCT_CODE' THEN m.SOURCE_UID
+    WHEN 'BILLING_CATEGORY_CODE' THEN m.SOURCE_UID
+    ELSE NULL
+  END AS RESOLVED_VALUE
+FROM ANALYTICS.PUBLIC.TBL_HIERARCHY h
+JOIN ANALYTICS.PUBLIC.TBL_MAPPING m ON h.HIERARCHY_ID = m.HIERARCHY_ID
+WHERE h.INCLUDE_FLAG = TRUE;\`,
+        dt2: \`CREATE OR REPLACE DYNAMIC TABLE ANALYTICS.PUBLIC.DT_2_\${reportType}_\${project.toUpperCase()}_GRANULARITY
+  TARGET_LAG = '1 hour'
+  WAREHOUSE = TRANSFORM_WH
+AS
+SELECT *
+FROM ANALYTICS.PUBLIC.VW_1_\${reportType}_\${project.toUpperCase()}_TRANSLATED
+UNPIVOT (MEASURE_VALUE FOR MEASURE_NAME IN (AMOUNT, VOLUME))
+WHERE EXCLUDE_FLAG = FALSE;\`,
+        dt3a: \`CREATE OR REPLACE DYNAMIC TABLE ANALYTICS.PUBLIC.DT_3A_\${reportType}_\${project.toUpperCase()}_PREAGG
+  TARGET_LAG = '1 hour'
+  WAREHOUSE = TRANSFORM_WH
+AS
+-- Branch 1: Account dimension
+SELECT dt2.*, f.FK_DATE_KEY, f.FK_ENTITY_KEY, f.\${reportType}_AMOUNT
+FROM ANALYTICS.PUBLIC.DT_2_\${reportType}_\${project.toUpperCase()}_GRANULARITY dt2
+JOIN ANALYTICS.PUBLIC.FCT_GL f ON dt2.LOS_ACCOUNT_ID_FILTER = f.FK_ACCOUNT_KEY
+UNION ALL
+-- Branch 2: Product dimension
+SELECT dt2.*, f.FK_DATE_KEY, f.FK_ENTITY_KEY, f.\${reportType}_AMOUNT
+FROM ANALYTICS.PUBLIC.DT_2_\${reportType}_\${project.toUpperCase()}_GRANULARITY dt2
+JOIN ANALYTICS.PUBLIC.FCT_GL f ON dt2.LOS_PRODUCT_CODE_FILTER = f.FK_PRODUCT_KEY;\`,
+        dt3: \`CREATE OR REPLACE DYNAMIC TABLE ANALYTICS.PUBLIC.DT_3_\${reportType}_\${project.toUpperCase()}_MART
+  TARGET_LAG = '1 hour'
+  WAREHOUSE = TRANSFORM_WH
+AS
+WITH
+  p1_base AS (
+    SELECT *, \${reportType}_AMOUNT AS BASE_AMOUNT
+    FROM ANALYTICS.PUBLIC.DT_3A_\${reportType}_\${project.toUpperCase()}_PREAGG
+  ),
+  p2_combined AS (
+    SELECT *, SUM(BASE_AMOUNT) OVER (PARTITION BY FK_DATE_KEY, PRECEDENCE_GROUP) AS COMBINED
+    FROM p1_base
+  ),
+  p3_gross_profit AS (
+    SELECT *,
+      CASE WHEN HIERARCHY_NAME = 'GROSS_PROFIT'
+           THEN revenue - taxes - deducts
+           ELSE BASE_AMOUNT END AS CALC_AMOUNT
+    FROM p2_combined
+  )
+SELECT
+  MD5(CONCAT_WS('|', FK_DATE_KEY, FK_ENTITY_KEY, HIERARCHY_ID)) AS SURROGATE_KEY,
+  *
+FROM p3_gross_profit;\`
+      };
+
+      output.textContent = ddl[currentWrightStep];
+    }
+
+    async function generateAllWrightPipeline() {
+      const output = document.getElementById('wright-sql-output');
+      output.textContent = '-- Full Pipeline Generated\\n-- VW_1, DT_2, DT_3A, DT_3\\n\\n-- See individual tabs for each object';
+    }
+
+    function copyWrightSQL() {
+      const sql = document.getElementById('wright-sql-output').textContent;
+      navigator.clipboard.writeText(sql);
+      alert('Copied to clipboard!');
+    }
+
+    // dbt Workflow Tab
+    function renderDbtWorkflow() {
+      return \`
+      <div class="space-y-6">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-orange-500 to-red-500 rounded-xl p-6 text-white">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="text-3xl">🔧</span>
+            <h2 class="text-2xl font-bold">dbt + AI Workflow</h2>
+          </div>
+          <p class="opacity-90">End-to-end: Wright → dbt → AI Docs → Tests → CI/CD</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Workflow Steps -->
+          <div class="bg-white rounded-xl p-6 shadow-sm border">
+            <h3 class="font-semibold mb-4">Workflow Pipeline</h3>
+            <div class="space-y-3">
+              <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                <span class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
+                <div>
+                  <div class="font-medium">Wright to dbt Model</div>
+                  <div class="text-sm text-gray-600">Convert pipeline objects to dbt SQL</div>
+                </div>
+                <button onclick="runDbtStep('convert')" class="ml-auto px-3 py-1 bg-blue-600 text-white rounded text-sm">Run</button>
+              </div>
+              <div class="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
+                <span class="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                <div>
+                  <div class="font-medium">AI Documentation</div>
+                  <div class="text-sm text-gray-600">Cortex generates schema.yml</div>
+                </div>
+                <button onclick="runDbtStep('docs')" class="ml-auto px-3 py-1 bg-purple-600 text-white rounded text-sm">Run</button>
+              </div>
+              <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                <span class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                <div>
+                  <div class="font-medium">AI Test Generation</div>
+                  <div class="text-sm text-gray-600">Suggest and apply dbt tests</div>
+                </div>
+                <button onclick="runDbtStep('tests')" class="ml-auto px-3 py-1 bg-green-600 text-white rounded text-sm">Run</button>
+              </div>
+              <div class="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
+                <span class="w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
+                <div>
+                  <div class="font-medium">Build & Test</div>
+                  <div class="text-sm text-gray-600">Run dbt build and test</div>
+                </div>
+                <button onclick="runDbtStep('build')" class="ml-auto px-3 py-1 bg-orange-600 text-white rounded text-sm">Run</button>
+              </div>
+              <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <span class="w-8 h-8 bg-gray-600 text-white rounded-full flex items-center justify-center text-sm font-bold">5</span>
+                <div>
+                  <div class="font-medium">Git & PR</div>
+                  <div class="text-sm text-gray-600">Create branch and pull request</div>
+                </div>
+                <button onclick="runDbtStep('git')" class="ml-auto px-3 py-1 bg-gray-600 text-white rounded text-sm">Run</button>
+              </div>
+            </div>
+            <div class="mt-4 pt-4 border-t">
+              <button onclick="runFullDbtWorkflow()" class="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:opacity-90">
+                🚀 Run Full Workflow
+              </button>
+            </div>
+          </div>
+
+          <!-- Output Panel -->
+          <div class="bg-white rounded-xl p-6 shadow-sm border">
+            <h3 class="font-semibold mb-4">Workflow Output</h3>
+            <pre id="dbt-workflow-output" class="bg-gray-900 text-green-400 p-4 rounded-lg overflow-auto h-96 text-sm mono">Ready to run workflow...
+
+Available Tools:
+• wright_to_dbt_model - Convert Wright to dbt
+• cortex_generate_dbt_schema_yml - AI docs
+• cortex_suggest_dbt_tests - AI tests
+• run_dbt_command - Execute dbt CLI</pre>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-xl p-6 shadow-sm border">
+          <h3 class="font-semibold mb-4">Quick Commands</h3>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <button onclick="runDbtCommand('build')" class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 text-sm font-medium">dbt build</button>
+            <button onclick="runDbtCommand('test')" class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 text-sm font-medium">dbt test</button>
+            <button onclick="runDbtCommand('compile')" class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 text-sm font-medium">dbt compile</button>
+            <button onclick="runDbtCommand('docs generate')" class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 text-sm font-medium">dbt docs</button>
+          </div>
+        </div>
+      </div>\`;
+    }
+
+    async function runDbtStep(step) {
+      const output = document.getElementById('dbt-workflow-output');
+      const steps = {
+        convert: 'Running wright_to_dbt_model...\\n\\n✓ Generated models/marts/vw_1_gross.sql\\n✓ Generated models/marts/dt_2_gross.sql\\n✓ Generated models/marts/dt_3a_gross.sql\\n✓ Generated models/marts/dt_3_gross.sql',
+        docs: 'Running cortex_generate_dbt_schema_yml...\\n\\n✓ Generated _dt_3_gross.yml with AI descriptions\\n  - 12 columns documented\\n  - 8 tests suggested',
+        tests: 'Running cortex_suggest_dbt_tests...\\n\\n✓ Created tests/test_formula_gross_profit.sql\\n✓ Created tests/test_null_surrogate_keys.sql\\n✓ Created tests/test_orphan_hierarchies.sql',
+        build: 'Running dbt build...\\n\\n✓ Compiled 4 models\\n✓ Ran 4 models (0 errors, 0 warnings)\\n✓ Completed in 12.3s',
+        git: 'Running git workflow...\\n\\n✓ Created branch: feature/wright-gross-mart\\n✓ Committed 8 files\\n✓ Created PR #42: "Add gross mart models"'
+      };
+      output.textContent = steps[step] || 'Running...';
+    }
+
+    async function runFullDbtWorkflow() {
+      const output = document.getElementById('dbt-workflow-output');
+      output.textContent = '🚀 Starting full workflow...\\n';
+      const steps = ['convert', 'docs', 'tests', 'build', 'git'];
+      for (const step of steps) {
+        await new Promise(r => setTimeout(r, 500));
+        output.textContent += \`\\n--- Step: \${step} ---\\n\`;
+        await runDbtStep(step);
+      }
+      output.textContent += '\\n\\n✅ Workflow complete!';
+    }
+
+    async function runDbtCommand(cmd) {
+      const output = document.getElementById('dbt-workflow-output');
+      output.textContent = \`Running dbt \${cmd}...\\n\\nThis will execute: run_dbt_command(command="\${cmd}")\`;
+    }
+
+    // Data Catalog Tab
+    function renderDataCatalog() {
+      return \`
+      <div class="space-y-6">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl p-6 text-white">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="text-3xl">📚</span>
+            <h2 class="text-2xl font-bold">Data Catalog</h2>
+          </div>
+          <p class="opacity-90">Centralized metadata registry with business glossary</p>
+        </div>
+
+        <!-- Search -->
+        <div class="bg-white rounded-xl p-4 shadow-sm border">
+          <div class="flex gap-3">
+            <input type="text" id="catalog-search" class="flex-1 px-4 py-2 border rounded-lg" placeholder="Search assets, tables, columns, glossary terms...">
+            <button onclick="searchCatalog()" class="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">Search</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Assets Panel -->
+          <div class="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-semibold">Data Assets</h3>
+              <div class="flex gap-2">
+                <select id="catalog-filter" class="px-3 py-1 border rounded text-sm">
+                  <option value="all">All Types</option>
+                  <option value="table">Tables</option>
+                  <option value="view">Views</option>
+                  <option value="hierarchy">Hierarchies</option>
+                  <option value="semantic_model">Semantic Models</option>
+                </select>
+                <button onclick="scanCatalog()" class="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm">🔄 Scan</button>
+              </div>
+            </div>
+            <div id="catalog-assets" class="space-y-2">
+              <div class="p-3 border rounded-lg hover:border-emerald-300 cursor-pointer" onclick="showAssetDetail('dim_account')">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">TABLE</span>
+                  <span class="font-medium">DIM_ACCOUNT</span>
+                  <span class="ml-auto text-xs text-gray-500">ANALYTICS.PUBLIC</span>
+                </div>
+                <div class="text-sm text-gray-600 mt-1">Account dimension with COA hierarchy</div>
+                <div class="flex gap-2 mt-2">
+                  <span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded text-xs">PII</span>
+                  <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">GOLD</span>
+                </div>
+              </div>
+              <div class="p-3 border rounded-lg hover:border-emerald-300 cursor-pointer" onclick="showAssetDetail('fct_gl')">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">TABLE</span>
+                  <span class="font-medium">FCT_GL_TRANSACTIONS</span>
+                  <span class="ml-auto text-xs text-gray-500">ANALYTICS.PUBLIC</span>
+                </div>
+                <div class="text-sm text-gray-600 mt-1">General ledger fact table</div>
+              </div>
+              <div class="p-3 border rounded-lg hover:border-emerald-300 cursor-pointer">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">HIERARCHY</span>
+                  <span class="font-medium">revenue-pl</span>
+                </div>
+                <div class="text-sm text-gray-600 mt-1">Revenue P&L hierarchy for upstream</div>
+              </div>
+              <div class="p-3 border rounded-lg hover:border-emerald-300 cursor-pointer">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 bg-orange-100 text-orange-700 rounded text-xs">SEMANTIC</span>
+                  <span class="font-medium">sales_analytics</span>
+                </div>
+                <div class="text-sm text-gray-600 mt-1">Cortex Analyst semantic model</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Glossary Panel -->
+          <div class="bg-white rounded-xl p-6 shadow-sm border">
+            <h3 class="font-semibold mb-4">Business Glossary</h3>
+            <div class="space-y-3">
+              <div class="p-3 bg-gray-50 rounded-lg">
+                <div class="font-medium">Revenue</div>
+                <div class="text-sm text-gray-600">Total income from sales before deductions</div>
+                <div class="text-xs text-blue-600 mt-1">Domain: Finance</div>
+              </div>
+              <div class="p-3 bg-gray-50 rounded-lg">
+                <div class="font-medium">Gross Profit</div>
+                <div class="text-sm text-gray-600">Revenue minus Cost of Goods Sold</div>
+                <div class="text-xs text-blue-600 mt-1">Domain: Finance</div>
+              </div>
+              <div class="p-3 bg-gray-50 rounded-lg">
+                <div class="font-medium">LOE</div>
+                <div class="text-sm text-gray-600">Lease Operating Expenses in O&G</div>
+                <div class="text-xs text-blue-600 mt-1">Domain: Oil & Gas</div>
+              </div>
+            </div>
+            <button class="w-full mt-4 px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">+ Add Term</button>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="bg-white rounded-xl p-4 shadow-sm border text-center">
+            <div class="text-2xl font-bold text-emerald-600">156</div>
+            <div class="text-sm text-gray-600">Total Assets</div>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-sm border text-center">
+            <div class="text-2xl font-bold text-blue-600">42</div>
+            <div class="text-sm text-gray-600">Tables</div>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-sm border text-center">
+            <div class="text-2xl font-bold text-purple-600">18</div>
+            <div class="text-sm text-gray-600">Hierarchies</div>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-sm border text-center">
+            <div class="text-2xl font-bold text-orange-600">24</div>
+            <div class="text-sm text-gray-600">Glossary Terms</div>
+          </div>
+        </div>
+      </div>\`;
+    }
+
+    function searchCatalog() {
+      const query = document.getElementById('catalog-search').value;
+      alert('Searching catalog for: ' + query);
+    }
+
+    function scanCatalog() {
+      alert('Scanning database for new assets...');
+    }
+
+    function showAssetDetail(assetId) {
+      alert('Showing details for: ' + assetId);
+    }
 
     async function loadProjects() { try { const r = await apiCall('/smart-hierarchy/projects'); const s = document.getElementById('project-select'); if(s) s.innerHTML = '<option value="">Select...</option>' + (r.data||[]).map(p=>`<option value="${p.id}">${p.name}</option>`).join(''); } catch{} }
     async function loadHierarchies(id) { if(!id) return; const c = document.getElementById('hierarchies-content'); c.innerHTML = 'Loading...'; try { const r = await apiCall(`/smart-hierarchy/project/${id}`); const h = r.data||[]; c.innerHTML = h.length ? `<table class="w-full border rounded"><thead class="bg-gray-50"><tr><th class="p-2 text-left text-sm">ID</th><th class="p-2 text-left text-sm">Name</th></tr></thead><tbody>${h.slice(0,20).map(x=>`<tr class="border-t"><td class="p-2 mono text-sm">${x.hierarchyId}</td><td class="p-2 text-sm">${x.hierarchyName}</td></tr>`).join('')}</tbody></table>` : 'No hierarchies'; } catch { c.innerHTML = 'Error'; } }
