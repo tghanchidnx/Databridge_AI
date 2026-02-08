@@ -23,7 +23,7 @@ sys.path.insert(0, str(databridge_ce_dir))
 app = Flask(__name__, template_folder=str(ui_dir), static_folder=str(ui_dir))
 
 # Configuration
-TOOL_COUNT = 287  # Current tool count
+TOOL_COUNT = 292  # Current tool count
 PROJECTS_DIR = project_root / 'use_cases_by_claude'
 BOOK_PROJECTS_DIR = project_root / 'Book' / 'use_cases'
 CLAUDE_MD_PATH = project_root / 'CLAUDE.md'

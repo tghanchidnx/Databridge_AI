@@ -761,7 +761,7 @@
                     <span>MCP: Connected</span>
                 </div>
                 <div class="status-item">
-                    <span id="toolCountHeader">287</span> tools
+                    <span id="toolCountHeader">292</span> tools
                 </div>
             </div>
         </header>
@@ -816,7 +816,7 @@
                 <h1 class="page-header">📊 Dashboard</h1>
                 <div class="stat-grid">
                     <div class="stat-card accent">
-                        <div class="stat-value" id="toolCount">287</div>
+                        <div class="stat-value" id="toolCount">292</div>
                         <div class="stat-label">MCP Tools</div>
                     </div>
                     <div class="stat-card primary">
@@ -1058,7 +1058,7 @@ Ready to process requests. Type a query below or use Quick Actions.</div>
                     <div id="overview-tab" class="tab-content active">
                         <div class="doc-section">
                             <h3>DataBridge AI v0.32.0</h3>
-                            <p>A headless, MCP-native data reconciliation engine with <strong>287 MCP tools</strong> across twenty major modules.</p>
+                            <p>A headless, MCP-native data reconciliation engine with <strong>292 MCP tools</strong> across twenty major modules.</p>
 
                             <div class="card" style="margin-top: 20px;">
                                 <h4 style="color: var(--success);">Core Capabilities</h4>
@@ -1107,7 +1107,7 @@ graph TD
                     <!-- Tools Tab -->
                     <div id="tools-tab" class="tab-content">
                         <div class="doc-section">
-                            <h3>Tool Categories (287 Tools)</h3>
+                            <h3>Tool Categories (292 Tools)</h3>
 
                             <div class="tool-category">
                                 <h4>📂 File Discovery & Staging (3 tools)</h4>
@@ -1359,8 +1359,8 @@ print(f"Loaded {len(tools)} tools")
         try {
             const resp = await fetch('/api/dashboard/stats');
             const data = await resp.json();
-            document.getElementById('toolCount').textContent = data.tool_count || '287';
-            document.getElementById('toolCountHeader').textContent = data.tool_count || '287';
+            document.getElementById('toolCount').textContent = data.tool_count || '292';
+            document.getElementById('toolCountHeader').textContent = data.tool_count || '292';
             document.getElementById('projectCount').textContent = data.project_count || '0';
             document.getElementById('workflowSteps').textContent = data.workflow_steps || '0';
 
