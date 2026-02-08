@@ -281,6 +281,17 @@ validate_hierarchy_data_quality(project_id="upstream_gross")
 normalize_id_source_values(project_id="upstream_gross")
 ```
 
+**Wright Pipeline Builder UI** (http://localhost:5050 → ✈️ Wright Builder):
+
+| Tab | Configurable Dropdowns | Generated SQL |
+|-----|----------------------|---------------|
+| VW_1 | ID_SOURCE mappings, Additional columns | Translation View with CASE |
+| DT_2 | Unpivot measures, Exclusion categories | Granularity with UNPIVOT |
+| DT_3A | Join patterns (dynamic add/remove) | Pre-Agg with UNION ALL |
+| DT_3 | Formula precedence, Dimension keys | Data Mart with cascade |
+
+Features: Generate per-step, Copy to clipboard, Export SQL bundle, Save config to localStorage.
+
 ---
 
 ### 11. dbt Integration (8 tools)
