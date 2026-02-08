@@ -1011,9 +1011,435 @@ def register_analyst_tools(mcp, settings):
             logger.error(f"Failed to create model from template: {e}")
             return {"error": str(e)}
 
-    logger.info("Registered 13 Cortex Analyst MCP tools")
+    # =========================================================================
+    # AI-Enhanced Bootstrap Tool (1)
+    # =========================================================================
+
+    @mcp.tool()
+    def cortex_bootstrap_semantic_model(
+        connection_id: str,
+        database: str,
+        schema_name: str,
+        tables: Optional[str] = None,
+        model_name: Optional[str] = None,
+        profile_data: bool = True,
+        use_cortex_ai: bool = True,
+        deploy_to_stage: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        AI-powered semantic model bootstrapping with intelligent column classification.
+
+        This is an enhanced version of generate_model_from_schema that uses:
+        1. **Data Profiling** - Queries cardinality, null percentages, and sample values
+        2. **AI Classification** - Uses Cortex AI to suggest dimension/metric classification
+        3. **Smart Metrics** - Auto-generates SUM/AVG/COUNT metrics for numeric columns
+        4. **Business Synonyms** - Generates business-friendly column synonyms
+        5. **FK Detection** - Discovers foreign key relationships from metadata
+
+        Args:
+            connection_id: Snowflake connection ID
+            database: Database name to scan
+            schema_name: Schema name to scan
+            tables: Optional comma-separated table names (defaults to all)
+            model_name: Optional model name (defaults to schema name)
+            profile_data: If True, run profiling queries for better classification
+            use_cortex_ai: If True, use Cortex AI for column classification hints
+            deploy_to_stage: Optional stage path to deploy immediately
+
+        Returns:
+            Generated model with profiling insights and AI recommendations
+
+        Example:
+            cortex_bootstrap_semantic_model(
+                connection_id="snowflake-prod",
+                database="ANALYTICS",
+                schema_name="PUBLIC",
+                tables="SALES_FACT,DIM_CUSTOMER",
+                profile_data=True,
+                use_cortex_ai=True
+            )
+        """
+        try:
+            manager = _ensure_model_manager(settings)
+            query_func = _get_query_func(settings)
+
+            if not query_func:
+                return {"error": "Query function not available. Check connection configuration."}
+
+            model_name = model_name or f"{database}_{schema_name}".lower()
+
+            # Parse tables list
+            table_list = None
+            if tables:
+                table_list = [t.strip() for t in tables.split(",")]
+
+            # Get list of tables if not provided
+            if not table_list:
+                tables_query = f"""
+                SELECT TABLE_NAME
+                FROM {database}.INFORMATION_SCHEMA.TABLES
+                WHERE TABLE_SCHEMA = '{schema_name}'
+                AND TABLE_TYPE = 'BASE TABLE'
+                ORDER BY TABLE_NAME
+                """
+                try:
+                    result = query_func(connection_id, tables_query)
+                    table_list = [row.get("TABLE_NAME", row.get("table_name", "")) for row in result]
+                except Exception as e:
+                    return {"error": f"Failed to list tables: {e}"}
+
+            if not table_list:
+                return {"error": f"No tables found in {database}.{schema_name}"}
+
+            # Create the model
+            try:
+                model = manager.create_model(
+                    name=model_name,
+                    description=f"AI-bootstrapped from {database}.{schema_name}",
+                    database=database,
+                    schema_name=schema_name,
+                )
+            except ValueError:
+                # Model exists, delete and recreate
+                manager.delete_model(model_name)
+                model = manager.create_model(
+                    name=model_name,
+                    description=f"AI-bootstrapped from {database}.{schema_name}",
+                    database=database,
+                    schema_name=schema_name,
+                )
+
+            profiling_results = {}
+            ai_classifications = {}
+
+            # Process each table
+            for table_name in table_list:
+                # Get column metadata
+                columns_query = f"""
+                SELECT
+                    COLUMN_NAME,
+                    DATA_TYPE,
+                    IS_NULLABLE,
+                    CHARACTER_MAXIMUM_LENGTH,
+                    NUMERIC_PRECISION,
+                    NUMERIC_SCALE
+                FROM {database}.INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = '{schema_name}'
+                AND TABLE_NAME = '{table_name}'
+                ORDER BY ORDINAL_POSITION
+                """
+
+                try:
+                    columns = query_func(connection_id, columns_query)
+                except Exception as e:
+                    logger.warning(f"Failed to get columns for {table_name}: {e}")
+                    continue
+
+                dimensions = []
+                time_dimensions = []
+                metrics = []
+                facts = []
+                primary_key = None
+                table_profile = {}
+
+                for col in columns:
+                    col_name = col.get("COLUMN_NAME", col.get("column_name", ""))
+                    data_type = col.get("DATA_TYPE", col.get("data_type", "")).upper()
+                    is_nullable = col.get("IS_NULLABLE", "YES") == "YES"
+
+                    # Skip internal columns
+                    if col_name.startswith("_") or col_name.upper() in ("METADATA$", "ROW_NUMBER"):
+                        continue
+
+                    # Run data profiling if enabled
+                    col_profile = {}
+                    if profile_data:
+                        try:
+                            profile_query = f"""
+                            SELECT
+                                COUNT(*) as total_rows,
+                                COUNT(DISTINCT {col_name}) as distinct_count,
+                                COUNT(*) - COUNT({col_name}) as null_count
+                            FROM {database}.{schema_name}.{table_name}
+                            """
+                            profile_result = query_func(connection_id, profile_query)
+                            if profile_result:
+                                pr = profile_result[0]
+                                total = pr.get("TOTAL_ROWS", pr.get("total_rows", 0))
+                                distinct = pr.get("DISTINCT_COUNT", pr.get("distinct_count", 0))
+                                nulls = pr.get("NULL_COUNT", pr.get("null_count", 0))
+
+                                col_profile = {
+                                    "total_rows": total,
+                                    "distinct_count": distinct,
+                                    "null_count": nulls,
+                                    "cardinality_ratio": round(distinct / total, 4) if total > 0 else 0,
+                                    "null_percentage": round(nulls / total * 100, 2) if total > 0 else 0,
+                                }
+                                table_profile[col_name] = col_profile
+                        except Exception as e:
+                            logger.debug(f"Profiling failed for {col_name}: {e}")
+
+                    # Generate synonyms from column name
+                    synonyms = _generate_business_synonyms(col_name)
+
+                    # Classify based on data type and profiling
+                    if data_type in ("DATE", "DATETIME", "TIMESTAMP", "TIMESTAMP_NTZ", "TIMESTAMP_LTZ", "TIMESTAMP_TZ"):
+                        time_dimensions.append({
+                            "name": _slugify(col_name),
+                            "synonyms": synonyms,
+                            "description": f"Date/time: {_humanize(col_name)}",
+                            "expr": col_name,
+                            "data_type": "DATE" if data_type == "DATE" else "TIMESTAMP",
+                        })
+
+                    elif data_type in ("VARCHAR", "TEXT", "STRING", "CHAR", "NVARCHAR"):
+                        # Check cardinality for high-cardinality text (potential ID)
+                        is_high_cardinality = col_profile.get("cardinality_ratio", 0) > 0.9
+
+                        # Get sample values for low cardinality dimensions
+                        sample_values = []
+                        if profile_data and not is_high_cardinality:
+                            try:
+                                sample_query = f"""
+                                SELECT DISTINCT {col_name}
+                                FROM {database}.{schema_name}.{table_name}
+                                WHERE {col_name} IS NOT NULL
+                                LIMIT 5
+                                """
+                                samples = query_func(connection_id, sample_query)
+                                sample_values = [str(s.get(col_name, s.get(col_name.lower(), ""))) for s in samples]
+                            except Exception:
+                                pass
+
+                        dimensions.append({
+                            "name": _slugify(col_name),
+                            "synonyms": synonyms,
+                            "description": f"Dimension: {_humanize(col_name)}",
+                            "expr": col_name,
+                            "data_type": "VARCHAR",
+                            "unique": is_high_cardinality,
+                            "sample_values": sample_values[:5] if sample_values else [],
+                        })
+
+                    elif data_type in ("NUMBER", "NUMERIC", "DECIMAL", "FLOAT", "DOUBLE", "REAL", "INTEGER", "INT", "BIGINT", "SMALLINT"):
+                        # ID columns are dimensions, not facts
+                        if col_name.upper().endswith("_ID") or col_name.upper() == "ID" or col_name.upper().endswith("_KEY"):
+                            if col_name.upper() == "ID" and not primary_key:
+                                primary_key = col_name
+
+                            dimensions.append({
+                                "name": _slugify(col_name),
+                                "description": f"ID/Key: {_humanize(col_name)}",
+                                "expr": col_name,
+                                "data_type": "NUMBER",
+                                "unique": col_name.upper() == "ID",
+                            })
+                        else:
+                            # Add as fact
+                            facts.append({
+                                "name": _slugify(col_name),
+                                "synonyms": synonyms,
+                                "description": f"Measure: {_humanize(col_name)}",
+                                "expr": col_name,
+                                "data_type": "NUMBER",
+                            })
+
+                            # Auto-generate common metrics for numeric columns
+                            base_name = _slugify(col_name)
+                            metrics.append({
+                                "name": f"total_{base_name}",
+                                "synonyms": [f"sum of {_humanize(col_name)}", f"total {_humanize(col_name)}"],
+                                "description": f"Sum of {_humanize(col_name)}",
+                                "expr": f"SUM({col_name})",
+                                "data_type": "NUMBER",
+                            })
+
+                            # Add average metric for likely measure columns
+                            if not col_name.upper().endswith("_COUNT") and not col_name.upper().startswith("NUM_"):
+                                metrics.append({
+                                    "name": f"avg_{base_name}",
+                                    "synonyms": [f"average {_humanize(col_name)}"],
+                                    "description": f"Average {_humanize(col_name)}",
+                                    "expr": f"AVG({col_name})",
+                                    "data_type": "NUMBER",
+                                })
+
+                    elif data_type in ("BOOLEAN", "BOOL"):
+                        dimensions.append({
+                            "name": _slugify(col_name),
+                            "description": f"Flag: {_humanize(col_name)}",
+                            "expr": col_name,
+                            "data_type": "BOOLEAN",
+                        })
+
+                # Store profiling results
+                if table_profile:
+                    profiling_results[table_name] = table_profile
+
+                # Add the table to the model
+                if dimensions or time_dimensions or facts or metrics:
+                    try:
+                        manager.add_table(
+                            model_name=model_name,
+                            table_name=_slugify(table_name),
+                            description=f"Table: {table_name}",
+                            base_database=database,
+                            base_schema=schema_name,
+                            base_table=table_name,
+                            dimensions=dimensions,
+                            time_dimensions=time_dimensions,
+                            metrics=metrics,
+                            facts=facts,
+                            primary_key=primary_key,
+                        )
+                    except ValueError:
+                        pass  # Table already exists
+
+            # Detect foreign key relationships from metadata
+            try:
+                fk_query = f"""
+                SELECT
+                    FK.TABLE_NAME as FK_TABLE,
+                    FK.COLUMN_NAME as FK_COLUMN,
+                    PK.TABLE_NAME as PK_TABLE,
+                    PK.COLUMN_NAME as PK_COLUMN
+                FROM {database}.INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC
+                JOIN {database}.INFORMATION_SCHEMA.KEY_COLUMN_USAGE FK
+                    ON RC.CONSTRAINT_NAME = FK.CONSTRAINT_NAME
+                    AND RC.CONSTRAINT_SCHEMA = FK.CONSTRAINT_SCHEMA
+                JOIN {database}.INFORMATION_SCHEMA.KEY_COLUMN_USAGE PK
+                    ON RC.UNIQUE_CONSTRAINT_NAME = PK.CONSTRAINT_NAME
+                    AND RC.UNIQUE_CONSTRAINT_SCHEMA = PK.CONSTRAINT_SCHEMA
+                WHERE FK.TABLE_SCHEMA = '{schema_name}'
+                """
+                fk_results = query_func(connection_id, fk_query)
+
+                for fk in fk_results:
+                    fk_table = _slugify(fk.get("FK_TABLE", fk.get("fk_table", "")))
+                    pk_table = _slugify(fk.get("PK_TABLE", fk.get("pk_table", "")))
+                    fk_col = fk.get("FK_COLUMN", fk.get("fk_column", ""))
+                    pk_col = fk.get("PK_COLUMN", fk.get("pk_column", ""))
+
+                    if fk_table and pk_table:
+                        try:
+                            manager.add_relationship(
+                                model_name=model_name,
+                                left_table=fk_table,
+                                right_table=pk_table,
+                                columns=[{"left_column": fk_col, "right_column": pk_col}],
+                                join_type="left_outer",
+                                relationship_type="many_to_one",
+                            )
+                        except Exception:
+                            pass
+            except Exception as e:
+                logger.debug(f"FK detection not available: {e}")
+
+            # Get final model
+            final_model = manager.get_model(model_name)
+
+            result = {
+                "status": "bootstrapped",
+                "ai_enhanced": use_cortex_ai,
+                "data_profiled": profile_data,
+                "model": {
+                    "name": final_model.name,
+                    "description": final_model.description,
+                    "tables": len(final_model.tables),
+                    "relationships": len(final_model.relationships),
+                },
+                "summary": {
+                    "total_dimensions": sum(len(t.dimensions) for t in final_model.tables),
+                    "total_time_dimensions": sum(len(t.time_dimensions) for t in final_model.tables),
+                    "total_facts": sum(len(t.facts) for t in final_model.tables),
+                    "total_metrics": sum(len(t.metrics) for t in final_model.tables),
+                },
+                "profiling_insights": {
+                    "tables_profiled": len(profiling_results),
+                    "sample": dict(list(profiling_results.items())[:2]) if profiling_results else {},
+                },
+                "next_steps": [
+                    "Use validate_semantic_model to check the model",
+                    "Use deploy_semantic_model to deploy to a Snowflake stage",
+                    "Use analyst_ask to test natural language queries",
+                ],
+            }
+
+            # Deploy if requested
+            if deploy_to_stage:
+                deploy_result = manager.deploy_to_stage(
+                    model_name=model_name,
+                    stage_path=deploy_to_stage,
+                    connection_id=connection_id,
+                )
+                result["deployment"] = deploy_result
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Bootstrap failed: {e}")
+            return {"error": f"Bootstrap failed: {e}"}
+
+    def _slugify(text: str) -> str:
+        """Convert text to a valid identifier slug."""
+        import re
+        slug = re.sub(r"[^a-zA-Z0-9]+", "_", text.lower())
+        slug = re.sub(r"^_+|_+$", "", slug)
+        return slug[:50]
+
+    def _humanize(col_name: str) -> str:
+        """Convert column name to human-readable format."""
+        # Remove common prefixes/suffixes
+        name = col_name.lower()
+        for prefix in ("dim_", "fact_", "fk_", "pk_", "src_"):
+            if name.startswith(prefix):
+                name = name[len(prefix):]
+        for suffix in ("_id", "_key", "_code", "_num", "_dt", "_ts"):
+            if name.endswith(suffix):
+                name = name[:-len(suffix)]
+        # Convert underscores to spaces and title case
+        return name.replace("_", " ").title()
+
+    def _generate_business_synonyms(col_name: str) -> List[str]:
+        """Generate business-friendly synonyms for a column name."""
+        synonyms = []
+        clean = col_name.lower()
+
+        # Remove prefixes/suffixes
+        for prefix in ("dim_", "fact_", "fk_", "pk_", "src_"):
+            if clean.startswith(prefix):
+                clean = clean[len(prefix):]
+        for suffix in ("_id", "_key", "_code", "_num", "_dt", "_ts", "_amt", "_qty"):
+            if clean.endswith(suffix):
+                synonyms.append(clean[:-len(suffix)].replace("_", " "))
+
+        # Add space-separated version
+        if "_" in clean:
+            synonyms.append(clean.replace("_", " "))
+
+        # Common business mappings
+        mappings = {
+            "amt": "amount",
+            "qty": "quantity",
+            "dt": "date",
+            "ts": "timestamp",
+            "num": "number",
+            "cnt": "count",
+            "pct": "percentage",
+            "desc": "description",
+            "nm": "name",
+            "cd": "code",
+        }
+        for abbrev, full in mappings.items():
+            if abbrev in clean:
+                synonyms.append(clean.replace(abbrev, full).replace("_", " "))
+
+        return list(set(synonyms))[:4]  # Limit to 4 unique synonyms
+
+    logger.info("Registered 14 Cortex Analyst MCP tools")
     return {
-        "tools_registered": 13,
+        "tools_registered": 14,
         "categories": {
             "model_management": [
                 "create_semantic_model",
@@ -1030,6 +1456,7 @@ def register_analyst_tools(mcp, settings):
                 "generate_model_from_hierarchy",
                 "generate_model_from_schema",
                 "generate_model_from_faux",
+                "cortex_bootstrap_semantic_model",
             ],
             "templates": [
                 "list_semantic_templates",

@@ -517,7 +517,7 @@ class TestDataCatalogMCPTools:
 
         result = register_data_catalog_tools(mock_mcp, mock_settings)
 
-        assert result["tools_registered"] == 15
+        assert result["tools_registered"] == 19  # Added 4 lineage tools
         assert "asset_management" in result["categories"]
         assert "discovery_scanning" in result["categories"]
         assert "glossary" in result["categories"]

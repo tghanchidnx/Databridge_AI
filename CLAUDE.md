@@ -3,10 +3,10 @@
 > **Compact Config** - Detailed docs in GEMINI.md. Query Gemini via `ask_claude_gemini.py` for examples.
 
 ## Project Summary
-- **Version:** 0.35.0 | **Tools:** 296 | **License:** MIT
+- **Version:** 0.37.0 | **Tools:** 316 | **License:** MIT
 - **Type:** Headless MCP-native data reconciliation engine
 
-## Tool Categories (296 total)
+## Tool Categories (316 total)
 
 | Module | Tools | Key Tools |
 |--------|-------|-----------|
@@ -23,11 +23,11 @@
 | Diff Utilities | 6 | `diff_text`, `diff_dicts`, `explain_diff` |
 | Unified AI Agent | 10 | `checkout_librarian_to_book`, `sync_book_and_librarian` |
 | Cortex Agent | 12 | `cortex_complete`, `cortex_reason` |
-| Cortex Analyst | 13 | `analyst_ask`, `create_semantic_model` |
+| Cortex Analyst | 14 | `analyst_ask`, `create_semantic_model`, `cortex_bootstrap_semantic_model` |
 | Console Dashboard | 5 | `start_console_server`, `broadcast_console_message` |
 | dbt Integration | 8 | `create_dbt_project`, `generate_dbt_model` |
 | Data Quality | 7 | `generate_expectation_suite`, `run_validation` |
-| Wright Module | 18 | `create_mart_config`, `generate_mart_pipeline` |
+| Wright Module | 29 | `create_mart_config`, `generate_mart_pipeline`, `wright_to_dbt_model`, `cortex_suggest_dbt_tests` |
 | Lineage & Impact | 11 | `track_column_lineage`, `analyze_change_impact` |
 | Git/CI-CD | 12 | `git_commit`, `github_create_pr` |
 | Data Catalog | 19 | `catalog_scan_connection`, `catalog_search`, `catalog_auto_lineage_from_sql` |
