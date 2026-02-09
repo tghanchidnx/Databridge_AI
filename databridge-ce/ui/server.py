@@ -125,21 +125,58 @@ def save_app_config():
 
 @app.route('/api/tools', methods=['GET'])
 def get_tools():
-    """Get list of available tools (mock data)."""
-    # Return a sample of tools for the UI
-    tools = [
-        {"name": "load_csv", "category": "Data Loading", "description": "Load a CSV file into memory"},
-        {"name": "profile_data", "category": "Profiling", "description": "Profile data quality and statistics"},
-        {"name": "create_hierarchy", "category": "Hierarchy", "description": "Create a new hierarchy node"},
-        {"name": "compare_hashes", "category": "Comparison", "description": "Compare data using hash values"},
-        {"name": "fuzzy_match_columns", "category": "Fuzzy Matching", "description": "Match columns using fuzzy logic"},
-        {"name": "cortex_complete", "category": "Cortex AI", "description": "Text generation via Cortex COMPLETE()"},
-        {"name": "analyst_ask", "category": "Cortex Analyst", "description": "Natural language SQL generation"},
-        {"name": "generate_dbt_model", "category": "dbt Integration", "description": "Generate dbt models"},
-        {"name": "catalog_search", "category": "Data Catalog", "description": "Search the data catalog"},
-        {"name": "version_create", "category": "Versioning", "description": "Create a versioned snapshot"}
-    ]
-    return jsonify({"tools": tools, "total": TOOL_COUNT})
+    """Get list of available tools with schemas from MCP server."""
+    try:
+        from src.server import mcp as mcp_server
+
+        tool_manager = getattr(mcp_server, '_tool_manager', None)
+        if not tool_manager:
+            raise RuntimeError("MCP tool manager not initialized")
+
+        tools_dict = getattr(tool_manager, '_tools', {})
+        tools = []
+        for name, tool in tools_dict.items():
+            schema = {}
+            if hasattr(tool, 'parameters') and tool.parameters:
+                schema = tool.parameters
+            elif hasattr(tool, 'input_schema') and tool.input_schema:
+                schema = tool.input_schema
+            tools.append({
+                "name": name,
+                "description": getattr(tool, 'description', '') or '',
+                "inputSchema": schema
+            })
+
+        # Sort alphabetically for consistent display
+        tools.sort(key=lambda t: t['name'])
+        return jsonify({"tools": tools, "total": len(tools)})
+
+    except Exception as e:
+        print(f"Dynamic tool discovery failed ({e}), falling back to mock list")
+        # Fallback mock tools (with basic schemas) if MCP import fails
+        tools = [
+            {"name": "load_csv", "description": "Load a CSV file into memory",
+             "inputSchema": {"type": "object", "properties": {"file_path": {"type": "string", "description": "Path to CSV file"}}, "required": ["file_path"]}},
+            {"name": "profile_data", "description": "Profile data quality and statistics",
+             "inputSchema": {"type": "object", "properties": {"file_path": {"type": "string", "description": "Path to data file"}}, "required": ["file_path"]}},
+            {"name": "create_hierarchy", "description": "Create a new hierarchy node",
+             "inputSchema": {"type": "object", "properties": {"project_id": {"type": "string", "description": "Project ID"}, "hierarchy_name": {"type": "string", "description": "Name for the hierarchy"}}, "required": ["project_id", "hierarchy_name"]}},
+            {"name": "compare_hashes", "description": "Compare data using hash values",
+             "inputSchema": {"type": "object", "properties": {"source": {"type": "string", "description": "Source identifier"}, "target": {"type": "string", "description": "Target identifier"}}, "required": ["source", "target"]}},
+            {"name": "fuzzy_match_columns", "description": "Match columns using fuzzy logic",
+             "inputSchema": {"type": "object", "properties": {"source_columns": {"type": "string", "description": "Source column list"}, "target_columns": {"type": "string", "description": "Target column list"}}, "required": ["source_columns", "target_columns"]}},
+            {"name": "cortex_complete", "description": "Text generation via Cortex COMPLETE()",
+             "inputSchema": {"type": "object", "properties": {"prompt": {"type": "string", "description": "The prompt text"}}, "required": ["prompt"]}},
+            {"name": "analyst_ask", "description": "Natural language SQL generation",
+             "inputSchema": {"type": "object", "properties": {"question": {"type": "string", "description": "Natural language question"}}, "required": ["question"]}},
+            {"name": "generate_dbt_model", "description": "Generate dbt models",
+             "inputSchema": {"type": "object", "properties": {"model_name": {"type": "string", "description": "Model name"}}, "required": ["model_name"]}},
+            {"name": "catalog_search", "description": "Search the data catalog",
+             "inputSchema": {"type": "object", "properties": {"query": {"type": "string", "description": "Search query"}}, "required": ["query"]}},
+            {"name": "version_create", "description": "Create a versioned snapshot",
+             "inputSchema": {"type": "object", "properties": {"name": {"type": "string", "description": "Version name"}}, "required": ["name"]}}
+        ]
+        return jsonify({"tools": tools, "total": TOOL_COUNT})
 
 @app.route('/api/projects', methods=['GET'])
 def get_projects():
@@ -289,6 +326,31 @@ def upload_csv():
 
 # --- MCP Tool Proxy (Hierarchy Builder uses this) ---
 
+def _serialize_tool_result(result):
+    """Convert a FastMCP ToolResult (or other types) to a JSON-serializable value."""
+    # FastMCP ToolResult: has .content list of TextContent/ImageContent etc.
+    if hasattr(result, 'content') and isinstance(result.content, list):
+        texts = []
+        for item in result.content:
+            if hasattr(item, 'text'):
+                texts.append(item.text)
+            elif hasattr(item, 'data'):
+                texts.append(f"[binary data: {getattr(item, 'mime_type', 'unknown')}]")
+            else:
+                texts.append(str(item))
+        combined = '\n'.join(texts) if len(texts) > 1 else (texts[0] if texts else '')
+        # Try to parse as JSON if it looks like JSON
+        try:
+            return json.loads(combined)
+        except (json.JSONDecodeError, TypeError):
+            return combined
+    # Already a dict/list/str/number — return as-is
+    if isinstance(result, (dict, list, str, int, float, bool, type(None))):
+        return result
+    # Try str fallback
+    return str(result)
+
+
 @app.route('/api/tools/run', methods=['POST'])
 def run_tool():
     """
@@ -297,7 +359,7 @@ def run_tool():
     calls the tool via the MCP server module.
     """
     data = request.get_json()
-    tool_name = data.get('tool', '')
+    tool_name = data.get('tool') or data.get('tool_name', '')
     params = data.get('params', {})
 
     try:
@@ -327,7 +389,149 @@ def run_tool():
         except RuntimeError:
             result = asyncio.run(tool.run(params))
 
-        return jsonify({"result": result})
+        # Serialize ToolResult (FastMCP returns ToolResult with .content list)
+        serialized = _serialize_tool_result(result)
+        return jsonify({"result": serialized})
+
+    except Exception as e:
+        error_msg = str(e)
+        # Parse common validation errors to give better guidance
+        if 'required' in error_msg.lower() or 'missing' in error_msg.lower():
+            return jsonify({
+                "error": error_msg,
+                "hint": "Check that all required parameters are provided. Use /api/tools to see the tool's inputSchema."
+            }), 400
+        return jsonify({"error": error_msg}), 500
+
+
+# --- Demo Seed Endpoint ---
+
+@app.route('/api/demo/seed', methods=['POST'])
+def seed_demo_project():
+    """Create a demo hierarchy project with sample data for first-time users."""
+    try:
+        from src.server import mcp as mcp_server
+
+        tool_manager = getattr(mcp_server, '_tool_manager', None)
+        if not tool_manager:
+            return jsonify({"error": "MCP server not initialized"}), 500
+
+        tools = getattr(tool_manager, '_tools', {})
+
+        # Check that hierarchy tools are available (requires Pro license)
+        if 'create_hierarchy_project' not in tools:
+            return jsonify({
+                "error": "Hierarchy Builder tools not available. This feature requires a Pro license.",
+                "hint": "Run with a Pro license key to enable hierarchy tools and the demo project."
+            }), 400
+
+        import asyncio
+
+        def run_tool(name, params):
+            tool = tools.get(name)
+            if not tool:
+                raise RuntimeError(f"Tool '{name}' not found")
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    import concurrent.futures
+                    with concurrent.futures.ThreadPoolExecutor() as pool:
+                        raw = pool.submit(lambda: asyncio.run(tool.run(params))).result()
+                else:
+                    raw = loop.run_until_complete(tool.run(params))
+            except RuntimeError:
+                raw = asyncio.run(tool.run(params))
+            return _serialize_tool_result(raw)
+
+        # 1. Create project
+        project_result = run_tool('create_hierarchy_project', {
+            'name': 'Demo - Financial Reporting 2024',
+            'description': 'Sample income statement hierarchy with source mappings and formulas. Created by DataBridge AI demo seed.'
+        })
+
+        # Parse project result
+        if isinstance(project_result, str):
+            import json as json_mod
+            project_result = json_mod.loads(project_result)
+        project = project_result.get('project', project_result)
+        project_id = project.get('id') or project.get('project_id', '')
+
+        if not project_id:
+            return jsonify({"error": "Failed to create demo project", "details": project_result}), 500
+
+        # 2. Create root: Income Statement
+        root_result = run_tool('create_hierarchy', {
+            'project_id': project_id,
+            'hierarchy_name': 'Income Statement',
+        })
+        if isinstance(root_result, str):
+            root_result = json.loads(root_result)
+        root_id = (root_result.get('hierarchy', root_result) or {}).get('id', '')
+
+        # 3. Create children
+        children = ['Revenue', 'Cost of Goods Sold', 'Gross Profit', 'Operating Expenses', 'Net Income']
+        child_ids = {}
+        for child_name in children:
+            child_result = run_tool('create_hierarchy', {
+                'project_id': project_id,
+                'hierarchy_name': child_name,
+                'parent_id': root_id,
+            })
+            if isinstance(child_result, str):
+                child_result = json.loads(child_result)
+            child_obj = child_result.get('hierarchy', child_result) or {}
+            child_ids[child_name] = child_obj.get('id', child_obj.get('hierarchy_id', ''))
+
+        # 4. Add sample source mappings to Revenue and COGS
+        if child_ids.get('Revenue'):
+            try:
+                run_tool('add_source_mapping', {
+                    'project_id': project_id,
+                    'hierarchy_id': child_ids['Revenue'],
+                    'source_database': 'ANALYTICS',
+                    'source_schema': 'GL',
+                    'source_table': 'FACT_JOURNAL_ENTRIES',
+                    'source_column': 'REVENUE_AMOUNT',
+                })
+            except Exception:
+                pass  # Non-critical
+
+        if child_ids.get('Cost of Goods Sold'):
+            try:
+                run_tool('add_source_mapping', {
+                    'project_id': project_id,
+                    'hierarchy_id': child_ids['Cost of Goods Sold'],
+                    'source_database': 'ANALYTICS',
+                    'source_schema': 'GL',
+                    'source_table': 'FACT_JOURNAL_ENTRIES',
+                    'source_column': 'COGS_AMOUNT',
+                })
+            except Exception:
+                pass
+
+        # 5. Add formula: Gross Profit = Revenue - COGS
+        if child_ids.get('Gross Profit') and child_ids.get('Revenue') and child_ids.get('Cost of Goods Sold'):
+            try:
+                run_tool('add_formula_rule', {
+                    'project_id': project_id,
+                    'main_hierarchy_id': child_ids['Gross Profit'],
+                    'operation': 'SUM',
+                    'source_hierarchy_id': child_ids['Revenue'],
+                })
+                run_tool('add_formula_rule', {
+                    'project_id': project_id,
+                    'main_hierarchy_id': child_ids['Gross Profit'],
+                    'operation': 'SUBTRACT',
+                    'source_hierarchy_id': child_ids['Cost of Goods Sold'],
+                })
+            except Exception:
+                pass
+
+        return jsonify({
+            "success": True,
+            "project_id": project_id,
+            "message": "Demo project 'Financial Reporting 2024' created with 6 hierarchies, 2 mappings, and 1 formula."
+        })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

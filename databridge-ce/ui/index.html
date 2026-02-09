@@ -1319,8 +1319,13 @@ Ready to process requests. Type a query below or launch an Autonomous Demo.</div
                 <div class="two-col-layout">
                     <div class="list-panel card">
                         <h3>Available Tools</h3>
-                        <div class="form-group">
-                            <input type="text" id="toolFilter" placeholder="Filter tools..." onkeyup="filterTools()" data-tooltip="Type to filter tools by name" data-tooltip-pos="top">
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <input type="text" id="toolFilter" placeholder="Filter tools by name..." onkeyup="filterTools()" data-tooltip="Type to filter tools by name" data-tooltip-pos="top">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <select id="toolCategoryFilter" onchange="filterToolsByCategory(this.value)" style="width: 100%; padding: 6px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem;">
+                                <option value="">All Categories</option>
+                            </select>
                         </div>
                         <ul id="toolList" style="max-height: 500px; overflow-y: auto;">
                             <li style="color: var(--text-dim);">Loading tools...</li>
@@ -1635,6 +1640,7 @@ Ready to process requests. Type a query below or launch an Autonomous Demo.</div
                 <!-- Action Buttons -->
                 <div style="display: flex; gap: 15px; margin-top: 20px;">
                     <button class="btn primary" onclick="generateAllPipeline()">Generate Full Pipeline</button>
+                    <button class="btn" onclick="wrightRunViaMCP()" title="Execute pipeline generation via real MCP tools (create_mart_config + generate_mart_pipeline)">Run via MCP</button>
                     <button class="btn" onclick="exportPipelineZip()">Export as ZIP</button>
                     <button class="btn" onclick="saveWrightConfig()">Save Configuration</button>
                 </div>
@@ -1930,6 +1936,7 @@ print(f"Loaded {len(tools)} tools")
                         <option value="">-- Select Project --</option>
                     </select>
                     <button class="btn btn-primary" onclick="hbNewProjectModal()">+ New Project</button>
+                    <button class="btn" onclick="hbLoadDemoProject()" id="hb-demo-btn" title="Create a sample Financial Reporting hierarchy">Load Demo</button>
                     <button class="btn btn-danger" onclick="hbDeleteProject()" id="hb-delete-btn" disabled>Delete</button>
                     <span id="hb-project-stats" style="margin-left: auto; color: var(--text-secondary); font-size: 0.85rem;"></span>
                 </div>
@@ -2031,11 +2038,11 @@ print(f"Loaded {len(tools)} tools")
                                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 8px; margin-top: 8px; align-items: end;">
                                     <div>
                                         <label style="font-size:0.8rem;">Name</label>
-                                        <input id="hb-prop-name" type="text" style="width:100%; padding:4px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:4px; font-size:0.85rem;">
+                                        <input id="hb-prop-name" type="text" placeholder="e.g. aggregation_type" style="width:100%; padding:4px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:4px; font-size:0.85rem;">
                                     </div>
                                     <div>
                                         <label style="font-size:0.8rem;">Value</label>
-                                        <input id="hb-prop-value" type="text" style="width:100%; padding:4px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:4px; font-size:0.85rem;">
+                                        <input id="hb-prop-value" type="text" placeholder="e.g. SUM" style="width:100%; padding:4px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:4px; font-size:0.85rem;">
                                     </div>
                                     <div>
                                         <label style="font-size:0.8rem;">Category</label>
@@ -2143,6 +2150,21 @@ print(f"Loaded {len(tools)} tools")
             </div>
         </div>
 
+        <!-- Modal: Tool Parameter Dialog -->
+        <div id="tool-param-modal" class="modal-overlay">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3>Missing Parameters</h3>
+                    <button class="close-button" onclick="closeParamDialog()">&times;</button>
+                </div>
+                <div class="modal-body"></div>
+                <div class="modal-footer">
+                    <button class="btn" onclick="closeParamDialog()" style="margin-right: 8px;">Cancel</button>
+                    <button class="btn primary" onclick="runToolFromDialog()">Run Tool</button>
+                </div>
+            </div>
+        </div>
+
         </main>
     </div>
 
@@ -2231,7 +2253,32 @@ print(f"Loaded {len(tools)} tools")
         return Array.from(select.selectedOptions).map(opt => opt.value);
     }
 
+    function validateWrightConfig() {
+        const requiredFields = [
+            {id: 'wrightProjectName', label: 'Project Name'},
+            {id: 'wrightDatabase', label: 'Target Database'},
+            {id: 'wrightSchema', label: 'Target Schema'},
+            {id: 'wrightHierarchyTable', label: 'Hierarchy Table'},
+            {id: 'wrightMappingTable', label: 'Mapping Table'}
+        ];
+        let valid = true;
+        requiredFields.forEach(f => {
+            const el = document.getElementById(f.id);
+            if (!el.value.trim()) {
+                el.style.border = '2px solid #f44336';
+                valid = false;
+            } else {
+                el.style.border = '';
+            }
+        });
+        if (!valid) {
+            showNotification('Please fill in all required pipeline configuration fields', 'warning');
+        }
+        return valid;
+    }
+
     function generateVW1() {
+        if (!validateWrightConfig()) return;
         const config = getWrightConfig();
         const idSourceMappings = getSelectedValues('vw1IdSourceMappings');
         const additionalCols = getSelectedValues('vw1AdditionalCols');
@@ -2282,6 +2329,7 @@ WHERE h.INCLUDE_FLAG = TRUE
     }
 
     function generateDT2() {
+        if (!validateWrightConfig()) return;
         const config = getWrightConfig();
         const measures = getSelectedValues('dt2UnpivotMeasures');
         const exclusions = getSelectedValues('dt2Exclusions');
@@ -2330,6 +2378,7 @@ ${config.hasExclusions ? `WHERE u.HIERARCHY_NAME NOT IN (${exclusionList})` : '-
     }
 
     function generateDT3A() {
+        if (!validateWrightConfig()) return;
         const config = getWrightConfig();
         const joinPatterns = getJoinPatterns();
 
@@ -2377,6 +2426,7 @@ ${joinPatterns.map((p, i) => `-- ${i + 1}. ${p.name}: ${p.filterColumns} → ${p
     }
 
     function generateDT3() {
+        if (!validateWrightConfig()) return;
         const config = getWrightConfig();
         const precedenceLevels = getSelectedValues('dt3FormulaPrecedence');
         const dimensionKeys = getSelectedValues('dt3DimensionKeys');
@@ -2542,6 +2592,62 @@ ${precedenceLevels.map(p => `    SELECT * FROM ${p.toLowerCase()}_${p === 'P1' ?
         showNotification('Full pipeline generated (4 objects)', 'success');
     }
 
+    async function wrightRunViaMCP() {
+        if (!validateWrightConfig()) return;
+        const config = getWrightConfig();
+        showNotification('Creating mart config via MCP...', 'info');
+
+        try {
+            // Step 1: create_mart_config
+            const configResp = await fetch('/api/tools/run', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    tool: 'create_mart_config',
+                    params: {
+                        project_name: config.projectName,
+                        database: config.database,
+                        schema: config.schema,
+                        hierarchy_table: config.hierarchyTable,
+                        mapping_table: config.mappingTable,
+                        report_type: config.reportType
+                    }
+                })
+            });
+            const configResult = await configResp.json();
+            if (configResult.error) {
+                showNotification('MCP mart config error: ' + configResult.error, 'error');
+                return;
+            }
+
+            showNotification('Generating pipeline via MCP...', 'info');
+
+            // Step 2: generate_mart_pipeline
+            const pipeResp = await fetch('/api/tools/run', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    tool: 'generate_mart_pipeline',
+                    params: {
+                        config_name: config.projectName
+                    }
+                })
+            });
+            const pipeResult = await pipeResp.json();
+            if (pipeResult.error) {
+                showNotification('MCP pipeline error: ' + pipeResult.error, 'error');
+                return;
+            }
+
+            // Display result in VW1 code area
+            const output = typeof pipeResult.result === 'string' ? pipeResult.result : JSON.stringify(pipeResult.result, null, 2);
+            document.getElementById('vw1Code').textContent = '-- Generated via MCP tools\n' + output;
+            showNotification('Pipeline generated via MCP tools!', 'success');
+        } catch (e) {
+            showNotification('MCP execution failed: ' + e.message, 'error');
+        }
+    }
+
     async function exportPipelineZip() {
         const config = getWrightConfig();
 
@@ -2674,24 +2780,150 @@ ${precedenceLevels.map(p => `    SELECT * FROM ${p.toLowerCase()}_${p === 'P1' ?
         }
     }
 
+    // Tool category mapping
+    const TOOL_CATEGORIES = {
+        'load_csv': 'Data Loading', 'load_json': 'Data Loading', 'smart_import_csv': 'Data Loading',
+        'profile_data': 'Profiling', 'profile_book_sources': 'Profiling',
+        'create_hierarchy': 'Hierarchy', 'create_hierarchy_project': 'Hierarchy', 'list_hierarchy_projects': 'Hierarchy',
+        'get_hierarchy_tree': 'Hierarchy', 'list_hierarchies': 'Hierarchy', 'update_hierarchy': 'Hierarchy',
+        'delete_hierarchy': 'Hierarchy', 'delete_hierarchy_project': 'Hierarchy', 'add_source_mapping': 'Hierarchy',
+        'remove_source_mapping': 'Hierarchy', 'add_formula_rule': 'Hierarchy', 'add_hierarchy_property': 'Hierarchy',
+        'import_hierarchy_csv': 'Hierarchy', 'export_hierarchy_csv': 'Hierarchy', 'export_project_json': 'Hierarchy',
+        'validate_project': 'Hierarchy', 'generate_hierarchy_scripts': 'Hierarchy',
+        'compare_hashes': 'Reconciliation', 'compare_table_data': 'Reconciliation', 'compare_database_schemas': 'Reconciliation',
+        'fuzzy_match_columns': 'Fuzzy Matching', 'find_similar_strings': 'Fuzzy Matching', 'fuzzy_deduplicate': 'Fuzzy Matching',
+        'cortex_complete': 'Cortex AI', 'cortex_reason': 'Cortex AI',
+        'analyst_ask': 'Cortex Analyst', 'create_semantic_model': 'Cortex Analyst',
+        'generate_dbt_model': 'dbt', 'create_dbt_project': 'dbt', 'generate_dbt_schema': 'dbt',
+        'catalog_search': 'Data Catalog', 'catalog_scan_connection': 'Data Catalog', 'catalog_create_asset': 'Data Catalog',
+        'version_create': 'Versioning', 'version_diff': 'Versioning', 'version_rollback': 'Versioning',
+        'create_mart_config': 'Wright', 'generate_mart_pipeline': 'Wright', 'wright_from_hierarchy': 'Wright',
+        'diff_text': 'Diff Utilities', 'diff_dicts': 'Diff Utilities', 'diff_lists': 'Diff Utilities',
+        'git_commit': 'Git/CI-CD', 'github_create_pr': 'Git/CI-CD',
+        'plan_workflow': 'Planner', 'suggest_agents': 'Planner', 'analyze_request': 'Planner',
+        'submit_orchestrated_task': 'Orchestrator', 'register_agent': 'Orchestrator',
+    };
+
+    function guessCategory(toolName) {
+        if (TOOL_CATEGORIES[toolName]) return TOOL_CATEGORIES[toolName];
+        if (toolName.startsWith('hb_') || toolName.includes('hierarchy')) return 'Hierarchy';
+        if (toolName.startsWith('wright_') || toolName.includes('mart')) return 'Wright';
+        if (toolName.startsWith('catalog_')) return 'Data Catalog';
+        if (toolName.startsWith('version_')) return 'Versioning';
+        if (toolName.startsWith('cortex_')) return 'Cortex AI';
+        if (toolName.startsWith('analyst_')) return 'Cortex Analyst';
+        if (toolName.startsWith('obs_')) return 'Observability';
+        if (toolName.startsWith('rag_')) return 'GraphRAG';
+        if (toolName.startsWith('git_') || toolName.startsWith('github_')) return 'Git/CI-CD';
+        if (toolName.startsWith('dbt_') || toolName.startsWith('generate_dbt')) return 'dbt';
+        if (toolName.includes('diff')) return 'Diff Utilities';
+        if (toolName.includes('fuzzy') || toolName.includes('match')) return 'Fuzzy Matching';
+        if (toolName.includes('compare') || toolName.includes('reconcil')) return 'Reconciliation';
+        if (toolName.includes('lineage') || toolName.includes('impact')) return 'Lineage';
+        if (toolName.includes('faux')) return 'Faux Objects';
+        return 'Other';
+    }
+
+    let toolCategoryFilter = '';
+
     function renderToolList() {
         const list = document.getElementById('toolList');
         if (!list) return;
-        list.innerHTML = availableTools.map(t => `
-            <li onclick="selectTool('${t.name}')" style="padding: 10px; cursor: pointer;">
-                <strong>${t.name}</strong>
-            </li>
-        `).join('');
+
+        // Update tool count in header
+        const header = document.getElementById('selectedToolName');
+        if (!selectedTool && header) {
+            header.textContent = `${availableTools.length} Tools Available`;
+        }
+
+        // Group by category
+        const grouped = {};
+        availableTools.forEach(t => {
+            const cat = guessCategory(t.name);
+            if (!grouped[cat]) grouped[cat] = [];
+            grouped[cat].push(t);
+        });
+
+        // Sort categories
+        const sortedCats = Object.keys(grouped).sort();
+
+        // Build category filter dropdown
+        const filterDiv = document.getElementById('toolCategoryFilter');
+        if (filterDiv && !filterDiv.dataset.populated) {
+            filterDiv.innerHTML = '<option value="">All Categories</option>' +
+                sortedCats.map(c => `<option value="${c}">${c} (${grouped[c].length})</option>`).join('');
+            filterDiv.dataset.populated = 'true';
+        }
+
+        // Apply category filter
+        const catsToShow = toolCategoryFilter ? [toolCategoryFilter] : sortedCats;
+
+        list.innerHTML = catsToShow.map(cat => {
+            const tools = grouped[cat] || [];
+            if (!tools.length) return '';
+            return `<li style="padding: 6px 10px; font-weight: 700; color: var(--accent); font-size: 0.85rem; border-bottom: 1px solid var(--border); cursor: default; user-select: none;" onclick="this.nextElementSibling && this.classList.toggle('collapsed')">${cat} <span style="font-weight: 400; color: var(--text-dim);">(${tools.length})</span></li>` +
+                tools.map(t => `<li onclick="selectTool('${t.name}')" style="padding: 8px 10px 8px 20px; cursor: pointer; border-bottom: 1px solid var(--border-color);" class="tool-item" data-category="${cat}">
+                    <strong style="font-size: 0.9rem;">${t.name}</strong>
+                    <div style="color: var(--text-dim); font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${(t.description || '').substring(0, 60)}</div>
+                </li>`).join('');
+        }).join('');
+    }
+
+    function filterToolsByCategory(cat) {
+        toolCategoryFilter = cat;
+        renderToolList();
     }
 
     function filterTools() {
         const filter = document.getElementById('toolFilter').value.toLowerCase();
         const items = document.querySelectorAll('#toolList li');
+        let lastCategoryVisible = false;
+        let lastCategoryEl = null;
+
         items.forEach(li => {
-            const name = li.textContent.toLowerCase();
-            li.style.display = name.includes(filter) ? 'block' : 'none';
+            if (li.classList.contains('tool-item')) {
+                const name = li.textContent.toLowerCase();
+                const match = !filter || name.includes(filter);
+                li.style.display = match ? '' : 'none';
+                if (match) lastCategoryVisible = true;
+            } else {
+                // Category header — show/hide based on whether next items are visible
+                if (lastCategoryEl) {
+                    lastCategoryEl.style.display = lastCategoryVisible ? '' : 'none';
+                }
+                lastCategoryEl = li;
+                lastCategoryVisible = false;
+            }
         });
+        // Handle last category
+        if (lastCategoryEl) {
+            lastCategoryEl.style.display = lastCategoryVisible ? '' : 'none';
+        }
     }
+
+    // Example parameter sets for popular tools
+    const TOOL_EXAMPLES = {
+        'load_csv': {file_path: 'data/sample.csv'},
+        'profile_data': {file_path: 'data/sample.csv'},
+        'create_hierarchy_project': {name: 'Q4 Financial Report', description: 'Quarterly financial reporting hierarchy'},
+        'create_hierarchy': {project_id: '<project_id>', hierarchy_name: 'Revenue'},
+        'add_source_mapping': {project_id: '<project_id>', hierarchy_id: '<hierarchy_id>', source_database: 'ANALYTICS', source_schema: 'GL', source_table: 'FACT_JOURNAL_ENTRIES', source_column: 'ACCOUNT_CODE'},
+        'add_formula_rule': {project_id: '<project_id>', main_hierarchy_id: '<hierarchy_id>', operation: 'SUM', source_hierarchy_id: '<source_id>'},
+        'fuzzy_match_columns': {source_columns: 'AccountCode,AcctName', target_columns: 'ACCOUNT_CODE,ACCOUNT_NAME'},
+        'compare_hashes': {source: 'data/source.csv', target: 'data/target.csv'},
+        'catalog_search': {query: 'revenue'},
+        'version_create': {name: 'v1.0-baseline'},
+        'diff_text': {text_a: 'Hello world', text_b: 'Hello World!'},
+        'find_files': {pattern: '*.csv', directory: 'data/'},
+        'smart_import_csv': {file_path: 'data/hierarchy_import.csv'},
+        'plan_workflow': {request: 'Compare two CSV files and find mismatches'},
+        'cortex_complete': {prompt: 'Summarize the revenue trends for Q4'},
+        'analyst_ask': {question: 'What was total revenue by region last quarter?'},
+        'generate_dbt_model': {model_name: 'stg_journal_entries'},
+        'create_mart_config': {project_name: 'upstream_gross', database: 'ANALYTICS', schema: 'PUBLIC'},
+        'query_database': {connection_name: 'default', query: 'SELECT COUNT(*) FROM my_table'},
+        'git_status': {},
+    };
 
     function selectTool(name) {
         selectedTool = availableTools.find(t => t.name === name);
@@ -2706,21 +2938,39 @@ ${precedenceLevels.map(p => `    SELECT * FROM ${p.toLowerCase()}_${p === 'P1' ?
         const props = schema.properties || {};
         const required = schema.required || [];
 
-        paramsDiv.innerHTML = Object.entries(props).map(([key, prop]) => `
-            <div class="form-group">
-                <label>${key} ${required.includes(key) ? '*' : ''}</label>
+        const hasExample = TOOL_EXAMPLES[name];
+        const exampleBtn = hasExample
+            ? `<button class="btn" onclick="prefillToolExample()" style="font-size: 0.8rem; padding: 4px 10px; margin-bottom: 10px;">Load Example Values</button>`
+            : '';
+
+        paramsDiv.innerHTML = exampleBtn + Object.entries(props).map(([key, prop]) => `
+            <div class="form-group" style="margin-bottom: 8px;">
+                <label>${key} ${required.includes(key) ? '<span style="color:#f44336;">*</span>' : ''} <span style="color: var(--text-dim); font-size: 0.75rem;">(${prop.type || 'string'})</span></label>
                 <input type="text" id="param_${key}" placeholder="${prop.description || ''}">
             </div>
         `).join('');
+
+        // If no properties found, show a message
+        if (Object.keys(props).length === 0) {
+            paramsDiv.innerHTML += '<p style="color: var(--text-dim); font-size: 0.85rem;">This tool has no parameters — click Run Tool to execute.</p>';
+        }
     }
 
-    async function runSelectedTool() {
+    function prefillToolExample() {
         if (!selectedTool) return;
+        const example = TOOL_EXAMPLES[selectedTool.name];
+        if (!example) return;
+        Object.entries(example).forEach(([key, val]) => {
+            const input = document.getElementById(`param_${key}`);
+            if (input) input.value = typeof val === 'object' ? JSON.stringify(val) : val;
+        });
+        showNotification('Example values loaded', 'info');
+    }
 
+    function collectToolParams() {
         const schema = selectedTool.inputSchema || {};
         const props = Object.keys(schema.properties || {});
         const params = {};
-
         props.forEach(key => {
             const input = document.getElementById(`param_${key}`);
             if (input && input.value) {
@@ -2731,18 +2981,87 @@ ${precedenceLevels.map(p => `    SELECT * FROM ${p.toLowerCase()}_${p === 'P1' ?
                 }
             }
         });
+        return params;
+    }
 
+    function getMissingRequiredParams(params) {
+        const schema = selectedTool.inputSchema || {};
+        const required = schema.required || [];
+        return required.filter(key => !params[key] && params[key] !== 0 && params[key] !== false);
+    }
+
+    function showParamDialog(missingParams) {
+        const schema = selectedTool.inputSchema || {};
+        const props = schema.properties || {};
+        const fieldsHtml = missingParams.map(key => {
+            const prop = props[key] || {};
+            return `<div class="form-group" style="margin-bottom: 12px;">
+                <label style="font-weight: 600;">${key} <span style="color: #f44336;">*</span></label>
+                <p style="color: var(--text-dim); font-size: 0.85rem; margin: 2px 0 6px 0;">${prop.description || 'Required parameter'} (${prop.type || 'string'})</p>
+                <input type="text" id="modal_param_${key}" placeholder="${prop.description || ''}" style="width: 100%; padding: 8px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px;">
+            </div>`;
+        }).join('');
+
+        const modal = document.getElementById('tool-param-modal');
+        modal.querySelector('.modal-body').innerHTML = `
+            <p style="margin-bottom: 16px;">The tool <strong>${selectedTool.name}</strong> requires the following parameters:</p>
+            ${fieldsHtml}`;
+        modal.querySelector('.modal-header h3').textContent = `Missing Parameters — ${selectedTool.name}`;
+        modal.style.display = 'flex';
+        const firstInput = modal.querySelector('.modal-body input');
+        if (firstInput) setTimeout(() => firstInput.focus(), 100);
+    }
+
+    function closeParamDialog() {
+        document.getElementById('tool-param-modal').style.display = 'none';
+    }
+
+    function runToolFromDialog() {
+        const schema = selectedTool.inputSchema || {};
+        const required = schema.required || [];
+        // Collect modal params and merge into main form
+        required.forEach(key => {
+            const modalInput = document.getElementById(`modal_param_${key}`);
+            const mainInput = document.getElementById(`param_${key}`);
+            if (modalInput && modalInput.value && mainInput) {
+                mainInput.value = modalInput.value;
+            }
+        });
+        closeParamDialog();
+        executeToolRun();
+    }
+
+    async function runSelectedTool() {
+        if (!selectedTool) return;
+        const params = collectToolParams();
+        const missing = getMissingRequiredParams(params);
+        if (missing.length > 0) {
+            showParamDialog(missing);
+            return;
+        }
+        await executeToolRun();
+    }
+
+    async function executeToolRun() {
+        if (!selectedTool) return;
+        const params = collectToolParams();
         document.getElementById('toolOutput').textContent = 'Running...';
 
         try {
             const resp = await fetch('/api/tools/run', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tool_name: selectedTool.name, params })
+                body: JSON.stringify({ tool: selectedTool.name, params })
             });
             const result = await resp.json();
-            document.getElementById('toolOutput').textContent = JSON.stringify(result, null, 2);
-            showNotification('Tool executed successfully', 'success');
+            if (result.error) {
+                const hint = result.hint ? `\n\nHint: ${result.hint}` : '';
+                document.getElementById('toolOutput').textContent = `Error: ${result.error}${hint}`;
+                showNotification(`Tool error: ${result.error.substring(0, 80)}`, 'error');
+            } else {
+                document.getElementById('toolOutput').textContent = JSON.stringify(result, null, 2);
+                showNotification('Tool executed successfully', 'success');
+            }
         } catch (e) {
             document.getElementById('toolOutput').textContent = 'Error: ' + e.message;
             showNotification('Tool execution failed', 'error');
@@ -3077,8 +3396,14 @@ Would you like me to provide more details or explore related data?`);
     }
 
     async function hbCreateProject() {
-        const name = document.getElementById('hb-new-name').value.trim();
-        if (!name) return showNotification('Project name is required', 'warning');
+        const nameInput = document.getElementById('hb-new-name');
+        const name = nameInput.value.trim();
+        if (!name) {
+            nameInput.style.border = '2px solid #f44336';
+            nameInput.focus();
+            return showNotification('Project name is required', 'warning');
+        }
+        nameInput.style.border = '';
         const desc = document.getElementById('hb-new-desc').value.trim();
         const result = await hbCallTool('create_hierarchy_project', {name, description: desc});
         if (result.error) return showNotification(result.error, 'error');
@@ -3090,6 +3415,34 @@ Would you like me to provide more details or explore related data?`);
         if (proj && proj.id) {
             document.getElementById('hb-project-select').value = proj.id;
             hbSelectProject(proj.id);
+        }
+    }
+
+    async function hbLoadDemoProject() {
+        const btn = document.getElementById('hb-demo-btn');
+        btn.disabled = true;
+        btn.textContent = 'Creating...';
+        try {
+            const resp = await fetch('/api/demo/seed', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            const data = await resp.json();
+            if (data.error) {
+                showNotification('Demo error: ' + data.error, 'error');
+                return;
+            }
+            showNotification(data.message || 'Demo project created!', 'success');
+            await hbLoadProjects();
+            if (data.project_id) {
+                document.getElementById('hb-project-select').value = data.project_id;
+                hbSelectProject(data.project_id);
+            }
+        } catch (e) {
+            showNotification('Demo seed failed: ' + e.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Load Demo';
         }
     }
 
@@ -3287,6 +3640,14 @@ Would you like me to provide more details or explore related data?`);
 
     async function hbSaveNode() {
         if (!hbCurrentProject || !hbCurrentNode) return;
+        const nameInput = document.getElementById('hb-node-name');
+        if (!nameInput.value.trim()) {
+            nameInput.style.border = '2px solid #f44336';
+            showNotification('Hierarchy name is required', 'warning');
+            nameInput.focus();
+            return;
+        }
+        nameInput.style.border = '';
         const updates = {
             hierarchy_name: document.getElementById('hb-node-name').value,
             description: document.getElementById('hb-node-desc').value,
@@ -3350,15 +3711,50 @@ Would you like me to provide more details or explore related data?`);
 
     async function hbAddMapping() {
         if (!hbCurrentProject || !hbCurrentNode) return;
-        const db = prompt('Source Database:') || '';
-        const schema = prompt('Source Schema:') || '';
-        const table = prompt('Source Table:');
-        if (!table) return;
-        const column = prompt('Source Column:') || '';
+        // Show inline mapping form modal
+        const modal = document.getElementById('tool-param-modal');
+        modal.querySelector('.modal-header h3').textContent = 'Add Source Mapping';
+        modal.querySelector('.modal-body').innerHTML = `
+            <p style="margin-bottom: 12px;">Add a source mapping to <strong>${hbCurrentNode.hierarchy_name || hbCurrentNode.hierarchy_id}</strong></p>
+            <div class="form-group" style="margin-bottom: 10px;">
+                <label>Source Database</label>
+                <input type="text" id="mapping_db" placeholder="e.g. ANALYTICS" style="width:100%; padding:8px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:6px;">
+            </div>
+            <div class="form-group" style="margin-bottom: 10px;">
+                <label>Source Schema</label>
+                <input type="text" id="mapping_schema" placeholder="e.g. GL" style="width:100%; padding:8px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:6px;">
+            </div>
+            <div class="form-group" style="margin-bottom: 10px;">
+                <label>Source Table <span style="color:#f44336;">*</span></label>
+                <input type="text" id="mapping_table" placeholder="e.g. FACT_JOURNAL_ENTRIES" style="width:100%; padding:8px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:6px;">
+            </div>
+            <div class="form-group" style="margin-bottom: 10px;">
+                <label>Source Column</label>
+                <input type="text" id="mapping_column" placeholder="e.g. ACCOUNT_CODE" style="width:100%; padding:8px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:6px;">
+            </div>`;
+        // Override footer button
+        modal.querySelector('.modal-footer').innerHTML = `
+            <button class="btn" onclick="closeParamDialog()" style="margin-right: 8px;">Cancel</button>
+            <button class="btn primary" onclick="hbSubmitMapping()">Add Mapping</button>`;
+        modal.style.display = 'flex';
+        setTimeout(() => document.getElementById('mapping_db').focus(), 100);
+    }
+
+    async function hbSubmitMapping() {
+        const table = document.getElementById('mapping_table').value.trim();
+        if (!table) {
+            document.getElementById('mapping_table').style.border = '2px solid #f44336';
+            showNotification('Source Table is required', 'warning');
+            return;
+        }
+        closeParamDialog();
         await hbCallTool('add_source_mapping', {
             project_id: hbCurrentProject,
             hierarchy_id: hbCurrentNode.hierarchy_id,
-            source_database: db, source_schema: schema, source_table: table, source_column: column,
+            source_database: document.getElementById('mapping_db').value.trim(),
+            source_schema: document.getElementById('mapping_schema').value.trim(),
+            source_table: table,
+            source_column: document.getElementById('mapping_column').value.trim(),
         });
         showNotification('Mapping added', 'success');
         await hbLoadTree();
