@@ -9,6 +9,8 @@ const DemoEngine = (function () {
     let speedMultiplier = 1;
     let isRunning = false;
     let shouldCancel = false;
+    let isPaused = false;
+    let pauseResolve = null;
 
     // ================================================================
     // EMBEDDED SAMPLE DATA
@@ -137,7 +139,10 @@ const DemoEngine = (function () {
         data_quality: 'Profile pizza order data, auto-detect quality issues (nulls, outliers), generate validation rules, and run a data quality assessment.',
         dbt_pipeline: 'Generate a complete dbt project from GL journal entries: sources, staging models, mart aggregations, and schema tests.',
         oil_gas: 'Analyze well economics across 5 wells and 2 operators: production profiles, revenue rollups, NOI calculations, and decline analysis.',
-        full_workflow: 'End-to-end walkthrough combining reconciliation, hierarchy building, dbt pipeline, and data quality in a single orchestrated workflow.'
+        full_workflow: 'End-to-end walkthrough combining reconciliation, hierarchy building, dbt pipeline, and data quality in a single orchestrated workflow.',
+        error_bad_csv: 'Watch how DataBridge detects a corrupt CSV file with missing headers, encoding issues, and malformed rows — then auto-recovers the data.',
+        error_schema_mismatch: 'See how DataBridge catches schema mismatches between ERP and CRM exports, then uses fuzzy column matching to resolve and reconcile.',
+        error_formula_cycle: 'Observe DataBridge detecting a circular formula reference in a hierarchy and showing the user exactly where the cycle is so they can fix it.'
     };
 
     // ================================================================
@@ -1187,9 +1192,406 @@ const DemoEngine = (function () {
         ];
     };
 
+    // ----- Scenario 7: Error — Corrupt CSV Import -----
+    SCENARIOS.error_bad_csv = function () {
+        var corruptHeaders = ['order_id', 'customer_name', 'pizza_type', 'size', 'price', 'order_date'];
+        var corruptRows = [
+            ['P001', 'Alice Cooper', 'Margherita', 'Large', '18.99', '2024-01-15'],
+            ['P002', 'Bob Dylan', 'Pepperoni', 'Medium', '14.99', '2024-01-15'],
+            ['P003', 'Carol King', 'Hawaiian', '10.99'],
+            ['P004', 'Dave Clark', 'Veggie Supreme', 'Large', '20.99', '2024-01-16'],
+            ['P005', 'Eve Stone\xEF\xBF\xBD', 'BBQ Chicken', 'Medium', '16.99', '2024-01-17']
+        ];
+        var cleanRows = [
+            ['P001', 'Alice Cooper', 'Margherita', 'Large', '18.99', '2024-01-15'],
+            ['P002', 'Bob Dylan', 'Pepperoni', 'Medium', '14.99', '2024-01-15'],
+            ['P004', 'Dave Clark', 'Veggie Supreme', 'Large', '20.99', '2024-01-16'],
+            ['P005', 'Eve Stone', 'BBQ Chicken', 'Medium', '16.99', '2024-01-17']
+        ];
+        return [
+            {
+                type: 'system', from: 'System', to: '',
+                content: '<strong>Error Handling Demo: Corrupt CSV Import</strong><br>Simulating a CSV file with malformed rows, encoding errors, and missing fields.',
+                delay: 800
+            },
+            {
+                type: 'request', from: 'user', to: 'orchestrator',
+                content: 'Load and reconcile sales_data_v2.csv against our database.',
+                delay: 1000
+            },
+            {
+                type: 'tool', from: 'orchestrator', to: 'data_agent',
+                content: formatToolCall('load_csv', { file: 'sales_data_v2.csv', encoding: 'utf-8' }),
+                delay: 1500
+            },
+            {
+                type: 'error', from: 'data_agent', to: 'orchestrator',
+                content: '<div class="demo-error-box"><strong>CSV PARSE ERROR</strong><br>' +
+                    'Row 3: Expected 6 fields, got 4 (missing <code>size</code> and <code>order_date</code>)<br>' +
+                    'Row 5: Encoding error &mdash; invalid byte sequence <code>0xEF 0xBF 0xBD</code> in <code>customer_name</code><br>' +
+                    'File cannot be loaded in strict mode.</div>' +
+                    formatStats([
+                        { label: 'Status', value: 'FAILED' },
+                        { label: 'Rows Attempted', value: '5' },
+                        { label: 'Errors', value: '2 rows' }
+                    ]),
+                delay: 2000
+            },
+            {
+                type: 'thinking', from: 'orchestrator', to: 'orchestrator',
+                content: 'CSV load failed with 2 row-level errors. Escalating to <strong>Quality Agent</strong> to diagnose the root cause and attempt lenient recovery.',
+                delay: 1500
+            },
+            {
+                type: 'tool', from: 'orchestrator', to: 'quality_agent',
+                content: formatToolCall('profile_data', { file: 'sales_data_v2.csv', mode: 'lenient', skip_errors: true, detect_encoding: true }),
+                delay: 1800
+            },
+            {
+                type: 'result', from: 'quality_agent', to: 'orchestrator',
+                content: '<strong>Quality Agent &mdash; Root Cause Analysis</strong>' +
+                    '<div class="demo-error-box">' +
+                    '<strong>Issue 1 (Row 3):</strong> Missing delimiter &mdash; only 4 fields detected. The <code>size</code> field was omitted, causing <code>price</code> to shift into the <code>size</code> column.<br>' +
+                    '<em>Root cause:</em> Source system exported "Hawaiian" without trailing comma for empty size field.<br><br>' +
+                    '<strong>Issue 2 (Row 5):</strong> UTF-8 replacement character <code>U+FFFD</code> in customer_name "Eve Stone".<br>' +
+                    '<em>Root cause:</em> Source file contains Windows-1252 encoded characters mixed with UTF-8.</div>' +
+                    formatStats([
+                        { label: 'Salvageable Rows', value: '4 of 5' },
+                        { label: 'Quarantined', value: '1 row (Row 3)' },
+                        { label: 'Encoding Fix', value: 'Strip replacement chars' }
+                    ]),
+                delay: 2500
+            },
+            {
+                type: 'thinking', from: 'quality_agent', to: 'data_agent',
+                content: 'Quality Agent recommends: Re-import with <code>skip_errors: true</code> and <code>encoding: utf-8-sig</code>. Row 5 encoding can be auto-cleaned. Row 3 will be quarantined for manual review.',
+                delay: 1500
+            },
+            {
+                type: 'tool', from: 'data_agent', to: 'data_agent',
+                content: formatToolCall('load_csv', { file: 'sales_data_v2.csv', skip_errors: true, encoding: 'utf-8-sig', quarantine: true }),
+                delay: 1800
+            },
+            {
+                type: 'result', from: 'data_agent', to: 'orchestrator',
+                content: '<div class="demo-recovery-box"><strong>RECOVERY SUCCESSFUL</strong></div>' +
+                    '<strong>Cleaned Data (4 rows loaded)</strong>' +
+                    formatTable(corruptHeaders, cleanRows) +
+                    formatStats([
+                        { label: 'Loaded', value: '4 rows' },
+                        { label: 'Quarantined', value: '1 row' },
+                        { label: 'Encoding Fixes', value: '1 (Row 5)' }
+                    ]),
+                delay: 2200
+            },
+            {
+                type: 'tool', from: 'orchestrator', to: 'quality_agent',
+                content: formatToolCall('run_validation', { source: 'sales_data_v2_cleaned', auto_suite: true }),
+                delay: 1200
+            },
+            {
+                type: 'response', from: 'orchestrator', to: 'user',
+                content: '<strong>Recovery Complete</strong><br><br>' +
+                    '<span class="demo-stat-highlight">80%</span> of records successfully recovered (4 of 5).<br><br>' +
+                    '<strong>Actions Taken:</strong><ul>' +
+                    '<li><span class="demo-match-good">FIXED</span> Row 5: Stripped encoding artifact from "Eve Stone"</li>' +
+                    '<li><span class="demo-match-fuzzy">QUARANTINED</span> Row 3: Missing fields &mdash; exported to <code>data/quarantine/sales_data_v2_errors.csv</code></li></ul>' +
+                    '<strong>Quality Score:</strong> <span class="demo-stat-highlight">100%</span> on loaded data (all 4 rows pass validation).<br>' +
+                    '<em>Quarantined row requires manual field correction before re-import.</em>',
+                delay: 1500
+            }
+        ];
+    };
+
+    // ----- Scenario 8: Error — Schema Mismatch -----
+    SCENARIOS.error_schema_mismatch = function () {
+        var erpHeaders = ['cust_id', 'full_name', 'email', 'region', 'revenue'];
+        var erpRows = [
+            ['C001', 'Acme Corp', 'acme@corp.com', 'West', '125000'],
+            ['C002', 'Beta LLC', 'beta@llc.com', 'East', '89000'],
+            ['C003', 'Gamma Inc', 'gamma@inc.com', 'Central', '210000'],
+            ['C004', 'Delta Co', 'delta@co.com', 'West', '156000']
+        ];
+        var crmHeaders = ['customer_number', 'first_name', 'last_name', 'email_address', 'territory', 'annual_value'];
+        var crmRows = [
+            ['C001', 'Acme', 'Corp', 'acme@corp.com', 'Western Region', '125000'],
+            ['C002', 'Beta', 'LLC', 'beta@llc.com', 'Eastern Region', '89000'],
+            ['C005', 'Epsilon', 'Ltd', 'epsilon@ltd.com', 'South', '178000'],
+            ['C006', 'Zeta', 'SA', 'zeta@sa.com', 'Central', '95000']
+        ];
+        return [
+            {
+                type: 'system', from: 'System', to: '',
+                content: '<strong>Error Handling Demo: Schema Mismatch Between Sources</strong><br>Comparing ERP export (5 columns) with CRM export (6 columns) — different column names, different structures.',
+                delay: 800
+            },
+            {
+                type: 'request', from: 'user', to: 'orchestrator',
+                content: 'Compare ERP export with CRM export for customer reconciliation.',
+                delay: 1000
+            },
+            {
+                type: 'tool', from: 'orchestrator', to: 'data_agent',
+                content: formatToolCall('load_csv', { file: 'erp_customers.csv' }),
+                delay: 1200
+            },
+            {
+                type: 'result', from: 'data_agent', to: 'orchestrator',
+                content: '<strong>ERP Export</strong> &mdash; 4 rows, 5 columns' +
+                    formatTable(erpHeaders, erpRows),
+                delay: 1500
+            },
+            {
+                type: 'tool', from: 'orchestrator', to: 'data_agent',
+                content: formatToolCall('load_csv', { file: 'crm_customers.csv' }),
+                delay: 1200
+            },
+            {
+                type: 'result', from: 'data_agent', to: 'orchestrator',
+                content: '<strong>CRM Export</strong> &mdash; 4 rows, 6 columns' +
+                    formatTable(crmHeaders, crmRows),
+                delay: 1500
+            },
+            {
+                type: 'error', from: 'data_agent', to: 'orchestrator',
+                content: '<div class="demo-error-box"><strong>SCHEMA MISMATCH DETECTED</strong><br>' +
+                    'ERP has <strong>5</strong> columns, CRM has <strong>6</strong> columns.<br>' +
+                    'No exact column name matches found (0 of 5).<br>' +
+                    'Cannot auto-reconcile without column mapping.</div>',
+                delay: 2000
+            },
+            {
+                type: 'thinking', from: 'orchestrator', to: 'orchestrator',
+                content: 'Schema mismatch detected. Delegating to <strong>Data Agent</strong> for fuzzy column name matching to build an automatic mapping.',
+                delay: 1500
+            },
+            {
+                type: 'tool', from: 'orchestrator', to: 'data_agent',
+                content: formatToolCall('fuzzy_match_columns', { source_a: 'erp_customers', source_b: 'crm_customers', match_on: 'column_names', threshold: 0.6 }),
+                delay: 1800
+            },
+            {
+                type: 'result', from: 'data_agent', to: 'orchestrator',
+                content: function () {
+                    var mapHeaders = ['ERP Column', 'CRM Column', 'Similarity', 'Action'];
+                    var mapRows = [
+                        ['cust_id', 'customer_number', '85%', 'Map (key field)'],
+                        ['full_name', 'first_name + last_name', '72%', 'Concat + map'],
+                        ['email', 'email_address', '92%', 'Direct map'],
+                        ['region', 'territory', '78%', 'Map (fuzzy values)'],
+                        ['revenue', 'annual_value', '73%', 'Direct map']
+                    ];
+                    return '<strong>Fuzzy Column Mapping Suggestions</strong>' +
+                        formatTable(mapHeaders, mapRows, {
+                            colorCol: {
+                                'Similarity': function (v) {
+                                    var n = parseInt(v);
+                                    return n >= 90 ? 'demo-match-good' : (n >= 70 ? 'demo-match-fuzzy' : 'demo-match-bad');
+                                }
+                            }
+                        }) +
+                        '<br><em>Note: CRM splits name into first_name + last_name; ERP uses full_name. Requires concatenation.</em>';
+                },
+                delay: 2500
+            },
+            {
+                type: 'thinking', from: 'data_agent', to: 'data_agent',
+                content: 'Applying column mapping: concat <code>first_name + last_name</code> &rarr; <code>full_name</code>, map <code>customer_number</code> &rarr; <code>cust_id</code>. Attempting reconciliation with mapped schema.',
+                delay: 1500
+            },
+            {
+                type: 'tool', from: 'data_agent', to: 'data_agent',
+                content: formatToolCall('compare_hashes', { key: 'cust_id', mapping: { customer_number: 'cust_id', 'first_name+last_name': 'full_name', email_address: 'email', territory: 'region', annual_value: 'revenue' } }),
+                delay: 1800
+            },
+            {
+                type: 'response', from: 'orchestrator', to: 'user',
+                content: '<div class="demo-recovery-box"><strong>SCHEMA MISMATCH RESOLVED</strong></div>' +
+                    '<strong>Reconciliation succeeded with mapped schema</strong>' +
+                    formatStats([
+                        { label: 'Exact Matches', value: '2 (C001, C002)' },
+                        { label: 'Orphans in ERP', value: '2 (C003, C004)' },
+                        { label: 'Orphans in CRM', value: '2 (C005, C006)' },
+                        { label: 'Column Maps Applied', value: '5' }
+                    ]) +
+                    '<br><strong>Resolution Applied:</strong><ul>' +
+                    '<li><span class="demo-match-good">MAPPED</span> <code>cust_id</code> &harr; <code>customer_number</code> (key field)</li>' +
+                    '<li><span class="demo-match-good">CONCATENATED</span> <code>first_name + last_name</code> &rarr; <code>full_name</code></li>' +
+                    '<li><span class="demo-match-fuzzy">FUZZY MAPPED</span> <code>region</code> &harr; <code>territory</code> ("West" &harr; "Western Region")</li></ul>' +
+                    '<em>Mapping saved as reusable template: <code>erp_crm_customer_map_v1</code></em>',
+                delay: 1500
+            }
+        ];
+    };
+
+    // ----- Scenario 9: Error — Circular Formula in Hierarchy -----
+    SCENARIOS.error_formula_cycle = function () {
+        return [
+            {
+                type: 'system', from: 'System', to: '',
+                content: '<strong>Error Handling Demo: Circular Formula Detection</strong><br>Importing a P&amp;L hierarchy with an intentional circular reference — COGS depends on Gross Profit, which depends on COGS.',
+                delay: 800
+            },
+            {
+                type: 'request', from: 'user', to: 'hierarchy_builder',
+                content: 'Import this P&L hierarchy and validate all formulas before deployment.',
+                delay: 1000
+            },
+            {
+                type: 'tool', from: 'hierarchy_builder', to: 'hierarchy_builder',
+                content: formatToolCall('import_flexible_hierarchy', {
+                    project: 'PRJ-ERR-001',
+                    format: 'tier3',
+                    data: '20 nodes with formulas (intentional circular ref: COGS = Gross Profit + Direct Costs)'
+                }),
+                delay: 1800
+            },
+            {
+                type: 'result', from: 'hierarchy_builder', to: 'hierarchy_builder',
+                content: '<strong>20 nodes imported</strong>' +
+                    formatStats([
+                        { label: 'Nodes', value: '20' },
+                        { label: 'SUM formulas', value: '4' },
+                        { label: 'SUBTRACT formulas', value: '3' },
+                        { label: 'Status', value: 'Imported (unvalidated)' }
+                    ]),
+                delay: 1500
+            },
+            {
+                type: 'tool', from: 'hierarchy_builder', to: 'hierarchy_builder',
+                content: formatToolCall('validate_project', { project: 'PRJ-ERR-001', check_formulas: true, check_orphans: true, check_circular: true }),
+                delay: 1800
+            },
+            {
+                type: 'error', from: 'hierarchy_builder', to: 'hierarchy_builder',
+                content: '<div class="demo-error-box"><strong>CIRCULAR REFERENCE DETECTED</strong><br><br>' +
+                    'Formula dependency cycle found:<br>' +
+                    '<code>COGS (PL020)</code> &rarr; <code>Gross Profit (PL030)</code> &rarr; <code>Revenue (PL010) - COGS (PL020)</code><br><br>' +
+                    'COGS is defined as: <code>Gross Profit + Direct Costs</code><br>' +
+                    'Gross Profit is defined as: <code>Revenue - COGS</code><br><br>' +
+                    'This creates an <strong>infinite calculation loop</strong>.</div>',
+                delay: 2500
+            },
+            {
+                type: 'thinking', from: 'hierarchy_builder', to: 'hierarchy_builder',
+                content: 'Circular reference detected in formula chain. Analyzing the dependency graph to find the minimal fix and visualize the cycle for the user.',
+                delay: 1500
+            },
+            {
+                type: 'result', from: 'hierarchy_builder', to: 'hierarchy_builder',
+                content: '<strong>Dependency Graph &mdash; Cycle Highlighted</strong>' +
+                    '<div class="demo-code" style="white-space:pre;line-height:1.6;">' +
+                    '  Revenue (PL010) = SUM\n' +
+                    '      \u251C\u2500\u2500 Product Revenue (PL011)\n' +
+                    '      \u251C\u2500\u2500 Service Revenue (PL012)\n' +
+                    '      \u2514\u2500\u2500 Other Revenue (PL013)\n' +
+                    '\n' +
+                    '  <span style="color:var(--error);font-weight:700">\u2718 COGS (PL020) = Gross Profit + Direct Costs  \u2190 WRONG!</span>\n' +
+                    '      <span style="color:var(--error)">\u2502   \u2514\u2500\u2500 depends on Gross Profit (PL030)</span>\n' +
+                    '      <span style="color:var(--error)">\u2502       \u2514\u2500\u2500 depends on COGS (PL020)  \u21BB CYCLE</span>\n' +
+                    '\n' +
+                    '  <span style="color:var(--error)">\u2718 Gross Profit (PL030) = Revenue - COGS</span>\n' +
+                    '      <span style="color:var(--error)">\u2514\u2500\u2500 depends on COGS (PL020)  \u21BB CYCLE</span>\n' +
+                    '\n' +
+                    '  Operating Expenses (PL040) = SUM\n' +
+                    '  Operating Income (PL050) = Gross Profit - OpEx</div>',
+                delay: 2500
+            },
+            {
+                type: 'system', from: 'System', to: '',
+                content: '<div class="demo-recovery-box"><strong>RECOMMENDED FIX</strong><br><br>' +
+                    'Change COGS (PL020) formula from:<br>' +
+                    '<code style="color:var(--error)">Gross Profit + Direct Costs</code> (circular!)<br><br>' +
+                    'To:<br>' +
+                    '<code style="color:var(--success)">SUM of children (Material + Labor + Manufacturing OH)</code><br><br>' +
+                    'This breaks the cycle while preserving the correct calculation: Gross Profit = Revenue - SUM(COGS children).</div>' +
+                    '<br><em>This is a user fix scenario &mdash; the hierarchy builder shows you exactly where the problem is so you can correct the formula.</em>',
+                delay: 2000
+            },
+            {
+                type: 'request', from: 'user', to: 'hierarchy_builder',
+                content: 'Apply the fix &mdash; change COGS formula to SUM of its children.',
+                delay: 1200
+            },
+            {
+                type: 'tool', from: 'hierarchy_builder', to: 'hierarchy_builder',
+                content: formatToolCall('update_hierarchy_node', { project: 'PRJ-ERR-001', node_id: 'PL020', formula_type: 'SUM', formula_children: ['PL021', 'PL022', 'PL023'] }),
+                delay: 1500
+            },
+            {
+                type: 'tool', from: 'hierarchy_builder', to: 'hierarchy_builder',
+                content: formatToolCall('validate_project', { project: 'PRJ-ERR-001', check_formulas: true, check_circular: true }),
+                delay: 1500
+            },
+            {
+                type: 'response', from: 'hierarchy_builder', to: 'user',
+                content: '<div class="demo-recovery-box"><strong>CIRCULAR REFERENCE RESOLVED</strong></div>' +
+                    '<strong>Validation Results</strong>' +
+                    formatStats([
+                        { label: 'Circular Refs', value: '0' },
+                        { label: 'Orphan Nodes', value: '0' },
+                        { label: 'Formula Nodes', value: '7 (all valid)' },
+                        { label: 'Status', value: 'Deployment-Ready' }
+                    ]) +
+                    '<br><strong>Corrected Formula Chain:</strong><ul>' +
+                    '<li><code>Revenue</code> = SUM(Product, Service, Other)</li>' +
+                    '<li><span class="demo-match-good">FIXED</span> <code>COGS</code> = SUM(Material, Labor, Manufacturing OH)</li>' +
+                    '<li><code>Gross Profit</code> = Revenue &minus; COGS <span class="demo-match-good">(no cycle)</span></li>' +
+                    '<li><code>Operating Income</code> = Gross Profit &minus; Operating Expenses</li></ul>' +
+                    '<em>Hierarchy is now valid and ready for deployment to Snowflake.</em>',
+                delay: 1500
+            }
+        ];
+    };
+
     // ================================================================
     // EXECUTION ENGINE
     // ================================================================
+
+    function pauseCheckpoint() {
+        if (isPaused) {
+            return new Promise(function (resolve) { pauseResolve = resolve; });
+        }
+        return Promise.resolve();
+    }
+
+    function highlightAgent(from, to) {
+        document.querySelectorAll('.agent-mini').forEach(function (a) {
+            a.classList.remove('active');
+            a.classList.remove('pulse');
+        });
+        var agentId = from;
+        if (agentId === 'user' || agentId === 'System') agentId = to;
+        var agent = document.querySelector('.agent-mini[data-agent="' + agentId + '"]');
+        if (agent) {
+            agent.classList.add('active');
+            agent.classList.add('pulse');
+            setTimeout(function () { agent.classList.remove('pulse'); }, 600);
+        }
+    }
+
+    function updateTransportState(state) {
+        var playBtn = document.getElementById('playBtn');
+        var pauseBtn = document.getElementById('pauseBtn');
+        var stopBtn = document.getElementById('stopBtn');
+        var launchBtn = document.getElementById('launchDemoBtn');
+
+        if (state === 'playing') {
+            if (playBtn) { playBtn.disabled = true; playBtn.classList.add('playing'); playBtn.classList.remove('paused'); }
+            if (pauseBtn) { pauseBtn.disabled = false; pauseBtn.classList.remove('paused'); }
+            if (stopBtn) { stopBtn.disabled = false; }
+            if (launchBtn) { launchBtn.disabled = true; launchBtn.textContent = 'Running...'; }
+        } else if (state === 'paused') {
+            if (playBtn) { playBtn.disabled = false; playBtn.classList.remove('playing'); }
+            if (pauseBtn) { pauseBtn.disabled = true; pauseBtn.classList.add('paused'); }
+            if (launchBtn) { launchBtn.textContent = 'Paused'; }
+        } else { // stopped/idle
+            if (playBtn) { playBtn.disabled = false; playBtn.classList.remove('playing'); }
+            if (pauseBtn) { pauseBtn.disabled = true; pauseBtn.classList.remove('paused'); }
+            if (stopBtn) { stopBtn.disabled = true; }
+            if (launchBtn) { launchBtn.disabled = false; launchBtn.textContent = 'Launch Demo'; }
+        }
+    }
 
     function wait(ms) {
         return new Promise(function (resolve) {
@@ -1206,32 +1608,40 @@ const DemoEngine = (function () {
 
     function updateUIState(running) {
         var launchBtn = document.getElementById('launchDemoBtn');
-        var cancelBtn = document.getElementById('cancelDemoBtn');
         var select = document.getElementById('demoSelect');
         var queryInput = document.getElementById('queryInput');
         var progress = document.getElementById('demoProgress');
 
         if (running) {
             if (launchBtn) { launchBtn.disabled = true; launchBtn.textContent = 'Running...'; }
-            if (cancelBtn) cancelBtn.style.display = 'block';
             if (select) select.disabled = true;
             if (queryInput) queryInput.disabled = true;
             if (progress) progress.style.display = 'block';
         } else {
             if (launchBtn) { launchBtn.disabled = false; launchBtn.textContent = 'Launch Demo'; }
-            if (cancelBtn) cancelBtn.style.display = 'none';
             if (select) select.disabled = false;
             if (queryInput) queryInput.disabled = false;
             if (progress) progress.style.display = 'none';
             updateProgress(0, 1);
+            // Clear agent highlights
+            document.querySelectorAll('.agent-mini').forEach(function (a) {
+                a.classList.remove('active');
+                a.classList.remove('pulse');
+            });
         }
     }
 
     async function executeStep(step, index, total) {
         if (shouldCancel) return false;
+        await pauseCheckpoint();
+        if (shouldCancel) return false;
+
+        // Highlight active agent in sidebar
+        highlightAgent(step.from, step.to);
 
         addTypingIndicator();
         await wait(step.delay || 1200);
+        await pauseCheckpoint();
         removeTypingIndicator();
 
         if (shouldCancel) return false;
@@ -1250,7 +1660,9 @@ const DemoEngine = (function () {
         clearConsole();
         isRunning = true;
         shouldCancel = false;
+        isPaused = false;
         updateUIState(true);
+        updateTransportState('playing');
 
         var startTime = Date.now();
 
@@ -1270,24 +1682,43 @@ const DemoEngine = (function () {
 
         isRunning = false;
         shouldCancel = false;
+        isPaused = false;
         updateUIState(false);
+        updateTransportState('idle');
     }
 
     // ================================================================
     // PUBLIC API
     // ================================================================
 
-    function launch() {
+    function play() {
+        if (isPaused && isRunning) {
+            // Resume from pause
+            isPaused = false;
+            if (pauseResolve) { pauseResolve(); pauseResolve = null; }
+            updateTransportState('playing');
+            return;
+        }
         if (isRunning) return;
+        // Start new demo
         var select = document.getElementById('demoSelect');
         var scenarioId = select ? select.value : '';
         if (!scenarioId) return;
         runScenario(scenarioId);
     }
 
-    function cancel() {
+    function pause() {
+        if (isRunning && !isPaused) {
+            isPaused = true;
+            updateTransportState('paused');
+        }
+    }
+
+    function stop() {
         if (isRunning) {
             shouldCancel = true;
+            isPaused = false;
+            if (pauseResolve) { pauseResolve(); pauseResolve = null; }
         }
     }
 
@@ -1303,20 +1734,26 @@ const DemoEngine = (function () {
         var select = document.getElementById('demoSelect');
         var desc = document.getElementById('demoDescription');
         var btn = document.getElementById('launchDemoBtn');
+        var playBtn = document.getElementById('playBtn');
         var val = select ? select.value : '';
 
         if (val && DESCRIPTIONS[val]) {
             if (desc) desc.textContent = DESCRIPTIONS[val];
             if (btn) btn.disabled = false;
+            if (playBtn) playBtn.disabled = false;
         } else {
             if (desc) desc.textContent = 'Select a demo to see a hands-off walkthrough of DataBridge AI capabilities.';
             if (btn) btn.disabled = true;
+            if (playBtn) playBtn.disabled = true;
         }
     }
 
     return {
-        launch: launch,
-        cancel: cancel,
+        play: play,
+        pause: pause,
+        stop: stop,
+        launch: play,      // backward compat
+        cancel: stop,       // backward compat
         setSpeed: setSpeed,
         onSelectChange: onSelectChange
     };

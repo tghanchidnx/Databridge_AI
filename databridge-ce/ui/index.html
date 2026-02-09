@@ -913,6 +913,105 @@
             color: var(--synthesis);
         }
 
+        /* ============ TRANSPORT CONTROLS ============ */
+        .demo-transport { display: flex; gap: 6px; margin-top: 8px; }
+        .demo-transport-btn {
+            flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 6px;
+            background: var(--bg-dark); color: var(--text); cursor: pointer;
+            font-size: 1rem; transition: all 0.2s; font-family: inherit;
+        }
+        .demo-transport-btn:hover:not(:disabled) { background: var(--bg-hover); }
+        .demo-transport-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .demo-transport-btn.playing { border-color: var(--success); color: var(--success); }
+        .demo-transport-btn.paused { border-color: var(--warning); color: var(--warning); }
+
+        /* ============ TOOLTIP SYSTEM ============ */
+        [data-tooltip] { position: relative; }
+        [data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute; left: 110%; top: 50%; transform: translateY(-50%);
+            background: #1e293b; color: var(--text); padding: 8px 12px;
+            border-radius: 6px; font-size: 0.75rem; white-space: nowrap;
+            border: 1px solid var(--border); pointer-events: none;
+            opacity: 0; transition: opacity 0.2s; z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        [data-tooltip]:hover::after { opacity: 1; }
+        [data-tooltip-pos="top"]::after { left: 50%; top: auto; bottom: 110%; transform: translateX(-50%); }
+        [data-tooltip-pos="bottom"]::after { left: 50%; top: 110%; bottom: auto; transform: translateX(-50%); }
+        [data-tooltip-pos="left"]::after { left: auto; right: 110%; }
+
+        /* ============ TOKEN CALCULATOR ============ */
+        .token-calculator { display: flex; flex-direction: column; gap: 8px; }
+        .token-calculator select {
+            width: 100%; padding: 8px 10px; border: 1px solid var(--border);
+            border-radius: 6px; background: var(--bg-dark); color: var(--text);
+            font-family: inherit; font-size: 0.82rem;
+        }
+        .token-row { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-dim); }
+        .token-row .token-value { color: var(--primary); font-weight: 600; }
+        .token-example {
+            background: var(--bg-dark); border-radius: 6px; padding: 10px;
+            margin-top: 4px; font-size: 0.78rem;
+        }
+        .token-example .cost { color: var(--success); font-weight: 700; font-size: 0.9rem; }
+
+        /* ============ EXPANDED AGENT PANEL ============ */
+        .agent-mini .status-dot {
+            width: 8px; height: 8px; border-radius: 50%; margin-left: auto;
+            background: var(--text-dim); transition: background 0.3s;
+        }
+        .agent-mini.active .status-dot { background: var(--success); box-shadow: 0 0 6px var(--success); }
+        .agent-mini.pulse { animation: agentPulse 0.6s ease; }
+        @keyframes agentPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); box-shadow: 0 0 8px rgba(59,130,246,0.3); }
+            100% { transform: scale(1); }
+        }
+        .agent-popup-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 2000; animation: fadeIn 0.2s;
+        }
+        .agent-popup {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 24px; max-width: 520px; width: 90%;
+            max-height: 80vh; overflow-y: auto;
+        }
+        .agent-popup h3 { color: var(--primary); margin-bottom: 12px; }
+        .agent-popup .close-btn {
+            float: right; background: none; border: none; color: var(--text-dim);
+            font-size: 1.2rem; cursor: pointer;
+        }
+        .agent-popup .close-btn:hover { color: var(--text); }
+        .agent-popup .flow-diagram {
+            background: var(--bg-dark); border: 1px solid var(--border);
+            border-radius: 8px; padding: 16px; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 0.78rem; white-space: pre; line-height: 1.6; overflow-x: auto;
+            color: var(--text);
+        }
+        .agent-popup .flow-diagram .flow-arrow { color: var(--primary); }
+        .agent-popup .flow-diagram .flow-box { color: var(--success); }
+        .agent-popup .flow-diagram .flow-highlight { color: var(--warning); font-weight: 600; }
+        .agent-popup .capabilities { list-style: none; padding: 0; }
+        .agent-popup .capabilities li {
+            padding: 4px 0; border-bottom: 1px solid var(--border);
+            font-size: 0.82rem;
+        }
+        .agent-popup .capabilities li::before { content: "\25B8 "; color: var(--primary); }
+
+        /* ============ ERROR DEMO STYLING ============ */
+        .message.error .content { border-left: 3px solid var(--error); }
+        .message .type.recovery { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .demo-error-box {
+            background: rgba(239, 68, 68, 0.1); border: 1px solid var(--error);
+            border-radius: 6px; padding: 10px 14px; margin: 8px 0;
+        }
+        .demo-recovery-box {
+            background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success);
+            border-radius: 6px; padding: 10px 14px; margin: 8px 0;
+        }
+
     </style>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 </head>
@@ -958,51 +1057,66 @@
             </div>
             <ul class="nav-menu">
                 <li class="nav-item" data-page-id="dashboard">
-                    <a href="#" class="nav-link active" onclick="showPage(event, 'dashboard')">
+                    <a href="#" class="nav-link active" onclick="showPage(event, 'dashboard')" data-tooltip="Overview of projects, tools, and recent activity">
                         <span class="nav-icon">📊</span> Dashboard
                     </a>
                 </li>
                 <li class="nav-item" data-page-id="console">
-                    <a href="#" class="nav-link" onclick="showPage(event, 'console')">
+                    <a href="#" class="nav-link" onclick="showPage(event, 'console')" data-tooltip="Interactive AI agent chat with autonomous demos">
                         <span class="nav-icon">📡</span> Agent Console
                     </a>
                 </li>
                 <li class="nav-item" data-page-id="workbench">
-                    <a href="#" class="nav-link" onclick="showPage(event, 'workbench')">
+                    <a href="#" class="nav-link" onclick="showPage(event, 'workbench')" data-tooltip="Browse and run any of 348 MCP tools">
                         <span class="nav-icon">🔧</span> Tool Workbench
                     </a>
                 </li>
                 <li class="nav-item" data-page-id="projects">
-                    <a href="#" class="nav-link" onclick="showPage(event, 'projects')">
+                    <a href="#" class="nav-link" onclick="showPage(event, 'projects')" data-tooltip="Manage saved hierarchy project files">
                         <span class="nav-icon">📁</span> Hierarchy Projects
                     </a>
                 </li>
                 <li class="nav-item" data-page-id="hierarchy-builder">
-                    <a href="#" class="nav-link" onclick="showPage(event, 'hierarchy-builder')">
+                    <a href="#" class="nav-link" onclick="showPage(event, 'hierarchy-builder')" data-tooltip="Build multi-level hierarchies with formulas">
                         <span class="nav-icon">⬡</span> Hierarchy Builder
                     </a>
                 </li>
                 <li class="nav-item" data-page-id="workflow-editor">
-                    <a href="#" class="nav-link" onclick="showPage(event, 'workflow-editor')">
+                    <a href="#" class="nav-link" onclick="showPage(event, 'workflow-editor')" data-tooltip="Create and edit multi-step data workflows">
                         <span class="nav-icon">⚡</span> Workflow Editor
                     </a>
                 </li>
                 <li class="nav-item" data-page-id="wright">
-                    <a href="#" class="nav-link" onclick="showPage(event, 'wright')">
+                    <a href="#" class="nav-link" onclick="showPage(event, 'wright')" data-tooltip="Generate Snowflake Dynamic Table pipelines">
                         <span class="nav-icon">✈️</span> Wright Builder
                     </a>
                 </li>
                 <li class="nav-item" data-page-id="admin">
-                    <a href="#" class="nav-link" onclick="showPage(event, 'admin')">
+                    <a href="#" class="nav-link" onclick="showPage(event, 'admin')" data-tooltip="App configuration and connection settings">
                         <span class="nav-icon">⚙️</span> Administration
                     </a>
                 </li>
                 <li class="nav-item" data-page-id="guide" style="margin-top: auto;">
-                    <a href="#" class="nav-link" onclick="showPage(event, 'guide')">
+                    <a href="#" class="nav-link" onclick="showPage(event, 'guide')" data-tooltip="Documentation, guides, and reference">
                         <span class="nav-icon">📚</span> Help / Docs
                     </a>
                 </li>
             </ul>
+            <div class="detail-card" style="margin: 12px; margin-top: 0;">
+                <h4>Token Usage Calculator</h4>
+                <div class="token-calculator">
+                    <select id="llmProvider" onchange="updateTokenCalculator()">
+                        <option value="claude" selected>Anthropic (Claude)</option>
+                        <option value="openai">OpenAI (GPT)</option>
+                        <option value="google">Google (Gemini)</option>
+                        <option value="mistral">Mistral AI</option>
+                    </select>
+                    <select id="llmModel" onchange="updateTokenEstimate()">
+                    </select>
+                    <div class="token-example" id="tokenExample">
+                    </div>
+                </div>
+            </div>
         </aside>
 
         <main class="main-content">
@@ -1046,9 +1160,9 @@
                     <h3>Quick Start</h3>
                     <p style="color: var(--text-dim); margin-bottom: 15px;">Get started with DataBridge AI:</p>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button class="btn primary" onclick="showPage(null, 'console')">Open Agent Console</button>
-                        <button class="btn" onclick="showPage(null, 'workbench')">Explore Tools</button>
-                        <button class="btn" onclick="showPage(null, 'guide')">View Documentation</button>
+                        <button class="btn primary" onclick="showPage(null, 'console')" data-tooltip="Open the Agent Console page" data-tooltip-pos="top">Open Agent Console</button>
+                        <button class="btn" onclick="showPage(null, 'workbench')" data-tooltip="Open the Tool Workbench page" data-tooltip-pos="top">Explore Tools</button>
+                        <button class="btn" onclick="showPage(null, 'guide')" data-tooltip="Open the Help / Docs page" data-tooltip-pos="top">View Documentation</button>
                     </div>
                 </div>
             </div>
@@ -1064,8 +1178,8 @@
                                 <span id="conversationId" style="color: var(--text-dim); font-size: 0.85rem;"></span>
                             </div>
                             <div style="display: flex; gap: 10px;">
-                                <button class="btn" onclick="clearConsole()">Clear</button>
-                                <button class="btn" onclick="exportLog()">Export</button>
+                                <button class="btn" onclick="clearConsole()" data-tooltip="Clear all console messages" data-tooltip-pos="bottom">Clear</button>
+                                <button class="btn" onclick="exportLog()" data-tooltip="Export console log as text file" data-tooltip-pos="bottom">Export</button>
                             </div>
                         </div>
 
@@ -1083,7 +1197,7 @@ Ready to process requests. Type a query below or launch an Autonomous Demo.</div
                         <div class="input-area">
                             <input type="text" id="queryInput" placeholder="Ask a question about your data..."
                                    onkeypress="if(event.key==='Enter')sendQuery()">
-                            <button class="btn primary" onclick="sendQuery()">Send</button>
+                            <button class="btn primary" onclick="sendQuery()" data-tooltip="Send query to AI agents" data-tooltip-pos="top">Send</button>
                         </div>
                     </div>
 
@@ -1105,17 +1219,45 @@ Ready to process requests. Type a query below or launch an Autonomous Demo.</div
                         <div class="detail-card">
                             <h4>Active Agents</h4>
                             <div class="agent-list-mini" id="agentList">
-                                <div class="agent-mini" data-agent="orchestrator">
+                                <div class="agent-mini" data-agent="orchestrator" onclick="showAgentPopup('orchestrator')" data-tooltip="Central coordinator — routes tasks to specialists" data-tooltip-pos="left">
                                     <span class="icon">🎯</span>
                                     <span class="name">Orchestrator</span>
+                                    <span class="status-dot"></span>
                                 </div>
-                                <div class="agent-mini" data-agent="cortex_analyst">
+                                <div class="agent-mini" data-agent="data_agent" onclick="showAgentPopup('data_agent')" data-tooltip="Loads, profiles, and reconciles data sources" data-tooltip-pos="left">
+                                    <span class="icon">📊</span>
+                                    <span class="name">Data Agent</span>
+                                    <span class="status-dot"></span>
+                                </div>
+                                <div class="agent-mini" data-agent="cortex_analyst" onclick="showAgentPopup('cortex_analyst')" data-tooltip="Snowflake Cortex AI for NL-to-SQL and reasoning" data-tooltip-pos="left">
                                     <span class="icon">🔍</span>
                                     <span class="name">Cortex Analyst</span>
+                                    <span class="status-dot"></span>
                                 </div>
-                                <div class="agent-mini" data-agent="hierarchy_builder">
+                                <div class="agent-mini" data-agent="hierarchy_builder" onclick="showAgentPopup('hierarchy_builder')" data-tooltip="Builds and validates multi-level hierarchies" data-tooltip-pos="left">
                                     <span class="icon">🏗️</span>
                                     <span class="name">Hierarchy Builder</span>
+                                    <span class="status-dot"></span>
+                                </div>
+                                <div class="agent-mini" data-agent="quality_agent" onclick="showAgentPopup('quality_agent')" data-tooltip="Data quality profiling, rules, and validation" data-tooltip-pos="left">
+                                    <span class="icon">✅</span>
+                                    <span class="name">Quality Agent</span>
+                                    <span class="status-dot"></span>
+                                </div>
+                                <div class="agent-mini" data-agent="dbt_agent" onclick="showAgentPopup('dbt_agent')" data-tooltip="Generates dbt projects, models, and tests" data-tooltip-pos="left">
+                                    <span class="icon">⚡</span>
+                                    <span class="name">dbt Agent</span>
+                                    <span class="status-dot"></span>
+                                </div>
+                                <div class="agent-mini" data-agent="catalog_agent" onclick="showAgentPopup('catalog_agent')" data-tooltip="Data catalog scanning, tagging, and lineage" data-tooltip-pos="left">
+                                    <span class="icon">📚</span>
+                                    <span class="name">Catalog Agent</span>
+                                    <span class="status-dot"></span>
+                                </div>
+                                <div class="agent-mini" data-agent="wright_agent" onclick="showAgentPopup('wright_agent')" data-tooltip="Wright Pipeline Builder for Snowflake" data-tooltip-pos="left">
+                                    <span class="icon">✈️</span>
+                                    <span class="name">Wright Agent</span>
+                                    <span class="status-dot"></span>
                                 </div>
                             </div>
                         </div>
@@ -1123,28 +1265,41 @@ Ready to process requests. Type a query below or launch an Autonomous Demo.</div
                         <div class="detail-card">
                             <h4>Autonomous Demos</h4>
                             <div class="demo-selector">
-                                <select id="demoSelect" onchange="DemoEngine.onSelectChange()">
+                                <select id="demoSelect" onchange="DemoEngine.onSelectChange()" data-tooltip="Choose a demo scenario to run" data-tooltip-pos="left">
                                     <option value="">-- Select a Demo --</option>
-                                    <option value="reconciliation">Data Reconciliation</option>
-                                    <option value="hierarchy">Financial Hierarchy Builder</option>
-                                    <option value="data_quality">Data Quality Analysis</option>
-                                    <option value="dbt_pipeline">dbt Pipeline Generation</option>
-                                    <option value="oil_gas">Oil &amp; Gas Well Analysis</option>
-                                    <option value="full_workflow">Full End-to-End Workflow</option>
+                                    <optgroup label="Core Demos">
+                                        <option value="reconciliation">Data Reconciliation</option>
+                                        <option value="hierarchy">Financial Hierarchy Builder</option>
+                                        <option value="data_quality">Data Quality Analysis</option>
+                                        <option value="dbt_pipeline">dbt Pipeline Generation</option>
+                                        <option value="oil_gas">Oil &amp; Gas Well Analysis</option>
+                                        <option value="full_workflow">Full End-to-End Workflow</option>
+                                    </optgroup>
+                                    <optgroup label="Error Handling Demos">
+                                        <option value="error_bad_csv">Error: Corrupt CSV Import</option>
+                                        <option value="error_schema_mismatch">Error: Schema Mismatch</option>
+                                        <option value="error_formula_cycle">Error: Circular Formula</option>
+                                    </optgroup>
                                 </select>
                                 <div class="demo-description" id="demoDescription">
                                     Select a demo to see a hands-off walkthrough of DataBridge AI capabilities.
                                 </div>
-                                <button class="launch-demo-btn" id="launchDemoBtn" onclick="DemoEngine.launch()" disabled>
+                                <button class="launch-demo-btn" id="launchDemoBtn" onclick="DemoEngine.play()" disabled
+                                        data-tooltip="Start the selected demo scenario" data-tooltip-pos="top">
                                     Launch Demo
                                 </button>
-                                <button class="cancel-demo-btn" id="cancelDemoBtn" onclick="DemoEngine.cancel()">
-                                    Stop Demo
-                                </button>
                                 <div class="demo-speed-control">
-                                    <button class="demo-speed-btn active" onclick="DemoEngine.setSpeed(1, this)">1x</button>
-                                    <button class="demo-speed-btn" onclick="DemoEngine.setSpeed(2, this)">2x</button>
-                                    <button class="demo-speed-btn" onclick="DemoEngine.setSpeed(3, this)">3x</button>
+                                    <button class="demo-speed-btn active" onclick="DemoEngine.setSpeed(1, this)" data-tooltip="Normal speed" data-tooltip-pos="top">1x</button>
+                                    <button class="demo-speed-btn" onclick="DemoEngine.setSpeed(2, this)" data-tooltip="Double speed" data-tooltip-pos="top">2x</button>
+                                    <button class="demo-speed-btn" onclick="DemoEngine.setSpeed(3, this)" data-tooltip="Triple speed" data-tooltip-pos="top">3x</button>
+                                </div>
+                                <div class="demo-transport">
+                                    <button class="demo-transport-btn" id="playBtn" onclick="DemoEngine.play()" disabled
+                                            data-tooltip="Play / Resume demo" data-tooltip-pos="top">&#9654;</button>
+                                    <button class="demo-transport-btn" id="pauseBtn" onclick="DemoEngine.pause()" disabled
+                                            data-tooltip="Pause demo execution" data-tooltip-pos="top">&#9208;</button>
+                                    <button class="demo-transport-btn" id="stopBtn" onclick="DemoEngine.stop()" disabled
+                                            data-tooltip="Stop demo and reset" data-tooltip-pos="top">&#9209;</button>
                                 </div>
                                 <div class="demo-progress" id="demoProgress">
                                     <div class="demo-progress-bar">
@@ -1165,7 +1320,7 @@ Ready to process requests. Type a query below or launch an Autonomous Demo.</div
                     <div class="list-panel card">
                         <h3>Available Tools</h3>
                         <div class="form-group">
-                            <input type="text" id="toolFilter" placeholder="Filter tools..." onkeyup="filterTools()">
+                            <input type="text" id="toolFilter" placeholder="Filter tools..." onkeyup="filterTools()" data-tooltip="Type to filter tools by name" data-tooltip-pos="top">
                         </div>
                         <ul id="toolList" style="max-height: 500px; overflow-y: auto;">
                             <li style="color: var(--text-dim);">Loading tools...</li>
@@ -1176,7 +1331,7 @@ Ready to process requests. Type a query below or launch an Autonomous Demo.</div
                             <h3 id="selectedToolName">Select a Tool</h3>
                             <p id="selectedToolDesc" style="color: var(--text-dim);">Choose a tool from the list to configure and run it.</p>
                             <div id="toolParams"></div>
-                            <button class="btn primary" id="runToolBtn" style="margin-top: 15px; display: none;" onclick="runSelectedTool()">
+                            <button class="btn primary" id="runToolBtn" style="margin-top: 15px; display: none;" onclick="runSelectedTool()" data-tooltip="Execute selected tool with parameters" data-tooltip-pos="top">
                                 Run Tool
                             </button>
                         </div>
@@ -3364,6 +3519,288 @@ Would you like me to provide more details or explore related data?`);
             hbLoadProjects();
         }
     };
+
+    // ============ AGENT POPUP SYSTEM ============
+
+    const AGENT_INFO = {
+        orchestrator: {
+            name: 'Orchestrator', icon: '\uD83C\uDFAF',
+            description: 'Central coordinator that analyzes requests, creates execution plans, and delegates tasks to specialist agents. Routes every user request to the right combination of agents.',
+            capabilities: ['analyze_request', 'plan_workflow', 'submit_orchestrated_task', 'suggest_agents', 'register_agent', 'get_orchestrator_health'],
+            flow:
+                '  \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n' +
+                '  \u2502         User Request                \u2502\n' +
+                '  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n' +
+                '                   \u2502\n' +
+                '                   \u25BC\n' +
+                '        \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n' +
+                '        \u2502  ORCHESTRATOR   \u2502 \u2190 Analyzes intent\n' +
+                '        \u2502  analyze_request \u2502 \u2190 Creates plan\n' +
+                '        \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n' +
+                '                 \u2502 delegates\n' +
+                '       \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n' +
+                '       \u25BC         \u25BC          \u25BC\n' +
+                '  \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n' +
+                '  \u2502 Data  \u2502 \u2502Hierarchy\u2502 \u2502Quality \u2502 ...\n' +
+                '  \u2502 Agent \u2502 \u2502Builder  \u2502 \u2502 Agent  \u2502\n' +
+                '  \u2514\u2500\u2500\u2500\u252C\u2500\u2500\u2500\u2518 \u2514\u2500\u2500\u2500\u252C\u2500\u2500\u2500\u2500\u2518 \u2514\u2500\u2500\u2500\u252C\u2500\u2500\u2500\u2500\u2518\n' +
+                '       \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n' +
+                '                 \u25BC\n' +
+                '     Synthesized Response \u2192 User'
+        },
+        data_agent: {
+            name: 'Data Agent', icon: '\uD83D\uDCCA',
+            description: 'Loads, profiles, reconciles, and compares data from CSV, SQL, PDF, and JSON sources. The workhorse for all data ingestion and matching tasks.',
+            capabilities: ['load_csv', 'load_json', 'profile_data', 'fuzzy_match_columns', 'compare_hashes', 'merge_sources', 'compare_table_data', 'smart_import_csv'],
+            flow:
+                '      Orchestrator\n' +
+                '          \u2502 "reconcile sources"\n' +
+                '          \u25BC\n' +
+                '  \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n' +
+                '  \u2502   DATA AGENT     \u2502\n' +
+                '  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n' +
+                '           \u2502\n' +
+                '     \u250C\u2500\u2500\u2500\u2500\u253C\u2500\u2500\u2500\u2500\u2500\u2510\n' +
+                '     \u25BC     \u25BC      \u25BC\n' +
+                '  load   profile  fuzzy\n' +
+                '  _csv   _data    _match\n' +
+                '     \u2502     \u2502      \u2502\n' +
+                '     \u2514\u2500\u2500\u2500\u2500\u253C\u2500\u2500\u2500\u2500\u2500\u2518\n' +
+                '          \u25BC\n' +
+                '  compare_hashes\n' +
+                '          \u2502\n' +
+                '          \u25BC\n' +
+                '  Reconciliation Report'
+        },
+        cortex_analyst: {
+            name: 'Cortex Analyst', icon: '\uD83D\uDD0D',
+            description: 'Integrates with Snowflake Cortex AI for natural-language-to-SQL, semantic reasoning, sentiment analysis, and complex data analytics.',
+            capabilities: ['cortex_complete', 'cortex_reason', 'cortex_summarize', 'analyst_ask', 'create_semantic_model', 'cortex_bootstrap_semantic_model'],
+            flow:
+                '      Orchestrator\n' +
+                '          \u2502 "analyze this data"\n' +
+                '          \u25BC\n' +
+                '  \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n' +
+                '  \u2502 CORTEX ANALYST  \u2502\n' +
+                '  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n' +
+                '           \u2502\n' +
+                '     \u250C\u2500\u2500\u2500\u2500\u253C\u2500\u2500\u2500\u2500\u2500\u2510\n' +
+                '     \u25BC     \u25BC      \u25BC\n' +
+                '  analyst semantic cortex\n' +
+                '  _ask    _model   _reason\n' +
+                '     \u2502     \u2502      \u2502\n' +
+                '     \u25BC     \u25BC      \u25BC\n' +
+                '  \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n' +
+                '  \u2502   Snowflake     \u2502\n' +
+                '  \u2502   Cortex AI     \u2502\n' +
+                '  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n' +
+                '           \u25BC\n' +
+                '  Analytics Report'
+        },
+        hierarchy_builder: {
+            name: 'Hierarchy Builder', icon: '\uD83C\uDFD7\uFE0F',
+            description: 'Creates and manages multi-level hierarchy projects (up to 15 levels) with SUM/SUBTRACT formulas, GL account mappings, and auto-validation.',
+            capabilities: ['create_hierarchy_project', 'import_flexible_hierarchy', 'validate_project', 'export_hierarchy_csv', 'add_source_mapping', 'generate_hierarchy_scripts'],
+            flow:
+                '      Orchestrator\n' +
+                '          \u2502 "build hierarchy"\n' +
+                '          \u25BC\n' +
+                '  \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n' +
+                '  \u2502 HIERARCHY BUILDER \u2502\n' +
+                '  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n' +
+                '            \u2502\n' +
+                '    create_project\n' +
+                '            \u2502\n' +
+                '    import_hierarchy\n' +
+                '            \u2502\n' +
+                '    validate_project\n' +
+                '      \u250C\u2500\u2500\u2500\u2500\u253C\u2500\u2500\u2500\u2500\u2510\n' +
+                '      \u25BC     \u25BC     \u25BC\n' +
+                '   formulas orphans refs\n' +
+                '      \u2514\u2500\u2500\u2500\u2500\u253C\u2500\u2500\u2500\u2500\u2518\n' +
+                '           \u25BC\n' +
+                '    export_csv / deploy'
+        },
+        quality_agent: {
+            name: 'Quality Agent', icon: '\u2705',
+            description: 'Profiles data quality, auto-generates expectation rules (not-null, ranges, uniqueness), runs validation suites, and produces quality scorecards.',
+            capabilities: ['generate_expectation_suite', 'run_validation', 'add_column_expectation', 'get_validation_results', 'list_expectation_suites'],
+            flow:
+                '      Orchestrator\n' +
+                '          \u2502 "check quality"\n' +
+                '          \u25BC\n' +
+                '  \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n' +
+                '  \u2502 QUALITY AGENT   \u2502\n' +
+                '  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n' +
+                '           \u2502\n' +
+                '    profile_data\n' +
+                '           \u2502\n' +
+                '    detect issues\n' +
+                '     (nulls, outliers)\n' +
+                '           \u2502\n' +
+                '    generate_suite\n' +
+                '           \u2502\n' +
+                '    run_validation\n' +
+                '           \u2502\n' +
+                '           \u25BC\n' +
+                '    Quality Scorecard\n' +
+                '    (3/5 passed = 86.7%)'
+        },
+        dbt_agent: {
+            name: 'dbt Agent', icon: '\u26A1',
+            description: 'Generates complete dbt projects from source data — including project scaffolding, sources YAML, staging SQL, mart models, and schema tests.',
+            capabilities: ['create_dbt_project', 'generate_dbt_sources', 'generate_dbt_model', 'generate_dbt_schema', 'validate_dbt_project', 'generate_dbt_workflow'],
+            flow:
+                '      Orchestrator\n' +
+                '          \u2502 "generate dbt"\n' +
+                '          \u25BC\n' +
+                '  \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n' +
+                '  \u2502   dbt AGENT     \u2502\n' +
+                '  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n' +
+                '           \u2502\n' +
+                '    create_project\n' +
+                '           \u2502\n' +
+                '   \u250C\u2500\u2500\u2500\u2500\u2500\u253C\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n' +
+                '   \u25BC      \u25BC       \u25BC\n' +
+                ' sources staging  marts\n' +
+                ' .yml    .sql     .sql\n' +
+                '   \u2514\u2500\u2500\u2500\u2500\u2500\u253C\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n' +
+                '          \u25BC\n' +
+                '   schema_tests\n' +
+                '          \u2502\n' +
+                '          \u25BC\n' +
+                '   dbt build \u2192 Snowflake'
+        },
+        catalog_agent: {
+            name: 'Catalog Agent', icon: '\uD83D\uDCDA',
+            description: 'Scans database connections, discovers assets, manages tags and business glossary terms, and auto-generates data lineage from SQL or dbt.',
+            capabilities: ['catalog_scan_connection', 'catalog_search', 'catalog_create_asset', 'catalog_create_term', 'catalog_manage_tags', 'catalog_auto_lineage_from_sql'],
+            flow:
+                '      Orchestrator\n' +
+                '          \u2502 "catalog assets"\n' +
+                '          \u25BC\n' +
+                '  \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n' +
+                '  \u2502 CATALOG AGENT   \u2502\n' +
+                '  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n' +
+                '           \u2502\n' +
+                '    scan_connection\n' +
+                '           \u2502\n' +
+                '   \u250C\u2500\u2500\u2500\u2500\u2500\u253C\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n' +
+                '   \u25BC      \u25BC       \u25BC\n' +
+                ' assets  terms   tags\n' +
+                '   \u2514\u2500\u2500\u2500\u2500\u2500\u253C\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n' +
+                '          \u25BC\n' +
+                '   auto_lineage\n' +
+                '          \u2502\n' +
+                '          \u25BC\n' +
+                '   Data Catalog + Lineage'
+        },
+        wright_agent: {
+            name: 'Wright Agent', icon: '\u2708\uFE0F',
+            description: 'Generates Snowflake Dynamic Table pipelines using the 4-object pattern: VW_1 Translation, DT_2 Granularity, DT_3A Pre-Agg, and DT_3 Data Mart.',
+            capabilities: ['create_mart_config', 'generate_mart_pipeline', 'wright_from_hierarchy', 'wright_hierarchy_sync', 'validate_mart_pipeline'],
+            flow:
+                '      Orchestrator\n' +
+                '          \u2502 "generate pipeline"\n' +
+                '          \u25BC\n' +
+                '  \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n' +
+                '  \u2502  WRIGHT AGENT   \u2502\n' +
+                '  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n' +
+                '           \u2502\n' +
+                '    wright_from_hierarchy\n' +
+                '           \u2502\n' +
+                '   \u250C\u2500\u2500\u2500\u2500\u2500\u252C\u2500\u2500\u2500\u2500\u2500\u252C\u2500\u2500\u2500\u2500\u2500\u2510\n' +
+                '   \u25BC      \u25BC      \u25BC      \u25BC\n' +
+                '  VW_1   DT_2  DT_3A  DT_3\n' +
+                ' Trans  Grain  PreAgg Mart\n' +
+                '   \u2514\u2500\u2500\u2500\u2500\u2500\u253C\u2500\u2500\u2500\u2500\u2500\u253C\u2500\u2500\u2500\u2500\u2500\u2518\n' +
+                '          \u25BC\n' +
+                '   Snowflake Dynamic\n' +
+                '   Tables (deployed)'
+        }
+    };
+
+    function showAgentPopup(agentId) {
+        const info = AGENT_INFO[agentId];
+        if (!info) return;
+        const overlay = document.createElement('div');
+        overlay.className = 'agent-popup-overlay';
+        overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+        overlay.innerHTML = `
+            <div class="agent-popup">
+                <button class="close-btn" onclick="this.closest('.agent-popup-overlay').remove()">\u2715</button>
+                <h3>${info.icon} ${info.name}</h3>
+                <p style="color: var(--text-dim); margin-bottom: 16px; line-height: 1.5;">${info.description}</p>
+                <h4 style="color: var(--primary); font-size: 0.85rem; margin-bottom: 8px;">Data Flow</h4>
+                <div class="flow-diagram">${info.flow}</div>
+                <h4 style="color: var(--primary); font-size: 0.85rem; margin: 16px 0 8px;">Capabilities (MCP Tools)</h4>
+                <ul class="capabilities">
+                    ${info.capabilities.map(c => '<li>' + c + '</li>').join('')}
+                </ul>
+            </div>`;
+        document.body.appendChild(overlay);
+    }
+
+    // ============ TOKEN USAGE CALCULATOR ============
+
+    const LLM_MODELS = {
+        claude: [
+            { id: 'opus-4.6', name: 'Claude Opus 4.6', input: 15.00, output: 75.00, context: '200K' },
+            { id: 'sonnet-4.5', name: 'Claude Sonnet 4.5', input: 3.00, output: 15.00, context: '200K' },
+            { id: 'haiku-4.5', name: 'Claude Haiku 4.5', input: 0.80, output: 4.00, context: '200K' }
+        ],
+        openai: [
+            { id: 'gpt-4o', name: 'GPT-4o', input: 2.50, output: 10.00, context: '128K' },
+            { id: 'gpt-4o-mini', name: 'GPT-4o Mini', input: 0.15, output: 0.60, context: '128K' },
+            { id: 'o1', name: 'o1', input: 15.00, output: 60.00, context: '200K' }
+        ],
+        google: [
+            { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', input: 0.10, output: 0.40, context: '1M' },
+            { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', input: 1.25, output: 10.00, context: '1M' }
+        ],
+        mistral: [
+            { id: 'mistral-large', name: 'Mistral Large', input: 2.00, output: 6.00, context: '128K' },
+            { id: 'mistral-small', name: 'Mistral Small', input: 0.20, output: 0.60, context: '128K' }
+        ]
+    };
+
+    function updateTokenCalculator() {
+        const provider = document.getElementById('llmProvider').value;
+        const modelSelect = document.getElementById('llmModel');
+        const models = LLM_MODELS[provider] || [];
+        modelSelect.innerHTML = models.map(m =>
+            `<option value="${m.id}">${m.name}</option>`
+        ).join('');
+        updateTokenEstimate();
+    }
+
+    function updateTokenEstimate() {
+        const provider = document.getElementById('llmProvider').value;
+        const modelId = document.getElementById('llmModel').value;
+        const models = LLM_MODELS[provider] || [];
+        const model = models.find(m => m.id === modelId) || models[0];
+        if (!model) return;
+
+        const exampleInputTokens = 4500;
+        const exampleOutputTokens = 2200;
+        const inputCost = (exampleInputTokens / 1_000_000) * model.input;
+        const outputCost = (exampleOutputTokens / 1_000_000) * model.output;
+        const totalCost = inputCost + outputCost;
+
+        document.getElementById('tokenExample').innerHTML = `
+            <div style="margin-bottom: 6px; color: var(--text); font-weight: 600;">${model.name}</div>
+            <div class="token-row"><span>Context Window</span><span class="token-value">${model.context}</span></div>
+            <div class="token-row"><span>Input Price</span><span class="token-value">$${model.input.toFixed(2)}/MTok</span></div>
+            <div class="token-row"><span>Output Price</span><span class="token-value">$${model.output.toFixed(2)}/MTok</span></div>
+            <hr style="border-color: var(--border); margin: 6px 0;">
+            <div style="color: var(--text-dim); font-size: 0.75rem; margin-bottom: 4px;">Example: Reconciliation Session (4.5K in / 2.2K out)</div>
+            <div class="token-row"><span>Estimated Cost</span><span class="cost">$${totalCost.toFixed(4)}</span></div>
+        `;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        updateTokenCalculator();
+    });
 </script>
 <script src="/ui/demo-engine.js"></script>
 </body>
