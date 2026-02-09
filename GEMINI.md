@@ -618,3 +618,11 @@ Key modules documented:
 Architecture: MCP Protocol -> DataBridge Server -> Snowflake/CSV/SQL/PDF
 
 ---
+
+
+## Documentation Updates v0.39.0
+_Updated: 2026-02-08 23:49:54_
+
+Updated documentation to v0.39.0 with 341 tools. Changes include: GETTING_STARTED.md (updated module table with Data Observability and GraphRAG, version bumps throughout), run_dashboard.py (API health/stats endpoints updated with observability module). All documentation now consistent across README.md, MANIFEST.md, GETTING_STARTED.md, and dashboard.
+
+---
