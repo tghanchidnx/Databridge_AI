@@ -198,7 +198,6 @@ jobs:
     name: dbt Project Validation
     runs-on: ubuntu-latest
     needs: libs-test
-    if: hashFiles('generated/dbt/**/dbt_project.yml') != ''
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
