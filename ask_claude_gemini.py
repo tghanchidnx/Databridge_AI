@@ -1,6 +1,7 @@
 """
 A wrapper script to interact with the Gemini CLI for context management.
 Uses Gemini's large context window (1M+ tokens) to maintain project state.
+Stores context in GEMINI.md for persistent reference.
 """
 import sys
 import subprocess
@@ -15,6 +16,10 @@ CONTEXT_FILE = PROJECT_ROOT / "CLAUDE.md"
 GEMINI_CONTEXT_FILE = PROJECT_ROOT / "GEMINI.md"
 SESSION_FILE = PROJECT_ROOT / "data" / "gemini_session.md"
 TEMP_PROMPT_FILE = PROJECT_ROOT / "data" / "gemini_prompt.txt"
+
+# Current version info
+VERSION = "0.39.0"
+TOOL_COUNT = 341
 
 def ensure_data_dir():
     """Ensure data directory exists."""
@@ -55,13 +60,50 @@ def run_gemini_interactive(prompt: str):
 
 def get_project_summary() -> str:
     """Get a brief summary of the project for context."""
-    return """DataBridge AI v0.34.0 - MCP-native data reconciliation engine with 292 tools.
+    return f"""DataBridge AI v{VERSION} - MCP-native data reconciliation engine with {TOOL_COUNT} tools.
 
-Key modules: Hierarchy Builder (44 tools), Data Reconciliation (38 tools), Cortex AI (25 tools),
-Wright Module (18 tools), Data Catalog (15 tools), Versioning (12 tools), Git/CI-CD (12 tools),
-Lineage (11 tools), dbt Integration (8 tools), Data Quality (7 tools).
+Key modules: Hierarchy Builder (44 tools), Data Reconciliation (38 tools), Cortex AI (26 tools),
+Wright Module (29 tools), Data Catalog (19 tools), Data Observability (15 tools), Versioning (12 tools),
+Git/CI-CD (12 tools), Lineage (11 tools), GraphRAG (10 tools), dbt Integration (8 tools), Data Quality (7 tools).
 
 Docs: CLAUDE.md (compact rules), GEMINI.md (detailed reference with examples/architectures)."""
+
+
+def store_context_to_gemini(context: str, section: str = "Session Context"):
+    """
+    Store context to GEMINI.md file.
+    Appends to or updates a specific section.
+    """
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    if GEMINI_CONTEXT_FILE.exists():
+        content = GEMINI_CONTEXT_FILE.read_text(encoding='utf-8')
+    else:
+        content = f"# GEMINI.md - DataBridge AI Context Store\n\n"
+
+    # Create the new context block
+    new_block = f"""
+## {section}
+_Updated: {timestamp}_
+
+{context}
+
+---
+"""
+
+    # Check if section already exists
+    section_marker = f"## {section}"
+    if section_marker in content:
+        # Find and replace the section
+        import re
+        pattern = rf"## {re.escape(section)}.*?(?=\n## |\Z)"
+        content = re.sub(pattern, new_block.strip() + "\n\n", content, flags=re.DOTALL)
+    else:
+        # Append to end
+        content = content.rstrip() + "\n\n" + new_block
+
+    GEMINI_CONTEXT_FILE.write_text(content, encoding='utf-8')
+    return GEMINI_CONTEXT_FILE
 
 def get_gemini_context() -> str:
     """Load the detailed GEMINI.md context file."""
@@ -80,6 +122,7 @@ def main():
     Usage:
         python ask_claude_gemini.py "Your question or task"
         python ask_claude_gemini.py --update "Context update to store"
+        python ask_claude_gemini.py --store "Context" --section "Section Name"
         python ask_claude_gemini.py --status
         python ask_claude_gemini.py --sync   (sync GEMINI.md to Gemini's context)
         python ask_claude_gemini.py --load   (load full GEMINI.md without query)
@@ -87,6 +130,7 @@ def main():
     if len(sys.argv) < 2:
         print(f"Usage: python {sys.argv[0]} \"Your request to the AI...\"")
         print(f"       python {sys.argv[0]} --update \"Context to store\"")
+        print(f"       python {sys.argv[0]} --store \"Context\" [--section \"Name\"]")
         print(f"       python {sys.argv[0]} --status")
         print(f"       python {sys.argv[0]} --sync   (sync full context)")
         print(f"       python {sys.argv[0]} --load   (load GEMINI.md)")
@@ -107,6 +151,26 @@ def main():
         context = " ".join(sys.argv[2:])
         update_context(context)
         print(f"Context updated in {SESSION_FILE}")
+        sys.exit(0)
+
+    if sys.argv[1] == "--store":
+        if len(sys.argv) < 3:
+            print("Error: --store requires a context string")
+            sys.exit(1)
+        # Parse arguments
+        section = "Session Context"
+        context_parts = []
+        i = 2
+        while i < len(sys.argv):
+            if sys.argv[i] == "--section" and i + 1 < len(sys.argv):
+                section = sys.argv[i + 1]
+                i += 2
+            else:
+                context_parts.append(sys.argv[i])
+                i += 1
+        context = " ".join(context_parts)
+        filepath = store_context_to_gemini(context, section)
+        print(f"Context stored in {filepath} under section '{section}'")
         sys.exit(0)
 
     if sys.argv[1] == "--sync":
@@ -157,7 +221,7 @@ Confirm loaded. Ready to answer detailed questions about DataBridge AI tools, ex
     # Build compact prompt with project context
     summary = get_project_summary()
 
-    full_prompt = f"""Project: DataBridge AI v0.34.0 (292 MCP tools)
+    full_prompt = f"""Project: DataBridge AI v{VERSION} ({TOOL_COUNT} MCP tools)
 {summary}
 
 Request: {user_request}
