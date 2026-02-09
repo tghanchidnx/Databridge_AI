@@ -10,7 +10,7 @@ from pathlib import Path
 from datetime import datetime
 
 # Configuration
-GEMINI_CMD = r"C:\Users\telha\AppData\Roaming\npm\gemini.cmd"
+GEMINI_CMD = str(Path.home() / "AppData" / "Roaming" / "npm" / "gemini.cmd")
 PROJECT_ROOT = Path(__file__).parent
 CONTEXT_FILE = PROJECT_ROOT / "CLAUDE.md"
 GEMINI_CONTEXT_FILE = PROJECT_ROOT / "GEMINI.md"
@@ -52,7 +52,7 @@ def run_gemini_interactive(prompt: str):
     command = [GEMINI_CMD, "-p", short_prompt]
 
     try:
-        result = subprocess.run(command, check=True, capture_output=False)
+        result = subprocess.run(command, check=True, shell=True)
     finally:
         # Cleanup temp file
         if TEMP_PROMPT_FILE.exists():
