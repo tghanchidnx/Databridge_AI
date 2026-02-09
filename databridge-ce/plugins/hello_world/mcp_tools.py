@@ -1,20 +1,43 @@
-# mcp_tools.py for the hello_world plugin
+"""Example plugin for DataBridge AI Community Edition.
 
-from fastmcp import FastMCP, tool
+This demonstrates how to create custom plugins that extend DataBridge AI.
+"""
 
-@tool("A simple tool that returns a greeting.")
-def hello_world(name: str = "World") -> str:
-    """
-    This is an example tool for the Databridge AI Community Edition.
-    It takes a name and returns a greeting.
-    
-    :param name: The name to include in the greeting.
-    """
-    return f"Hello, {name}! Welcome to the Databridge community."
 
-def register_tools(mcp_instance: FastMCP):
-    """
-    Registers the hello_world tool with the MCP instance.
+def register_tools(mcp_instance):
+    """Register the hello_world tool with the MCP instance.
+
     This function is discovered and called by the plugin loader.
+
+    Args:
+        mcp_instance: FastMCP instance to register tools with
     """
-    mcp_instance.register_tool(hello_world)
+
+    @mcp_instance.tool()
+    def hello_world(name: str = "World") -> str:
+        """A simple greeting tool to demonstrate plugin capabilities.
+
+        Args:
+            name: The name to include in the greeting.
+
+        Returns:
+            A friendly greeting message.
+        """
+        return f"Hello, {name}! Welcome to the DataBridge AI community."
+
+    @mcp_instance.tool()
+    def plugin_info() -> str:
+        """Get information about loaded plugins.
+
+        Returns:
+            JSON with plugin information.
+        """
+        import json
+        return json.dumps({
+            "plugin_name": "hello_world",
+            "version": "1.0.0",
+            "description": "Example plugin demonstrating DataBridge AI extensibility",
+            "tools": ["hello_world", "plugin_info"],
+        }, indent=2)
+
+    print("[Plugin] hello_world registered 2 tools")

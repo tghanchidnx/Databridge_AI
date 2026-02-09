@@ -45,6 +45,46 @@ try:
 except ImportError:
     from config import settings
 
+# License Management - Import the plugin system
+try:
+    from src.plugins import get_license_manager, LicenseManager
+    LICENSE_MANAGER = get_license_manager()
+except ImportError:
+    try:
+        from plugins import get_license_manager, LicenseManager
+        LICENSE_MANAGER = get_license_manager()
+    except ImportError:
+        # Fallback: No license management - run as full version (for backward compatibility)
+        LICENSE_MANAGER = None
+        print("[License] Plugin system not available - running in full mode")
+
+# Determine edition based on license
+if LICENSE_MANAGER:
+    _edition = LICENSE_MANAGER.tier
+    _edition_msg = LICENSE_MANAGER.validation_message
+    print(f"[License] {_edition_msg}")
+else:
+    _edition = "FULL"
+    _edition_msg = "Full version (no license restrictions)"
+
+__version__ = "0.39.0"
+__edition__ = _edition
+
+
+def is_pro_feature_enabled() -> bool:
+    """Check if Pro features should be loaded."""
+    if LICENSE_MANAGER is None:
+        return True  # No license manager = full version
+    return LICENSE_MANAGER.is_pro()
+
+
+def is_enterprise_feature_enabled() -> bool:
+    """Check if Enterprise features should be loaded."""
+    if LICENSE_MANAGER is None:
+        return True  # No license manager = full version
+    return LICENSE_MANAGER.is_enterprise()
+
+
 # Initialize the Server
 mcp = FastMCP(
     "DNX Hierarchy Manager",
@@ -1537,19 +1577,56 @@ DataBridge AI provides **{len(tools)} tools** for data reconciliation:
 
 
 # =============================================================================
-# Phase 9: Hierarchy Builder Integration
+# License Status Tool
 # =============================================================================
 
-# Register hierarchy management tools
-try:
+@mcp.tool()
+def get_license_status() -> str:
+    """
+    Get the current license status and available features.
+
+    Returns information about:
+    - Current license tier (CE, PRO, ENTERPRISE, or FULL)
+    - License validation status
+    - Available modules at current tier
+    - Upgrade information for additional features
+
+    Returns:
+        JSON with license status and feature availability.
+    """
+    if LICENSE_MANAGER:
+        status = LICENSE_MANAGER.get_status()
+        status['version'] = __version__
+        return json.dumps(status, indent=2)
+
+    # No license manager = full version
+    return json.dumps({
+        "version": __version__,
+        "tier": "FULL",
+        "tier_level": 2,
+        "is_valid": True,
+        "message": "Running full version (no license restrictions)",
+        "available_modules": "all",
+    }, indent=2)
+
+
+# =============================================================================
+# Phase 9: Hierarchy Builder Integration (Pro Feature)
+# =============================================================================
+
+# Register hierarchy management tools (Pro feature, but basic version available in CE)
+if is_pro_feature_enabled():
     try:
-        from src.hierarchy.mcp_tools import register_hierarchy_tools
-    except ImportError:
-        from hierarchy.mcp_tools import register_hierarchy_tools
-    hierarchy_service = register_hierarchy_tools(mcp, str(settings.data_dir))
-    log_action("SYSTEM", "hierarchy_init", "Hierarchy Builder tools registered")
-except ImportError as e:
-    print(f"Warning: Hierarchy module not loaded: {e}")
+        try:
+            from src.hierarchy.mcp_tools import register_hierarchy_tools
+        except ImportError:
+            from hierarchy.mcp_tools import register_hierarchy_tools
+        hierarchy_service = register_hierarchy_tools(mcp, str(settings.data_dir))
+        log_action("SYSTEM", "hierarchy_init", "Hierarchy Builder tools registered")
+    except ImportError as e:
+        print(f"Warning: Hierarchy module not loaded: {e}")
+else:
+    print("[License] Hierarchy Builder requires Pro license - skipped")
 
 
 # =============================================================================
@@ -1731,34 +1808,37 @@ except ImportError as e:
 
 
 # =============================================================================
-# Phase 19 & 20: Cortex Agent - Snowflake Cortex AI Integration
+# Phase 19 & 20: Cortex Agent - Snowflake Cortex AI Integration (Pro Feature)
 # =============================================================================
 
 # Register Cortex Agent tools for Snowflake Cortex AI functions
 # with orchestrated reasoning loop (Observe → Plan → Execute → Reflect)
-try:
+if is_pro_feature_enabled():
     try:
-        from src.cortex_agent.mcp_tools import register_cortex_agent_tools
-    except ImportError:
-        from cortex_agent.mcp_tools import register_cortex_agent_tools
+        try:
+            from src.cortex_agent.mcp_tools import register_cortex_agent_tools
+        except ImportError:
+            from cortex_agent.mcp_tools import register_cortex_agent_tools
 
-    cortex_agent = register_cortex_agent_tools(mcp, settings)
-    log_action("SYSTEM", "cortex_agent_init", "Cortex Agent tools registered (12 tools)")
-except ImportError as e:
-    print(f"Warning: Cortex Agent module not loaded: {e}")
+        cortex_agent = register_cortex_agent_tools(mcp, settings)
+        log_action("SYSTEM", "cortex_agent_init", "Cortex Agent tools registered (12 tools)")
+    except ImportError as e:
+        print(f"Warning: Cortex Agent module not loaded: {e}")
 
-# Phase 20: Register Cortex Analyst tools for natural language to SQL
-# via semantic models
-try:
+    # Phase 20: Register Cortex Analyst tools for natural language to SQL
+    # via semantic models
     try:
-        from src.cortex_agent.analyst_tools import register_analyst_tools
-    except ImportError:
-        from cortex_agent.analyst_tools import register_analyst_tools
+        try:
+            from src.cortex_agent.analyst_tools import register_analyst_tools
+        except ImportError:
+            from cortex_agent.analyst_tools import register_analyst_tools
 
-    analyst = register_analyst_tools(mcp, settings)
-    log_action("SYSTEM", "cortex_analyst_init", "Cortex Analyst tools registered (10 tools)")
-except ImportError as e:
-    print(f"Warning: Cortex Analyst module not loaded: {e}")
+        analyst = register_analyst_tools(mcp, settings)
+        log_action("SYSTEM", "cortex_analyst_init", "Cortex Analyst tools registered (10 tools)")
+    except ImportError as e:
+        print(f"Warning: Cortex Analyst module not loaded: {e}")
+else:
+    print("[License] Cortex AI Agent requires Pro license - skipped")
 
 
 # =============================================================================
@@ -1816,40 +1896,46 @@ except ImportError as e:
 
 
 # =============================================================================
-# Phase 26: Wright - Hierarchy-Driven Dimension & Fact Builder
+# Phase 26: Wright - Hierarchy-Driven Dimension & Fact Builder (Pro Feature)
 # =============================================================================
 
 # Register Wright tools for automated data mart pipeline generation
 # Builds dimensions and facts based on hierarchies using 7 configuration
 # variables and AI-powered discovery (4-object pipeline: VW_1 → DT_2 → DT_3A → DT_3)
-try:
+if is_pro_feature_enabled():
     try:
-        from src.wright.mcp_tools import register_mart_factory_tools
-    except ImportError:
-        from wright.mcp_tools import register_mart_factory_tools
+        try:
+            from src.wright.mcp_tools import register_mart_factory_tools
+        except ImportError:
+            from wright.mcp_tools import register_mart_factory_tools
 
-    wright = register_mart_factory_tools(mcp, settings)
-    log_action("SYSTEM", "wright_init", "Wright (Dimension & Fact Builder) tools registered (10 tools)")
-except ImportError as e:
-    print(f"Warning: Wright module not loaded: {e}")
+        wright = register_mart_factory_tools(mcp, settings)
+        log_action("SYSTEM", "wright_init", "Wright (Dimension & Fact Builder) tools registered (10 tools)")
+    except ImportError as e:
+        print(f"Warning: Wright module not loaded: {e}")
+else:
+    print("[License] Wright Pipeline requires Pro license - skipped")
 
 
 # =============================================================================
-# Phase 27: Lineage & Impact Analysis
+# Phase 27: Lineage & Impact Analysis (Pro Feature)
 # =============================================================================
 
 # Register Lineage tools for column-level lineage tracking, impact analysis,
 # and dependency graph visualization
-try:
+if is_pro_feature_enabled():
     try:
-        from src.lineage.mcp_tools import register_lineage_tools
-    except ImportError:
-        from lineage.mcp_tools import register_lineage_tools
+        try:
+            from src.lineage.mcp_tools import register_lineage_tools
+        except ImportError:
+            from lineage.mcp_tools import register_lineage_tools
 
-    lineage = register_lineage_tools(mcp, settings)
-    log_action("SYSTEM", "lineage_init", "Lineage & Impact Analysis tools registered (11 tools)")
-except ImportError as e:
-    print(f"Warning: Lineage module not loaded: {e}")
+        lineage = register_lineage_tools(mcp, settings)
+        log_action("SYSTEM", "lineage_init", "Lineage & Impact Analysis tools registered (11 tools)")
+    except ImportError as e:
+        print(f"Warning: Lineage module not loaded: {e}")
+else:
+    print("[License] Lineage & Impact Analysis requires Pro license - skipped")
 
 
 # =============================================================================
@@ -1905,36 +1991,42 @@ except ImportError as e:
     print(f"Warning: Data Versioning module not loaded: {e}")
 
 # =============================================================================
-# Phase 31: GraphRAG Engine
+# Phase 31: GraphRAG Engine (Pro Feature)
 # =============================================================================
-try:
+if is_pro_feature_enabled():
     try:
-        from src.graphrag.mcp_tools import register_graphrag_tools
-    except ImportError:
-        from graphrag.mcp_tools import register_graphrag_tools
+        try:
+            from src.graphrag.mcp_tools import register_graphrag_tools
+        except ImportError:
+            from graphrag.mcp_tools import register_graphrag_tools
 
-    register_graphrag_tools(mcp, settings)
-    log_action("SYSTEM", "graphrag_init", "GraphRAG Engine tools registered (10 tools)")
-except ImportError as e:
-    print(f"Warning: GraphRAG module not loaded: {e}")
+        register_graphrag_tools(mcp, settings)
+        log_action("SYSTEM", "graphrag_init", "GraphRAG Engine tools registered (10 tools)")
+    except ImportError as e:
+        print(f"Warning: GraphRAG module not loaded: {e}")
+else:
+    print("[License] GraphRAG Engine requires Pro license - skipped")
 
 
 # =============================================================================
-# Phase 32: Data Observability - Metrics, Alerting, Anomaly Detection
+# Phase 32: Data Observability - Metrics, Alerting, Anomaly Detection (Pro Feature)
 # =============================================================================
 
 # Register Data Observability tools for real-time metrics collection,
 # threshold-based alerting, statistical anomaly detection, and health scoring
-try:
+if is_pro_feature_enabled():
     try:
-        from src.observability.mcp_tools import register_observability_tools
-    except ImportError:
-        from observability.mcp_tools import register_observability_tools
+        try:
+            from src.observability.mcp_tools import register_observability_tools
+        except ImportError:
+            from observability.mcp_tools import register_observability_tools
 
-    register_observability_tools(mcp, settings)
-    log_action("SYSTEM", "observability_init", "Data Observability tools registered (15 tools)")
-except ImportError as e:
-    print(f"Warning: Data Observability module not loaded: {e}")
+        register_observability_tools(mcp, settings)
+        log_action("SYSTEM", "observability_init", "Data Observability tools registered (15 tools)")
+    except ImportError as e:
+        print(f"Warning: Data Observability module not loaded: {e}")
+else:
+    print("[License] Data Observability requires Pro license - skipped")
 
 
 # =============================================================================

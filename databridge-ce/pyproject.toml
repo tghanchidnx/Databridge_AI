@@ -4,21 +4,21 @@ build-backend = "hatchling.build"
 
 [project]
 name = "databridge-ai"
-version = "0.32.0"
-description = "DataBridge AI - An open-source, MCP-native data reconciliation engine with tools for hierarchy management, data quality, and analytics"
+version = "0.39.0"
+description = "DataBridge AI Community Edition - An open-source, MCP-native data reconciliation engine with tools for hierarchy management, data quality, and analytics"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {file = "LICENSE"}
 authors = [
-    {name = "Your Name", email = "your-email@example.com"}
+    {name = "DataBridge AI Team", email = "support@databridge.ai"}
 ]
 keywords = [
     "data", "reconciliation", "analytics", "hierarchy", "mcp",
-    "data-quality", "etl", "snowflake", "cortex", "ai",
-    "data-catalog", "lineage", "dbt", "data-mart"
+    "data-quality", "etl", "fuzzy-matching", "ai", "csv", "json",
+    "data-comparison", "dbt", "data-profiling"
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Financial and Insurance Industry",
     "Intended Audience :: Information Technology",
@@ -50,14 +50,14 @@ ocr = [
     "pytesseract>=0.3.10",
     "Pillow>=10.0.0",
 ]
-snowflake = [
-    "snowflake-connector-python>=3.0.0",
+dbt = [
+    "dbt-core>=1.5.0",
 ]
 all = [
     "pypdf>=3.0.0",
     "pytesseract>=0.3.10",
     "Pillow>=10.0.0",
-    "snowflake-connector-python>=3.0.0",
+    "dbt-core>=1.5.0",
 ]
 dev = [
     "pytest>=7.0.0",
@@ -70,14 +70,16 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-username/Databridge_AI"
-Documentation = "https://github.com/your-username/Databridge_AI#readme"
-Repository = "https://github.com/your-username/Databridge_AI.git"
-Issues = "https://github.com/your-username/Databridge_AI/issues"
+Homepage = "https://github.com/tghanchidnx/databridge-ai"
+Documentation = "https://github.com/tghanchidnx/databridge-ai/wiki"
+Repository = "https://github.com/tghanchidnx/databridge-ai.git"
+Issues = "https://github.com/tghanchidnx/databridge-ai/issues"
+Changelog = "https://github.com/tghanchidnx/databridge-ai/blob/main/CHANGELOG.md"
 
 [project.scripts]
 databridge = "src.server:main"
 databridge-mcp = "src.server:mcp.run"
+databridge-ui = "run_ui:main"
 
 [project.entry-points."mcp.servers"]
 databridge = "src.server:mcp"
@@ -85,11 +87,14 @@ databridge = "src.server:mcp"
 [tool.hatch.build.targets.sdist]
 include = [
     "/src",
+    "/plugins",
+    "/ui",
     "/templates",
     "/skills",
     "/knowledge_base",
     "/README.md",
     "/LICENSE",
+    "/CHANGELOG.md",
 ]
 exclude = [
     "*.pyc",
@@ -100,16 +105,10 @@ exclude = [
     "/tests",
     "/data",
     "/docs",
-    "/Archived",
-    "/v2",
-    "/ui",
-    "/Book",
-    "/libs",
-    "/apps",
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src"]
+packages = ["src", "plugins", "ui"]
 
 # Ruff configuration (linting)
 [tool.ruff]

@@ -1,0 +1,111 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "databridge-ai-pro"
+version = "0.39.0"
+description = "DataBridge AI Pro - Advanced data reconciliation, AI agents, and enterprise features"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "Proprietary"}
+authors = [
+    {name = "DataBridge AI Team", email = "support@databridge.ai"}
+]
+keywords = [
+    "data", "reconciliation", "analytics", "hierarchy", "mcp",
+    "cortex", "snowflake", "ai", "graphrag", "observability",
+    "data-catalog", "lineage", "dbt", "data-mart", "enterprise"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Intended Audience :: Information Technology",
+    "License :: Other/Proprietary License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Database",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+
+# Pro depends on Community Edition
+dependencies = [
+    "databridge-ai>=0.39.0",
+    "snowflake-connector-python>=3.0.0",
+    "networkx>=3.0.0",
+    "sentence-transformers>=2.0.0",
+]
+
+[project.optional-dependencies]
+cortex = [
+    "snowflake-snowpark-python>=1.0.0",
+]
+graphrag = [
+    "chromadb>=0.4.0",
+    "langchain>=0.1.0",
+]
+observability = [
+    "prometheus-client>=0.17.0",
+]
+all = [
+    "snowflake-snowpark-python>=1.0.0",
+    "chromadb>=0.4.0",
+    "langchain>=0.1.0",
+    "prometheus-client>=0.17.0",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.21.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+    "build>=1.0.0",
+    "twine>=4.0.0",
+]
+
+[project.urls]
+Homepage = "https://databridge.ai/pro"
+Documentation = "https://databridge.ai/docs"
+Support = "https://databridge.ai/support"
+
+[project.entry-points."databridge.plugins"]
+pro = "databridge_ai_pro:register_pro_tools"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/README.md",
+    "/LICENSE",
+]
+exclude = [
+    "*.pyc",
+    "__pycache__",
+    ".git",
+    ".pytest_cache",
+    "*.egg-info",
+    "/tests",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+# Rename src to databridge_ai_pro for the wheel
+[tool.hatch.build.targets.wheel.sources]
+"src" = "databridge_ai_pro"
+
+# Ruff configuration
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+# MyPy configuration
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
