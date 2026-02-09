@@ -52,6 +52,9 @@ graphrag = [
 observability = [
     "prometheus-client>=0.17.0",
 ]
+examples = [
+    "databridge-ai-examples>=0.39.0",
+]
 all = [
     "snowflake-snowpark-python>=1.0.0",
     "chromadb>=0.4.0",

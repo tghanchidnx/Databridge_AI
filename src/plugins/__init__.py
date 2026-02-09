@@ -3,7 +3,7 @@
 This module provides:
 1. LicenseManager - Offline hash-based license validation
 2. PluginRegistry - Dynamic plugin discovery and loading
-3. Tier-based feature gating (CE, PRO, ENTERPRISE)
+3. Tier-based feature gating (CE, PRO, PRO_EXAMPLES, ENTERPRISE)
 
 License Key Format: DB-{TIER}-{CUSTOMER_ID}-{EXPIRY}-{SIGNATURE}
 Example: DB-PRO-ACME001-20270209-a1b2c3d4e5f6
@@ -64,6 +64,16 @@ ENTERPRISE_MODULES = {
     'custom_agents',
     'white_label',
     'sla_support',
+}
+
+# Pro Examples sub-tier: tests & use-case tutorials (separate pip package)
+PRO_EXAMPLES_MODULES = {
+    'examples_beginner',       # Use cases 01-04 (pizza, friends, school, sports)
+    'examples_financial',      # Use cases 05-11 (SEC EDGAR / Apple / Microsoft)
+    'examples_faux_objects',   # Use cases 12-19 (domain personas)
+    'tests_ce',                # Tests for CE modules
+    'tests_pro',               # Tests for Pro modules
+    'test_fixtures',           # Shared conftest.py, sample data
 }
 
 
@@ -200,6 +210,13 @@ class LicenseManager:
         """Check if Enterprise features are available."""
         return self._tier == 'ENTERPRISE'
 
+    def is_pro_examples(self) -> bool:
+        """Check if Pro Examples (tests & use cases) are available.
+
+        Requires a Pro or higher license.
+        """
+        return self.is_pro()
+
     def can_use_module(self, module_name: str) -> bool:
         """Check if the current license allows using a specific module.
 
@@ -217,6 +234,10 @@ class LicenseManager:
         if module_name in PRO_MODULES:
             return self.is_pro()
 
+        # PRO_EXAMPLES modules require PRO or higher
+        if module_name in PRO_EXAMPLES_MODULES:
+            return self.is_pro_examples()
+
         # ENTERPRISE modules require ENTERPRISE
         if module_name in ENTERPRISE_MODULES:
             return self.is_enterprise()
@@ -230,6 +251,9 @@ class LicenseManager:
 
         if self.is_pro():
             available.extend(PRO_MODULES)
+
+        if self.is_pro_examples():
+            available.extend(PRO_EXAMPLES_MODULES)
 
         if self.is_enterprise():
             available.extend(ENTERPRISE_MODULES)
@@ -311,5 +335,6 @@ __all__ = [
     'TIERS',
     'CE_MODULES',
     'PRO_MODULES',
+    'PRO_EXAMPLES_MODULES',
     'ENTERPRISE_MODULES',
 ]

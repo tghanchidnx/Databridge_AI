@@ -5,27 +5,27 @@
 DataBridge AI uses a tiered product structure with an open-source base (Community Edition) and licensed premium components (Pro/Enterprise).
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                    DataBridge AI Product Tiers                       │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
-│  ┌──────────────────────┐  ┌──────────────────┐  ┌────────────────┐│
-│  │   COMMUNITY (Free)   │  │    PRO (Licensed) │  │   ENTERPRISE   ││
-│  │   Public GitHub      │  │  GitHub Packages  │  │    Custom      ││
-│  │   Public PyPI        │  │    License Key    │  │  Dedicated     ││
-│  ├──────────────────────┤  ├──────────────────┤  ├────────────────┤│
-│  │ • Data Reconciliation│  │ Everything in CE  │  │ Everything Pro ││
-│  │ • Fuzzy Matching     │  │ + Cortex AI Agent │  │ + Custom agents││
-│  │ • PDF/OCR Extraction │  │ + Wright Pipeline │  │ + White-label  ││
-│  │ • Data Profiling     │  │ + GraphRAG Engine │  │ + SLA support  ││
-│  │ • dbt Basic          │  │ + Data Observ.    │  │ + On-premise   ││
-│  │ • Data Quality       │  │ + Full Catalog    │  │ + Training     ││
-│  │ • UI Dashboard       │  │ + Column Lineage  │  │                ││
-│  │                      │  │ + AI Orchestrator │  │                ││
-│  │ ~106 tools           │  │ ~277 tools        │  │ 341+ tools     ││
-│  └──────────────────────┘  └──────────────────┘  └────────────────┘│
-│                                                                      │
-└─────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────┐
+│                              DataBridge AI Product Tiers                              │
+├──────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                      │
+│  ┌────────────────┐  ┌────────────────┐  ┌──────────────────┐  ┌────────────────┐   │
+│  │ COMMUNITY (CE) │  │  PRO (Licensed)│  │  PRO EXAMPLES    │  │   ENTERPRISE   │   │
+│  │   Free         │  │ GitHub Packages│  │  Licensed Add-on │  │    Custom      │   │
+│  │   Public PyPI  │  │  License Key   │  │  GitHub Packages │  │  Dedicated     │   │
+│  ├────────────────┤  ├────────────────┤  ├──────────────────┤  ├────────────────┤   │
+│  │ • Data Recon.  │  │ Everything CE  │  │ 47 test files    │  │ Everything Pro │   │
+│  │ • Fuzzy Match  │  │ + Cortex AI    │  │ 19 use-case      │  │ + Custom agents│   │
+│  │ • PDF/OCR      │  │ + Wright       │  │   tutorials      │  │ + White-label  │   │
+│  │ • Data Profile │  │ + GraphRAG     │  │ • Beginner (4)   │  │ + SLA support  │   │
+│  │ • dbt Basic    │  │ + Observability│  │ • Financial (7)  │  │ + On-premise   │   │
+│  │ • Data Quality │  │ + Full Catalog │  │ • Faux Objects(8)│  │ + Training     │   │
+│  │ • UI Dashboard │  │ + Lineage      │  │ • CE tests       │  │                │   │
+│  │                │  │ + Orchestrator │  │ • Pro tests      │  │                │   │
+│  │ ~106 tools     │  │ ~277 tools     │  │ Requires Pro key │  │ 341+ tools     │   │
+│  └────────────────┘  └────────────────┘  └──────────────────┘  └────────────────┘   │
+│                                                                                      │
+└──────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Directory Structure
@@ -55,6 +55,16 @@ Databridge_AI/                    # PRIVATE - Main development repo
 │   │   └── [other pro modules]
 │   ├── pyproject.toml          # GitHub Packages: databridge-ai-pro
 │   └── LICENSE                  # Proprietary
+├── databridge-ai-examples/      # PRIVATE - Pro Examples package
+│   ├── src/
+│   │   ├── __init__.py         # Examples registration
+│   │   ├── use_cases/          # 19 tutorial use cases
+│   │   └── tests/              # CE & Pro test suites
+│   │       ├── ce/             # CE module tests
+│   │       ├── pro/            # Pro module tests
+│   │       └── conftest.py     # Shared fixtures
+│   ├── pyproject.toml          # GitHub Packages: databridge-ai-examples
+│   └── README.md
 └── scripts/
     └── generate_license.py      # License key generator
 ```
@@ -106,6 +116,18 @@ pip config set global.extra-index-url https://pypi.databridge.ai/simple/
 pip install databridge-ai-pro
 ```
 
+### Pro Examples (Tests & Tutorials)
+```bash
+# Set license key
+export DATABRIDGE_LICENSE_KEY="DB-PRO-..."
+
+# Install CE tests + beginner use cases
+pip install databridge-ai-examples
+
+# Install with Pro tests + advanced use cases
+pip install databridge-ai-examples[pro]
+```
+
 ### Team Development (Full)
 ```bash
 # Clone private repo
@@ -152,6 +174,16 @@ pip install -e .
 | 30 | Versioning | 12 | 🔒 Pro |
 | 31 | GraphRAG | 10 | 🔒 Pro |
 | 32 | Observability | 15 | 🔒 Pro |
+
+### Pro Examples (Tests & Tutorials)
+| Category | Contents | Count |
+|----------|----------|-------|
+| Beginner Use Cases | 01-04: Pizza, friends, school, sports | 4 cases |
+| Financial Use Cases | 05-11: SEC EDGAR, Apple, Microsoft | 7 cases |
+| Faux Objects Use Cases | 12-19: Domain persona tutorials | 8 cases |
+| CE Test Suite | Data loading, hashing, fuzzy, dbt, quality, diff | ~12 files |
+| Pro Test Suite | Hierarchy, cortex, catalog, versioning, wright | ~15 files |
+| Shared Fixtures | conftest.py, sample data | 2 files |
 
 ## GitHub Actions Workflows
 

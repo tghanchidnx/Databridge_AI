@@ -9,21 +9,21 @@
 ## Commercialization Structure
 
 ```
-┌─────────────────┬─────────────────┬─────────────────┐
-│  COMMUNITY (CE) │      PRO        │   ENTERPRISE    │
-│     Free        │   Licensed      │    Custom       │
-├─────────────────┼─────────────────┼─────────────────┤
-│ ~106 tools      │ ~277 tools      │ 341+ tools      │
-│ Public PyPI     │ GitHub Packages │ Private Deploy  │
-│ MIT License     │ License Key     │ Dedicated Key   │
-├─────────────────┼─────────────────┼─────────────────┤
-│ • Reconciliation│ Everything CE + │ Everything Pro +│
-│ • Fuzzy Match   │ • Cortex AI     │ • Custom agents │
-│ • PDF/OCR       │ • Wright Pipeline│ • White-label  │
-│ • dbt Basic     │ • GraphRAG      │ • SLA support   │
-│ • Data Quality  │ • Observability │ • On-premise    │
-│ • UI Dashboard  │ • Full Catalog  │                 │
-└─────────────────┴─────────────────┴─────────────────┘
+┌─────────────────┬─────────────────┬───────────────────┬─────────────────┐
+│  COMMUNITY (CE) │      PRO        │  PRO EXAMPLES     │   ENTERPRISE    │
+│     Free        │   Licensed      │  Licensed Add-on  │    Custom       │
+├─────────────────┼─────────────────┼───────────────────┼─────────────────┤
+│ ~106 tools      │ ~277 tools      │ 47 tests + 19     │ 341+ tools      │
+│ Public PyPI     │ GitHub Packages │ use cases         │ Private Deploy  │
+│ MIT License     │ License Key     │ GitHub Packages   │ Dedicated Key   │
+├─────────────────┼─────────────────┼───────────────────┼─────────────────┤
+│ • Reconciliation│ Everything CE + │ • Beginner (4)    │ Everything Pro +│
+│ • Fuzzy Match   │ • Cortex AI     │ • Financial (7)   │ • Custom agents │
+│ • PDF/OCR       │ • Wright Pipeline│ • Faux Objects(8)│ • White-label   │
+│ • dbt Basic     │ • GraphRAG      │ • CE test suite   │ • SLA support   │
+│ • Data Quality  │ • Observability │ • Pro test suite   │ • On-premise    │
+│ • UI Dashboard  │ • Full Catalog  │ Requires Pro key  │                 │
+└─────────────────┴─────────────────┴───────────────────┴─────────────────┘
 ```
 
 ### License Key Format
@@ -55,6 +55,7 @@ get_license_status()
 |---------|----------|---------|
 | databridge-ai | PyPI (public) | `pip install databridge-ai` |
 | databridge-ai-pro | GitHub Packages | `pip install databridge-ai-pro` (+ license key) |
+| databridge-ai-examples | GitHub Packages | `pip install databridge-ai-examples` (+ license key) |
 
 ## Tool Categories (341 total)
 

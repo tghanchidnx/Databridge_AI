@@ -1,0 +1,281 @@
+Module,Tool Name,Description,Tier,Tool Count in Module
+File Discovery,find_files,Fast file pattern matching,CE,3
+File Discovery,stage_file,Copy files to data directory,CE,3
+File Discovery,get_working_directory,Show current working directory,CE,3
+Data Loading,load_csv,Load and preview CSV files,CE,3
+Data Loading,load_json,Load JSON files,CE,3
+Data Loading,query_database,Execute SQL queries,CE,3
+Data Profiling,profile_data,Analyze data structure and quality,CE,2
+Data Profiling,detect_schema_drift,Compare schemas between CSV files,CE,2
+Hashing / Comparison,compare_hashes,Compare rows by hash,CE,3
+Hashing / Comparison,get_orphan_details,Find records in one source but not other,CE,3
+Hashing / Comparison,get_conflict_details,Find rows with same key different values,CE,3
+Fuzzy Matching,fuzzy_match_columns,Find similar values between columns,CE,2
+Fuzzy Matching,fuzzy_deduplicate,Find potential duplicates within a column,CE,2
+PDF / OCR,extract_text_from_pdf,Extract text from PDF files,CE,3
+PDF / OCR,ocr_image,Extract text from images using OCR,CE,3
+PDF / OCR,parse_table_from_text,Parse tabular data from extracted text,CE,3
+Workflow Management,save_workflow_step,Save reconciliation step to workflow,CE,4
+Workflow Management,get_workflow,Retrieve current workflow recipe,CE,4
+Workflow Management,clear_workflow,Clear all workflow steps,CE,4
+Workflow Management,get_audit_log,Retrieve audit trail entries,CE,4
+Data Transformation,transform_column,Apply transformations (upper lower strip etc),CE,2
+Data Transformation,merge_sources,Merge two CSV sources on key columns,CE,2
+Documentation,update_manifest,Regenerate MANIFEST.md documentation,CE,1
+Templates (Basic),list_financial_templates,List available templates,CE,10
+Templates (Basic),get_template_details,Get template structure,CE,10
+Templates (Basic),create_project_from_template,Create project from template,CE,10
+Templates (Basic),save_project_as_template,Save project as reusable template,CE,10
+Templates (Basic),get_template_recommendations,Get AI recommendations for templates,CE,10
+Templates (Basic),list_available_skills,List AI expertise skills,CE,10
+Templates (Basic),get_skill_details,Get skill capabilities,CE,10
+Templates (Basic),get_skill_prompt,Get system prompt for skill,CE,10
+Templates (Basic),list_client_profiles,List client knowledge bases,CE,10
+Templates (Basic),create_client_profile,Create new client profile,CE,10
+Diff Utilities,diff_text,Compare two text strings with similarity,CE,6
+Diff Utilities,diff_lists,Compare lists and identify changes,CE,6
+Diff Utilities,diff_dicts,Compare dictionaries with value-level diffs,CE,6
+Diff Utilities,find_similar_strings,Fuzzy lookup from list,CE,6
+Diff Utilities,explain_diff,Human-readable explanation of differences,CE,6
+Diff Utilities,generate_patch,Generate unified diff/patch format,CE,6
+dbt Integration (Basic),create_dbt_project,Create dbt project scaffold,CE,8
+dbt Integration (Basic),generate_dbt_model,Generate dbt model SQL,CE,8
+dbt Integration (Basic),generate_dbt_sources,Generate sources.yml,CE,8
+dbt Integration (Basic),generate_dbt_schema,Generate schema.yml,CE,8
+dbt Integration (Basic),generate_dbt_metrics,Generate metrics.yml,CE,8
+dbt Integration (Basic),generate_cicd_pipeline,Generate CI/CD configuration,CE,8
+dbt Integration (Basic),validate_dbt_project,Validate dbt project structure,CE,8
+dbt Integration (Basic),export_dbt_project,Export project to directory/ZIP,CE,8
+Data Quality,generate_expectation_suite,Create data quality expectations,CE,7
+Data Quality,add_column_expectation,Add column-level expectation,CE,7
+Data Quality,create_data_contract,Create data contract with SLAs,CE,7
+Data Quality,run_validation,Run expectation suite against data,CE,7
+Data Quality,get_validation_results,Get validation history,CE,7
+Data Quality,list_expectation_suites,List all suites,CE,7
+Data Quality,export_data_contract,Export contract to YAML/JSON,CE,7
+Hierarchy Builder,create_hierarchy_project,Create hierarchy project,Pro,44
+Hierarchy Builder,list_hierarchy_projects,List hierarchy projects,Pro,44
+Hierarchy Builder,get_hierarchy_project,Get hierarchy project details,Pro,44
+Hierarchy Builder,delete_hierarchy_project,Delete hierarchy project,Pro,44
+Hierarchy Builder,create_hierarchy,Create hierarchy node,Pro,44
+Hierarchy Builder,list_hierarchies,List hierarchy nodes,Pro,44
+Hierarchy Builder,get_hierarchy,Get hierarchy details,Pro,44
+Hierarchy Builder,update_hierarchy,Update hierarchy node,Pro,44
+Hierarchy Builder,delete_hierarchy,Delete hierarchy node,Pro,44
+Hierarchy Builder,create_hierarchy_relationship,Create parent-child relationship,Pro,44
+Hierarchy Builder,list_hierarchy_relationships,List relationships,Pro,44
+Hierarchy Builder,delete_hierarchy_relationship,Delete relationship,Pro,44
+Hierarchy Builder,create_formula_group,Create calculation formula group,Pro,44
+Hierarchy Builder,list_formula_groups,List formula groups,Pro,44
+Hierarchy Builder,add_formula_component,Add component to formula,Pro,44
+Hierarchy Builder,remove_formula_component,Remove formula component,Pro,44
+Hierarchy Builder,add_source_mapping,Map source column to hierarchy,Pro,44
+Hierarchy Builder,list_source_mappings,List source mappings,Pro,44
+Hierarchy Builder,update_source_mapping,Update source mapping,Pro,44
+Hierarchy Builder,remove_source_mapping,Remove source mapping,Pro,44
+Hierarchy Builder,import_flexible_hierarchy,Import hierarchy from CSV,Pro,44
+Hierarchy Builder,export_hierarchy_csv,Export hierarchy to CSV,Pro,44
+Hierarchy Builder,export_hierarchy_mapping_csv,Export mapping to CSV,Pro,44
+Hierarchy Builder,export_hierarchy_simplified,Export simplified hierarchy,Pro,44
+Hierarchy Builder,detect_hierarchy_format,Auto-detect import format,Pro,44
+Hierarchy Builder,configure_project_defaults,Configure project defaults,Pro,44
+Hierarchy Builder,preview_import,Preview import before executing,Pro,44
+Hierarchy Builder,generate_deployment_script,Generate deployment SQL,Pro,44
+Hierarchy Builder,deploy_to_snowflake,Deploy hierarchy to Snowflake,Pro,44
+Hierarchy Builder,get_deployment_status,Check deployment status,Pro,44
+Connections Management,list_backend_connections,List all database connections,Pro,16
+Connections Management,get_backend_connection,Get connection details,Pro,16
+Connections Management,test_backend_connection,Test connection health,Pro,16
+Connections Management,get_connection_databases,List databases,Pro,16
+Connections Management,get_connection_schemas,List schemas,Pro,16
+Connections Management,get_connection_tables,List tables,Pro,16
+Connections Management,get_connection_columns,Get column details,Pro,16
+Connections Management,get_column_distinct_values,Get distinct column values,Pro,16
+Connections Management,get_backend_table_statistics,Get table statistics,Pro,16
+Schema Matcher,compare_database_schemas,Compare table schemas,Pro,4
+Schema Matcher,get_schema_comparison_result,Get comparison results,Pro,4
+Schema Matcher,list_schema_comparisons,List comparison jobs,Pro,4
+Data Matcher,compare_table_data,Compare data at row level,Pro,3
+Data Matcher,get_data_comparison_summary,Get statistical summary,Pro,3
+AI Orchestrator,submit_orchestrated_task,Submit task for execution,Pro,16
+AI Orchestrator,get_task_status,Check task status,Pro,16
+AI Orchestrator,list_orchestrator_tasks,List tasks in queue,Pro,16
+AI Orchestrator,cancel_orchestrated_task,Cancel pending task,Pro,16
+AI Orchestrator,register_agent,Register external agent,Pro,16
+AI Orchestrator,list_registered_agents,List available agents,Pro,16
+AI Orchestrator,get_agent_details,Get agent info,Pro,16
+AI Orchestrator,send_agent_message,Send inter-agent message,Pro,16
+AI Orchestrator,get_agent_messages,Get messages for agent,Pro,16
+AI Orchestrator,list_agent_conversations,List conversations,Pro,16
+AI Orchestrator,create_orchestrator_workflow,Create multi-step workflow,Pro,16
+AI Orchestrator,execute_orchestrator_workflow,Execute workflow,Pro,16
+AI Orchestrator,list_orchestrator_workflows,List workflows,Pro,16
+AI Orchestrator,get_workflow_execution_status,Check workflow status,Pro,16
+AI Orchestrator,publish_orchestrator_event,Publish event,Pro,16
+AI Orchestrator,get_orchestrator_health,Check orchestrator health,Pro,16
+Cortex AI Agent,cortex_complete,Complete prompt with AI,Pro,12
+Cortex AI Agent,cortex_reason,Multi-step reasoning,Pro,12
+Cortex AI Agent,cortex_chat,Chat interface,Pro,12
+Cortex Analyst,analyst_ask,Ask question about data,Pro,14
+Cortex Analyst,create_semantic_model,Create semantic model,Pro,14
+Cortex Analyst,cortex_bootstrap_semantic_model,Bootstrap from SQL,Pro,14
+Console Dashboard,start_console_server,Start WebSocket console,Pro,5
+Console Dashboard,stop_console_server,Stop console server,Pro,5
+Console Dashboard,get_console_connections,List active connections,Pro,5
+Console Dashboard,broadcast_console_message,Broadcast message,Pro,5
+Console Dashboard,get_console_server_status,Check server status,Pro,5
+Faux Objects / Semantic Views,create_faux_project,Create Faux Objects project,Pro,18
+Faux Objects / Semantic Views,list_faux_projects,List projects,Pro,18
+Faux Objects / Semantic Views,get_faux_project,Get project details,Pro,18
+Faux Objects / Semantic Views,delete_faux_project,Delete project,Pro,18
+Faux Objects / Semantic Views,define_faux_semantic_view,Define semantic view,Pro,18
+Faux Objects / Semantic Views,add_faux_semantic_table,Add table reference,Pro,18
+Faux Objects / Semantic Views,add_faux_semantic_column,Add dimension/metric/fact,Pro,18
+Faux Objects / Semantic Views,add_faux_semantic_relationship,Add table relationship,Pro,18
+Faux Objects / Semantic Views,add_faux_object,Add faux object config,Pro,18
+Faux Objects / Semantic Views,remove_faux_object,Remove faux object,Pro,18
+Faux Objects / Semantic Views,generate_faux_scripts,Generate SQL scripts,Pro,18
+Faux Objects / Semantic Views,generate_faux_deployment_bundle,Create deployment bundle,Pro,18
+Faux Objects / Semantic Views,generate_semantic_view_ddl,Generate CREATE SEMANTIC VIEW,Pro,18
+Faux Objects / Semantic Views,export_faux_scripts,Export scripts to files,Pro,18
+Faux Objects / Semantic Views,translate_sql_to_faux_project,Translate SQL to Faux project,Pro,18
+Faux Objects / Semantic Views,translate_sql_to_semantic_view,Translate SQL to Semantic View,Pro,18
+Git Integration,configure_git,Setup git configuration,Pro,12
+Git Integration,git_status,Show repository status,Pro,12
+Git Integration,git_commit,Commit changes,Pro,12
+Git Integration,git_create_branch,Create new branch,Pro,12
+Git Integration,git_push,Push to remote,Pro,12
+Git Integration,github_create_pr,Create pull request,Pro,12
+Git Integration,github_get_pr_status,Check PR status,Pro,12
+Git Integration,github_list_prs,List pull requests,Pro,12
+Git Integration,github_merge_pr,Merge pull request,Pro,12
+Git Integration,generate_dbt_workflow,Generate GitHub Actions for dbt,Pro,12
+Git Integration,generate_deploy_workflow,Generate deployment workflow,Pro,12
+Git Integration,generate_mart_workflow,Generate Mart Factory workflow,Pro,12
+Data Catalog,catalog_create_asset,Create catalog asset,Pro,19
+Data Catalog,catalog_get_asset,Get asset details,Pro,19
+Data Catalog,catalog_update_asset,Update asset metadata,Pro,19
+Data Catalog,catalog_list_assets,List catalog assets,Pro,19
+Data Catalog,catalog_delete_asset,Delete catalog asset,Pro,19
+Data Catalog,catalog_scan_connection,Scan database connection,Pro,19
+Data Catalog,catalog_scan_table,Scan individual table,Pro,19
+Data Catalog,catalog_refresh_asset,Refresh asset metadata,Pro,19
+Data Catalog,catalog_create_term,Create glossary term,Pro,19
+Data Catalog,catalog_get_term,Get glossary term,Pro,19
+Data Catalog,catalog_list_terms,List glossary terms,Pro,19
+Data Catalog,catalog_link_term,Link term to asset,Pro,19
+Data Catalog,catalog_search,Search catalog,Pro,19
+Data Catalog,catalog_get_stats,Get catalog statistics,Pro,19
+Data Catalog,catalog_manage_tags,Manage asset tags,Pro,19
+Data Catalog,catalog_auto_lineage_from_sql,Auto-detect lineage from SQL,Pro,19
+Data Catalog,catalog_auto_lineage_from_dbt,Auto-detect lineage from dbt,Pro,19
+Data Catalog,catalog_lineage_visualization,Visualize lineage graph,Pro,19
+Data Catalog,catalog_impact_from_asset,Analyze downstream impact,Pro,19
+Data Versioning,version_create,Create version snapshot,Pro,12
+Data Versioning,version_create_hierarchy,Version hierarchy project,Pro,12
+Data Versioning,version_create_catalog_asset,Version catalog asset,Pro,12
+Data Versioning,version_get,Get specific version,Pro,12
+Data Versioning,version_list,List version history,Pro,12
+Data Versioning,version_search,Search versions,Pro,12
+Data Versioning,version_diff,Compare versions,Pro,12
+Data Versioning,version_diff_latest,Compare to previous version,Pro,12
+Data Versioning,version_rollback,Rollback to version,Pro,12
+Data Versioning,version_preview_rollback,Preview rollback changes,Pro,12
+Data Versioning,version_tag,Add/remove version tags,Pro,12
+Data Versioning,version_get_stats,Get versioning statistics,Pro,12
+GraphRAG Engine,rag_search,Search knowledge graph,Pro,10
+GraphRAG Engine,rag_validate_output,Validate RAG results,Pro,10
+GraphRAG Engine,rag_get_context,Get context for entities,Pro,10
+GraphRAG Engine,rag_entity_extract,Extract entities from text,Pro,10
+Data Observability,obs_record_metric,Record performance metric,Pro,15
+Data Observability,obs_create_alert_rule,Create alert rule,Pro,15
+Data Observability,obs_get_asset_health,Get asset health score,Pro,15
+Data Observability,obs_detect_anomaly,Detect data anomalies,Pro,15
+Wright Pipeline,create_mart_config,Create mart configuration,Pro,29
+Wright Pipeline,generate_mart_pipeline,Generate mart pipeline,Pro,29
+Wright Pipeline,wright_to_dbt_model,Convert Wright to dbt model,Pro,29
+Wright Pipeline,cortex_suggest_dbt_tests,Suggest dbt tests via AI,Pro,29
+Wright Pipeline,convert_sql_format,Convert SQL between dialects,Pro,29
+Wright Pipeline,detect_sql_format,Detect SQL dialect,Pro,29
+Lineage & Impact Analysis,track_column_lineage,Track column transformations,Pro,11
+Lineage & Impact Analysis,analyze_change_impact,Analyze downstream impact,Pro,11
+Lineage & Impact Analysis,catalog_auto_lineage_from_sql,Auto-detect lineage from SQL,Pro,11
+Smart Recommendations,get_smart_recommendations,AI recommendations for import,Pro,5
+Smart Recommendations,get_llm_validation_prompt,Get validation prompt,Pro,5
+Smart Recommendations,suggest_enrichment_after_hierarchy,Suggest enrichment options,Pro,5
+Smart Recommendations,smart_import_csv,Intelligent CSV import,Pro,5
+Smart Recommendations,get_recommendation_context,Get recommendation context,Pro,5
+Templates (Advanced),add_client_custom_prompt,Add client prompt,Pro,6
+Templates (Advanced),get_client_knowledge,Get client knowledge,Pro,6
+Templates (Advanced),update_client_knowledge,Update knowledge base,Pro,6
+Unified AI Agent,checkout_librarian_to_book,Convert Librarian to Book,Pro,10
+Unified AI Agent,promote_book_to_librarian,Promote Book to Librarian,Pro,10
+Unified AI Agent,sync_book_and_librarian,Sync between systems,Pro,10
+Unified AI Agent,diff_book_and_librarian,Compare states,Pro,10
+Unified AI Agent,analyze_book_with_researcher,Analyze Book with Researcher,Pro,10
+Unified AI Agent,compare_book_to_database,Compare with live database,Pro,10
+Unified AI Agent,profile_book_sources,Profile source data,Pro,10
+Unified AI Agent,create_unified_workflow,Create multi-system workflow,Pro,10
+Unified AI Agent,execute_unified_workflow,Execute unified workflow,Pro,10
+Unified AI Agent,get_unified_context,Get current context,Pro,10
+Planner Agent,plan_workflow,Create workflow plan from request,Pro,11
+Planner Agent,analyze_request,Analyze user request,Pro,11
+Planner Agent,suggest_agents,Suggest agents for task,Pro,11
+Planner Agent,explain_plan,Explain workflow plan,Pro,11
+Planner Agent,optimize_plan,Optimize for parallelism,Pro,11
+Planner Agent,get_workflow_definition,Convert plan to definition,Pro,11
+Planner Agent,list_available_agents,List available agents,Pro,11
+Planner Agent,register_custom_agent,Register custom agent,Pro,11
+Planner Agent,get_planner_status,Get planner status,Pro,11
+Planner Agent,get_planning_history,Get recent plans,Pro,11
+Planner Agent,configure_planner,Configure planner settings,Pro,11
+Examples (Beginner),01_pizza_shop_sales_check,Pizza shop sales reconciliation tutorial,Pro Examples,4
+Examples (Beginner),02_find_my_friends,Friend matching data tutorial,Pro Examples,4
+Examples (Beginner),03_school_report_card_hierarchy,School hierarchy building tutorial,Pro Examples,4
+Examples (Beginner),04_sports_league_comparison,Sports data comparison tutorial,Pro Examples,4
+Examples (Financial),05_apple_money_checkup,Apple financial analysis tutorial,Pro Examples,7
+Examples (Financial),06_apple_money_tree,Apple hierarchy analysis tutorial,Pro Examples,7
+Examples (Financial),07_apple_vs_microsoft,Apple vs Microsoft comparison tutorial,Pro Examples,7
+Examples (Financial),08_apple_time_machine,Multi-year financial analysis tutorial,Pro Examples,7
+Examples (Financial),09_balance_sheet_detective,Balance sheet analysis tutorial,Pro Examples,7
+Examples (Financial),10_full_financial_pipeline,Complete financial pipeline tutorial,Pro Examples,7
+Examples (Financial),11_wall_street_analyst,Advanced financial analysis tutorial,Pro Examples,7
+Examples (Faux Objects),12_financial_analyst,Financial domain persona tutorial,Pro Examples,8
+Examples (Faux Objects),13_oil_gas_analyst,Oil & gas domain persona tutorial,Pro Examples,8
+Examples (Faux Objects),14_operations_analyst,Operations domain persona tutorial,Pro Examples,8
+Examples (Faux Objects),15_cost_analyst,Cost analysis domain persona tutorial,Pro Examples,8
+Examples (Faux Objects),16_manufacturing_analyst,Manufacturing domain persona tutorial,Pro Examples,8
+Examples (Faux Objects),17_saas_analyst,SaaS domain persona tutorial,Pro Examples,8
+Examples (Faux Objects),18_transportation_analyst,Transportation domain persona tutorial,Pro Examples,8
+Examples (Faux Objects),19_sql_translator,SQL translation tutorial,Pro Examples,8
+Tests (CE),test_data_loading,Tests for data loading module,Pro Examples,12
+Tests (CE),test_hashing,Tests for hashing/comparison module,Pro Examples,12
+Tests (CE),test_fuzzy_matching,Tests for fuzzy matching module,Pro Examples,12
+Tests (CE),test_workflow,Tests for workflow management module,Pro Examples,12
+Tests (CE),test_dbt_integration,Tests for dbt integration module,Pro Examples,12
+Tests (CE),test_data_quality,Tests for data quality module,Pro Examples,12
+Tests (CE),test_diff,Tests for diff utilities module,Pro Examples,12
+Tests (Pro),test_hierarchy_kb,Tests for hierarchy builder module,Pro Examples,15
+Tests (Pro),test_flexible_import,Tests for flexible import system,Pro Examples,15
+Tests (Pro),test_faux_objects,Tests for faux objects module,Pro Examples,15
+Tests (Pro),test_faux_objects_personas,Tests for faux objects personas,Pro Examples,15
+Tests (Pro),test_faux_objects_translator,Tests for faux objects translator,Pro Examples,15
+Tests (Pro),test_cortex_agent,Tests for cortex agent module,Pro Examples,15
+Tests (Pro),test_cortex_analyst,Tests for cortex analyst module,Pro Examples,15
+Tests (Pro),test_console_ws,Tests for console dashboard module,Pro Examples,15
+Tests (Pro),test_lineage,Tests for lineage module,Pro Examples,15
+Tests (Pro),test_git_integration,Tests for git integration module,Pro Examples,15
+Tests (Pro),test_versioning,Tests for versioning module,Pro Examples,15
+Tests (Pro),test_wright_enhancements,Tests for wright module,Pro Examples,15
+Tests (Pro),test_mart_factory,Tests for mart factory pipeline,Pro Examples,15
+Tests (Pro),test_data_catalog,Tests for data catalog module,Pro Examples,15
+Tests (Pro),test_observability,Tests for observability module,Pro Examples,15
+Tests (Shared),conftest,Shared test fixtures and configuration,Pro Examples,2
+Tests (Shared),test_helpers,Test helper utilities,Pro Examples,2
+Custom Agents,custom_agent_builder,Build custom domain-specific agents,Enterprise,N/A
+Custom Agents,white_label_agent,White-label agent capabilities,Enterprise,N/A
+White-label Services,custom_branding,Custom branding options,Enterprise,N/A
+White-label Services,custom_ui_theming,Custom UI theming,Enterprise,N/A
+SLA Support,sla_tracking,SLA tracking and reporting,Enterprise,N/A
+SLA Support,dedicated_support,Dedicated support management,Enterprise,N/A
+On-premise Deployment,on_premise_deploy,On-premise deployment support,Enterprise,N/A
