@@ -49,7 +49,7 @@ def run_gemini_interactive(prompt: str):
     # For very large prompts, we'll use a summarized version
     short_prompt = prompt[:8000] if len(prompt) > 8000 else prompt
 
-    command = [GEMINI_CMD, "-p", short_prompt]
+    command = [GEMINI_CMD, "-o", "text", "-p", short_prompt]
 
     try:
         result = subprocess.run(command, check=True, shell=True)
@@ -227,7 +227,7 @@ Confirm loaded. Ready to answer detailed questions about DataBridge AI tools, ex
 
 Request: {user_request}
 
-Please provide a specific, actionable response."""
+IMPORTANT: Respond with a direct text answer only. Do NOT use any tools. Do NOT read, modify, or write any files. Do NOT make any code changes. Just answer the question based on the context you already have."""
 
     print("---")
     print("Querying Gemini...")
