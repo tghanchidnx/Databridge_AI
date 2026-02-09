@@ -88,12 +88,31 @@ python scripts/test_license_system.py
 export DATABRIDGE_LICENSE_KEY="DB-PRO-..."
 ```
 
-### Distribution
+### Distribution (LIVE)
 
 | Package | Registry | Install Command |
 |---------|----------|-----------------|
-| `databridge-ai` | PyPI (public) | `pip install databridge-ai` |
-| `databridge-ai-pro` | GitHub Packages | `pip install databridge-ai-pro --extra-index-url https://pypi.databridge.ai/simple/` |
+| `databridge-ai` | [PyPI](https://pypi.org/project/databridge-ai/) | `pip install databridge-ai` |
+| `databridge-ai-pro` | [GitHub](https://github.com/tghanchidnx/databridge-ai-pro) | See below |
+
+**Pro Installation:**
+```bash
+# Set credentials
+export GH_TOKEN="<github_personal_access_token>"
+export DATABRIDGE_LICENSE_KEY="DB-PRO-CUSTOMER-EXPIRY-SIGNATURE"
+
+# Install CE first, then Pro
+pip install databridge-ai
+pip install "databridge-ai-pro @ git+https://${GH_TOKEN}@github.com/tghanchidnx/databridge-ai-pro.git@v0.39.0"
+```
+
+### GitHub Repositories
+
+| Repository | Visibility | URL |
+|------------|------------|-----|
+| Databridge_AI | Private | github.com/tghanchidnx/Databridge_AI |
+| databridge-ai | Public | github.com/tghanchidnx/databridge-ai |
+| databridge-ai-pro | Private | github.com/tghanchidnx/databridge-ai-pro |
 
 ### LicenseManager API
 
