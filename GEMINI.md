@@ -5,7 +5,117 @@
 
 ---
 
-## Module Reference (292 Tools)
+## Commercialization & Licensing Structure
+
+DataBridge AI uses a tiered product structure with open-source Community Edition and licensed Pro/Enterprise editions.
+
+### Product Tiers
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    DataBridge AI Product Tiers                       │
+├─────────────────────────────────────────────────────────────────────┤
+│  ┌──────────────────────┐  ┌──────────────────┐  ┌────────────────┐│
+│  │   COMMUNITY (Free)   │  │    PRO (Licensed) │  │   ENTERPRISE   ││
+│  │   Public GitHub      │  │  GitHub Packages  │  │    Custom      ││
+│  │   Public PyPI        │  │    License Key    │  │  Dedicated     ││
+│  ├──────────────────────┤  ├──────────────────┤  ├────────────────┤│
+│  │ • Data Reconciliation│  │ Everything in CE  │  │ Everything Pro ││
+│  │ • Fuzzy Matching     │  │ + Cortex AI Agent │  │ + Custom agents││
+│  │ • PDF/OCR Extraction │  │ + Wright Pipeline │  │ + White-label  ││
+│  │ • Data Profiling     │  │ + GraphRAG Engine │  │ + SLA support  ││
+│  │ • dbt Basic          │  │ + Data Observ.    │  │ + On-premise   ││
+│  │ • Data Quality       │  │ + Full Catalog    │  │ + Training     ││
+│  │ • UI Dashboard       │  │ + Column Lineage  │  │                ││
+│  │                      │  │ + AI Orchestrator │  │                ││
+│  │ ~106 tools           │  │ ~277 tools        │  │ 341+ tools     ││
+│  └──────────────────────┘  └──────────────────┘  └────────────────┘│
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### License Key System
+
+**Format:** `DB-{TIER}-{CUSTOMER_ID}-{EXPIRY}-{SIGNATURE}`
+
+**Examples:**
+- `DB-CE-FREE0001-20990101-000000000000` (CE - perpetual)
+- `DB-PRO-ACME0001-20270209-a1b2c3d4e5f6` (Pro - 1 year)
+- `DB-ENTERPRISE-BIGCORP-20280101-xyz123` (Enterprise - custom)
+
+**Validation:** Offline hash-based (SHA256), no server required.
+
+### Module Classification by Tier
+
+| Tier | Modules | Tools |
+|------|---------|-------|
+| **CE** | File Discovery, Data Loading, Profiling, Hashing, Fuzzy Matching, PDF/OCR, Workflow, Transform, Documentation, Templates (basic), Diff Utilities, dbt Basic, Data Quality | ~106 |
+| **PRO** | Hierarchy Builder, Connections, Schema Matcher, Data Matcher, Orchestrator, Cortex AI, Wright Pipeline, Lineage, Git/CI-CD, Data Catalog, Versioning, GraphRAG, Observability | ~171 |
+| **ENT** | Custom Agents, White-label, SLA Support | Custom |
+
+### Directory Structure
+
+```
+Databridge_AI/                    # PRIVATE - Main development repo
+├── src/
+│   ├── plugins/                  # License management
+│   │   ├── __init__.py          # LicenseManager class
+│   │   └── registry.py          # Plugin discovery
+│   └── server.py                # Tier-aware tool registration
+├── databridge-ce/               # PUBLIC - Community Edition
+│   ├── pyproject.toml          # PyPI: databridge-ai
+│   └── LICENSE                  # MIT
+├── databridge-pro/              # PRIVATE - Pro Edition
+│   ├── pyproject.toml          # GitHub Packages: databridge-ai-pro
+│   └── LICENSE                  # Proprietary
+└── scripts/
+    └── generate_license.py      # License key generator
+```
+
+### Key Commands
+
+```bash
+# Generate license key
+python scripts/generate_license.py PRO CUSTOMER01 365
+# Output: DB-PRO-CUSTOMER01-20270209-a1b2c3d4e5f6
+
+# Validate license key
+python scripts/generate_license.py --validate DB-PRO-CUSTOMER01-20270209-a1b2c3d4e5f6
+
+# Test license system
+python scripts/test_license_system.py
+
+# Set license key (environment)
+export DATABRIDGE_LICENSE_KEY="DB-PRO-..."
+```
+
+### Distribution
+
+| Package | Registry | Install Command |
+|---------|----------|-----------------|
+| `databridge-ai` | PyPI (public) | `pip install databridge-ai` |
+| `databridge-ai-pro` | GitHub Packages | `pip install databridge-ai-pro --extra-index-url https://pypi.databridge.ai/simple/` |
+
+### LicenseManager API
+
+```python
+from src.plugins import get_license_manager
+
+mgr = get_license_manager()
+print(mgr.tier)              # 'CE', 'PRO', or 'ENTERPRISE'
+print(mgr.is_pro())          # True if Pro or higher
+print(mgr.is_enterprise())   # True if Enterprise
+print(mgr.get_status())      # Full status dict
+
+# MCP Tool
+get_license_status()         # Returns license info as JSON
+```
+
+### Full Documentation
+See `docs/COMMERCIALIZATION.md` for complete details.
+
+---
+
+## Module Reference (341 Tools)
 
 ### 1. File Discovery & Staging (3 tools)
 

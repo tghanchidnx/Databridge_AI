@@ -3,8 +3,58 @@
 > **Compact Config** - Detailed docs in GEMINI.md. Query Gemini via `ask_claude_gemini.py` for examples.
 
 ## Project Summary
-- **Version:** 0.39.0 | **Tools:** 341 | **License:** MIT
-- **Type:** Headless MCP-native data reconciliation engine
+- **Version:** 0.39.0 | **Tools:** 341 | **Type:** Headless MCP-native data reconciliation engine
+- **Licensing:** Tiered (CE/Pro/Enterprise) - See Commercialization section below
+
+## Commercialization Structure
+
+```
+┌─────────────────┬─────────────────┬─────────────────┐
+│  COMMUNITY (CE) │      PRO        │   ENTERPRISE    │
+│     Free        │   Licensed      │    Custom       │
+├─────────────────┼─────────────────┼─────────────────┤
+│ ~106 tools      │ ~277 tools      │ 341+ tools      │
+│ Public PyPI     │ GitHub Packages │ Private Deploy  │
+│ MIT License     │ License Key     │ Dedicated Key   │
+├─────────────────┼─────────────────┼─────────────────┤
+│ • Reconciliation│ Everything CE + │ Everything Pro +│
+│ • Fuzzy Match   │ • Cortex AI     │ • Custom agents │
+│ • PDF/OCR       │ • Wright Pipeline│ • White-label  │
+│ • dbt Basic     │ • GraphRAG      │ • SLA support   │
+│ • Data Quality  │ • Observability │ • On-premise    │
+│ • UI Dashboard  │ • Full Catalog  │                 │
+└─────────────────┴─────────────────┴─────────────────┘
+```
+
+### License Key Format
+```
+DB-{TIER}-{CUSTOMER_ID}-{EXPIRY}-{SIGNATURE}
+Example: DB-PRO-ACME001-20270209-a1b2c3d4e5f6
+```
+
+### Key Files
+- `src/plugins/__init__.py` - LicenseManager class
+- `src/plugins/registry.py` - Plugin discovery
+- `scripts/generate_license.py` - License key generator
+- `docs/COMMERCIALIZATION.md` - Full documentation
+
+### Commands
+```bash
+# Generate license key
+python scripts/generate_license.py PRO CUSTOMER01 365
+
+# Test license system
+python scripts/test_license_system.py
+
+# Check license status (MCP tool)
+get_license_status()
+```
+
+### Package Distribution
+| Package | Location | Install |
+|---------|----------|---------|
+| databridge-ai | PyPI (public) | `pip install databridge-ai` |
+| databridge-ai-pro | GitHub Packages | `pip install databridge-ai-pro` (+ license key) |
 
 ## Tool Categories (341 total)
 
