@@ -18,8 +18,8 @@ SESSION_FILE = PROJECT_ROOT / "data" / "gemini_session.md"
 TEMP_PROMPT_FILE = PROJECT_ROOT / "data" / "gemini_prompt.txt"
 
 # Current version info
-VERSION = "0.39.0"
-TOOL_COUNT = 341
+VERSION = "0.40.0"
+TOOL_COUNT = 348
 
 def ensure_data_dir():
     """Ensure data directory exists."""
@@ -62,9 +62,10 @@ def get_project_summary() -> str:
     """Get a brief summary of the project for context."""
     return f"""DataBridge AI v{VERSION} - MCP-native data reconciliation engine with {TOOL_COUNT} tools.
 
-Key modules: Hierarchy Builder (44 tools), Data Reconciliation (38 tools), Cortex AI (26 tools),
-Wright Module (29 tools), Data Catalog (19 tools), Data Observability (15 tools), Versioning (12 tools),
-Git/CI-CD (12 tools), Lineage (11 tools), GraphRAG (10 tools), dbt Integration (8 tools), Data Quality (7 tools).
+Key modules: Hierarchy Builder (49 tools), Data Reconciliation (38 tools), Wright Module (31 tools),
+Cortex AI (26 tools), Data Catalog (19 tools), Data Observability (15 tools), Versioning (12 tools),
+Git/CI-CD (12 tools), Lineage (11 tools), GraphRAG (10 tools), dbt Integration (8 tools), Data Quality (7 tools),
+Hierarchy-Graph Bridge (5 tools).
 
 Docs: CLAUDE.md (compact rules), GEMINI.md (detailed reference with examples/architectures)."""
 
