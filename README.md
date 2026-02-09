@@ -4,25 +4,29 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**DataBridge AI** is a headless, MCP-native data reconciliation engine with **292 tools** for hierarchy management, data quality, and analytics.
+**DataBridge AI** is a headless, MCP-native data reconciliation engine with **341 tools** for hierarchy management, data quality, and analytics.
 
 ## Features
 
 | Module | Tools | Description |
 |--------|-------|-------------|
-| **Data Reconciliation** | 38 | Compare and validate data from CSV, SQL, PDF, JSON sources |
 | **Hierarchy Builder** | 44 | Create and manage multi-level hierarchy projects (up to 15 levels) |
-| **Cortex AI** | 25 | Snowflake Cortex AI with natural language to SQL |
-| **Wright Module** | 18 | Hierarchy-driven data mart generation with 4-object pipeline |
-| **Data Catalog** | 15 | Centralized metadata registry with business glossary |
+| **Data Reconciliation** | 38 | Compare and validate data from CSV, SQL, PDF, JSON sources |
+| **Wright Module** | 29 | Hierarchy-driven data mart generation with 4-object pipeline |
+| **Cortex AI** | 26 | Snowflake Cortex AI with natural language to SQL |
+| **Data Catalog** | 19 | Centralized metadata registry with business glossary |
+| **Templates & Skills** | 16 | Pre-built templates and AI expertise definitions |
+| **Data Observability** | 15 | Real-time metrics, alerting, anomaly detection, health scoring |
 | **Data Versioning** | 12 | Semantic versioning, snapshots, rollback, and diff |
-| **Lineage Tracking** | 11 | Column-level lineage and impact analysis |
 | **Git/CI-CD** | 12 | Automated workflows and GitHub integration |
+| **Lineage Tracking** | 11 | Column-level lineage and impact analysis |
+| **PlannerAgent** | 11 | AI-powered workflow planning and agent suggestions |
+| **GraphRAG Engine** | 10 | Anti-hallucination layer with graph + vector retrieval |
+| **Unified AI Agent** | 10 | Cross-system operations (Book/Librarian/Researcher) |
 | **dbt Integration** | 8 | Generate dbt projects from hierarchies |
 | **Data Quality** | 7 | Expectation suites and data contracts |
-| **Templates & Skills** | 16 | Pre-built templates and AI expertise definitions |
-| **AI Orchestrator** | 27 | Multi-agent coordination with task queues |
-| **And more...** | 54 | Diff utilities, recommendations, console, etc. |
+| **Diff Utilities** | 6 | Character-level text and data comparison |
+| **And more...** | 67 | Console dashboard, recommendations, orchestrator, etc. |
 
 ## Installation
 
@@ -88,7 +92,7 @@ mcp.run()
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                   DataBridge MCP Server                      │
+│               DataBridge MCP Server (341 Tools)              │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
 │  │  Hierarchy  │  │   Cortex    │  │   Wright    │         │
 │  │   Builder   │  │   Agent     │  │   Module    │         │
@@ -96,6 +100,10 @@ mcp.run()
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
 │  │    Data     │  │   Lineage   │  │    Data     │         │
 │  │   Catalog   │  │   Tracker   │  │   Quality   │         │
+│  └─────────────┘  └─────────────┘  └─────────────┘         │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│  │   GraphRAG  │  │ Observabil- │  │    Data     │         │
+│  │   Engine    │  │    ity      │  │ Versioning  │         │
 │  └─────────────┘  └─────────────┘  └─────────────┘         │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -164,6 +172,44 @@ version_diff(object_type="hierarchy", object_id="revenue-pl",
 
 # Rollback
 version_rollback(object_type="hierarchy", object_id="revenue-pl", to_version="1.0.0")
+```
+
+### Data Observability
+Real-time metrics collection, alerting, anomaly detection, and health scoring.
+
+```python
+# Record metrics
+obs_record_metric(name="hierarchy.validation.success_rate", value=98.5,
+                  type="gauge", tags='{"project_id": "revenue-pl"}')
+
+# Create alert rules
+obs_create_alert_rule(name="Low success rate",
+                      metric_name="hierarchy.validation.success_rate",
+                      threshold=95.0, comparison="<", severity="warning")
+
+# Detect anomalies
+obs_detect_anomaly(metric_name="hierarchy.validation.success_rate", value=72.0)
+
+# Get asset health score
+obs_get_asset_health(asset_id="revenue-pl", asset_type="hierarchy_project")
+
+# System health dashboard
+obs_get_system_health()
+```
+
+### GraphRAG Engine
+Anti-hallucination layer using graph + vector retrieval-augmented generation.
+
+```python
+# Search with RAG
+rag_search(query="What hierarchies use ACCOUNT_CODE?", top_k=5)
+
+# Validate AI output against knowledge graph
+rag_validate_output(output="Revenue is in hierarchy H1",
+                    sources=["hierarchy_project:revenue-pl"])
+
+# Get context for prompts
+rag_get_context(query="Explain the revenue structure", max_tokens=2000)
 ```
 
 ## Configuration
