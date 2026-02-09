@@ -523,3 +523,74 @@ Databridge_AI/
 ---
 
 *Last Updated: 2026-02-07 | Version: 0.34.0 | Tools: 292*
+
+
+## Test Section
+_Updated: 2026-02-08 23:35:42_
+
+Test context storage
+
+---
+
+
+## Data Observability Module
+_Updated: 2026-02-08 23:36:55_
+
+Phase 32: Data Observability Module (15 tools)
+
+Real-time metrics collection, alerting, anomaly detection, and health monitoring.
+
+## Components
+- MetricsStore: Time-series storage (JSONL append-only)
+- AlertManager: Threshold-based alerting with severity levels (info/warning/critical)
+- AnomalyDetector: Z-score based statistical anomaly detection
+- HealthScorer: Composite health scoring for assets (quality/freshness/completeness/reliability)
+
+## MCP Tools (15)
+
+### Metrics (4)
+- obs_record_metric: Record a metric data point (gauge/counter/histogram)
+- obs_query_metrics: Query metrics by name, time range, and tags
+- obs_get_metric_stats: Get aggregated statistics (min/max/avg/p50/p95/p99)
+- obs_list_metrics: List all available metric names
+
+### Alerting (5)
+- obs_create_alert_rule: Create threshold-based alert rule
+- obs_list_alert_rules: List all alert rules
+- obs_list_active_alerts: List active (unresolved) alerts
+- obs_acknowledge_alert: Acknowledge an alert
+- obs_get_alert_history: Get historical alerts
+
+### Anomaly Detection (3)
+- obs_detect_anomaly: Check if value is anomalous vs historical baseline
+- obs_get_anomaly_report: Get recent anomalies for a metric
+- obs_configure_anomaly: Set Z-score threshold and sensitivity
+
+### Health Scoring (3)
+- obs_get_asset_health: Get composite health score (0-100) for an asset
+- obs_get_system_health: Get overall system health dashboard
+- obs_get_health_trends: Get health score trends over time
+
+## Storage Format
+data/observability/
+  metrics.jsonl      # Append-only time-series
+  alert_rules.json   # Alert rule definitions
+  alerts.json        # Active and historical alerts
+  anomalies.jsonl    # Detected anomalies log
+  health_scores.json # Cached health scores
+
+## Example Usage
+
+# Record a metric
+obs_record_metric(name='hierarchy.validation.success_rate', value=98.5, type='gauge', tags='{"project_id": "revenue-pl"}')
+
+# Create alert rule
+obs_create_alert_rule(name='Low success rate', metric_name='hierarchy.validation.success_rate', threshold=95.0, comparison='<', severity='warning')
+
+# Detect anomaly
+obs_detect_anomaly(metric_name='hierarchy.validation.success_rate', value=72.0)
+
+# Get asset health
+obs_get_asset_health(asset_id='revenue-pl', asset_type='hierarchy_project')
+
+---
