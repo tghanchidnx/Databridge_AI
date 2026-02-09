@@ -115,7 +115,7 @@ export DATABRIDGE_LICENSE_KEY="DB-PRO-CUSTOMER-EXPIRY-SIGNATURE"
 
 # Install CE first, then Pro
 pip install databridge-ai
-pip install "databridge-ai-pro @ git+https://${GH_TOKEN}@github.com/tghanchidnx/databridge-ai-pro.git@v0.39.0"
+pip install "databridge-ai-pro @ git+https://${GH_TOKEN}@github.com/tghanchidnx/databridge-ai-pro.git@v0.40.0"
 ```
 
 **Pro Examples Installation:**
@@ -752,7 +752,7 @@ Databridge_AI/
 
 ---
 
-*Last Updated: 2026-02-09 | Version: 0.39.0 | Tools: 341 | Packages: 3 (CE, Pro, Pro Examples)*
+*Last Updated: 2026-02-09 | Version: 0.40.0 | Tools: 348 | Packages: 3 (CE, Pro, Pro Examples)*
 
 
 ## Test Section
