@@ -17,17 +17,17 @@ from ui.server import app
 
 if __name__ == '__main__':
     print("""
-╔════════════════════════════════════════════════════════════════╗
-║              DataBridge AI Dashboard v0.39.0                   ║
-║                     341 MCP Tools                              ║
-╠════════════════════════════════════════════════════════════════╣
-║  Dashboard:  http://127.0.0.1:5050                             ║
-║                                                                ║
-║  Features:                                                     ║
-║  • Data Reconciliation    • Hierarchy Builder                  ║
-║  • Wright Pipeline        • dbt Integration                    ║
-║  • Data Catalog           • Cortex AI                          ║
-║  • Data Observability     • GraphRAG Engine                    ║
-╚════════════════════════════════════════════════════════════════╝
++================================================================+
+|              DataBridge AI Dashboard v0.39.0                   |
+|                     341 MCP Tools                              |
++================================================================+
+|  Dashboard:  http://127.0.0.1:5050                             |
+|                                                                |
+|  Features:                                                     |
+|  - Data Reconciliation    - Hierarchy Builder                  |
+|  - Wright Pipeline        - dbt Integration                    |
+|  - Data Catalog           - Cortex AI                          |
+|  - Data Observability     - GraphRAG Engine                    |
++================================================================+
     """)
     app.run(debug=True, port=5050, host='127.0.0.1')
