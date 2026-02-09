@@ -23,13 +23,13 @@ sys.path.insert(0, str(databridge_ce_dir))
 app = Flask(__name__, template_folder=str(ui_dir), static_folder=str(ui_dir))
 
 # Configuration
-TOOL_COUNT = 341  # Current tool count (v0.39.0)
+TOOL_COUNT = 348  # Current tool count (v0.40.0)
 
 # Get version from src/__init__.py
 try:
     from src import __version__ as VERSION
 except ImportError:
-    VERSION = "0.39.0"  # Fallback
+    VERSION = "0.40.0"  # Fallback
 PROJECTS_DIR = project_root / 'use_cases_by_claude'
 BOOK_PROJECTS_DIR = project_root / 'Book' / 'use_cases'
 CLAUDE_MD_PATH = project_root / 'CLAUDE.md'
@@ -275,6 +275,62 @@ def save_wright_config():
         json.dump(config, f, indent=2)
 
     return jsonify({'success': True, 'message': f'Configuration saved: {name}'})
+
+# --- File Upload Routes ---
+
+@app.route('/api/upload-csv', methods=['POST'])
+def upload_csv():
+    """Accept CSV file upload and return content for MCP tool processing."""
+    file = request.files.get('file')
+    if not file:
+        abort(400, "No file provided.")
+    content = file.read().decode('utf-8')
+    return jsonify({"content": content, "filename": file.filename})
+
+# --- MCP Tool Proxy (Hierarchy Builder uses this) ---
+
+@app.route('/api/tools/run', methods=['POST'])
+def run_tool():
+    """
+    Proxy endpoint for running MCP tools from the UI.
+    The UI sends {tool: "tool_name", params: {...}} and this endpoint
+    calls the tool via the MCP server module.
+    """
+    data = request.get_json()
+    tool_name = data.get('tool', '')
+    params = data.get('params', {})
+
+    try:
+        # Import and run the tool via the MCP server
+        from src.server import mcp as mcp_server
+
+        # Get the tool from the MCP server's tool manager
+        tool_manager = getattr(mcp_server, '_tool_manager', None)
+        if not tool_manager:
+            return jsonify({"error": "MCP server not initialized"}), 500
+
+        tools = getattr(tool_manager, '_tools', {})
+        tool = tools.get(tool_name)
+        if not tool:
+            return jsonify({"error": f"Tool '{tool_name}' not found"}), 404
+
+        # Call the tool
+        import asyncio
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    result = pool.submit(lambda: asyncio.run(tool.run(params))).result()
+            else:
+                result = loop.run_until_complete(tool.run(params))
+        except RuntimeError:
+            result = asyncio.run(tool.run(params))
+
+        return jsonify({"result": result})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # --- Main Entry Point ---
 

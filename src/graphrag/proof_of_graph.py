@@ -102,8 +102,23 @@ class ProofOfGraph:
 
                     hierarchies = self.hierarchy.list_hierarchies(proj_id)
                     for h in hierarchies:
-                        self._known_hierarchies.add(h.get("name", "").upper())
-                        self._known_hierarchies.add(h.get("hierarchy_id", "").upper())
+                        hier_name = h.get("hierarchy_name", "").upper()
+                        hier_id = h.get("hierarchy_id", "").upper()
+                        if hier_name:
+                            self._known_hierarchies.add(hier_name)
+                        if hier_id:
+                            self._known_hierarchies.add(hier_id)
+
+                        # Index source mapping table references into _known_tables
+                        for m in h.get("mapping", []):
+                            tbl = m.get("source_table", "").upper()
+                            if tbl:
+                                self._known_tables.add(tbl)
+                                # Also add fully qualified
+                                db = m.get("source_database", "").upper()
+                                schema = m.get("source_schema", "").upper()
+                                if db and schema:
+                                    self._known_tables.add(f"{db}.{schema}.{tbl}")
 
                 logger.debug(f"Indexed {len(self._known_hierarchies)} hierarchies")
 
@@ -268,6 +283,41 @@ class ProofOfGraph:
                         message=f"Hierarchy '{name}' will be created (not found in existing)",
                         entity=name,
                     ))
+
+        # Validate source mapping table references
+        table_pattern = r'source[_\s]*table["\']?\s*[:=]\s*["\']?([\w.]+)'
+        for match in re.finditer(table_pattern, content, re.IGNORECASE):
+            table_ref = match.group(1).upper()
+            referenced.append(f"TABLE:{table_ref}")
+            if table_ref in self._known_tables:
+                verified.append(f"TABLE:{table_ref}")
+            else:
+                suggestions.append(f"Source table '{table_ref}' not found in catalog — verify it exists")
+
+        # Validate formula references point to existing hierarchies
+        formula_pattern = r'formula[_\s]*(?:ref|source|hierarchy)["\']?\s*[:=]\s*["\']?([\w_]+)'
+        for match in re.finditer(formula_pattern, content, re.IGNORECASE):
+            ref = match.group(1).upper()
+            referenced.append(f"FORMULA_REF:{ref}")
+            if ref in self._known_hierarchies:
+                verified.append(f"FORMULA_REF:{ref}")
+            else:
+                issues.append(ValidationIssue(
+                    severity=ValidationSeverity.WARNING,
+                    message=f"Formula references hierarchy '{ref}' which doesn't exist",
+                    entity=ref,
+                ))
+
+        # Check parent-child forms valid DAG (no self-references)
+        parent_refs = re.findall(r'parent[_\s]*id["\']?\s*[:=]\s*["\']?([\w-]+)', content, re.IGNORECASE)
+        hier_refs = re.findall(r'hierarchy[_\s]*id["\']?\s*[:=]\s*["\']?([\w-]+)', content, re.IGNORECASE)
+        for p in parent_refs:
+            if p in hier_refs:
+                issues.append(ValidationIssue(
+                    severity=ValidationSeverity.ERROR,
+                    message=f"Hierarchy '{p}' references itself as parent (circular reference)",
+                    entity=p,
+                ))
 
     def _validate_dbt(
         self,

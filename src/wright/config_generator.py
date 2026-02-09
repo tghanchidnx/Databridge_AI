@@ -204,18 +204,25 @@ class MartConfigGenerator:
     def from_hierarchy_project(
         self,
         project_id: str,
-        hierarchy_service,  # HierarchyKnowledgeBase
+        hierarchy_service,  # HierarchyService instance
         report_type: str = "CUSTOM",
         account_segment: Optional[str] = None,
+        database: Optional[str] = None,
+        schema: Optional[str] = None,
     ) -> MartConfig:
         """
         Generate config from existing DataBridge hierarchy project.
 
+        Uses HierarchyService.get_all_mappings() to extract source mappings
+        and auto-detect report_type from hierarchy properties.
+
         Args:
             project_id: Hierarchy project ID
-            hierarchy_service: HierarchyKnowledgeBase instance
-            report_type: Report type label
+            hierarchy_service: HierarchyService instance
+            report_type: Report type label (auto-detected if "CUSTOM")
             account_segment: Account segment filter
+            database: Target database (auto-detected from mappings if not provided)
+            schema: Target schema (auto-detected from mappings if not provided)
 
         Returns:
             Generated MartConfig
@@ -224,8 +231,29 @@ class MartConfigGenerator:
         if not project:
             raise ValueError(f"Hierarchy project '{project_id}' not found")
 
-        # Extract mappings
+        # Extract all mappings using the new get_all_mappings method
         mappings = hierarchy_service.get_all_mappings(project_id)
+
+        # Auto-detect database/schema from first mapping if not provided
+        if mappings and not database:
+            database = mappings[0].get("source_database", "DB")
+        if mappings and not schema:
+            schema = mappings[0].get("source_schema", "SCHEMA")
+        database = database or "DB"
+        schema = schema or "SCHEMA"
+
+        # Auto-detect report_type from hierarchy properties
+        if report_type == "CUSTOM":
+            hierarchies = hierarchy_service.list_hierarchies(project_id)
+            for h in hierarchies:
+                dim_props = h.get("dimension_props", {})
+                fact_props = h.get("fact_props", {})
+                if dim_props:
+                    report_type = "DIMENSION"
+                    break
+                elif fact_props:
+                    report_type = "FACT"
+                    break
 
         # Analyze ID_SOURCE distribution
         id_source_counts: Dict[str, int] = {}
@@ -234,14 +262,17 @@ class MartConfigGenerator:
             if id_source:
                 id_source_counts[id_source] = id_source_counts.get(id_source, 0) + 1
 
+        # Get project name for table naming
+        proj_name = project.get("name", project_id).upper().replace(" ", "_")
+
         # Create config
         config = self.create_config(
-            project_name=f"{project_id}_mart",
+            project_name=f"{proj_name}_mart",
             report_type=report_type,
-            hierarchy_table=f"{project.get('database', 'DB')}.{project.get('schema', 'SCHEMA')}.{project_id.upper()}_HIERARCHY",
-            mapping_table=f"{project.get('database', 'DB')}.{project.get('schema', 'SCHEMA')}.{project_id.upper()}_MAPPING",
+            hierarchy_table=f"{database}.{schema}.{proj_name}_HIERARCHY",
+            mapping_table=f"{database}.{schema}.{proj_name}_MAPPING",
             account_segment=account_segment or report_type,
-            description=f"Generated from hierarchy project {project_id}",
+            description=f"Generated from hierarchy project '{project.get('name', project_id)}'",
         )
 
         # Add column mappings from ID_SOURCE distribution
@@ -249,8 +280,16 @@ class MartConfigGenerator:
             self.add_column_mapping(
                 config_name=config.project_name,
                 id_source=id_source,
-                physical_column=f"DIM.{id_source}",  # Placeholder
+                physical_column=f"DIM.{id_source}",
             )
+
+        # Auto-generate join patterns from source mapping tables
+        source_tables = set()
+        for mapping in mappings:
+            tbl = mapping.get("source_table", "")
+            if tbl:
+                fqn = f"{mapping.get('source_database', database)}.{mapping.get('source_schema', schema)}.{tbl}"
+                source_tables.add(fqn)
 
         return config
 

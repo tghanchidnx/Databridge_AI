@@ -91,6 +91,9 @@ class UnifiedAgentContext:
         self._researcher_base_url: str = "http://localhost:8001/api"
         self._researcher_api_key: str = "v2-dev-key-1"
 
+        # Hierarchy service (set externally)
+        self._hierarchy_service: Any = None
+
         # Load persisted state
         self._load()
 
@@ -274,6 +277,39 @@ class UnifiedAgentContext:
         return [op.to_dict() for op in self._operation_history[-limit:]]
 
     # =========================================================================
+    # Hierarchy Integration
+    # =========================================================================
+
+    def set_hierarchy_service(self, service: Any) -> None:
+        """Set the HierarchyService instance for hierarchy awareness."""
+        self._hierarchy_service = service
+
+    @property
+    def hierarchy_projects(self) -> List[Dict[str, Any]]:
+        """Get hierarchy projects from HierarchyService."""
+        if not self._hierarchy_service:
+            return []
+        try:
+            return self._hierarchy_service.list_projects()
+        except Exception:
+            return []
+
+    @property
+    def active_hierarchy_summary(self) -> str:
+        """Get a text summary of active hierarchy projects for AI context."""
+        projects = self.hierarchy_projects
+        if not projects:
+            return "No hierarchy projects active."
+
+        lines = []
+        for proj in projects[:5]:
+            pid = proj.get("id", "")
+            name = proj.get("name", "")
+            count = proj.get("hierarchy_count", 0)
+            lines.append(f"- {name} ({count} hierarchies)")
+        return "Active hierarchy projects:\n" + "\n".join(lines)
+
+    # =========================================================================
     # Context Summary
     # =========================================================================
 
@@ -286,6 +322,8 @@ class UnifiedAgentContext:
             "librarian_url": self._librarian_base_url,
             "researcher_url": self._researcher_base_url,
             "recent_operations": self.get_operation_history(5),
+            "hierarchy_projects": self.hierarchy_projects,
+            "hierarchy_summary": self.active_hierarchy_summary,
         }
 
     # =========================================================================

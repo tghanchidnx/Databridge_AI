@@ -792,6 +792,11 @@
                         <span class="nav-icon">📁</span> Hierarchy Projects
                     </a>
                 </li>
+                <li class="nav-item" data-page-id="hierarchy-builder">
+                    <a href="#" class="nav-link" onclick="showPage(event, 'hierarchy-builder')">
+                        <span class="nav-icon">⬡</span> Hierarchy Builder
+                    </a>
+                </li>
                 <li class="nav-item" data-page-id="workflow-editor">
                     <a href="#" class="nav-link" onclick="showPage(event, 'workflow-editor')">
                         <span class="nav-icon">⚡</span> Workflow Editor
@@ -1312,8 +1317,8 @@ Ready to process requests. Type a query below or use Quick Actions.</div>
                     <!-- Overview Tab -->
                     <div id="overview-tab" class="tab-content active">
                         <div class="doc-section">
-                            <h3>DataBridge AI <span id="docVersion">v0.39.0</span></h3>
-                            <p>A headless, MCP-native data reconciliation engine with <strong>341 MCP tools</strong> across twenty major modules.</p>
+                            <h3>DataBridge AI <span id="docVersion">v0.40.0</span></h3>
+                            <p>A headless, MCP-native data reconciliation engine with <strong>348 MCP tools</strong> across twenty-two major modules.</p>
 
                             <div class="card" style="margin-top: 20px;">
                                 <h4 style="color: var(--success);">Core Capabilities</h4>
@@ -1362,7 +1367,7 @@ graph TD
                     <!-- Tools Tab -->
                     <div id="tools-tab" class="tab-content">
                         <div class="doc-section">
-                            <h3>Tool Categories (341 Tools)</h3>
+                            <h3>Tool Categories (348 Tools)</h3>
 
                             <div class="tool-category">
                                 <h4>📂 File Discovery & Staging (3 tools)</h4>
@@ -1553,6 +1558,231 @@ print(f"Loaded {len(tools)} tools")
                     </div>
                 </div>
             </div>
+        <!-- ==================== HIERARCHY BUILDER PAGE ==================== -->
+        <div id="hierarchy-builder" class="page" style="display:none;">
+            <h1 class="page-header">⬡ Hierarchy Builder</h1>
+
+            <!-- Section A: Project Manager (top bar) -->
+            <div class="card" style="margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <label style="font-weight: 600;">Project:</label>
+                    <select id="hb-project-select" onchange="hbSelectProject(this.value)" style="padding: 6px 10px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; min-width: 200px;">
+                        <option value="">-- Select Project --</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="hbNewProjectModal()">+ New Project</button>
+                    <button class="btn btn-danger" onclick="hbDeleteProject()" id="hb-delete-btn" disabled>Delete</button>
+                    <span id="hb-project-stats" style="margin-left: auto; color: var(--text-secondary); font-size: 0.85rem;"></span>
+                </div>
+            </div>
+
+            <!-- Main Builder Layout -->
+            <div style="display: flex; gap: 16px; height: calc(100vh - 280px); min-height: 400px;">
+
+                <!-- Section B: Hierarchy Tree View (left panel) -->
+                <div class="card" style="flex: 0 0 38%; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h3 style="margin: 0;">Hierarchy Tree</h3>
+                        <button class="btn btn-primary" onclick="hbAddRootNode()" id="hb-add-root-btn" disabled style="font-size: 0.8rem; padding: 4px 10px;">+ Add Root</button>
+                    </div>
+                    <div id="hb-tree-container" style="font-size: 0.9rem;">
+                        <p style="color: var(--text-secondary);">Select a project to view its hierarchy tree.</p>
+                    </div>
+                </div>
+
+                <!-- Section C: Node Detail Editor (right panel) -->
+                <div class="card" style="flex: 1; overflow-y: auto;">
+                    <div id="hb-detail-placeholder" style="color: var(--text-secondary); padding: 40px 20px; text-align: center;">
+                        <p style="font-size: 1.1rem;">Select a node from the tree to edit its details.</p>
+                    </div>
+                    <div id="hb-detail-editor" style="display: none;">
+                        <div class="tab-container">
+                            <div class="tab-buttons">
+                                <button class="tab-btn active" onclick="showTab(event, 'hb-tab-general')">General</button>
+                                <button class="tab-btn" onclick="showTab(event, 'hb-tab-mappings')">Source Mappings</button>
+                                <button class="tab-btn" onclick="showTab(event, 'hb-tab-properties')">Properties</button>
+                                <button class="tab-btn" onclick="showTab(event, 'hb-tab-formulas')">Formulas</button>
+                                <button class="tab-btn" onclick="showTab(event, 'hb-tab-display')">Display</button>
+                            </div>
+
+                            <!-- General Tab -->
+                            <div id="hb-tab-general" class="tab-content active">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                    <div>
+                                        <label>Name</label>
+                                        <input id="hb-node-name" type="text" style="width:100%; padding:6px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:4px;">
+                                    </div>
+                                    <div>
+                                        <label>Hierarchy ID</label>
+                                        <input id="hb-node-id" type="text" readonly style="width:100%; padding:6px; background:var(--bg-primary); color:var(--text-secondary); border:1px solid var(--border-color); border-radius:4px;">
+                                    </div>
+                                    <div style="grid-column: 1 / -1;">
+                                        <label>Description</label>
+                                        <textarea id="hb-node-desc" rows="2" style="width:100%; padding:6px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:4px;"></textarea>
+                                    </div>
+                                    <div>
+                                        <label>Parent</label>
+                                        <select id="hb-node-parent" style="width:100%; padding:6px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:4px;">
+                                            <option value="">-- Root (no parent) --</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label>Sort Order</label>
+                                        <input id="hb-node-sort" type="number" value="1" style="width:100%; padding:6px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:4px;">
+                                    </div>
+                                </div>
+                                <div style="margin-top: 12px;">
+                                    <label>Flags</label>
+                                    <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 4px;">
+                                        <label><input type="checkbox" id="hb-flag-include" checked> Include</label>
+                                        <label><input type="checkbox" id="hb-flag-exclude"> Exclude</label>
+                                        <label><input type="checkbox" id="hb-flag-calc"> Calculation</label>
+                                        <label><input type="checkbox" id="hb-flag-active" checked> Active</label>
+                                        <label><input type="checkbox" id="hb-flag-leaf"> Leaf Node</label>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 16px; display: flex; gap: 8px;">
+                                    <button class="btn btn-primary" onclick="hbSaveNode()">Save Changes</button>
+                                    <button class="btn" onclick="hbAddChild()">+ Add Child</button>
+                                    <button class="btn btn-danger" onclick="hbDeleteNode()">Delete Node</button>
+                                </div>
+                            </div>
+
+                            <!-- Source Mappings Tab -->
+                            <div id="hb-tab-mappings" class="tab-content">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;" id="hb-mappings-table">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid var(--border-color);">
+                                            <th style="padding: 6px; text-align: left;">Database</th>
+                                            <th style="padding: 6px; text-align: left;">Schema</th>
+                                            <th style="padding: 6px; text-align: left;">Table</th>
+                                            <th style="padding: 6px; text-align: left;">Column</th>
+                                            <th style="padding: 6px; text-align: left;">UID</th>
+                                            <th style="padding: 6px; width: 60px;"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="hb-mappings-body"></tbody>
+                                </table>
+                                <button class="btn btn-primary" onclick="hbAddMapping()" style="margin-top: 8px; font-size: 0.85rem;">+ Add Mapping</button>
+                            </div>
+
+                            <!-- Properties Tab -->
+                            <div id="hb-tab-properties" class="tab-content">
+                                <div id="hb-properties-list"></div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 8px; margin-top: 8px; align-items: end;">
+                                    <div>
+                                        <label style="font-size:0.8rem;">Name</label>
+                                        <input id="hb-prop-name" type="text" style="width:100%; padding:4px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:4px; font-size:0.85rem;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:0.8rem;">Value</label>
+                                        <input id="hb-prop-value" type="text" style="width:100%; padding:4px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:4px; font-size:0.85rem;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:0.8rem;">Category</label>
+                                        <select id="hb-prop-category" style="width:100%; padding:4px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:4px; font-size:0.85rem;">
+                                            <option value="custom">Custom</option>
+                                            <option value="dimension">Dimension</option>
+                                            <option value="fact">Fact</option>
+                                            <option value="filter">Filter</option>
+                                            <option value="display">Display</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn btn-primary" onclick="hbAddProperty()" style="font-size: 0.8rem; padding: 4px 10px;">Add</button>
+                                </div>
+                            </div>
+
+                            <!-- Formulas Tab -->
+                            <div id="hb-tab-formulas" class="tab-content">
+                                <div id="hb-formula-rules"></div>
+                                <div style="display: grid; grid-template-columns: auto 1fr auto; gap: 8px; margin-top: 8px; align-items: end;">
+                                    <div>
+                                        <label style="font-size:0.8rem;">Operation</label>
+                                        <select id="hb-formula-op" style="padding:4px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:4px; font-size:0.85rem;">
+                                            <option value="SUM">SUM</option>
+                                            <option value="SUBTRACT">SUBTRACT</option>
+                                            <option value="MULTIPLY">MULTIPLY</option>
+                                            <option value="DIVIDE">DIVIDE</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="font-size:0.8rem;">Source Hierarchy</label>
+                                        <select id="hb-formula-source" style="width:100%; padding:4px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:4px; font-size:0.85rem;">
+                                        </select>
+                                    </div>
+                                    <button class="btn btn-primary" onclick="hbAddFormulaRule()" style="font-size: 0.8rem; padding: 4px 10px;">Add Rule</button>
+                                </div>
+                            </div>
+
+                            <!-- Display Tab -->
+                            <div id="hb-tab-display" class="tab-content">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                    <div>
+                                        <label>Color</label>
+                                        <input id="hb-display-color" type="color" value="#4fc3f7" style="width: 100%; height: 36px; border: 1px solid var(--border-color); border-radius: 4px;">
+                                    </div>
+                                    <div>
+                                        <label>Icon</label>
+                                        <input id="hb-display-icon" type="text" placeholder="e.g. folder, star" style="width:100%; padding:6px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:4px;">
+                                    </div>
+                                    <div style="grid-column: 1 / -1;">
+                                        <label>Tooltip</label>
+                                        <input id="hb-display-tooltip" type="text" style="width:100%; padding:6px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:4px;">
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary" onclick="hbSaveDisplayProps()" style="margin-top: 12px;">Save Display</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section D: Action Bar (bottom) -->
+            <div class="card" style="margin-top: 16px;">
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <label class="btn btn-primary" style="cursor: pointer;">
+                        Upload CSV <input type="file" id="hb-csv-upload" accept=".csv" onchange="hbUploadCSV(this)" style="display: none;">
+                    </label>
+                    <button class="btn" onclick="hbDownloadCSV()" id="hb-dl-csv-btn" disabled>Download CSV</button>
+                    <button class="btn" onclick="hbDownloadJSON()" id="hb-dl-json-btn" disabled>Download JSON</button>
+                    <div style="border-left: 1px solid var(--border-color); margin: 0 4px;"></div>
+                    <button class="btn" onclick="hbGenerateWright()" id="hb-wright-btn" disabled>Generate Wright Pipeline</button>
+                    <button class="btn" onclick="hbGenerateScripts()" id="hb-scripts-btn" disabled>Generate Scripts</button>
+                    <button class="btn" onclick="hbValidate()" id="hb-validate-btn" disabled>Validate</button>
+                </div>
+            </div>
+
+            <!-- Modal: New Project -->
+            <div id="hb-new-project-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;">
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; width: 400px; max-width: 90vw;">
+                    <h3 style="margin-top: 0;">New Hierarchy Project</h3>
+                    <div style="margin-bottom: 12px;">
+                        <label>Project Name</label>
+                        <input id="hb-new-name" type="text" style="width:100%; padding:8px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:6px;" placeholder="e.g. Financial Reporting 2024">
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <label>Description</label>
+                        <textarea id="hb-new-desc" rows="2" style="width:100%; padding:8px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:6px;" placeholder="Optional description"></textarea>
+                    </div>
+                    <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                        <button class="btn" onclick="hbCloseModal()">Cancel</button>
+                        <button class="btn btn-primary" onclick="hbCreateProject()">Create</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal: Results -->
+            <div id="hb-results-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;">
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; width: 600px; max-width: 90vw; max-height: 80vh; overflow-y: auto;">
+                    <h3 id="hb-results-title" style="margin-top: 0;">Results</h3>
+                    <pre id="hb-results-content" style="background: var(--bg-tertiary); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; white-space: pre-wrap;"></pre>
+                    <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px;">
+                        <button class="btn" onclick="hbCopyResults()">Copy</button>
+                        <button class="btn btn-primary" onclick="document.getElementById('hb-results-modal').style.display='none'">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         </main>
     </div>
 
@@ -2443,6 +2673,509 @@ Would you like me to provide more details or explore related data?`);
                 document.getElementById('search-results').style.display = 'none';
             }
         });
+    });
+
+    // ===================================================================
+    // HIERARCHY BUILDER FUNCTIONS
+    // ===================================================================
+
+    let hbCurrentProject = null;
+    let hbCurrentNode = null;
+    let hbHierarchies = [];
+
+    async function hbCallTool(toolName, params = {}) {
+        try {
+            const resp = await fetch('/api/tools/run', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({tool: toolName, params})
+            });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const data = await resp.json();
+            return typeof data.result === 'string' ? JSON.parse(data.result) : data.result || data;
+        } catch (e) {
+            console.error(`Tool ${toolName} error:`, e);
+            return {error: e.message};
+        }
+    }
+
+    async function hbLoadProjects() {
+        const result = await hbCallTool('list_hierarchy_projects');
+        const select = document.getElementById('hb-project-select');
+        select.innerHTML = '<option value="">-- Select Project --</option>';
+        const projects = result.projects || result || [];
+        if (Array.isArray(projects)) {
+            projects.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id || p.project_id || '';
+                opt.textContent = `${p.name} (${p.hierarchy_count || 0} hierarchies)`;
+                select.appendChild(opt);
+            });
+        }
+    }
+
+    function hbNewProjectModal() {
+        const modal = document.getElementById('hb-new-project-modal');
+        modal.style.display = 'flex';
+        document.getElementById('hb-new-name').value = '';
+        document.getElementById('hb-new-desc').value = '';
+        document.getElementById('hb-new-name').focus();
+    }
+
+    function hbCloseModal() {
+        document.getElementById('hb-new-project-modal').style.display = 'none';
+    }
+
+    async function hbCreateProject() {
+        const name = document.getElementById('hb-new-name').value.trim();
+        if (!name) return showNotification('Project name is required', 'warning');
+        const desc = document.getElementById('hb-new-desc').value.trim();
+        const result = await hbCallTool('create_hierarchy_project', {name, description: desc});
+        if (result.error) return showNotification(result.error, 'error');
+        hbCloseModal();
+        showNotification(`Project "${name}" created`, 'success');
+        await hbLoadProjects();
+        // Auto-select the new project
+        const proj = result.project || result;
+        if (proj && proj.id) {
+            document.getElementById('hb-project-select').value = proj.id;
+            hbSelectProject(proj.id);
+        }
+    }
+
+    async function hbDeleteProject() {
+        if (!hbCurrentProject) return;
+        if (!confirm('Delete this project and ALL its hierarchies? This cannot be undone.')) return;
+        await hbCallTool('delete_hierarchy_project', {project_id: hbCurrentProject});
+        hbCurrentProject = null;
+        hbCurrentNode = null;
+        showNotification('Project deleted', 'success');
+        await hbLoadProjects();
+        hbClearTree();
+        hbClearDetail();
+        hbToggleButtons(false);
+    }
+
+    async function hbSelectProject(projectId) {
+        hbCurrentProject = projectId || null;
+        hbCurrentNode = null;
+        hbClearDetail();
+        if (!projectId) {
+            hbClearTree();
+            hbToggleButtons(false);
+            return;
+        }
+        hbToggleButtons(true);
+        await hbLoadTree();
+    }
+
+    function hbToggleButtons(enabled) {
+        ['hb-delete-btn','hb-add-root-btn','hb-dl-csv-btn','hb-dl-json-btn','hb-wright-btn','hb-scripts-btn','hb-validate-btn']
+            .forEach(id => { const el = document.getElementById(id); if(el) el.disabled = !enabled; });
+    }
+
+    async function hbLoadTree() {
+        if (!hbCurrentProject) return;
+        const result = await hbCallTool('get_hierarchy_tree', {project_id: hbCurrentProject});
+        const tree = result.tree || result || [];
+        // Also load flat list for selectors
+        const listResult = await hbCallTool('list_hierarchies', {project_id: hbCurrentProject});
+        hbHierarchies = listResult.hierarchies || listResult || [];
+
+        const container = document.getElementById('hb-tree-container');
+        if (!Array.isArray(tree) || tree.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-secondary);">No hierarchies yet. Click "+ Add Root" to create one.</p>';
+            // Update stats
+            document.getElementById('hb-project-stats').textContent = '0 hierarchies | 0 mappings';
+            return;
+        }
+        container.innerHTML = hbRenderTreeNodes(tree);
+
+        // Update stats
+        const totalMappings = hbHierarchies.reduce((sum, h) => sum + (h.mapping || []).length, 0);
+        document.getElementById('hb-project-stats').textContent = `${hbHierarchies.length} hierarchies | ${totalMappings} mappings`;
+    }
+
+    function hbRenderTreeNodes(nodes, depth = 0) {
+        return nodes.map(node => {
+            const flags = node.flags || {};
+            const children = node.children || [];
+            const hasChildren = children.length > 0;
+            const indent = depth * 20;
+            const colorClass = flags.exclude_flag ? 'color: #888;' :
+                               flags.calculation_flag ? 'color: #64b5f6;' : 'color: #81c784;';
+            const mappingBadge = (node.mapping || []).length > 0 ?
+                `<span style="background:#2196f3; color:#fff; border-radius:8px; padding:1px 6px; font-size:0.7rem; margin-left:4px;">${(node.mapping||[]).length}m</span>` : '';
+            const formulaBadge = node.formula_config?.formula_group ? '<span style="font-size:0.7rem; margin-left:2px;">fx</span>' : '';
+
+            let html = `<div style="padding: 4px 0 4px ${indent}px; cursor: pointer; display: flex; align-items: center; gap: 4px; border-radius: 4px;"
+                              class="hb-tree-node" data-id="${node.hierarchy_id}" data-uuid="${node.id}"
+                              onclick="hbSelectNode('${node.hierarchy_id}')"
+                              oncontextmenu="event.preventDefault(); hbNodeContextMenu(event, '${node.hierarchy_id}')">`;
+            html += hasChildren ? '<span style="font-size:0.7rem;">&#9660;</span>' : '<span style="width:10px;display:inline-block;"></span>';
+            html += `<span style="${colorClass} font-weight: ${depth === 0 ? '600' : '400'};">${node.hierarchy_name || node.name || node.hierarchy_id}</span>`;
+            html += mappingBadge + formulaBadge;
+            html += '</div>';
+
+            if (hasChildren) {
+                html += hbRenderTreeNodes(children, depth + 1);
+            }
+            return html;
+        }).join('');
+    }
+
+    async function hbSelectNode(hierarchyId) {
+        if (!hbCurrentProject) return;
+        // Highlight selected
+        document.querySelectorAll('.hb-tree-node').forEach(el => el.style.background = '');
+        const el = document.querySelector(`.hb-tree-node[data-id="${hierarchyId}"]`);
+        if (el) el.style.background = 'var(--bg-tertiary)';
+
+        const hier = hbHierarchies.find(h => h.hierarchy_id === hierarchyId);
+        if (!hier) return;
+        hbCurrentNode = hier;
+
+        document.getElementById('hb-detail-placeholder').style.display = 'none';
+        document.getElementById('hb-detail-editor').style.display = 'block';
+
+        // Populate General tab
+        document.getElementById('hb-node-name').value = hier.hierarchy_name || '';
+        document.getElementById('hb-node-id').value = hier.hierarchy_id || '';
+        document.getElementById('hb-node-desc').value = hier.description || '';
+        document.getElementById('hb-node-sort').value = hier.sort_order || 1;
+
+        const flags = hier.flags || {};
+        document.getElementById('hb-flag-include').checked = flags.include_flag !== false;
+        document.getElementById('hb-flag-exclude').checked = !!flags.exclude_flag;
+        document.getElementById('hb-flag-calc').checked = !!flags.calculation_flag;
+        document.getElementById('hb-flag-active').checked = flags.active_flag !== false;
+        document.getElementById('hb-flag-leaf').checked = !!flags.is_leaf_node;
+
+        // Parent selector
+        const parentSel = document.getElementById('hb-node-parent');
+        parentSel.innerHTML = '<option value="">-- Root (no parent) --</option>';
+        hbHierarchies.forEach(h => {
+            if (h.hierarchy_id !== hierarchyId) {
+                const opt = document.createElement('option');
+                opt.value = h.id;
+                opt.textContent = h.hierarchy_name;
+                if (h.id === hier.parent_id) opt.selected = true;
+                parentSel.appendChild(opt);
+            }
+        });
+
+        // Populate formula source selector
+        const formulaSrc = document.getElementById('hb-formula-source');
+        formulaSrc.innerHTML = '';
+        hbHierarchies.forEach(h => {
+            if (h.hierarchy_id !== hierarchyId) {
+                const opt = document.createElement('option');
+                opt.value = h.hierarchy_id;
+                opt.textContent = h.hierarchy_name;
+                formulaSrc.appendChild(opt);
+            }
+        });
+
+        // Populate Mappings tab
+        hbRenderMappings(hier.mapping || []);
+        // Populate Properties tab
+        hbRenderProperties(hier.properties || []);
+        // Populate Formulas tab
+        hbRenderFormulas(hier.formula_config || {});
+        // Populate Display tab
+        const dp = hier.display_props || {};
+        document.getElementById('hb-display-color').value = dp.color || '#4fc3f7';
+        document.getElementById('hb-display-icon').value = dp.icon || '';
+        document.getElementById('hb-display-tooltip').value = dp.tooltip || '';
+    }
+
+    function hbRenderMappings(mappings) {
+        const tbody = document.getElementById('hb-mappings-body');
+        tbody.innerHTML = mappings.map((m, i) => `
+            <tr style="border-bottom: 1px solid var(--border-color);">
+                <td style="padding:4px;">${m.source_database || ''}</td>
+                <td style="padding:4px;">${m.source_schema || ''}</td>
+                <td style="padding:4px;">${m.source_table || ''}</td>
+                <td style="padding:4px;">${m.source_column || ''}</td>
+                <td style="padding:4px;">${m.source_uid || ''}</td>
+                <td style="padding:4px;"><button class="btn btn-danger" style="font-size:0.7rem;padding:2px 6px;" onclick="hbRemoveMapping(${m.mapping_index})">X</button></td>
+            </tr>
+        `).join('');
+    }
+
+    function hbRenderProperties(properties) {
+        const container = document.getElementById('hb-properties-list');
+        if (!properties.length) {
+            container.innerHTML = '<p style="color:var(--text-secondary);font-size:0.85rem;">No properties defined.</p>';
+            return;
+        }
+        container.innerHTML = properties.map(p => `
+            <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border-color);font-size:0.85rem;">
+                <span style="font-weight:600;min-width:100px;">${p.name}</span>
+                <span>${p.value}</span>
+                <span style="color:var(--text-secondary);font-size:0.75rem;">(${p.category || 'custom'})</span>
+            </div>
+        `).join('');
+    }
+
+    function hbRenderFormulas(formulaConfig) {
+        const container = document.getElementById('hb-formula-rules');
+        const group = formulaConfig.formula_group || {};
+        const rules = group.rules || [];
+        if (!rules.length) {
+            container.innerHTML = '<p style="color:var(--text-secondary);font-size:0.85rem;">No formula rules defined.</p>';
+            return;
+        }
+        container.innerHTML = '<div style="font-size:0.85rem;">' + rules.map((r, i) => `
+            <div style="padding:4px 0;border-bottom:1px solid var(--border-color);display:flex;align-items:center;gap:8px;">
+                <span style="font-weight:600;min-width:80px;">${r.operation}</span>
+                <span>${r.hierarchy_name || r.hierarchy_id}</span>
+                <span style="color:var(--text-secondary);">P${r.precedence || 1}</span>
+            </div>
+        `).join('') + '</div>';
+    }
+
+    async function hbSaveNode() {
+        if (!hbCurrentProject || !hbCurrentNode) return;
+        const updates = {
+            hierarchy_name: document.getElementById('hb-node-name').value,
+            description: document.getElementById('hb-node-desc').value,
+            parent_id: document.getElementById('hb-node-parent').value || null,
+            sort_order: parseInt(document.getElementById('hb-node-sort').value) || 1,
+            flags: {
+                include_flag: document.getElementById('hb-flag-include').checked,
+                exclude_flag: document.getElementById('hb-flag-exclude').checked,
+                calculation_flag: document.getElementById('hb-flag-calc').checked,
+                active_flag: document.getElementById('hb-flag-active').checked,
+                is_leaf_node: document.getElementById('hb-flag-leaf').checked,
+            }
+        };
+        await hbCallTool('update_hierarchy', {
+            project_id: hbCurrentProject,
+            hierarchy_id: hbCurrentNode.hierarchy_id,
+            updates: JSON.stringify(updates)
+        });
+        showNotification('Node updated', 'success');
+        await hbLoadTree();
+        hbSelectNode(hbCurrentNode.hierarchy_id);
+    }
+
+    async function hbAddRootNode() {
+        if (!hbCurrentProject) return;
+        const name = prompt('Enter root hierarchy name:');
+        if (!name) return;
+        await hbCallTool('create_hierarchy', {
+            project_id: hbCurrentProject,
+            hierarchy_name: name,
+        });
+        showNotification(`Root "${name}" created`, 'success');
+        await hbLoadTree();
+    }
+
+    async function hbAddChild() {
+        if (!hbCurrentProject || !hbCurrentNode) return;
+        const name = prompt('Enter child hierarchy name:');
+        if (!name) return;
+        await hbCallTool('create_hierarchy', {
+            project_id: hbCurrentProject,
+            hierarchy_name: name,
+            parent_id: hbCurrentNode.id,
+        });
+        showNotification(`Child "${name}" created`, 'success');
+        await hbLoadTree();
+    }
+
+    async function hbDeleteNode() {
+        if (!hbCurrentProject || !hbCurrentNode) return;
+        if (!confirm(`Delete "${hbCurrentNode.hierarchy_name}"?`)) return;
+        await hbCallTool('delete_hierarchy', {
+            project_id: hbCurrentProject,
+            hierarchy_id: hbCurrentNode.hierarchy_id,
+        });
+        hbCurrentNode = null;
+        hbClearDetail();
+        showNotification('Node deleted', 'success');
+        await hbLoadTree();
+    }
+
+    async function hbAddMapping() {
+        if (!hbCurrentProject || !hbCurrentNode) return;
+        const db = prompt('Source Database:') || '';
+        const schema = prompt('Source Schema:') || '';
+        const table = prompt('Source Table:');
+        if (!table) return;
+        const column = prompt('Source Column:') || '';
+        await hbCallTool('add_source_mapping', {
+            project_id: hbCurrentProject,
+            hierarchy_id: hbCurrentNode.hierarchy_id,
+            source_database: db, source_schema: schema, source_table: table, source_column: column,
+        });
+        showNotification('Mapping added', 'success');
+        await hbLoadTree();
+        hbSelectNode(hbCurrentNode.hierarchy_id);
+    }
+
+    async function hbRemoveMapping(mappingIndex) {
+        if (!hbCurrentProject || !hbCurrentNode) return;
+        await hbCallTool('remove_source_mapping', {
+            project_id: hbCurrentProject,
+            hierarchy_id: hbCurrentNode.hierarchy_id,
+            mapping_index: mappingIndex,
+        });
+        showNotification('Mapping removed', 'success');
+        await hbLoadTree();
+        hbSelectNode(hbCurrentNode.hierarchy_id);
+    }
+
+    async function hbAddProperty() {
+        if (!hbCurrentProject || !hbCurrentNode) return;
+        const name = document.getElementById('hb-prop-name').value.trim();
+        const value = document.getElementById('hb-prop-value').value.trim();
+        const category = document.getElementById('hb-prop-category').value;
+        if (!name) return showNotification('Property name required', 'warning');
+        await hbCallTool('add_hierarchy_property', {
+            project_id: hbCurrentProject,
+            hierarchy_id: hbCurrentNode.hierarchy_id,
+            name, value, category
+        });
+        document.getElementById('hb-prop-name').value = '';
+        document.getElementById('hb-prop-value').value = '';
+        showNotification('Property added', 'success');
+        await hbLoadTree();
+        hbSelectNode(hbCurrentNode.hierarchy_id);
+    }
+
+    async function hbAddFormulaRule() {
+        if (!hbCurrentProject || !hbCurrentNode) return;
+        const op = document.getElementById('hb-formula-op').value;
+        const src = document.getElementById('hb-formula-source').value;
+        if (!src) return showNotification('Select source hierarchy', 'warning');
+        await hbCallTool('add_formula_rule', {
+            project_id: hbCurrentProject,
+            main_hierarchy_id: hbCurrentNode.hierarchy_id,
+            operation: op,
+            source_hierarchy_id: src,
+        });
+        showNotification('Formula rule added', 'success');
+        await hbLoadTree();
+        hbSelectNode(hbCurrentNode.hierarchy_id);
+    }
+
+    async function hbSaveDisplayProps() {
+        if (!hbCurrentProject || !hbCurrentNode) return;
+        await hbCallTool('set_display_properties', {
+            project_id: hbCurrentProject,
+            hierarchy_id: hbCurrentNode.hierarchy_id,
+            props: JSON.stringify({
+                color: document.getElementById('hb-display-color').value,
+                icon: document.getElementById('hb-display-icon').value,
+                tooltip: document.getElementById('hb-display-tooltip').value,
+            })
+        });
+        showNotification('Display properties saved', 'success');
+    }
+
+    async function hbUploadCSV(input) {
+        if (!hbCurrentProject || !input.files[0]) return;
+        const file = input.files[0];
+        const content = await file.text();
+        const result = await hbCallTool('import_hierarchy_csv', {
+            project_id: hbCurrentProject,
+            csv_content: content
+        });
+        input.value = '';
+        const msg = result.imported !== undefined ?
+            `Imported: ${result.imported}, Skipped: ${result.skipped}` : JSON.stringify(result);
+        showNotification(msg, 'success');
+        await hbLoadTree();
+    }
+
+    async function hbDownloadCSV() {
+        if (!hbCurrentProject) return;
+        const result = await hbCallTool('export_hierarchy_csv', {project_id: hbCurrentProject});
+        const csv = typeof result === 'string' ? result : (result.csv || result.content || JSON.stringify(result));
+        const blob = new Blob([csv], {type: 'text/csv'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `hierarchy_${hbCurrentProject}.csv`;
+        a.click();
+    }
+
+    async function hbDownloadJSON() {
+        if (!hbCurrentProject) return;
+        const result = await hbCallTool('export_project_json', {project_id: hbCurrentProject});
+        const json = JSON.stringify(result, null, 2);
+        const blob = new Blob([json], {type: 'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `hierarchy_${hbCurrentProject}.json`;
+        a.click();
+    }
+
+    async function hbGenerateWright() {
+        if (!hbCurrentProject) return;
+        const result = await hbCallTool('wright_from_hierarchy', {project_id: hbCurrentProject});
+        hbShowResults('Wright Pipeline', result.pipeline ? JSON.stringify(result.pipeline, null, 2) : JSON.stringify(result, null, 2));
+    }
+
+    async function hbGenerateScripts() {
+        if (!hbCurrentProject) return;
+        const result = await hbCallTool('generate_hierarchy_scripts', {project_id: hbCurrentProject});
+        const scripts = result.insert_script || result.script || JSON.stringify(result, null, 2);
+        hbShowResults('Generated SQL Scripts', scripts);
+    }
+
+    async function hbValidate() {
+        if (!hbCurrentProject) return;
+        const result = await hbCallTool('validate_project', {project_id: hbCurrentProject});
+        hbShowResults('Validation Results', JSON.stringify(result, null, 2));
+    }
+
+    function hbShowResults(title, content) {
+        document.getElementById('hb-results-title').textContent = title;
+        document.getElementById('hb-results-content').textContent = content;
+        document.getElementById('hb-results-modal').style.display = 'flex';
+    }
+
+    function hbCopyResults() {
+        const text = document.getElementById('hb-results-content').textContent;
+        navigator.clipboard.writeText(text);
+        showNotification('Copied to clipboard', 'success');
+    }
+
+    function hbNodeContextMenu(event, hierarchyId) {
+        // Simple context menu via prompts
+        const action = prompt('Action: add_child, delete, duplicate');
+        if (action === 'add_child') { hbSelectNode(hierarchyId); setTimeout(hbAddChild, 100); }
+        else if (action === 'delete') { hbSelectNode(hierarchyId); setTimeout(hbDeleteNode, 100); }
+    }
+
+    function hbClearTree() {
+        document.getElementById('hb-tree-container').innerHTML =
+            '<p style="color: var(--text-secondary);">Select a project to view its hierarchy tree.</p>';
+        document.getElementById('hb-project-stats').textContent = '';
+    }
+
+    function hbClearDetail() {
+        document.getElementById('hb-detail-placeholder').style.display = 'block';
+        document.getElementById('hb-detail-editor').style.display = 'none';
+    }
+
+    // Auto-load projects when Hierarchy Builder page is shown
+    const origShowPage = window.showPage;
+    if (typeof origShowPage === 'function') {
+        // Will be patched below
+    }
+
+    // Patch showPage to trigger hbLoadProjects
+    const _originalShowPage = showPage;
+    showPage = function(event, pageId) {
+        _originalShowPage(event, pageId);
+        if (pageId === 'hierarchy-builder') {
+            hbLoadProjects();
+        }
+    };
+
     });
 </script>
 </body>

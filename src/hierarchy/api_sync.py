@@ -201,10 +201,18 @@ class AutoSyncManager:
                     )
                     result["event_published"] = event_published
 
-                # Call registered callbacks
+                # Call registered callbacks with rich event data
+                event_data = {
+                    "operation": operation,
+                    "project_id": project_id,
+                    "hierarchy_id": hierarchy_id,
+                    "data": data,
+                    "timestamp": datetime.now().isoformat(),
+                    "sync_result": result,
+                }
                 for callback in self._callbacks:
                     try:
-                        callback(result)
+                        callback(event_data)
                     except Exception as e:
                         logger.warning(f"Callback error: {e}")
 

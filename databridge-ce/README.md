@@ -55,6 +55,8 @@ databridge-ui
 
 Then open `http://localhost:5050` in your browser.
 
+The dashboard includes a dedicated **Hierarchy Builder** page for visually creating and managing multi-level hierarchy projects, importing from CSV, and exporting deployment scripts.
+
 ### Python API
 
 ```python
@@ -99,7 +101,7 @@ DataBridge AI is available in four editions:
 
 | | **Community (CE)** | **Pro** | **Pro Examples** | **Enterprise** |
 |---|:---:|:---:|:---:|:---:|
-| **Tools** | ~106 | ~277 | Tests & Tutorials | 341+ |
+| **Tools** | ~106 | ~284 | Tests & Tutorials | 348+ |
 | **Price** | Free | Licensed | Licensed Add-on | Custom |
 | **Distribution** | Public PyPI | GitHub Packages | GitHub Packages | Private Deploy |
 | Data Reconciliation | ✅ | ✅ | | ✅ |
@@ -112,7 +114,7 @@ DataBridge AI is available in four editions:
 | Diff Utilities | ✅ | ✅ | | ✅ |
 | Templates (Basic) | ✅ | ✅ | | ✅ |
 | **Hierarchy Builder** (44 tools) | | ✅ | | ✅ |
-| **Wright Pipeline** (29 tools) | | ✅ | | ✅ |
+| **Wright Pipeline** (31 tools) | | ✅ | | ✅ |
 | **Cortex AI Agent** (26 tools) | | ✅ | | ✅ |
 | **Data Catalog** (19 tools) | | ✅ | | ✅ |
 | **Faux Objects** (18 tools) | | ✅ | | ✅ |
@@ -125,6 +127,7 @@ DataBridge AI is available in four editions:
 | **PlannerAgent** (11 tools) | | ✅ | | ✅ |
 | **GraphRAG Engine** (10 tools) | | ✅ | | ✅ |
 | **Unified AI Agent** (10 tools) | | ✅ | | ✅ |
+| **Hierarchy-Graph Bridge** (5 tools) | | ✅ | | ✅ |
 | **Console Dashboard** (5 tools) | | ✅ | | ✅ |
 | **Schema Matcher** (5 tools) | | ✅ | | ✅ |
 | **Data Matcher** (4 tools) | | ✅ | | ✅ |

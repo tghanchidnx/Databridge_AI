@@ -4,7 +4,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**DataBridge AI** is a headless, MCP-native data reconciliation engine with **341 tools** for hierarchy management, data quality, and analytics.
+**DataBridge AI** is a headless, MCP-native data reconciliation engine with **348 tools** for hierarchy management, data quality, and analytics.
 
 ## Features
 
@@ -12,7 +12,7 @@
 |--------|-------|-------------|
 | **Hierarchy Builder** | 44 | Create and manage multi-level hierarchy projects (up to 15 levels) |
 | **Data Reconciliation** | 38 | Compare and validate data from CSV, SQL, PDF, JSON sources |
-| **Wright Module** | 29 | Hierarchy-driven data mart generation with 4-object pipeline |
+| **Wright Module** | 31 | Hierarchy-driven data mart generation with 4-object pipeline |
 | **Cortex AI** | 26 | Snowflake Cortex AI with natural language to SQL |
 | **Data Catalog** | 19 | Centralized metadata registry with business glossary |
 | **Templates & Skills** | 16 | Pre-built templates and AI expertise definitions |
@@ -26,7 +26,17 @@
 | **dbt Integration** | 8 | Generate dbt projects from hierarchies |
 | **Data Quality** | 7 | Expectation suites and data contracts |
 | **Diff Utilities** | 6 | Character-level text and data comparison |
+| **Hierarchy-Graph Bridge** | 5 | Event-driven sync between hierarchies, GraphRAG, and lineage |
 | **And more...** | 67 | Console dashboard, recommendations, orchestrator, etc. |
+
+### Hierarchy-Centric Architecture
+
+DataBridge AI v0.40.0 introduces a hierarchy-centric architecture where the **Hierarchy Builder** serves as the central data structure. The new **Hierarchy-Graph Bridge** (`hierarchy/graph_bridge.py`) uses event-driven propagation to keep all downstream systems in sync:
+
+- **Hierarchy changes** trigger automatic reindexing in the GraphRAG vector store
+- **Lineage graphs** are rebuilt to reflect updated hierarchy relationships
+- **Impact analysis** propagates through the catalog and observability subsystems
+- **Wright Pipeline** can generate data marts directly from hierarchy projects via `wright_from_hierarchy`
 
 ## Editions
 
@@ -34,7 +44,7 @@ DataBridge AI is available in four editions:
 
 | | **Community (CE)** | **Pro** | **Pro Examples** | **Enterprise** |
 |---|:---:|:---:|:---:|:---:|
-| **Tools** | ~106 | ~277 | Tests & Tutorials | 341+ |
+| **Tools** | ~106 | ~284 | Tests & Tutorials | 348+ |
 | **Distribution** | Public PyPI | GitHub Packages | GitHub Packages | Private Deploy |
 | **License** | MIT (Free) | License Key | Requires Pro Key | Dedicated Key |
 | Data Reconciliation | ✅ | ✅ | | ✅ |
@@ -62,12 +72,12 @@ See [Commercialization Guide](docs/COMMERCIALIZATION.md) for full details.
 
 ## DataBridge AI Pro
 
-Pro adds **17 modules** with ~171 additional tools on top of Community Edition:
+Pro adds **18 modules** with ~178 additional tools on top of Community Edition:
 
 | Module | Tools | Description |
 |--------|-------|-------------|
 | **Hierarchy Builder** | 44 | Multi-level hierarchy projects (up to 15 levels) |
-| **Wright Pipeline** | 29 | 4-object data mart factory (VW_1 → DT_2 → DT_3A → DT_3) |
+| **Wright Pipeline** | 31 | 4-object data mart factory (VW_1 → DT_2 → DT_3A → DT_3) with hierarchy integration |
 | **Cortex AI** | 26 | Snowflake Cortex natural language to SQL and AI reasoning |
 | **Data Catalog** | 19 | Centralized metadata registry with automatic lineage |
 | **Faux Objects** | 18 | Domain persona-based hierarchy generation |
@@ -80,6 +90,7 @@ Pro adds **17 modules** with ~171 additional tools on top of Community Edition:
 | **PlannerAgent** | 11 | AI-powered workflow planning and agent suggestions |
 | **GraphRAG Engine** | 10 | Anti-hallucination layer with graph + vector retrieval |
 | **Unified AI Agent** | 10 | Cross-system operations (Book/Librarian/Researcher) |
+| **Hierarchy-Graph Bridge** | 5 | Event-driven sync between hierarchies, GraphRAG, and lineage |
 | **Console Dashboard** | 5 | Real-time broadcast messaging and monitoring |
 | **Schema Matcher** | 5 | Cross-database schema comparison and mapping |
 | **Data Matcher** | 4 | Row-level data comparison across connections |
@@ -180,7 +191,7 @@ mcp.run()
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│               DataBridge MCP Server (341 Tools)              │
+│               DataBridge MCP Server (348 Tools)              │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
 │  │  Hierarchy  │  │   Cortex    │  │   Wright    │         │
 │  │   Builder   │  │   Agent     │  │   Module    │         │

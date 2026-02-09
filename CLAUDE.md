@@ -3,7 +3,7 @@
 > **Compact Config** - Detailed docs in GEMINI.md. Query Gemini via `ask_claude_gemini.py` for examples.
 
 ## Project Summary
-- **Version:** 0.39.0 | **Tools:** 341 | **Type:** Headless MCP-native data reconciliation engine
+- **Version:** 0.40.0 | **Tools:** 348 | **Type:** Headless MCP-native data reconciliation engine
 - **Licensing:** Tiered (CE/Pro/Enterprise) - See Commercialization section below
 
 ## Commercialization Structure
@@ -13,7 +13,7 @@
 │  COMMUNITY (CE) │      PRO        │  PRO EXAMPLES     │   ENTERPRISE    │
 │     Free        │   Licensed      │  Licensed Add-on  │    Custom       │
 ├─────────────────┼─────────────────┼───────────────────┼─────────────────┤
-│ ~106 tools      │ ~277 tools      │ 47 tests + 19     │ 341+ tools      │
+│ ~106 tools      │ ~284 tools      │ 47 tests + 19     │ 348+ tools      │
 │ Public PyPI     │ GitHub Packages │ use cases         │ Private Deploy  │
 │ MIT License     │ License Key     │ GitHub Packages   │ Dedicated Key   │
 ├─────────────────┼─────────────────┼───────────────────┼─────────────────┤
@@ -57,13 +57,14 @@ get_license_status()
 | databridge-ai-pro | GitHub Packages | `pip install databridge-ai-pro` (+ license key) |
 | databridge-ai-examples | GitHub Packages | `pip install databridge-ai-examples` (+ license key) |
 
-## Tool Categories (341 total)
+## Tool Categories (348 total)
 
 | Module | Tools | Key Tools |
 |--------|-------|-----------|
 | File Discovery | 3 | `find_files`, `stage_file` |
 | Data Reconciliation | 38 | `load_csv`, `profile_data`, `fuzzy_match_columns` |
-| Hierarchy Builder | 44 | `create_hierarchy`, `import_flexible_hierarchy`, `export_hierarchy_csv` |
+| Hierarchy Builder | 49 | `create_hierarchy`, `import_flexible_hierarchy`, `export_hierarchy_csv` |
+| Hierarchy-Graph Bridge | 5 | `hierarchy_graph_status`, `hierarchy_reindex`, `hierarchy_rag_search`, `hierarchy_impact_analysis` |
 | Templates/Skills/KB | 16 | `list_financial_templates`, `get_skill_prompt` |
 | Git Automation | 4 | `commit_dbt_project`, `create_deployment_pr` |
 | SQL Discovery | 2 | `sql_to_hierarchy`, `smart_analyze_sql` |
@@ -78,13 +79,28 @@ get_license_status()
 | Console Dashboard | 5 | `start_console_server`, `broadcast_console_message` |
 | dbt Integration | 8 | `create_dbt_project`, `generate_dbt_model` |
 | Data Quality | 7 | `generate_expectation_suite`, `run_validation` |
-| Wright Module | 29 | `create_mart_config`, `generate_mart_pipeline`, `wright_to_dbt_model`, `cortex_suggest_dbt_tests` |
+| Wright Module | 31 | `create_mart_config`, `generate_mart_pipeline`, `wright_from_hierarchy`, `wright_hierarchy_sync` |
 | Lineage & Impact | 11 | `track_column_lineage`, `analyze_change_impact` |
 | Git/CI-CD | 12 | `git_commit`, `github_create_pr` |
 | Data Catalog | 19 | `catalog_scan_connection`, `catalog_search`, `catalog_auto_lineage_from_sql` |
 | Data Versioning | 12 | `version_create`, `version_diff`, `version_rollback` |
 | GraphRAG Engine | 10 | `rag_search`, `rag_validate_output`, `rag_get_context`, `rag_entity_extract` |
 | Data Observability | 15 | `obs_record_metric`, `obs_create_alert_rule`, `obs_get_asset_health` |
+
+## Hierarchy-Centric Architecture
+
+Hierarchies are the **architectural spine** of DataBridge AI. The Hierarchy-Graph Bridge (`src/hierarchy/graph_bridge.py`) auto-populates the GraphRAG vector store and lineage graph whenever hierarchies change:
+
+```
+Hierarchy Change → AutoSyncManager → HierarchyGraphBridge
+                                        ├→ VectorStore (rich semantic embeddings)
+                                        └→ LineageGraph (source mapping edges)
+```
+
+- **Event-driven**: Bridge subscribes to hierarchy CRUD events via `AutoSyncManager.add_callback()`
+- **Rich embeddings**: Includes levels, mappings, properties, formulas (not just hierarchy name)
+- **AI-aware**: PlannerAgent and RecommendationEngine have hierarchy context injection
+- **Wright integration**: `wright_from_hierarchy` generates complete 4-object pipelines from hierarchy projects
 
 ## Development Rules
 

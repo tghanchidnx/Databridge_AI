@@ -487,6 +487,34 @@ class HierarchyService:
             "child_mapping_details": child_mapping_details,
         }
 
+    def get_all_mappings(self, project_id: str) -> List[Dict[str, Any]]:
+        """
+        Get all source mappings across all hierarchies in a project.
+
+        Returns a flat list of mappings with hierarchy context attached.
+
+        Args:
+            project_id: Project UUID
+
+        Returns:
+            List of mapping dicts, each enriched with hierarchy_id, hierarchy_name, and parent_id
+        """
+        hierarchies = self.list_hierarchies(project_id)
+        all_mappings = []
+
+        for h in hierarchies:
+            for m in h.get("mapping", []):
+                all_mappings.append({
+                    **m,
+                    "hierarchy_id": h.get("hierarchy_id"),
+                    "hierarchy_name": h.get("hierarchy_name"),
+                    "hierarchy_uuid": h.get("id"),
+                    "parent_id": h.get("parent_id"),
+                    "is_root": h.get("is_root", False),
+                })
+
+        return all_mappings
+
     def get_mapping_summary(self, project_id: str) -> Dict[str, Any]:
         """
         Get mapping summary for entire project with inheritance info.

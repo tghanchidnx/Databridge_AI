@@ -455,4 +455,27 @@ class HybridRetriever:
                 if hier_name and hier_name not in context.available_hierarchies:
                     context.available_hierarchies.append(hier_name)
 
+            # Populate hierarchy structures from vector store metadata
+            if meta.get("source_type") == "hierarchy":
+                context.hierarchy_structures.append({
+                    "name": meta.get("name", ""),
+                    "hierarchy_id": meta.get("hierarchy_id", ""),
+                    "project_id": meta.get("project_id", ""),
+                    "parent_id": meta.get("parent_id"),
+                    "is_root": meta.get("is_root", False),
+                    "has_mappings": meta.get("has_mappings", False),
+                    "has_formula": meta.get("has_formula", False),
+                    "property_count": meta.get("property_count", 0),
+                    "level_depth": meta.get("level_depth", 0),
+                    "mapping_count": meta.get("mapping_count", 0),
+                    "content": item.content,
+                })
+            elif meta.get("source_type") == "hierarchy_project":
+                context.hierarchy_projects.append({
+                    "name": meta.get("name", ""),
+                    "project_id": meta.get("project_id", ""),
+                    "hierarchy_count": meta.get("hierarchy_count", 0),
+                    "mapping_count": meta.get("mapping_count", 0),
+                })
+
         return context

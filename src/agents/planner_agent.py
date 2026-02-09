@@ -252,6 +252,7 @@ class PlannerAgent:
         self,
         config: Optional[PlannerConfig] = None,
         available_agents: Optional[list[AgentInfo]] = None,
+        hierarchy_service: Optional[Any] = None,
     ):
         """
         Initialize the PlannerAgent.
@@ -259,6 +260,7 @@ class PlannerAgent:
         Args:
             config: Planner configuration
             available_agents: List of available agents (uses defaults if not provided)
+            hierarchy_service: Optional HierarchyService for context injection
         """
         self._id = str(uuid.uuid4())[:8]
         self._config = config or PlannerConfig()
@@ -266,6 +268,7 @@ class PlannerAgent:
         self._available_agents = available_agents or DEFAULT_AGENTS
         self._plans: list[WorkflowPlan] = []
         self._created_at = datetime.now()
+        self._hierarchy_service = hierarchy_service
 
         # Initialize Anthropic client
         self._client: Optional[Anthropic] = None
@@ -419,7 +422,33 @@ Respond with a JSON object containing the workflow plan:
 - Include reasoning for each step when beneficial
 - Flag any ambiguities or missing information as warnings
 - Keep plans focused and avoid unnecessary steps
-"""
+
+{self._get_hierarchy_context()}"""
+
+    def _get_hierarchy_context(self) -> str:
+        """Get active hierarchy project context for prompt injection."""
+        if not self._hierarchy_service:
+            return ""
+
+        try:
+            projects = self._hierarchy_service.list_projects()
+            if not projects:
+                return ""
+
+            lines = ["## Active Hierarchy Context\n"]
+            for proj in projects[:5]:
+                pid = proj.get("id", "")
+                name = proj.get("name", "")
+                count = proj.get("hierarchy_count", 0)
+                hierarchies = self._hierarchy_service.list_hierarchies(pid)
+                mapping_count = sum(len(h.get("mapping", [])) for h in hierarchies)
+                lines.append(
+                    f"- **{name}** (id: {pid}): {count} hierarchies, {mapping_count} source mappings"
+                )
+
+            return "\n".join(lines) + "\n"
+        except Exception:
+            return ""
 
     def _build_user_message(
         self,

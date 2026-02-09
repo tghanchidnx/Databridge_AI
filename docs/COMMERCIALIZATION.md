@@ -22,7 +22,7 @@ DataBridge AI uses a tiered product structure with an open-source base (Communit
 │  │ • Data Quality │  │ + Full Catalog │  │ • Faux Objects(8)│  │ + Training     │   │
 │  │ • UI Dashboard │  │ + Lineage      │  │ • CE tests       │  │                │   │
 │  │                │  │ + Orchestrator │  │ • Pro tests      │  │                │   │
-│  │ ~106 tools     │  │ ~277 tools     │  │ Requires Pro key │  │ 341+ tools     │   │
+│  │ ~106 tools     │  │ ~284 tools     │  │ Requires Pro key │  │ 348+ tools     │   │
 │  └────────────────┘  └────────────────┘  └──────────────────┘  └────────────────┘   │
 │                                                                                      │
 └──────────────────────────────────────────────────────────────────────────────────────┘
@@ -32,7 +32,7 @@ DataBridge AI uses a tiered product structure with an open-source base (Communit
 
 ```
 Databridge_AI/                    # PRIVATE - Main development repo
-├── src/                          # Full 341-tool implementation
+├── src/                          # Full 348-tool implementation
 │   ├── plugins/                  # License management system
 │   │   ├── __init__.py          # LicenseManager class
 │   │   └── registry.py          # Plugin discovery

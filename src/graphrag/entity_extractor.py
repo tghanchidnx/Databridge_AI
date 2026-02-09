@@ -124,8 +124,13 @@ class EntityExtractor:
                 for proj in projects:
                     hierarchies = self.hierarchy.list_hierarchies(proj["id"])
                     for h in hierarchies:
-                        name = h.get("name", "").upper()
-                        self._known_hierarchies.add(name)
+                        name = h.get("hierarchy_name", "").upper()
+                        if name:
+                            self._known_hierarchies.add(name)
+                        # Also index hierarchy_id for direct matching
+                        hier_id = h.get("hierarchy_id", "").upper()
+                        if hier_id:
+                            self._known_hierarchies.add(hier_id)
             except Exception as e:
                 logger.debug(f"Hierarchy lookup build failed: {e}")
 
@@ -273,6 +278,7 @@ class EntityExtractor:
     def _extract_hierarchies(self, query: str) -> List[tuple]:
         """Extract hierarchy references. Returns [(name, position), ...]"""
         results = []
+        found_names = set()
 
         # Look for hierarchy keywords
         patterns = [
@@ -284,8 +290,17 @@ class EntityExtractor:
         for pattern in patterns:
             for match in re.finditer(pattern, query, re.IGNORECASE):
                 hier = match.group(1).strip()
-                if len(hier) > 2:  # Skip very short matches
+                if len(hier) > 2 and hier.upper() not in found_names:
                     results.append((hier, match.start(1)))
+                    found_names.add(hier.upper())
+
+        # Direct matching against known hierarchies
+        query_upper = query.upper()
+        for known in self._known_hierarchies:
+            if known not in found_names and known in query_upper:
+                pos = query_upper.index(known)
+                results.append((known, pos))
+                found_names.add(known)
 
         return results
 

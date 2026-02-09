@@ -119,6 +119,10 @@ class RAGContext(BaseModel):
     glossary_terms: List[Dict[str, Any]] = Field(default_factory=list)
     catalog_assets: List[Dict[str, Any]] = Field(default_factory=list)
 
+    # Hierarchy context
+    hierarchy_structures: List[Dict[str, Any]] = Field(default_factory=list)
+    hierarchy_projects: List[Dict[str, Any]] = Field(default_factory=list)
+
     # For Proof of Graph validation
     available_tables: List[str] = Field(default_factory=list)
     available_columns: Dict[str, List[str]] = Field(default_factory=dict)
@@ -155,6 +159,23 @@ class RAGContext(BaseModel):
             sections.append("## Business Terms\n" +
                 "\n".join(f"- **{t.get('name', '')}**: {t.get('definition', '')}"
                           for t in self.glossary_terms[:5]))
+
+        if self.hierarchy_structures:
+            hier_lines = []
+            for hs in self.hierarchy_structures[:10]:
+                name = hs.get("name", hs.get("hierarchy_name", ""))
+                levels = hs.get("level_depth", "")
+                mappings = hs.get("mapping_count", 0)
+                hier_lines.append(f"- **{name}** (levels: {levels}, mappings: {mappings})")
+            sections.append("## Hierarchy Structures\n" + "\n".join(hier_lines))
+
+        if self.hierarchy_projects:
+            proj_lines = []
+            for hp in self.hierarchy_projects[:5]:
+                pname = hp.get("name", "")
+                hcount = hp.get("hierarchy_count", 0)
+                proj_lines.append(f"- **{pname}** ({hcount} hierarchies)")
+            sections.append("## Hierarchy Projects\n" + "\n".join(proj_lines))
 
         if self.available_tables:
             sections.append("## Available Tables\n" +

@@ -7,11 +7,13 @@ and Web UI always reflect the same data without manual sync calls.
 """
 import json
 import logging
+import threading
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Dict, Any, List
 
 from .service import HierarchyService
 from .api_sync import HierarchyApiSync
+from .graph_bridge import HierarchyGraphBridge
 from ..config import settings
 
 # Configure logging
@@ -35,6 +37,39 @@ def register_hierarchy_tools(mcp, data_dir: str = "data"):
         # Connect local service for auto-sync
         sync_service.set_local_service(service)
         auto_sync_manager = sync_service.auto_sync_manager
+
+    # Initialize Hierarchy-Graph Bridge
+    # Vector store and embedder are set lazily when GraphRAG is available
+    graph_bridge = HierarchyGraphBridge(hierarchy_service=service)
+
+    def _try_init_graph_bridge():
+        """Attempt to wire vector store / embedder from GraphRAG module."""
+        try:
+            from ..graphrag.mcp_tools import _vector_store, _embedder
+            if _vector_store and _embedder:
+                graph_bridge._vector_store = _vector_store
+                graph_bridge._embedder = _embedder
+        except Exception:
+            pass  # GraphRAG not yet initialised — will retry on first tool call
+
+    # Register bridge callback with AutoSyncManager
+    if auto_sync_manager:
+        auto_sync_manager.add_callback(graph_bridge.on_hierarchy_change)
+
+    # Bootstrap: index existing hierarchies in background on startup
+    def _bootstrap_index():
+        _try_init_graph_bridge()
+        if not graph_bridge._vector_store:
+            return
+        try:
+            for proj in service.list_projects():
+                graph_bridge.reindex_project(proj.get("id", ""))
+            logger.info("Hierarchy-Graph Bridge: bootstrap indexing complete")
+        except Exception as e:
+            logger.debug(f"Bootstrap indexing skipped: {e}")
+
+    bootstrap_thread = threading.Thread(target=_bootstrap_index, daemon=True)
+    bootstrap_thread.start()
 
     def _auto_sync_operation(
         operation: str,
@@ -2433,6 +2468,251 @@ def register_hierarchy_tools(mcp, data_dir: str = "data"):
                 "status": "success",
                 "project_name": project.get("name"),
                 **result,
+            }, default=str, indent=2)
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    # =========================================================================
+    # Hierarchy-Graph Bridge Tools (5 tools)
+    # =========================================================================
+
+    @mcp.tool()
+    def hierarchy_graph_status(project_id: Optional[str] = None) -> str:
+        """
+        Show which hierarchies are indexed in the vector store and have lineage graphs.
+
+        Args:
+            project_id: Optional project to check (default: all projects)
+
+        Returns:
+            JSON with indexing status per project and hierarchy
+        """
+        try:
+            _try_init_graph_bridge()
+            status = graph_bridge.get_status()
+
+            projects = service.list_projects()
+            if project_id:
+                projects = [p for p in projects if p.get("id") == project_id]
+
+            project_statuses = []
+            for proj in projects:
+                pid = proj.get("id", "")
+                hierarchies = service.list_hierarchies(pid)
+                indexed_count = 0
+                for h in hierarchies:
+                    hier_id = h.get("hierarchy_id", "")
+                    doc_id = f"hierarchy:{pid}:{hier_id}"
+                    if graph_bridge._vector_store and graph_bridge._vector_store.get(doc_id):
+                        indexed_count += 1
+
+                project_statuses.append({
+                    "project_id": pid,
+                    "project_name": proj.get("name", ""),
+                    "total_hierarchies": len(hierarchies),
+                    "indexed_in_vector_store": indexed_count,
+                    "not_indexed": len(hierarchies) - indexed_count,
+                })
+
+            return json.dumps({
+                "status": "success",
+                "bridge_status": status,
+                "projects": project_statuses,
+            }, default=str, indent=2)
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    def hierarchy_reindex(project_id: str) -> str:
+        """
+        Reindex all hierarchies in a project with rich semantic embeddings.
+
+        This replaces shallow embeddings with rich content including mappings,
+        properties, formulas, and level structures.
+
+        Args:
+            project_id: Project UUID to reindex
+
+        Returns:
+            JSON with indexing statistics
+        """
+        try:
+            _try_init_graph_bridge()
+            if not graph_bridge._vector_store:
+                return json.dumps({"error": "Vector store not available. GraphRAG module may not be initialized."})
+
+            result = graph_bridge.reindex_project(project_id)
+            return json.dumps({
+                "status": "success",
+                **result,
+            }, default=str, indent=2)
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    def hierarchy_lineage_build(project_id: str) -> str:
+        """
+        Build lineage graph from hierarchy source mappings.
+
+        Creates nodes for each hierarchy and edges for source mapping
+        relationships, parent-child links, and formula references.
+
+        Args:
+            project_id: Project UUID
+
+        Returns:
+            JSON with lineage build statistics
+        """
+        try:
+            _try_init_graph_bridge()
+            hierarchies = service.list_hierarchies(project_id)
+            built = 0
+            errors = 0
+
+            for hier in hierarchies:
+                if graph_bridge.sync_lineage(project_id, hier):
+                    built += 1
+                else:
+                    errors += 1
+
+            return json.dumps({
+                "status": "success",
+                "project_id": project_id,
+                "lineage_nodes_built": built,
+                "errors": errors,
+                "lineage_tracker_available": graph_bridge._lineage_tracker is not None,
+            }, default=str, indent=2)
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    def hierarchy_rag_search(query: str, project_id: Optional[str] = None, max_results: int = 5) -> str:
+        """
+        Semantic search across hierarchies using GraphRAG hybrid retrieval.
+
+        Searches the vector store for hierarchies matching the query,
+        returning rich context including mappings, properties, and formulas.
+
+        Args:
+            query: Search query (e.g., "revenue hierarchy", "GL account mappings")
+            project_id: Optional project filter
+            max_results: Maximum results to return (default: 5)
+
+        Returns:
+            JSON with matching hierarchies and their context
+        """
+        try:
+            _try_init_graph_bridge()
+            if not graph_bridge._vector_store or not graph_bridge._embedder:
+                return json.dumps({"error": "Vector store or embedder not available."})
+
+            # Embed the query
+            query_embedding = graph_bridge._embedder.embed(query)
+
+            # Search vector store
+            results = graph_bridge._vector_store.search(
+                embedding=query_embedding,
+                top_k=max_results,
+                filter_metadata={"source_type": "hierarchy"} if not project_id else {"source_type": "hierarchy", "project_id": project_id},
+            )
+
+            matches = []
+            for r in results:
+                matches.append({
+                    "hierarchy_id": r.metadata.get("hierarchy_id", ""),
+                    "name": r.metadata.get("name", ""),
+                    "project_id": r.metadata.get("project_id", ""),
+                    "score": round(r.score, 4) if hasattr(r, 'score') else None,
+                    "content": r.content if hasattr(r, 'content') else "",
+                    "has_mappings": r.metadata.get("has_mappings", False),
+                    "has_formula": r.metadata.get("has_formula", False),
+                    "level_depth": r.metadata.get("level_depth", 0),
+                })
+
+            return json.dumps({
+                "status": "success",
+                "query": query,
+                "results": matches,
+                "total_results": len(matches),
+            }, default=str, indent=2)
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    def hierarchy_impact_analysis(project_id: str, hierarchy_id: str, operation: str = "delete") -> str:
+        """
+        Analyze impact of changing or deleting a hierarchy using graph traversal.
+
+        Shows all downstream dependencies: child hierarchies, formula references,
+        Wright pipelines, and other hierarchies that depend on this one.
+
+        Args:
+            project_id: Project UUID
+            hierarchy_id: Hierarchy ID to analyze
+            operation: Type of change ("delete", "modify", "move")
+
+        Returns:
+            JSON with downstream impact analysis
+        """
+        try:
+            hierarchy = service.get_hierarchy(project_id, hierarchy_id)
+            if not hierarchy:
+                return json.dumps({"error": f"Hierarchy '{hierarchy_id}' not found"})
+
+            # Find children
+            children = service.get_child_hierarchies(project_id, hierarchy.get("id", ""))
+
+            # Find all descendants
+            descendants = service.get_all_descendants(project_id, hierarchy.get("id", ""))
+
+            # Find formula references (hierarchies whose formulas reference this one)
+            all_hierarchies = service.list_hierarchies(project_id)
+            formula_dependents = []
+            for h in all_hierarchies:
+                fc = h.get("formula_config", {}) or {}
+                fg = fc.get("formula_group", {}) or {}
+                for rule in fg.get("rules", []):
+                    if rule.get("hierarchy_id") == hierarchy_id:
+                        formula_dependents.append({
+                            "hierarchy_id": h.get("hierarchy_id"),
+                            "hierarchy_name": h.get("hierarchy_name"),
+                            "operation": rule.get("operation"),
+                        })
+
+            # Mappings that would be affected
+            own_mappings = hierarchy.get("mapping", [])
+            descendant_mappings = sum(len(d.get("mapping", [])) for d in descendants)
+
+            impact = {
+                "hierarchy_id": hierarchy_id,
+                "hierarchy_name": hierarchy.get("hierarchy_name"),
+                "operation": operation,
+                "direct_children": len(children),
+                "total_descendants": len(descendants),
+                "formula_dependents": formula_dependents,
+                "own_mappings": len(own_mappings),
+                "descendant_mappings": descendant_mappings,
+                "total_affected": len(descendants) + len(formula_dependents) + 1,
+            }
+
+            # Impact severity
+            total = impact["total_affected"]
+            if total <= 1:
+                impact["severity"] = "low"
+                impact["recommendation"] = f"Safe to {operation}. No downstream dependencies."
+            elif total <= 5:
+                impact["severity"] = "medium"
+                impact["recommendation"] = f"Moderate impact. {total} items affected. Review before proceeding."
+            else:
+                impact["severity"] = "high"
+                impact["recommendation"] = f"High impact! {total} items affected. Strongly recommend reviewing all dependents first."
+
+            if formula_dependents:
+                impact["warning"] = f"{len(formula_dependents)} formula(s) reference this hierarchy and will break if deleted."
+
+            return json.dumps({
+                "status": "success",
+                **impact,
             }, default=str, indent=2)
         except Exception as e:
             return json.dumps({"error": str(e)})

@@ -543,6 +543,77 @@ class RecommendationEngine:
 
         return recommendations
 
+    def check_existing_hierarchies(self, columns: List[str]) -> List[Dict[str, Any]]:
+        """
+        Cross-reference incoming CSV columns against existing hierarchy names/mappings.
+
+        Returns recommendations for mapping to existing hierarchies.
+
+        Args:
+            columns: List of column names from CSV
+
+        Returns:
+            List of dicts with hierarchy_name, project_name, match_type, column
+        """
+        matches = []
+        try:
+            projects = self.hierarchy_service.list_projects()
+            for proj in projects:
+                pid = proj.get("id", "")
+                pname = proj.get("name", "")
+                hierarchies = self.hierarchy_service.list_hierarchies(pid)
+
+                for h in hierarchies:
+                    hier_name = h.get("hierarchy_name", "").upper()
+                    hier_id = h.get("hierarchy_id", "").upper()
+
+                    for col in columns:
+                        col_upper = col.upper().replace("_", " ").replace("-", " ")
+                        hier_name_clean = hier_name.replace("_", " ")
+
+                        # Direct name match
+                        if col_upper == hier_name_clean or col_upper == hier_id:
+                            matches.append({
+                                "hierarchy_name": h.get("hierarchy_name"),
+                                "hierarchy_id": h.get("hierarchy_id"),
+                                "project_name": pname,
+                                "project_id": pid,
+                                "match_type": "exact",
+                                "column": col,
+                                "recommendation": f"Map column '{col}' to existing hierarchy '{h.get('hierarchy_name')}' in project '{pname}'",
+                            })
+                        # Partial match (hierarchy name contained in column or vice versa)
+                        elif hier_name_clean in col_upper or col_upper in hier_name_clean:
+                            matches.append({
+                                "hierarchy_name": h.get("hierarchy_name"),
+                                "hierarchy_id": h.get("hierarchy_id"),
+                                "project_name": pname,
+                                "project_id": pid,
+                                "match_type": "partial",
+                                "column": col,
+                                "recommendation": f"Consider mapping '{col}' to hierarchy '{h.get('hierarchy_name')}' in project '{pname}'",
+                            })
+
+                    # Also check source mappings
+                    for m in h.get("mapping", []):
+                        src_col = m.get("source_column", "").upper()
+                        if src_col:
+                            for col in columns:
+                                if col.upper() == src_col:
+                                    matches.append({
+                                        "hierarchy_name": h.get("hierarchy_name"),
+                                        "hierarchy_id": h.get("hierarchy_id"),
+                                        "project_name": pname,
+                                        "project_id": pid,
+                                        "match_type": "mapping_match",
+                                        "column": col,
+                                        "recommendation": f"Column '{col}' already mapped in hierarchy '{h.get('hierarchy_name')}' via source mapping",
+                                    })
+        except Exception:
+            pass
+
+        return matches
+
     def get_recommendations(
         self,
         file_path: str = None,
@@ -601,6 +672,9 @@ class RecommendationEngine:
         template_recs = self.recommend_templates(context)
         kb_recs = self.check_knowledge_base(context)
 
+        # Check existing hierarchies for column matches
+        hierarchy_matches = self.check_existing_hierarchies(profile.columns)
+
         # Build summary
         summary_parts = []
 
@@ -619,6 +693,8 @@ class RecommendationEngine:
             summary_parts.append(f"Top template: {template_recs[0].name} (score: {template_recs[0].score})")
         if kb_recs:
             summary_parts.append(f"Found {len(kb_recs)} knowledge base matches")
+        if hierarchy_matches:
+            summary_parts.append(f"Found {len(hierarchy_matches)} existing hierarchy matches")
 
         return {
             "data_profile": profile.to_dict(),
@@ -629,6 +705,7 @@ class RecommendationEngine:
             "skills": [r.to_dict() for r in skill_recs],
             "templates": [r.to_dict() for r in template_recs],
             "knowledge": [r.to_dict() for r in kb_recs],
+            "hierarchy_matches": hierarchy_matches,
             "summary": "\n".join(summary_parts),
             "context": {
                 "detected_industry": profile.industry_hints[0] if profile.industry_hints else None,

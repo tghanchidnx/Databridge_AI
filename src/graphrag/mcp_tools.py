@@ -364,11 +364,47 @@ def register_graphrag_tools(mcp, settings):
                         skipped += 1
                         continue
 
-                    # Build content
-                    name = hier.get("name", "")
-                    levels = hier.get("levels", {})
-                    level_str = ", ".join(f"L{i}: {v}" for i, v in enumerate(levels.values(), 1) if v)
-                    content = f"Hierarchy: {name}. Levels: {level_str}"
+                    # Build rich content with correct field names
+                    name = hier.get("hierarchy_name", "")
+                    levels = hier.get("hierarchy_level", {}) or {}
+                    level_parts = []
+                    for i in range(1, 16):
+                        val = levels.get(f"level_{i}")
+                        if val:
+                            level_parts.append(f"L{i}: {val}")
+                    level_str = " > ".join(level_parts) if level_parts else ""
+
+                    # Include mappings and properties for richer embeddings
+                    mappings = hier.get("mapping", [])
+                    mapping_strs = []
+                    for m in mappings:
+                        tbl = m.get("source_table", "")
+                        col = m.get("source_column", "")
+                        if tbl:
+                            mapping_strs.append(f"{tbl}.{col}")
+
+                    properties = hier.get("properties", [])
+                    prop_strs = [f"{p.get('name')}={p.get('value')}" for p in properties]
+
+                    formula_config = hier.get("formula_config", {}) or {}
+                    formula_group = formula_config.get("formula_group", {}) or {}
+                    formula_rules = formula_group.get("rules", [])
+                    formula_strs = [f"{r.get('operation')} [{r.get('hierarchy_name', r.get('hierarchy_id', ''))}]" for r in formula_rules]
+
+                    content_parts = [f"Hierarchy: {name}"]
+                    if hier.get("description"):
+                        content_parts.append(f"Description: {hier['description']}")
+                    if level_str:
+                        content_parts.append(f"Levels: {level_str}")
+                    if mapping_strs:
+                        content_parts.append(f"Source Mappings: {', '.join(mapping_strs)}")
+                    if prop_strs:
+                        content_parts.append(f"Properties: {', '.join(prop_strs)}")
+                    if formula_strs:
+                        content_parts.append(f"Formula: {' '.join(formula_strs)}")
+                    content = ". ".join(content_parts)
+
+                    level_depth = len(level_parts)
 
                     embedding = _embedder.embed(content)
                     _vector_store.upsert(
@@ -380,6 +416,12 @@ def register_graphrag_tools(mcp, settings):
                             "project_id": proj_id,
                             "hierarchy_id": hier_id,
                             "name": name,
+                            "parent_id": hier.get("parent_id"),
+                            "is_root": hier.get("is_root", False),
+                            "has_mappings": len(mappings) > 0,
+                            "has_formula": len(formula_rules) > 0,
+                            "property_count": len(properties),
+                            "level_depth": level_depth,
                         },
                     )
                     indexed += 1

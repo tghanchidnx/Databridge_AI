@@ -3724,9 +3724,168 @@ models:
 '''
         return schema_yml
 
+    # ========================================
+    # Hierarchy Integration Tools (2 tools)
+    # ========================================
+
+    @mcp.tool()
+    def wright_from_hierarchy(
+        project_id: str,
+        report_type: str = "CUSTOM",
+        account_segment: Optional[str] = None,
+        database: Optional[str] = None,
+        schema: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Generate a complete 4-object Wright pipeline directly from a hierarchy project.
+
+        Reads the hierarchy structure, extracts source mappings, creates a MartConfig,
+        and generates all 4 pipeline SQL objects (VW_1, DT_2, DT_3A, DT_3).
+
+        Args:
+            project_id: Hierarchy project UUID
+            report_type: Report type (CUSTOM auto-detects from properties)
+            account_segment: Account segment filter
+            database: Target database (auto-detected from mappings if not set)
+            schema: Target schema (auto-detected from mappings if not set)
+
+        Returns:
+            Dict with config, pipeline SQL for all 4 objects, and metadata
+
+        Example:
+            wright_from_hierarchy(project_id="abc-123")
+        """
+        try:
+            from src.hierarchy.service import HierarchyService
+            hierarchy_service = HierarchyService()
+
+            # Generate config from hierarchy project
+            config = config_gen.from_hierarchy_project(
+                project_id=project_id,
+                hierarchy_service=hierarchy_service,
+                report_type=report_type,
+                account_segment=account_segment,
+                database=database,
+                schema=schema,
+            )
+
+            # Generate full pipeline
+            pipeline = pipeline_gen.generate_full_pipeline(config)
+
+            return {
+                "success": True,
+                "project_id": project_id,
+                "config": {
+                    "project_name": config.project_name,
+                    "report_type": config.report_type,
+                    "hierarchy_table": config.hierarchy_table,
+                    "mapping_table": config.mapping_table,
+                    "account_segment": config.account_segment,
+                },
+                "pipeline": {
+                    "vw_1": pipeline.vw_1 if hasattr(pipeline, 'vw_1') else str(pipeline.get("vw_1", "")),
+                    "dt_2": pipeline.dt_2 if hasattr(pipeline, 'dt_2') else str(pipeline.get("dt_2", "")),
+                    "dt_3a": pipeline.dt_3a if hasattr(pipeline, 'dt_3a') else str(pipeline.get("dt_3a", "")),
+                    "dt_3": pipeline.dt_3 if hasattr(pipeline, 'dt_3') else str(pipeline.get("dt_3", "")),
+                },
+                "message": f"Generated Wright pipeline from hierarchy project '{project_id}'",
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to generate Wright from hierarchy: {e}")
+            return {"success": False, "error": str(e)}
+
+    @mcp.tool()
+    def wright_hierarchy_sync(
+        project_id: str,
+        config_name: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Check if an existing Wright pipeline is in sync with its source hierarchy project.
+
+        Compares current hierarchy mappings against the pipeline configuration
+        and reports discrepancies: new mappings not in pipeline, removed mappings
+        still in pipeline, and changed formulas.
+
+        Args:
+            project_id: Hierarchy project UUID
+            config_name: Wright config name (auto-detected if not set)
+
+        Returns:
+            Sync status with new/removed/changed mappings
+
+        Example:
+            wright_hierarchy_sync(project_id="abc-123")
+        """
+        try:
+            from src.hierarchy.service import HierarchyService
+            hierarchy_service = HierarchyService()
+
+            project = hierarchy_service.get_project(project_id)
+            if not project:
+                return {"error": f"Hierarchy project '{project_id}' not found"}
+
+            # Get current hierarchy mappings
+            current_mappings = hierarchy_service.get_all_mappings(project_id)
+            current_columns = set()
+            for m in current_mappings:
+                col = m.get("source_column", "")
+                if col:
+                    current_columns.add(col)
+
+            # Find matching Wright config
+            if not config_name:
+                proj_name = project.get("name", project_id).upper().replace(" ", "_")
+                config_name = f"{proj_name}_mart"
+
+            config = config_gen._configs.get(config_name)
+            if not config:
+                return {
+                    "in_sync": False,
+                    "error": f"Wright config '{config_name}' not found. Use wright_from_hierarchy to create it.",
+                    "hierarchy_columns": sorted(current_columns),
+                }
+
+            # Compare
+            pipeline_columns = set()
+            for cm in config.column_mappings:
+                pipeline_columns.add(cm.id_source)
+
+            new_in_hierarchy = current_columns - pipeline_columns
+            removed_from_hierarchy = pipeline_columns - current_columns
+            in_both = current_columns & pipeline_columns
+
+            # Check formulas
+            formula_changes = []
+            formula_hierarchies = [
+                h for h in hierarchy_service.list_hierarchies(project_id)
+                if h.get("formula_config", {}).get("formula_group")
+            ]
+
+            return {
+                "in_sync": len(new_in_hierarchy) == 0 and len(removed_from_hierarchy) == 0,
+                "config_name": config_name,
+                "project_id": project_id,
+                "new_in_hierarchy": sorted(new_in_hierarchy),
+                "removed_from_hierarchy": sorted(removed_from_hierarchy),
+                "in_both": sorted(in_both),
+                "hierarchy_mapping_count": len(current_columns),
+                "pipeline_mapping_count": len(pipeline_columns),
+                "formula_hierarchies": len(formula_hierarchies),
+                "recommendation": (
+                    "Pipeline is in sync with hierarchy."
+                    if len(new_in_hierarchy) == 0 and len(removed_from_hierarchy) == 0
+                    else f"Run wright_from_hierarchy(project_id='{project_id}') to regenerate pipeline."
+                ),
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to check Wright-hierarchy sync: {e}")
+            return {"success": False, "error": str(e)}
+
     # Return registration info
     return {
-        "tools_registered": 29,
+        "tools_registered": 31,
         "tools": [
             # Configuration Management
             "create_mart_config",
@@ -3766,6 +3925,9 @@ models:
             "cortex_generate_dbt_schema_yml",
             "cortex_suggest_dbt_tests",
             "run_dbt_command",
+            # Hierarchy Integration
+            "wright_from_hierarchy",
+            "wright_hierarchy_sync",
             # Utility
             "list_mart_configs",
         ],

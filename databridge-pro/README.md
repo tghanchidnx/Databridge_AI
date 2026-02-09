@@ -1,22 +1,23 @@
 # DataBridge AI Pro
 
-*Enterprise-grade data reconciliation, AI agents, and advanced analytics — ~277 tools.*
+*Enterprise-grade data reconciliation, AI agents, and advanced analytics — ~284 tools.*
 
 ---
 
 ## Overview
 
-**DataBridge AI Pro** extends the Community Edition (~106 tools) with **17 additional modules** and ~171 tools for enterprise data management. Pro includes everything in Community Edition plus:
+**DataBridge AI Pro** extends the Community Edition (~106 tools) with **18 additional modules** and ~178 tools for enterprise data management. Pro includes everything in Community Edition plus:
 
 ### Data Infrastructure
 | Module | Tools | Description |
 |--------|-------|-------------|
 | **Hierarchy Builder** | 44 | Multi-level hierarchy projects (up to 15 levels) for financial reporting and organizational structures |
-| **Wright Pipeline** | 29 | 4-object data mart factory (VW_1 → DT_2 → DT_3A → DT_3) for hierarchy-driven mart generation |
+| **Wright Pipeline** | 31 | 4-object data mart factory (VW_1 → DT_2 → DT_3A → DT_3) with hierarchy integration |
 | **Cortex AI** | 26 | Snowflake Cortex integration — natural language to SQL, AI reasoning loops, semantic models |
 | **Data Catalog** | 19 | Centralized metadata registry with business glossary and automatic lineage detection |
 | **Faux Objects** | 18 | Domain persona-based hierarchy generation and semantic modeling |
 | **Connections** | 16 | Multi-database connectivity management for Snowflake, PostgreSQL, MySQL, and more |
+| **Hierarchy-Graph Bridge** | 5 | Event-driven sync between hierarchies, GraphRAG vector store, and lineage graph |
 
 ### AI & Automation
 | Module | Tools | Description |
@@ -40,7 +41,7 @@
 
 ## Requirements
 
-- DataBridge AI Community Edition >= 0.39.0
+- DataBridge AI Community Edition >= 0.40.0
 - Valid Pro or Enterprise license key
 - Python 3.10+
 
@@ -127,7 +128,7 @@ generate_hierarchy_scripts(project_id="...")
 
 ### Wright Pipeline
 
-Generate complete data mart structures:
+Generate complete data mart structures, with direct hierarchy integration:
 
 ```python
 # Create a data mart configuration
@@ -139,6 +140,33 @@ create_mart_config(
 
 # Generate the full 4-object pipeline
 generate_mart_pipeline(config_name="upstream_gross")
+
+# Generate Wright pipeline directly from a hierarchy project
+wright_from_hierarchy(project_id="revenue-pl", report_type="GROSS")
+
+# Sync Wright mart config when hierarchy changes
+wright_hierarchy_sync(config_name="upstream_gross", project_id="revenue-pl")
+```
+
+### Hierarchy-Graph Bridge
+
+Event-driven sync between hierarchies and downstream subsystems:
+
+```python
+# Check bridge sync status
+hierarchy_graph_status(project_id="revenue-pl")
+
+# Reindex hierarchy into vector store for RAG search
+hierarchy_reindex(project_id="revenue-pl")
+
+# Build lineage graph from hierarchy relationships
+hierarchy_lineage_build(project_id="revenue-pl")
+
+# Search hierarchies via RAG-powered vector index
+hierarchy_rag_search(query="Which hierarchies map to ACCOUNT_CODE?", top_k=5)
+
+# Analyze downstream impact of hierarchy changes
+hierarchy_impact_analysis(project_id="revenue-pl", node_id="h-42")
 ```
 
 ### GraphRAG Engine
@@ -204,7 +232,7 @@ catalog_impact_from_asset(asset_id="dim_customer")
 |---------|:---------:|:---:|:------------:|:----------:|
 | Data Reconciliation (~106 tools) | ✅ | ✅ | | ✅ |
 | Hierarchy Builder (44 tools) | | ✅ | | ✅ |
-| Wright Pipeline (29 tools) | | ✅ | | ✅ |
+| Wright Pipeline (31 tools) | | ✅ | | ✅ |
 | Cortex AI Agent (26 tools) | | ✅ | | ✅ |
 | Data Catalog (19 tools) | | ✅ | | ✅ |
 | Faux Objects (18 tools) | | ✅ | | ✅ |
@@ -217,6 +245,7 @@ catalog_impact_from_asset(asset_id="dim_customer")
 | PlannerAgent (11 tools) | | ✅ | | ✅ |
 | GraphRAG Engine (10 tools) | | ✅ | | ✅ |
 | Unified AI Agent (10 tools) | | ✅ | | ✅ |
+| Hierarchy-Graph Bridge (5 tools) | | ✅ | | ✅ |
 | Console Dashboard (5 tools) | | ✅ | | ✅ |
 | Schema Matcher (5 tools) | | ✅ | | ✅ |
 | Data Matcher (4 tools) | | ✅ | | ✅ |
