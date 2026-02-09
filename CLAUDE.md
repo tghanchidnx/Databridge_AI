@@ -139,10 +139,10 @@ python ask_claude_gemini.py --status  # Check session
 | Service | Port | Notes |
 |---------|------|-------|
 | UI Dashboard (primary) | 5050 | `python run_ui.py` — Flask-based, main UI |
-| Frontend (Docker) | 8000 | |
-| Backend (Docker) | 8001 | |
-| MySQL | 3308 | |
-| Redis | 6381 | |
+| Frontend (Docker) | 8080/8443 | Nginx → `databridge-frontend-v2` container |
+| Backend (Docker) | 3002 | NestJS → `databridge-backend-v2` container |
+| MySQL | 3308 | `databridge-mysql-v2` container |
+| Redis | 6381 | `databridge-redis-v2` container |
 
 ## Safety
 
