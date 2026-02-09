@@ -113,7 +113,7 @@ DataBridge AI is available in four editions:
 | UI Dashboard | ✅ | ✅ | | ✅ |
 | Diff Utilities | ✅ | ✅ | | ✅ |
 | Templates (Basic) | ✅ | ✅ | | ✅ |
-| **Hierarchy Builder** (44 tools) | | ✅ | | ✅ |
+| **Hierarchy Builder** (49 tools) | | ✅ | | ✅ |
 | **Wright Pipeline** (31 tools) | | ✅ | | ✅ |
 | **Cortex AI Agent** (26 tools) | | ✅ | | ✅ |
 | **Data Catalog** (19 tools) | | ✅ | | ✅ |

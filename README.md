@@ -10,7 +10,7 @@
 
 | Module | Tools | Description |
 |--------|-------|-------------|
-| **Hierarchy Builder** | 44 | Create and manage multi-level hierarchy projects (up to 15 levels) |
+| **Hierarchy Builder** | 49 | Create and manage multi-level hierarchy projects (up to 15 levels) |
 | **Data Reconciliation** | 38 | Compare and validate data from CSV, SQL, PDF, JSON sources |
 | **Wright Module** | 31 | Hierarchy-driven data mart generation with 4-object pipeline |
 | **Cortex AI** | 26 | Snowflake Cortex AI with natural language to SQL |
@@ -76,7 +76,7 @@ Pro adds **18 modules** with ~178 additional tools on top of Community Edition:
 
 | Module | Tools | Description |
 |--------|-------|-------------|
-| **Hierarchy Builder** | 44 | Multi-level hierarchy projects (up to 15 levels) |
+| **Hierarchy Builder** | 49 | Multi-level hierarchy projects (up to 15 levels) |
 | **Wright Pipeline** | 31 | 4-object data mart factory (VW_1 → DT_2 → DT_3A → DT_3) with hierarchy integration |
 | **Cortex AI** | 26 | Snowflake Cortex natural language to SQL and AI reasoning |
 | **Data Catalog** | 19 | Centralized metadata registry with automatic lineage |

@@ -32,7 +32,7 @@ except ImportError:
         from config import settings
 
 # Version info
-__version__ = "0.39.0"
+__version__ = "0.40.0"
 __edition__ = "Community"
 
 

@@ -1458,7 +1458,7 @@ User Request: "Show me revenue by product for Q4, break it down by region"
 
 | DataBridge AI Capability | Semantic View Application |
 |--------------------------|---------------------------|
-| **Hierarchy Builder** (44 tools) | Generate DIMENSIONS and TABLES from hierarchy projects |
+| **Hierarchy Builder** (49 tools) | Generate DIMENSIONS and TABLES from hierarchy projects |
 | **Formula Groups** | Map directly to METRICS (SUM, AVG, COUNT expressions) |
 | **Source Mappings** | Map to FACTS (row-level expressions from source columns) |
 | **Templates** (20 templates) | Pre-built semantic view patterns for P&L, Balance Sheet, etc. |

@@ -30,7 +30,7 @@ DataBridge AI provides **{len(tools)} tools** across these categories:
 | PDF/OCR | extract_text_from_pdf, ocr_image, parse_table_from_text |
 | Workflow | save_workflow_step, get_workflow, clear_workflow, get_audit_log |
 | Transform | transform_column, merge_sources |
-| Hierarchy Builder | 44 tools for hierarchy management |
+| Hierarchy Builder | 49 tools for hierarchy management |
 | Connections | Backend connection management |
 | Schema Matcher | Database schema comparison |
 | Data Matcher | Table data comparison |

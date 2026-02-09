@@ -11,7 +11,7 @@
 ### Data Infrastructure
 | Module | Tools | Description |
 |--------|-------|-------------|
-| **Hierarchy Builder** | 44 | Multi-level hierarchy projects (up to 15 levels) for financial reporting and organizational structures |
+| **Hierarchy Builder** | 49 | Multi-level hierarchy projects (up to 15 levels) for financial reporting and organizational structures |
 | **Wright Pipeline** | 31 | 4-object data mart factory (VW_1 → DT_2 → DT_3A → DT_3) with hierarchy integration |
 | **Cortex AI** | 26 | Snowflake Cortex integration — natural language to SQL, AI reasoning loops, semantic models |
 | **Data Catalog** | 19 | Centralized metadata registry with business glossary and automatic lineage detection |
@@ -231,7 +231,7 @@ catalog_impact_from_asset(asset_id="dim_customer")
 | Feature | Community | Pro | Pro Examples | Enterprise |
 |---------|:---------:|:---:|:------------:|:----------:|
 | Data Reconciliation (~106 tools) | ✅ | ✅ | | ✅ |
-| Hierarchy Builder (44 tools) | | ✅ | | ✅ |
+| Hierarchy Builder (49 tools) | | ✅ | | ✅ |
 | Wright Pipeline (31 tools) | | ✅ | | ✅ |
 | Cortex AI Agent (26 tools) | | ✅ | | ✅ |
 | Data Catalog (19 tools) | | ✅ | | ✅ |

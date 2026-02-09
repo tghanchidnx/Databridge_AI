@@ -17,9 +17,9 @@ pip install databridge-ai-examples[pro]
 ## Requirements
 
 - Python 3.10+
-- `databridge-ai >= 0.39.0` (Community Edition base)
+- `databridge-ai >= 0.40.0` (Community Edition base)
 - A valid Pro license key for full access (`DATABRIDGE_LICENSE_KEY` env var)
-- Optional: `databridge-ai-pro >= 0.39.0` for Pro test suite
+- Optional: `databridge-ai-pro >= 0.40.0` for Pro test suite
 
 ### License Key Configuration
 
