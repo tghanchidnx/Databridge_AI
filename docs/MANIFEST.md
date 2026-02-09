@@ -1,13 +1,13 @@
 # DataBridge AI - Tool Manifest
 
 > Auto-generated documentation for all MCP tools.
-> Last updated: 2026-02-07 15:01:10
+> Last updated: 2026-02-08 23:50:00
 
 ---
 
 ## Overview
 
-DataBridge AI provides **292 tools** for data reconciliation and hierarchy management.
+DataBridge AI provides **341 tools** for data reconciliation, hierarchy management, and observability.
 
 | Category | Tools |
 |----------|-------|
@@ -31,6 +31,8 @@ DataBridge AI provides **292 tools** for data reconciliation and hierarchy manag
 | dbt Integration | create_dbt_project, generate_dbt_model, etc. |
 | Data Quality | generate_expectation_suite, run_validation, etc. |
 | Diff Utilities | diff_text, diff_lists, diff_dicts, etc. |
+| GraphRAG Engine | rag_search, rag_validate_output, rag_get_context, etc. |
+| Data Observability | obs_record_metric, obs_create_alert_rule, obs_get_asset_health, etc. |
 
 ---
 
