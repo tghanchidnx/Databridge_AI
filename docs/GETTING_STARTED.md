@@ -20,7 +20,7 @@ A comprehensive tutorial to help you get up and running with DataBridge AI, the 
 
 ### What is DataBridge AI?
 
-DataBridge AI is a **headless, MCP-native data reconciliation engine** with **341 MCP tools** designed to bridge messy data sources (OCR, PDF, SQL) with structured comparison pipelines. It provides a complete toolkit for:
+DataBridge AI is a **headless, MCP-native data reconciliation engine** with **348 MCP tools** designed to bridge messy data sources (OCR, PDF, SQL) with structured comparison pipelines. It provides a complete toolkit for:
 
 - **Data Reconciliation** - Compare, match, and validate data across sources
 - **Hierarchy Management** - Build and manage hierarchical reporting structures
@@ -32,8 +32,8 @@ DataBridge AI is a **headless, MCP-native data reconciliation engine** with **34
 
 | Module | Tools | Description |
 |--------|-------|-------------|
-| **Wright Builder** | 29 | Hierarchy-driven data mart generation (VW_1, DT_2, DT_3A, DT_3 pipeline) |
-| **Hierarchy Builder** | 44 | Create, manage, and deploy hierarchical data structures |
+| **Wright Builder** | 31 | Hierarchy-driven data mart generation (VW_1, DT_2, DT_3A, DT_3 pipeline) |
+| **Hierarchy Builder** | 49 | Create, manage, and deploy hierarchical data structures |
 | **dbt Integration** | 8 | Generate dbt projects, models, and CI/CD pipelines |
 | **Data Catalog** | 19 | Centralized metadata registry with business glossary |
 | **Cortex AI** | 26 | Snowflake Cortex integration for AI-powered analysis |
@@ -136,8 +136,8 @@ You should see:
 
 ```
 ╔════════════════════════════════════════════════════════════════╗
-║              DataBridge AI Dashboard v0.39.0                   ║
-║                     341 MCP Tools                              ║
+║              DataBridge AI Dashboard v0.40.0                   ║
+║                     348 MCP Tools                              ║
 ╠════════════════════════════════════════════════════════════════╣
 ║  Dashboard:  http://127.0.0.1:5050                             ║
 ║                                                                ║
@@ -949,7 +949,7 @@ curl -X POST http://localhost:5050/api/tools/load_csv \
 
 ## 7. Next Steps
 
-### Exploring All 341 Tools
+### Exploring All 348 Tools
 
 Browse the complete tool reference:
 
@@ -1065,4 +1065,4 @@ analyze_change_impact(
 
 **Happy Data Bridging!**
 
-*DataBridge AI v0.39.0 - 341 MCP Tools*
+*DataBridge AI v0.40.0 - 348 MCP Tools*

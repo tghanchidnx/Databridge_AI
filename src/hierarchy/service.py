@@ -245,7 +245,18 @@ class HierarchyService:
     def update_hierarchy(
         self, project_id: str, hierarchy_id: str, updates: Dict[str, Any]
     ) -> Optional[Dict]:
-        """Update a hierarchy."""
+        """Update a hierarchy node with the given fields.
+
+        Args:
+            project_id: Project UUID.
+            hierarchy_id: Hierarchy ID (slug, e.g. ``REVENUE_1``).
+            updates: Dict of fields to merge into the hierarchy record.
+                Common keys: ``hierarchy_name``, ``description``, ``flags``,
+                ``mapping``, ``formula_config``, ``properties``.
+
+        Returns:
+            Updated hierarchy dict, or ``None`` if the hierarchy was not found.
+        """
         data = self._load_json(self.hierarchies_file)
 
         for id, h in data["hierarchies"].items():
@@ -324,7 +335,22 @@ class HierarchyService:
         source_uid: str = "",
         precedence_group: str = "1",
     ) -> Optional[Dict]:
-        """Add a source mapping to a hierarchy."""
+        """Add a source mapping to a hierarchy node.
+
+        Args:
+            project_id: Project UUID.
+            hierarchy_id: Target hierarchy ID (slug, e.g. ``REVENUE_1``).
+            source_database: Snowflake database name (e.g. ``ANALYTICS``).
+            source_schema: Snowflake schema name (e.g. ``GL``).
+            source_table: Fact/dimension table name.
+            source_column: Column used for ID_SOURCE matching.
+            source_uid: Wildcard or literal value to match (e.g. ``30%``).
+            precedence_group: Formula precedence group (default ``"1"``).
+
+        Returns:
+            Updated hierarchy dict with the new mapping appended, or ``None``
+            if the hierarchy was not found.
+        """
         hierarchy = self.get_hierarchy(project_id, hierarchy_id)
         if not hierarchy:
             return None
@@ -554,7 +580,23 @@ class HierarchyService:
         group_name: str,
         rules: List[Dict],
     ) -> Optional[Dict]:
-        """Create a formula group for a hierarchy."""
+        """Create a formula group for a calculated hierarchy node.
+
+        A formula group defines how a hierarchy node's value is computed
+        from other nodes (e.g. Gross Profit = Revenue - COGS).
+
+        Args:
+            project_id: Project UUID.
+            main_hierarchy_id: Hierarchy ID (slug) that will hold the formula.
+            group_name: Human-readable name for the formula group.
+            rules: List of rule dicts, each with keys ``operation``
+                (SUM, SUBTRACT, MULTIPLY, DIVIDE), ``hierarchy_id`` (source
+                node slug), and optional ``precedence`` (int).
+
+        Returns:
+            Updated hierarchy dict with ``formula_config`` set, or ``None``
+            if the hierarchy was not found.
+        """
         hierarchy = self.get_hierarchy(project_id, main_hierarchy_id)
         if not hierarchy:
             return None
@@ -589,7 +631,26 @@ class HierarchyService:
         precedence: int = 1,
         constant_number: Optional[float] = None,
     ) -> Optional[Dict]:
-        """Add a rule to an existing formula group."""
+        """Add a rule to an existing (or new) formula group.
+
+        If the hierarchy does not yet have a formula group, one is created
+        automatically.
+
+        Args:
+            project_id: Project UUID.
+            main_hierarchy_id: Hierarchy ID (slug) that owns the formula.
+            operation: Arithmetic operation — one of ``SUM``, ``SUBTRACT``,
+                ``MULTIPLY``, ``DIVIDE``.
+            source_hierarchy_id: Hierarchy ID (slug) of the operand node.
+            precedence: Calculation order (1 = first). Used by the Wright
+                DT_3 layer to build P1 → P5 cascade.
+            constant_number: Optional constant multiplier/value instead of
+                pulling from the source hierarchy's aggregated total.
+
+        Returns:
+            Updated hierarchy dict with the new rule appended, or ``None``
+            if either hierarchy was not found.
+        """
         hierarchy = self.get_hierarchy(project_id, main_hierarchy_id)
         if not hierarchy:
             return None

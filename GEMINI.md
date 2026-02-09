@@ -28,7 +28,7 @@ DataBridge AI uses a tiered product structure with open-source Community Edition
 │  │ • Data Quality │  │ + Full Catalog │  │ • Faux Objects(8)│  │ + Training     │   │
 │  │ • UI Dashboard │  │ + Lineage      │  │ • CE tests       │  │                │   │
 │  │                │  │ + Orchestrator │  │ • Pro tests      │  │                │   │
-│  │ ~106 tools     │  │ ~277 tools     │  │ Requires Pro key │  │ 341+ tools     │   │
+│  │ ~106 tools     │  │ ~284 tools     │  │ Requires Pro key │  │ 348+ tools     │   │
 │  └────────────────┘  └────────────────┘  └──────────────────┘  └────────────────┘   │
 └──────────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -156,7 +156,7 @@ See `docs/COMMERCIALIZATION.md` for complete details.
 
 ---
 
-## Module Reference (341 Tools)
+## Module Reference (348 Tools)
 
 ### 1. File Discovery & Staging (3 tools)
 
@@ -185,7 +185,7 @@ get_working_directory()
 
 ---
 
-### 3. Hierarchy Knowledge Base (44 tools)
+### 3. Hierarchy Knowledge Base (49 tools)
 
 #### Flexible Import Tiers
 
@@ -363,7 +363,7 @@ cortex_reason(goal="Analyze data quality", context='{"table": "PRODUCTS"}')
 
 ---
 
-### 9. Cortex Analyst (13 tools)
+### 9. Cortex Analyst (14 tools)
 
 **Semantic Model YAML:**
 ```yaml
@@ -398,7 +398,7 @@ analyst_ask(question="What was revenue by region?", semantic_model_file="@MODELS
 
 ---
 
-### 10. Wright Module (18 tools)
+### 10. Wright Module (31 tools)
 
 **4-Object Pipeline:**
 | Object | Purpose |
@@ -723,7 +723,7 @@ from databridge_ai_examples import register_examples, USE_CASE_CATEGORIES
 
 # Auto-registered via entry point: databridge.plugins -> examples
 result = register_examples(mcp)
-# Returns: {'status': 'registered', 'version': '0.39.0', 'use_case_count': 19, 'categories': ['beginner', 'financial', 'faux_objects']}
+# Returns: {'status': 'registered', 'version': '0.40.0', 'use_case_count': 19, 'categories': ['beginner', 'financial', 'faux_objects']}
 
 # License check
 from src.plugins import get_license_manager
@@ -828,12 +828,12 @@ obs_get_asset_health(asset_id='revenue-pl', asset_type='hierarchy_project')
 ## README Documentation
 _Updated: 2026-02-08 23:45:57_
 
-README.md Updated - v0.39.0 with 341 Tools
+README.md Updated - v0.40.0 with 348 Tools
 
 Key modules documented:
-- Hierarchy Builder (44 tools) - Multi-level hierarchy projects
+- Hierarchy Builder (49 tools) - Multi-level hierarchy projects
 - Data Reconciliation (38 tools) - CSV/SQL/PDF/JSON comparison
-- Wright Module (29 tools) - Data mart generation with 4-object pipeline
+- Wright Module (31 tools) - Data mart generation with 4-object pipeline
 - Cortex AI (26 tools) - Natural language to SQL via Snowflake
 - Data Catalog (19 tools) - Metadata registry with business glossary
 - Data Observability (15 tools) - Metrics, alerting, anomaly detection, health scoring
@@ -849,10 +849,10 @@ Architecture: MCP Protocol -> DataBridge Server -> Snowflake/CSV/SQL/PDF
 ---
 
 
-## Documentation Updates v0.39.0
+## Documentation Updates v0.40.0
 _Updated: 2026-02-08 23:49:54_
 
-Updated documentation to v0.39.0 with 341 tools. Changes include: GETTING_STARTED.md (updated module table with Data Observability and GraphRAG, version bumps throughout), run_dashboard.py (API health/stats endpoints updated with observability module). All documentation now consistent across README.md, MANIFEST.md, GETTING_STARTED.md, and dashboard.
+Updated documentation to v0.40.0 with 348 tools. Changes include: GETTING_STARTED.md (updated module table with Data Observability and GraphRAG, version bumps throughout), run_dashboard.py (API health/stats endpoints updated with observability module). All documentation now consistent across README.md, MANIFEST.md, GETTING_STARTED.md, and dashboard.
 
 ---
 
@@ -860,7 +860,7 @@ Updated documentation to v0.39.0 with 341 tools. Changes include: GETTING_STARTE
 ## UI Architecture
 _Updated: 2026-02-08 23:59:41_
 
-## UI Architecture (v0.39.0)
+## UI Architecture (v0.40.0)
 
 ### Single Dashboard on Port 5050
 

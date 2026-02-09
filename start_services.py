@@ -6,7 +6,7 @@ Start, stop, and monitor all DataBridge AI services.
 
 Services:
   - Docker: MySQL, Redis, NestJS Backend (v2 containers)
-  - MCP Server: Python FastMCP server (137 tools)
+  - MCP Server: Python FastMCP server (348 tools)
   - Dashboard: DataBridge Dashboard UI (Multi AI, MCP CLI)
   - Excel Plugin: Development server for Office Add-in
 
@@ -36,7 +36,7 @@ from typing import Optional, List
 PROJECT_ROOT = Path(__file__).parent.resolve()
 V2_DIR = PROJECT_ROOT / "v2"
 APPS_DIR = PROJECT_ROOT / "apps"
-DASHBOARD_DIR = APPS_DIR / "databridge-dashboard"
+DASHBOARD_DIR = PROJECT_ROOT / "databridge-ce"
 EXCEL_PLUGIN_DIR = APPS_DIR / "excel-plugin"
 DOCKER_DESKTOP_PATH = Path("C:/Program Files/Docker/Docker/Docker Desktop.exe")
 
@@ -49,7 +49,7 @@ DOCKER_SERVICES = {
 
 OTHER_SERVICES = {
     "MCP Server": {"port": None, "type": "mcp", "script": "run_server.py"},
-    "Dashboard": {"port": 5180, "type": "dashboard", "dir": DASHBOARD_DIR},
+    "Dashboard": {"port": 5050, "type": "dashboard", "dir": DASHBOARD_DIR},
     "Excel Plugin": {"port": 3000, "type": "excel", "dir": EXCEL_PLUGIN_DIR},
 }
 
@@ -77,7 +77,7 @@ def print_banner():
 |                     DataBridge AI                             |
 |                   Service Manager                             |
 |                                                               |
-|  MCP Server: 137 Tools | Backend: NestJS | DB: MySQL/Redis   |
+|  MCP Server: 348 Tools | Backend: NestJS | DB: MySQL/Redis   |
 +---------------------------------------------------------------+
 {Colors.END}"""
     print(banner)
@@ -270,10 +270,10 @@ def check_all_services_status():
     print(f"  {icon} {'MCP Server':15} Port {6274:5}  {status}")
 
     # Dashboard
-    dashboard_running = is_port_in_use(5180)
+    dashboard_running = is_port_in_use(5050)
     icon = f"{Colors.GREEN}[OK]{Colors.END}" if dashboard_running else f"{Colors.RED}[X]{Colors.END}"
     status = "running" if dashboard_running else "not running"
-    print(f"  {icon} {'Dashboard':15} Port {5180:5}  {status}")
+    print(f"  {icon} {'Dashboard':15} Port {5050:5}  {status}")
 
     # Excel Plugin
     excel_running = is_port_in_use(3000)
@@ -390,14 +390,15 @@ def start_mcp_server(background: bool = False):
 
 
 def start_dashboard_server(background: bool = False):
-    """Start the Dashboard server."""
+    """Start the Dashboard server via run_ui.py (port 5050)."""
     print(f"\n{Colors.BLUE}Starting Dashboard Server...{Colors.END}")
 
-    if not DASHBOARD_DIR.exists():
-        print(f"{Colors.RED}Dashboard directory not found: {DASHBOARD_DIR}{Colors.END}")
+    run_ui_script = PROJECT_ROOT / "run_ui.py"
+    if not run_ui_script.exists():
+        print(f"{Colors.RED}run_ui.py not found at {run_ui_script}{Colors.END}")
         return None
 
-    port = 5180
+    port = 5050
 
     if is_port_in_use(port):
         print(f"  {Colors.YELLOW}Port {port} already in use{Colors.END}")
@@ -405,8 +406,8 @@ def start_dashboard_server(background: bool = False):
 
     if background:
         process = subprocess.Popen(
-            ["python", "-m", "http.server", str(port)],
-            cwd=str(DASHBOARD_DIR),
+            ["python", str(run_ui_script)],
+            cwd=str(PROJECT_ROOT),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
@@ -418,8 +419,8 @@ def start_dashboard_server(background: bool = False):
         print(f"  Press Ctrl+C to stop\n")
         try:
             subprocess.run(
-                ["python", "-m", "http.server", str(port)],
-                cwd=str(DASHBOARD_DIR)
+                ["python", str(run_ui_script)],
+                cwd=str(PROJECT_ROOT)
             )
         except KeyboardInterrupt:
             print(f"\n{Colors.YELLOW}Dashboard stopped.{Colors.END}")
@@ -524,8 +525,8 @@ def print_access_info():
     API Keys:   v2-dev-key-1, v2-dev-key-2
 
   {Colors.BOLD}Dashboard:{Colors.END}
-    URL:        http://localhost:5180
-    Multi AI:   http://localhost:5180 (Multi AI tab)
+    URL:        http://localhost:5050
+    Features:   http://localhost:5050 (All tabs)
 
   {Colors.BOLD}Excel Plugin:{Colors.END}
     Dev Server: https://localhost:3000
@@ -536,7 +537,7 @@ def print_access_info():
     Redis:      localhost:6381
 
   {Colors.BOLD}MCP Server:{Colors.END}
-    Tools:      137 tools available
+    Tools:      348 tools available
     Inspector:  http://localhost:6274 (when running with --all or --mcp)
     Config:     .mcp.json (for Claude Desktop/Code)
     Run:        python start_services.py --mcp

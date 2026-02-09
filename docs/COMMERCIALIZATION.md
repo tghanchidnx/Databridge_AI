@@ -159,7 +159,7 @@ pip install -e .
 ### Pro Edition (~171 additional tools)
 | Phase | Module | Tools | Status |
 |-------|--------|-------|--------|
-| 9 | Hierarchy Builder | 44 | 🔒 Pro |
+| 9 | Hierarchy Builder | 49 | 🔒 Pro |
 | 10 | Connections | 16 | 🔒 Pro |
 | 11 | Schema Matcher | 5 | 🔒 Pro |
 | 12 | Data Matcher | 4 | 🔒 Pro |
@@ -167,7 +167,7 @@ pip install -e .
 | 18 | Faux Objects | 18 | 🔒 Pro |
 | 19-20 | Cortex AI | 26 | 🔒 Pro |
 | 23 | Console Dashboard | 5 | 🔒 Pro |
-| 26 | Wright Pipeline | 29 | 🔒 Pro |
+| 26 | Wright Pipeline | 31 | 🔒 Pro |
 | 27 | Lineage | 11 | 🔒 Pro |
 | 28 | Git/CI-CD | 12 | 🔒 Pro |
 | 29 | Data Catalog | 19 | 🔒 Pro |

@@ -1,13 +1,13 @@
 # DataBridge AI - Tool Manifest
 
 > Auto-generated documentation for all MCP tools.
-> Last updated: 2026-02-08 23:50:00
+> Last updated: 2026-02-09
 
 ---
 
 ## Overview
 
-DataBridge AI provides **341 tools** for data reconciliation, hierarchy management, and observability.
+DataBridge AI provides **348 tools** for data reconciliation, hierarchy management, and observability.
 
 | Category | Tools |
 |----------|-------|
