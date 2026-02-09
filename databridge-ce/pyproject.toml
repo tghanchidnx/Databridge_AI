@@ -70,11 +70,11 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/tghanchidnx/databridge-ai"
-Documentation = "https://github.com/tghanchidnx/databridge-ai/wiki"
-Repository = "https://github.com/tghanchidnx/databridge-ai.git"
-Issues = "https://github.com/tghanchidnx/databridge-ai/issues"
-Changelog = "https://github.com/tghanchidnx/databridge-ai/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/tghanchidnx/Databridge_AI"
+Documentation = "https://github.com/tghanchidnx/Databridge_AI/wiki"
+Repository = "https://github.com/tghanchidnx/Databridge_AI.git"
+Issues = "https://github.com/tghanchidnx/Databridge_AI/issues"
+Changelog = "https://github.com/tghanchidnx/Databridge_AI/blob/main/CHANGELOG.md"
 
 [project.scripts]
 databridge = "src.server:main"

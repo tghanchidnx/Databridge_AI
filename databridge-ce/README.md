@@ -16,7 +16,7 @@
 - **Fuzzy Matching** - Find approximate matches between datasets using RapidFuzz
 - **Data Profiling** - Statistical analysis and quality metrics for your data
 - **PDF/OCR Extraction** - Extract text from PDFs and images
-- **dbt Integration** - Generate dbt models from your data
+- **dbt Integration** - Generate dbt projects from your data
 - **Data Quality** - Create and run data validation rules
 
 ## Installation
@@ -74,47 +74,83 @@ matches = fuzzy_match_columns(
 )
 ```
 
-## Available Tools (Community Edition)
+## Available Tools (~106 tools)
 
 | Category | Tools | Description |
 |----------|-------|-------------|
-| **File Discovery** | `find_files`, `get_working_directory` | Search for files across common directories |
-| **Data Loading** | `load_csv`, `load_json`, `query_database` | Load data from various sources |
-| **Data Profiling** | `profile_data` | Generate comprehensive data statistics |
-| **Comparison** | `compare_hashes` | Hash-based row comparison with orphan/conflict detection |
-| **Fuzzy Matching** | `fuzzy_match_columns` | Find approximate matches using RapidFuzz |
-| **PDF/OCR** | `extract_text_from_pdf` | Extract text from PDF files |
-| **Diff Utilities** | `diff_text` | Compare text strings |
-| **License** | `get_license_status` | Check license tier and available features |
+| **File Discovery** | 3 | `find_files`, `get_working_directory`, `stage_file` |
+| **Data Loading** | 3 | `load_csv`, `load_json`, `query_database` |
+| **Data Profiling** | 2 | `profile_data`, `profile_book_sources` |
+| **Hashing & Comparison** | 3 | `compare_hashes`, `compare_table_data`, `get_data_comparison_summary` |
+| **Fuzzy Matching** | 2 | `fuzzy_match_columns`, `fuzzy_deduplicate` |
+| **PDF/OCR** | 3 | `extract_text_from_pdf`, `ocr_image`, `parse_table_from_text` |
+| **Workflow** | 4 | `analyze_request`, `save_workflow_step`, `get_workflow`, `clear_workflow` |
+| **Transform** | 2 | `transform_column`, `convert_sql_format` |
+| **Documentation** | 1 | `get_application_documentation` |
+| **Templates** | 10 | `list_financial_templates`, `get_template_details`, `get_skill_prompt`, etc. |
+| **Diff Utilities** | 6 | `diff_text`, `diff_dicts`, `diff_lists`, `explain_diff`, `generate_patch`, `find_similar_strings` |
+| **dbt Integration** | 8 | `create_dbt_project`, `generate_dbt_model`, `generate_dbt_schema`, `validate_dbt_project`, etc. |
+| **Data Quality** | 7 | `generate_expectation_suite`, `run_validation`, `create_data_contract`, `add_column_expectation`, etc. |
+| **License** | 1 | `get_license_status` |
+
+## Editions
+
+DataBridge AI is available in four editions:
+
+| | **Community (CE)** | **Pro** | **Pro Examples** | **Enterprise** |
+|---|:---:|:---:|:---:|:---:|
+| **Tools** | ~106 | ~277 | Tests & Tutorials | 341+ |
+| **Price** | Free | Licensed | Licensed Add-on | Custom |
+| **Distribution** | Public PyPI | GitHub Packages | GitHub Packages | Private Deploy |
+| Data Reconciliation | ✅ | ✅ | | ✅ |
+| Fuzzy Matching | ✅ | ✅ | | ✅ |
+| Data Profiling | ✅ | ✅ | | ✅ |
+| PDF/OCR | ✅ | ✅ | | ✅ |
+| dbt Basic | ✅ | ✅ | | ✅ |
+| Data Quality | ✅ | ✅ | | ✅ |
+| UI Dashboard | ✅ | ✅ | | ✅ |
+| Diff Utilities | ✅ | ✅ | | ✅ |
+| Templates (Basic) | ✅ | ✅ | | ✅ |
+| **Hierarchy Builder** (44 tools) | | ✅ | | ✅ |
+| **Wright Pipeline** (29 tools) | | ✅ | | ✅ |
+| **Cortex AI Agent** (26 tools) | | ✅ | | ✅ |
+| **Data Catalog** (19 tools) | | ✅ | | ✅ |
+| **Faux Objects** (18 tools) | | ✅ | | ✅ |
+| **Connections** (16 tools) | | ✅ | | ✅ |
+| **AI Orchestrator** (16 tools) | | ✅ | | ✅ |
+| **Data Observability** (15 tools) | | ✅ | | ✅ |
+| **Data Versioning** (12 tools) | | ✅ | | ✅ |
+| **Git/CI-CD** (12 tools) | | ✅ | | ✅ |
+| **Lineage Tracking** (11 tools) | | ✅ | | ✅ |
+| **PlannerAgent** (11 tools) | | ✅ | | ✅ |
+| **GraphRAG Engine** (10 tools) | | ✅ | | ✅ |
+| **Unified AI Agent** (10 tools) | | ✅ | | ✅ |
+| **Console Dashboard** (5 tools) | | ✅ | | ✅ |
+| **Schema Matcher** (5 tools) | | ✅ | | ✅ |
+| **Data Matcher** (4 tools) | | ✅ | | ✅ |
+| 47 Tests + 19 Tutorials | | | ✅ | |
+| Custom Agents | | | | ✅ |
+| White-label | | | | ✅ |
+| SLA Support | | | | ✅ |
+| On-premise Deploy | | | | ✅ |
 
 ## Upgrade to Pro
 
-DataBridge AI Pro unlocks advanced features:
-
-| Feature | Community | Pro |
-|---------|:---------:|:---:|
-| Data Reconciliation | ✅ | ✅ |
-| Fuzzy Matching | ✅ | ✅ |
-| Data Profiling | ✅ | ✅ |
-| PDF/OCR | ✅ | ✅ |
-| dbt Basic | ✅ | ✅ |
-| Cortex AI Agent | ❌ | ✅ |
-| Wright Pipeline | ❌ | ✅ |
-| GraphRAG Engine | ❌ | ✅ |
-| Data Observability | ❌ | ✅ |
-| Full Data Catalog | ❌ | ✅ |
-| Column Lineage | ❌ | ✅ |
-| AI Orchestrator | ❌ | ✅ |
-
 ```bash
-# Install Pro (requires license)
-pip install databridge-ai-pro --extra-index-url https://pypi.yourcompany.com/simple/
-
 # Set your license key
 export DATABRIDGE_LICENSE_KEY="DB-PRO-YOURKEY-20260101-signature"
+
+# Install Pro (from GitHub Packages)
+pip install databridge-ai-pro --extra-index-url https://ghp_TOKEN@raw.githubusercontent.com/tghanchidnx/Databridge_AI/main/
+
+# Install Pro Examples (tests & tutorials, requires Pro key)
+pip install databridge-ai-examples                # CE tests + beginner tutorials
+pip install databridge-ai-examples[pro]           # + Pro tests + advanced tutorials
 ```
 
-Visit [databridge.ai/pro](https://databridge.ai/pro) for pricing and features.
+**License Key Format:** `DB-{TIER}-{CUSTOMER_ID}-{EXPIRY}-{SIGNATURE}`
+
+Contact sales@databridge.ai for pricing and license keys.
 
 ## Configuration
 
@@ -164,6 +200,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Links
 
-- **Documentation**: [github.com/tghanchidnx/databridge-ai/wiki](https://github.com/tghanchidnx/databridge-ai/wiki)
-- **Issues**: [github.com/tghanchidnx/databridge-ai/issues](https://github.com/tghanchidnx/databridge-ai/issues)
-- **Pro Features**: [databridge.ai/pro](https://databridge.ai/pro)
+- **Documentation**: [github.com/tghanchidnx/Databridge_AI/wiki](https://github.com/tghanchidnx/Databridge_AI/wiki)
+- **Commercialization Guide**: [docs/COMMERCIALIZATION.md](../docs/COMMERCIALIZATION.md)
+- **Issues**: [github.com/tghanchidnx/Databridge_AI/issues](https://github.com/tghanchidnx/Databridge_AI/issues)
+- **Pro Features**: [Pro Features Wiki](https://github.com/tghanchidnx/Databridge_AI/wiki/Pro-Features)

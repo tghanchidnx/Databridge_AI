@@ -28,21 +28,109 @@
 | **Diff Utilities** | 6 | Character-level text and data comparison |
 | **And more...** | 67 | Console dashboard, recommendations, orchestrator, etc. |
 
+## Editions
+
+DataBridge AI is available in four editions:
+
+| | **Community (CE)** | **Pro** | **Pro Examples** | **Enterprise** |
+|---|:---:|:---:|:---:|:---:|
+| **Tools** | ~106 | ~277 | Tests & Tutorials | 341+ |
+| **Distribution** | Public PyPI | GitHub Packages | GitHub Packages | Private Deploy |
+| **License** | MIT (Free) | License Key | Requires Pro Key | Dedicated Key |
+| Data Reconciliation | ✅ | ✅ | | ✅ |
+| Fuzzy Matching | ✅ | ✅ | | ✅ |
+| PDF/OCR Extraction | ✅ | ✅ | | ✅ |
+| dbt Basic | ✅ | ✅ | | ✅ |
+| Data Quality | ✅ | ✅ | | ✅ |
+| UI Dashboard | ✅ | ✅ | | ✅ |
+| Cortex AI Agent | | ✅ | | ✅ |
+| Wright Pipeline | | ✅ | | ✅ |
+| GraphRAG Engine | | ✅ | | ✅ |
+| Data Observability | | ✅ | | ✅ |
+| Full Data Catalog | | ✅ | | ✅ |
+| Column Lineage | | ✅ | | ✅ |
+| Hierarchy Builder | | ✅ | | ✅ |
+| AI Orchestrator | | ✅ | | ✅ |
+| Data Versioning | | ✅ | | ✅ |
+| Git/CI-CD Automation | | ✅ | | ✅ |
+| 47 Tests + 19 Tutorials | | | ✅ | |
+| Custom Agents | | | | ✅ |
+| White-label | | | | ✅ |
+| SLA Support | | | | ✅ |
+
+See [Commercialization Guide](docs/COMMERCIALIZATION.md) for full details.
+
+## DataBridge AI Pro
+
+Pro adds **17 modules** with ~171 additional tools on top of Community Edition:
+
+| Module | Tools | Description |
+|--------|-------|-------------|
+| **Hierarchy Builder** | 44 | Multi-level hierarchy projects (up to 15 levels) |
+| **Wright Pipeline** | 29 | 4-object data mart factory (VW_1 → DT_2 → DT_3A → DT_3) |
+| **Cortex AI** | 26 | Snowflake Cortex natural language to SQL and AI reasoning |
+| **Data Catalog** | 19 | Centralized metadata registry with automatic lineage |
+| **Faux Objects** | 18 | Domain persona-based hierarchy generation |
+| **Connections** | 16 | Multi-database connectivity management |
+| **AI Orchestrator** | 16 | Multi-agent task coordination and workflow management |
+| **Data Observability** | 15 | Real-time metrics, alerting, anomaly detection |
+| **Data Versioning** | 12 | Semantic versioning, snapshots, rollback, and diff |
+| **Git/CI-CD** | 12 | Automated workflows and GitHub integration |
+| **Lineage Tracking** | 11 | Column-level lineage and impact analysis |
+| **PlannerAgent** | 11 | AI-powered workflow planning and agent suggestions |
+| **GraphRAG Engine** | 10 | Anti-hallucination layer with graph + vector retrieval |
+| **Unified AI Agent** | 10 | Cross-system operations (Book/Librarian/Researcher) |
+| **Console Dashboard** | 5 | Real-time broadcast messaging and monitoring |
+| **Schema Matcher** | 5 | Cross-database schema comparison and mapping |
+| **Data Matcher** | 4 | Row-level data comparison across connections |
+
+## Pro Examples
+
+The **Pro Examples** add-on (`databridge-ai-examples`) provides a comprehensive tests and tutorials package:
+
+- **19 use-case tutorials**: Beginner (4), Financial (7), Faux Objects (8)
+- **47 test files**: CE test suite + Pro test suite + shared fixtures
+- Requires a valid Pro license key
+
 ## Installation
 
 ```bash
-# Basic installation
+# Community Edition (free, from PyPI)
 pip install databridge-ai
 
-# With PDF support
-pip install databridge-ai[pdf]
+# With optional dependencies
+pip install databridge-ai[pdf]       # PDF support
+pip install databridge-ai[snowflake] # Snowflake support
+pip install databridge-ai[all]       # All dependencies
 
-# With Snowflake support
-pip install databridge-ai[snowflake]
+# Pro Edition (requires license key)
+export DATABRIDGE_LICENSE_KEY="DB-PRO-YOURKEY-20260101-signature"
+pip install databridge-ai-pro --extra-index-url https://ghp_TOKEN@raw.githubusercontent.com/tghanchidnx/Databridge_AI/main/
 
-# Full installation
-pip install databridge-ai[all]
+# Pro Examples (requires Pro license key)
+pip install databridge-ai-examples                # CE tests + beginner tutorials
+pip install databridge-ai-examples[pro]           # + Pro tests + advanced tutorials
 ```
+
+## Licensing
+
+DataBridge AI uses a key-based licensing system for Pro and Enterprise editions.
+
+**License Key Format:**
+```
+DB-{TIER}-{CUSTOMER_ID}-{EXPIRY}-{SIGNATURE}
+Example: DB-PRO-ACME001-20270209-a1b2c3d4e5f6
+```
+
+```bash
+# Generate a license key (admin)
+python scripts/generate_license.py PRO CUSTOMER01 365
+
+# Check license status (MCP tool)
+get_license_status()
+```
+
+See [docs/COMMERCIALIZATION.md](docs/COMMERCIALIZATION.md) for key management, distribution, and API reference.
 
 ## Quick Start
 
@@ -220,6 +308,9 @@ Create a `.env` file:
 # Data directory
 DATA_DIR=./data
 
+# License key (for Pro/Enterprise)
+DATABRIDGE_LICENSE_KEY=DB-PRO-YOURKEY-20260101-signature
+
 # NestJS backend (optional)
 NESTJS_BACKEND_URL=http://localhost:8001
 NESTJS_API_KEY=your-api-key
@@ -237,6 +328,7 @@ CORTEX_DEFAULT_MODEL=mistral-large
 
 - **[CLAUDE.md](CLAUDE.md)** - Complete tool reference and usage guide
 - **[docs/MANIFEST.md](docs/MANIFEST.md)** - Auto-generated tool manifest
+- **[docs/COMMERCIALIZATION.md](docs/COMMERCIALIZATION.md)** - Licensing, tiers, and distribution
 - **[Wiki](../../wiki)** - Architecture, getting started, and tutorials
 
 ## Community Edition

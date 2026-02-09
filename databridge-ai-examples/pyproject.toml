@@ -44,9 +44,10 @@ pro = [
 ]
 
 [project.urls]
-Homepage = "https://databridge.ai/examples"
-Documentation = "https://databridge.ai/docs/examples"
-Support = "https://databridge.ai/support"
+Homepage = "https://github.com/tghanchidnx/Databridge_AI"
+Documentation = "https://github.com/tghanchidnx/Databridge_AI/wiki/Pro-Features"
+Repository = "https://github.com/tghanchidnx/Databridge_AI"
+Issues = "https://github.com/tghanchidnx/Databridge_AI/issues"
 
 [project.entry-points."databridge.plugins"]
 examples = "databridge_ai_examples:register_examples"
@@ -55,6 +56,7 @@ examples = "databridge_ai_examples:register_examples"
 include = [
     "/src",
     "/README.md",
+    "/LICENSE",
 ]
 exclude = [
     "*.pyc",

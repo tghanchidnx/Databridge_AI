@@ -1,6 +1,8 @@
 # DataBridge AI Examples & Tests
 
-Use-case tutorials and test suites for DataBridge AI. Part of the **Pro Examples** sub-tier.
+*Use-case tutorials and test suites for DataBridge AI. Part of the **Pro Examples** sub-tier.*
+
+---
 
 ## Installation
 
@@ -19,6 +21,17 @@ pip install databridge-ai-examples[pro]
 - A valid Pro license key for full access (`DATABRIDGE_LICENSE_KEY` env var)
 - Optional: `databridge-ai-pro >= 0.39.0` for Pro test suite
 
+### License Key Configuration
+
+```bash
+# Set your license key
+export DATABRIDGE_LICENSE_KEY="DB-PRO-YOURKEY-20260101-signature"
+```
+
+**License Key Format:** `DB-{TIER}-{CUSTOMER_ID}-{EXPIRY}-{SIGNATURE}`
+
+Contact sales@databridge.ai for pricing and license keys.
+
 ## What's Included
 
 ### Use-Case Tutorials (19 total)
@@ -29,7 +42,7 @@ pip install databridge-ai-examples[pro]
 | **Financial** | 05-11 | SEC EDGAR analysis, Apple/Microsoft financials, balance sheets, full pipelines |
 | **Faux Objects** | 12-19 | Domain persona tutorials (financial, oil & gas, manufacturing, SaaS, etc.) |
 
-### Test Suites
+### Test Suites (47 files)
 
 | Suite | Module | Tests |
 |-------|--------|-------|
@@ -50,11 +63,24 @@ pytest src/tests/pro/
 pytest --cov=databridge_ai_examples src/tests/
 ```
 
+## Editions
+
+This package is part of the DataBridge AI product family:
+
+| Package | Distribution | License |
+|---------|-------------|---------|
+| `databridge-ai` | PyPI (public) | MIT (Free) |
+| `databridge-ai-pro` | GitHub Packages | Proprietary (License Key) |
+| `databridge-ai-examples` | GitHub Packages | Proprietary (Requires Pro Key) |
+
 ## License
 
-Proprietary - requires a valid DataBridge AI Pro license key.
+Proprietary - requires a valid DataBridge AI Pro or Enterprise license key. See [LICENSE](LICENSE) for full terms.
+
+Copyright (c) 2024-2026 DataBridge AI. All Rights Reserved.
 
 ## Support
 
-- Documentation: https://databridge.ai/docs/examples
-- Support: https://databridge.ai/support
+- Sales: sales@databridge.ai
+- Support: support@databridge.ai
+- Documentation: [GitHub Wiki](https://github.com/tghanchidnx/Databridge_AI/wiki)

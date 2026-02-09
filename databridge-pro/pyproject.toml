@@ -72,9 +72,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://databridge.ai/pro"
-Documentation = "https://databridge.ai/docs"
-Support = "https://databridge.ai/support"
+Homepage = "https://github.com/tghanchidnx/Databridge_AI"
+Documentation = "https://github.com/tghanchidnx/Databridge_AI/wiki/Pro-Features"
+Repository = "https://github.com/tghanchidnx/Databridge_AI"
+Issues = "https://github.com/tghanchidnx/Databridge_AI/issues"
 
 [project.entry-points."databridge.plugins"]
 pro = "databridge_ai_pro:register_pro_tools"
