@@ -761,7 +761,7 @@
                     <span>MCP: Connected</span>
                 </div>
                 <div class="status-item">
-                    <span id="toolCountHeader">292</span> tools
+                    <span id="toolCountHeader">341</span> tools
                 </div>
             </div>
         </header>
@@ -821,7 +821,7 @@
                 <h1 class="page-header">📊 Dashboard</h1>
                 <div class="stat-grid">
                     <div class="stat-card accent">
-                        <div class="stat-value" id="toolCount">292</div>
+                        <div class="stat-value" id="toolCount">341</div>
                         <div class="stat-label">MCP Tools</div>
                     </div>
                     <div class="stat-card primary">
@@ -1312,8 +1312,8 @@ Ready to process requests. Type a query below or use Quick Actions.</div>
                     <!-- Overview Tab -->
                     <div id="overview-tab" class="tab-content active">
                         <div class="doc-section">
-                            <h3>DataBridge AI <span id="docVersion">v0.34.0</span></h3>
-                            <p>A headless, MCP-native data reconciliation engine with <strong>292 MCP tools</strong> across twenty major modules.</p>
+                            <h3>DataBridge AI <span id="docVersion">v0.39.0</span></h3>
+                            <p>A headless, MCP-native data reconciliation engine with <strong>341 MCP tools</strong> across twenty major modules.</p>
 
                             <div class="card" style="margin-top: 20px;">
                                 <h4 style="color: var(--success);">Core Capabilities</h4>
@@ -1362,7 +1362,7 @@ graph TD
                     <!-- Tools Tab -->
                     <div id="tools-tab" class="tab-content">
                         <div class="doc-section">
-                            <h3>Tool Categories (292 Tools)</h3>
+                            <h3>Tool Categories (341 Tools)</h3>
 
                             <div class="tool-category">
                                 <h4>📂 File Discovery & Staging (3 tools)</h4>
@@ -2007,12 +2007,12 @@ ${precedenceLevels.map(p => `    SELECT * FROM ${p.toLowerCase()}_${p === 'P1' ?
         try {
             const resp = await fetch('/api/dashboard/stats');
             const data = await resp.json();
-            document.getElementById('toolCount').textContent = data.tool_count || '292';
-            document.getElementById('toolCountHeader').textContent = data.tool_count || '292';
+            document.getElementById('toolCount').textContent = data.tool_count || '341';
+            document.getElementById('toolCountHeader').textContent = data.tool_count || '341';
             document.getElementById('projectCount').textContent = data.project_count || '0';
             document.getElementById('workflowSteps').textContent = data.workflow_steps || '0';
-            document.getElementById('appVersion').textContent = 'v' + (data.version || '0.34.0');
-            document.getElementById('docVersion').textContent = 'v' + (data.version || '0.34.0');
+            document.getElementById('appVersion').textContent = 'v' + (data.version || '0.39.0');
+            document.getElementById('docVersion').textContent = 'v' + (data.version || '0.39.0');
 
             const tbody = document.getElementById('recentActivity');
             if (data.recent_activity && data.recent_activity.length > 0) {

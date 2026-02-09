@@ -23,13 +23,13 @@ sys.path.insert(0, str(databridge_ce_dir))
 app = Flask(__name__, template_folder=str(ui_dir), static_folder=str(ui_dir))
 
 # Configuration
-TOOL_COUNT = 315  # Current tool count (v0.36.0)
+TOOL_COUNT = 341  # Current tool count (v0.39.0)
 
 # Get version from src/__init__.py
 try:
     from src import __version__ as VERSION
 except ImportError:
-    VERSION = "0.35.0"  # Fallback
+    VERSION = "0.39.0"  # Fallback
 PROJECTS_DIR = project_root / 'use_cases_by_claude'
 BOOK_PROJECTS_DIR = project_root / 'Book' / 'use_cases'
 CLAUDE_MD_PATH = project_root / 'CLAUDE.md'

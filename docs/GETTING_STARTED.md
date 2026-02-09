@@ -129,29 +129,27 @@ NESTJS_API_KEY=v2-dev-key-1
 Launch the DataBridge AI Dashboard to access all features through a web interface:
 
 ```bash
-python apps/databridge-dashboard/run_dashboard.py
+python run_ui.py
 ```
 
 You should see:
 
 ```
-+-----------------------------------------------------------+
-|           DataBridge AI Dashboard v0.39.0                 |
-|                    341 MCP Tools                          |
-+-----------------------------------------------------------+
-|  Dashboard:  http://localhost:5051                        |
-|  MCP API:    http://localhost:8085 (run mcp_api.py)       |
-+-----------------------------------------------------------+
-|  Tabs:                                                    |
-|  - Multi AI      - LLM orchestration                      |
-|  - MCP CLI       - Tool execution                         |
-|  - Wright Builder - 4-object pipeline                     |
-|  - dbt Workflow  - AI-powered dbt                         |
-|  - Data Catalog  - Metadata registry                      |
-+-----------------------------------------------------------+
+╔════════════════════════════════════════════════════════════════╗
+║              DataBridge AI Dashboard v0.39.0                   ║
+║                     341 MCP Tools                              ║
+╠════════════════════════════════════════════════════════════════╣
+║  Dashboard:  http://127.0.0.1:5050                             ║
+║                                                                ║
+║  Features:                                                     ║
+║  • Data Reconciliation    • Hierarchy Builder                  ║
+║  • Wright Pipeline        • dbt Integration                    ║
+║  • Data Catalog           • Cortex AI                          ║
+║  • Data Observability     • GraphRAG Engine                    ║
+╚════════════════════════════════════════════════════════════════╝
 ```
 
-Open your browser to **http://localhost:5051** to access the dashboard.
+Open your browser to **http://localhost:5050** to access the dashboard.
 
 ### Verifying Installation
 
@@ -851,10 +849,10 @@ The DataBridge AI Dashboard provides a visual interface for all MCP tools.
 1. Start the dashboard server:
 
 ```bash
-python apps/databridge-dashboard/run_dashboard.py
+python run_ui.py
 ```
 
-2. Open your browser to **http://localhost:5051**
+2. Open your browser to **http://localhost:5050**
 
 ### Dashboard Tabs
 
@@ -942,7 +940,7 @@ The dashboard also exposes REST endpoints:
 Example API call:
 
 ```bash
-curl -X POST http://localhost:5051/api/tools/load_csv \
+curl -X POST http://localhost:5050/api/tools/load_csv \
   -H "Content-Type: application/json" \
   -d '{"file_path": "data/sample_gl_journal.csv"}'
 ```
