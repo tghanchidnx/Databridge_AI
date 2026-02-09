@@ -12,25 +12,25 @@ DataBridge AI uses a tiered product structure with open-source Community Edition
 ### Product Tiers
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                    DataBridge AI Product Tiers                       │
-├─────────────────────────────────────────────────────────────────────┤
-│  ┌──────────────────────┐  ┌──────────────────┐  ┌────────────────┐│
-│  │   COMMUNITY (Free)   │  │    PRO (Licensed) │  │   ENTERPRISE   ││
-│  │   Public GitHub      │  │  GitHub Packages  │  │    Custom      ││
-│  │   Public PyPI        │  │    License Key    │  │  Dedicated     ││
-│  ├──────────────────────┤  ├──────────────────┤  ├────────────────┤│
-│  │ • Data Reconciliation│  │ Everything in CE  │  │ Everything Pro ││
-│  │ • Fuzzy Matching     │  │ + Cortex AI Agent │  │ + Custom agents││
-│  │ • PDF/OCR Extraction │  │ + Wright Pipeline │  │ + White-label  ││
-│  │ • Data Profiling     │  │ + GraphRAG Engine │  │ + SLA support  ││
-│  │ • dbt Basic          │  │ + Data Observ.    │  │ + On-premise   ││
-│  │ • Data Quality       │  │ + Full Catalog    │  │ + Training     ││
-│  │ • UI Dashboard       │  │ + Column Lineage  │  │                ││
-│  │                      │  │ + AI Orchestrator │  │                ││
-│  │ ~106 tools           │  │ ~277 tools        │  │ 341+ tools     ││
-│  └──────────────────────┘  └──────────────────┘  └────────────────┘│
-└─────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────┐
+│                              DataBridge AI Product Tiers                              │
+├──────────────────────────────────────────────────────────────────────────────────────┤
+│  ┌────────────────┐  ┌────────────────┐  ┌──────────────────┐  ┌────────────────┐   │
+│  │ COMMUNITY (CE) │  │  PRO (Licensed)│  │  PRO EXAMPLES    │  │   ENTERPRISE   │   │
+│  │   Free         │  │ GitHub Packages│  │  Licensed Add-on │  │    Custom      │   │
+│  │   Public PyPI  │  │  License Key   │  │  GitHub Packages │  │  Dedicated     │   │
+│  ├────────────────┤  ├────────────────┤  ├──────────────────┤  ├────────────────┤   │
+│  │ • Data Recon.  │  │ Everything CE  │  │ 47 test files    │  │ Everything Pro │   │
+│  │ • Fuzzy Match  │  │ + Cortex AI    │  │ 19 use-case      │  │ + Custom agents│   │
+│  │ • PDF/OCR      │  │ + Wright       │  │   tutorials      │  │ + White-label  │   │
+│  │ • Data Profile │  │ + GraphRAG     │  │ • Beginner (4)   │  │ + SLA support  │   │
+│  │ • dbt Basic    │  │ + Observability│  │ • Financial (7)  │  │ + On-premise   │   │
+│  │ • Data Quality │  │ + Full Catalog │  │ • Faux Objects(8)│  │ + Training     │   │
+│  │ • UI Dashboard │  │ + Lineage      │  │ • CE tests       │  │                │   │
+│  │                │  │ + Orchestrator │  │ • Pro tests      │  │                │   │
+│  │ ~106 tools     │  │ ~277 tools     │  │ Requires Pro key │  │ 341+ tools     │   │
+│  └────────────────┘  └────────────────┘  └──────────────────┘  └────────────────┘   │
+└──────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### License Key System
@@ -50,6 +50,7 @@ DataBridge AI uses a tiered product structure with open-source Community Edition
 |------|---------|-------|
 | **CE** | File Discovery, Data Loading, Profiling, Hashing, Fuzzy Matching, PDF/OCR, Workflow, Transform, Documentation, Templates (basic), Diff Utilities, dbt Basic, Data Quality | ~106 |
 | **PRO** | Hierarchy Builder, Connections, Schema Matcher, Data Matcher, Orchestrator, Cortex AI, Wright Pipeline, Lineage, Git/CI-CD, Data Catalog, Versioning, GraphRAG, Observability | ~171 |
+| **PRO EXAMPLES** | Beginner tutorials (4), Financial tutorials (7), Faux Objects tutorials (8), CE test suite, Pro test suite, Shared fixtures | 47 tests + 19 use cases |
 | **ENT** | Custom Agents, White-label, SLA Support | Custom |
 
 ### Directory Structure
@@ -67,6 +68,16 @@ Databridge_AI/                    # PRIVATE - Main development repo
 ├── databridge-pro/              # PRIVATE - Pro Edition
 │   ├── pyproject.toml          # GitHub Packages: databridge-ai-pro
 │   └── LICENSE                  # Proprietary
+├── databridge-ai-examples/      # PRIVATE - Pro Examples package
+│   ├── src/
+│   │   ├── __init__.py         # Examples registration
+│   │   ├── use_cases/          # 19 tutorial use cases
+│   │   └── tests/              # CE & Pro test suites
+│   │       ├── ce/             # CE module tests
+│   │       ├── pro/            # Pro module tests
+│   │       └── conftest.py     # Shared fixtures
+│   ├── pyproject.toml          # GitHub Packages: databridge-ai-examples
+│   └── README.md
 └── scripts/
     └── generate_license.py      # License key generator
 ```
@@ -94,6 +105,7 @@ export DATABRIDGE_LICENSE_KEY="DB-PRO-..."
 |---------|----------|-----------------|
 | `databridge-ai` | [PyPI](https://pypi.org/project/databridge-ai/) | `pip install databridge-ai` |
 | `databridge-ai-pro` | [GitHub](https://github.com/tghanchidnx/databridge-ai-pro) | See below |
+| `databridge-ai-examples` | GitHub Packages | `pip install databridge-ai-examples` (+ license key) |
 
 **Pro Installation:**
 ```bash
@@ -104,6 +116,15 @@ export DATABRIDGE_LICENSE_KEY="DB-PRO-CUSTOMER-EXPIRY-SIGNATURE"
 # Install CE first, then Pro
 pip install databridge-ai
 pip install "databridge-ai-pro @ git+https://${GH_TOKEN}@github.com/tghanchidnx/databridge-ai-pro.git@v0.39.0"
+```
+
+**Pro Examples Installation:**
+```bash
+# CE tests + beginner use cases
+pip install databridge-ai-examples
+
+# Include Pro tests + advanced use cases
+pip install databridge-ai-examples[pro]
 ```
 
 ### GitHub Repositories
@@ -122,6 +143,7 @@ from src.plugins import get_license_manager
 mgr = get_license_manager()
 print(mgr.tier)              # 'CE', 'PRO', or 'ENTERPRISE'
 print(mgr.is_pro())          # True if Pro or higher
+print(mgr.is_pro_examples()) # True if Pro Examples available (requires Pro)
 print(mgr.is_enterprise())   # True if Enterprise
 print(mgr.get_status())      # Full status dict
 
@@ -638,6 +660,81 @@ generate_dbt_workflow(project_name="my-mart", output_path=".github/workflows/dbt
 
 ---
 
+## Pro Examples Sub-Tier
+
+The **Pro Examples** sub-tier packages tests and use-case tutorials as a separate pip package (`databridge-ai-examples`), gated behind a Pro license.
+
+### Package: `databridge-ai-examples`
+
+**License Gate:** Requires `DATABRIDGE_LICENSE_KEY` with Pro or higher tier.
+
+**Module Set (`PRO_EXAMPLES_MODULES`):**
+| Module ID | Contents |
+|-----------|----------|
+| `examples_beginner` | Use cases 01-04: Pizza shop sales, friend matching, school hierarchies, sports comparison |
+| `examples_financial` | Use cases 05-11: SEC EDGAR analysis, Apple/Microsoft financials, balance sheets, full pipelines |
+| `examples_faux_objects` | Use cases 12-19: Domain persona tutorials (financial, oil & gas, manufacturing, SaaS, transportation, SQL translator) |
+| `tests_ce` | Test suite for CE modules: data loading, hashing, fuzzy matching, dbt, data quality, diff utilities |
+| `tests_pro` | Test suite for Pro modules: hierarchy, cortex, catalog, versioning, wright, lineage, observability |
+| `test_fixtures` | Shared conftest.py, sample data helpers |
+
+### Use-Case Tutorials (19 total)
+
+**Beginner (01-04):**
+| # | Case | Description |
+|---|------|-------------|
+| 01 | Pizza Shop Sales Check | Sales reconciliation between POS and delivery |
+| 02 | Find My Friends | Data matching across class rosters |
+| 03 | School Report Card Hierarchy | Building a grading hierarchy |
+| 04 | Sports League Comparison | Comparing stats from two sources |
+
+**Financial (05-11):**
+| # | Case | Description |
+|---|------|-------------|
+| 05 | Apple Money Checkup | SEC EDGAR financial analysis |
+| 06 | Apple Money Tree | Hierarchy analysis of financials |
+| 07 | Apple vs Microsoft | Comparative financial analysis |
+| 08 | Apple Time Machine | Multi-year income statement analysis |
+| 09 | Balance Sheet Detective | Balance sheet reconciliation |
+| 10 | Full Financial Pipeline | End-to-end financial data pipeline |
+| 11 | Wall Street Analyst | Advanced multi-statement analysis |
+
+**Faux Objects (12-19):**
+| # | Case | Description |
+|---|------|-------------|
+| 12 | Financial Analyst | Financial domain persona |
+| 13 | Oil & Gas Analyst | Oil & gas domain persona |
+| 14 | Operations Analyst | Operations domain persona |
+| 15 | Cost Analyst | Cost analysis domain persona |
+| 16 | Manufacturing Analyst | Manufacturing domain persona |
+| 17 | SaaS Analyst | SaaS metrics domain persona |
+| 18 | Transportation Analyst | Transportation domain persona |
+| 19 | SQL Translator | SQL translation across dialects |
+
+### Test Suites
+
+**CE Tests (~12 files):** `test_data_loading`, `test_hashing`, `test_fuzzy_matching`, `test_workflow`, `test_dbt_integration`, `test_data_quality`, `test_diff`
+
+**Pro Tests (~15 files):** `test_hierarchy_kb`, `test_flexible_import`, `test_faux_objects`, `test_faux_objects_personas`, `test_faux_objects_translator`, `test_cortex_agent`, `test_cortex_analyst`, `test_console_ws`, `test_lineage`, `test_git_integration`, `test_versioning`, `test_wright_enhancements`, `test_mart_factory`, `test_data_catalog`, `test_observability`
+
+### Registration API
+
+```python
+from databridge_ai_examples import register_examples, USE_CASE_CATEGORIES
+
+# Auto-registered via entry point: databridge.plugins -> examples
+result = register_examples(mcp)
+# Returns: {'status': 'registered', 'version': '0.39.0', 'use_case_count': 19, 'categories': ['beginner', 'financial', 'faux_objects']}
+
+# License check
+from src.plugins import get_license_manager
+mgr = get_license_manager()
+mgr.is_pro_examples()        # True if Pro license active
+mgr.can_use_module('tests_ce')  # True if Pro license active
+```
+
+---
+
 ## Folder Structure
 
 ```
@@ -648,12 +745,14 @@ Databridge_AI/
 ├── tests/                  # Pytest suite
 ├── templates/              # Hierarchy templates by domain
 ├── skills/                 # AI expertise definitions
-└── knowledge_base/         # Client-specific configurations
+├── knowledge_base/         # Client-specific configurations
+├── databridge-ai-examples/ # Pro Examples package (tests + tutorials)
+└── use_cases_by_claude/    # Source use-case tutorials
 ```
 
 ---
 
-*Last Updated: 2026-02-07 | Version: 0.34.0 | Tools: 292*
+*Last Updated: 2026-02-09 | Version: 0.39.0 | Tools: 341 | Packages: 3 (CE, Pro, Pro Examples)*
 
 
 ## Test Section
