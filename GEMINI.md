@@ -626,3 +626,46 @@ _Updated: 2026-02-08 23:49:54_
 Updated documentation to v0.39.0 with 341 tools. Changes include: GETTING_STARTED.md (updated module table with Data Observability and GraphRAG, version bumps throughout), run_dashboard.py (API health/stats endpoints updated with observability module). All documentation now consistent across README.md, MANIFEST.md, GETTING_STARTED.md, and dashboard.
 
 ---
+
+
+## UI Architecture
+_Updated: 2026-02-08 23:59:41_
+
+## UI Architecture (v0.39.0)
+
+### Single Dashboard on Port 5050
+
+**Entry Point:** `python run_ui.py`
+
+**Location:** databridge-ce/ui/
+
+**Stack:**
+- Flask web server (server.py)
+- Modern dark theme UI (index.html - 106KB)
+- Professional typography: JetBrains Mono, DM Sans, Playfair Display
+
+**Key Pages:**
+- Dashboard - Stats, recent activity, quick start
+- Agent Console - Real-time agent messaging  
+- Tool Workbench - MCP tool execution
+- Hierarchy Projects - Project management
+- Workflow Editor - Visual workflow building
+- Wright Builder - 4-object pipeline generation
+- Administration - Settings and config
+- Help/Docs - Documentation viewer
+
+**API Endpoints:**
+- GET /api/dashboard/stats - Tool count, project count, version
+- GET /api/tools - List available MCP tools
+- GET /api/projects - List hierarchy projects
+- POST /api/wright/generate - Generate Wright SQL
+
+**Styling:**
+- Dark theme: #0a0e17 background, #3b82f6 accent
+- Card-based layout with subtle borders
+- Animated status indicators
+- Responsive grid layouts
+
+**Removed:** apps/databridge-dashboard/ (old port 5051)
+
+---
