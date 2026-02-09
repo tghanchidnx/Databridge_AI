@@ -594,3 +594,27 @@ obs_detect_anomaly(metric_name='hierarchy.validation.success_rate', value=72.0)
 obs_get_asset_health(asset_id='revenue-pl', asset_type='hierarchy_project')
 
 ---
+
+
+## README Documentation
+_Updated: 2026-02-08 23:45:57_
+
+README.md Updated - v0.39.0 with 341 Tools
+
+Key modules documented:
+- Hierarchy Builder (44 tools) - Multi-level hierarchy projects
+- Data Reconciliation (38 tools) - CSV/SQL/PDF/JSON comparison
+- Wright Module (29 tools) - Data mart generation with 4-object pipeline
+- Cortex AI (26 tools) - Natural language to SQL via Snowflake
+- Data Catalog (19 tools) - Metadata registry with business glossary
+- Data Observability (15 tools) - Metrics, alerting, anomaly detection, health scoring
+- Data Versioning (12 tools) - Semantic versioning with snapshots/rollback
+- GraphRAG Engine (10 tools) - Anti-hallucination with graph+vector RAG
+- Lineage Tracking (11 tools) - Column-level lineage and impact analysis
+- Git/CI-CD (12 tools) - Automated workflows and GitHub integration
+- dbt Integration (8 tools) - Generate dbt projects from hierarchies
+- Data Quality (7 tools) - Expectation suites and data contracts
+
+Architecture: MCP Protocol -> DataBridge Server -> Snowflake/CSV/SQL/PDF
+
+---
