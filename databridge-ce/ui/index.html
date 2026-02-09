@@ -1045,7 +1045,7 @@
                     <span>MCP: Connected</span>
                 </div>
                 <div class="status-item">
-                    <span id="toolCountHeader">341</span> tools
+                    <span id="toolCountHeader">348</span> tools
                 </div>
             </div>
         </header>
@@ -1125,7 +1125,7 @@
                 <h1 class="page-header">📊 Dashboard</h1>
                 <div class="stat-grid">
                     <div class="stat-card accent">
-                        <div class="stat-value" id="toolCount">341</div>
+                        <div class="stat-value" id="toolCount">348</div>
                         <div class="stat-label">MCP Tools</div>
                     </div>
                     <div class="stat-card primary">
@@ -1754,7 +1754,7 @@ graph TD
                             </div>
 
                             <div class="tool-category">
-                                <h4>🏗️ Hierarchy Builder (44 tools)</h4>
+                                <h4>🏗️ Hierarchy Builder (49 tools)</h4>
                                 <div class="tool-list">
                                     <span class="tool-tag">create_hierarchy_project</span>
                                     <span class="tool-tag">create_hierarchy</span>
@@ -2597,12 +2597,12 @@ ${precedenceLevels.map(p => `    SELECT * FROM ${p.toLowerCase()}_${p === 'P1' ?
         try {
             const resp = await fetch('/api/dashboard/stats');
             const data = await resp.json();
-            document.getElementById('toolCount').textContent = data.tool_count || '341';
-            document.getElementById('toolCountHeader').textContent = data.tool_count || '341';
+            document.getElementById('toolCount').textContent = data.tool_count || '348';
+            document.getElementById('toolCountHeader').textContent = data.tool_count || '348';
             document.getElementById('projectCount').textContent = data.project_count || '0';
             document.getElementById('workflowSteps').textContent = data.workflow_steps || '0';
-            document.getElementById('appVersion').textContent = 'v' + (data.version || '0.39.0');
-            document.getElementById('docVersion').textContent = 'v' + (data.version || '0.39.0');
+            document.getElementById('appVersion').textContent = 'v' + (data.version || '0.40.0');
+            document.getElementById('docVersion').textContent = 'v' + (data.version || '0.40.0');
 
             const tbody = document.getElementById('recentActivity');
             if (data.recent_activity && data.recent_activity.length > 0) {
