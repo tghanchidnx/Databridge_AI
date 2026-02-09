@@ -728,6 +728,191 @@
 
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        /* ============ DEMO ENGINE STYLES ============ */
+
+        .demo-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 0.82rem;
+        }
+        .demo-table th {
+            background: var(--bg-hover);
+            color: var(--primary);
+            padding: 6px 10px;
+            text-align: left;
+            border-bottom: 2px solid var(--border);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .demo-table td {
+            padding: 5px 10px;
+            border-bottom: 1px solid var(--border);
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .demo-table tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+        .demo-table tr:hover { background: var(--bg-hover); }
+        .demo-table .null-cell { color: var(--error); font-style: italic; }
+
+        .demo-tool-call {
+            background: var(--bg-code);
+            border-left: 3px solid var(--warning);
+            padding: 10px 14px;
+            margin: 8px 0;
+            border-radius: 0 6px 6px 0;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 0.82rem;
+        }
+        .demo-tool-call .tool-name {
+            color: var(--warning);
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .demo-tool-call .tool-params {
+            color: var(--text-dim);
+            white-space: pre-wrap;
+        }
+
+        .demo-code {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin: 8px 0;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 0.8rem;
+            white-space: pre-wrap;
+            color: var(--text);
+            overflow-x: auto;
+        }
+
+        .demo-selector select {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .demo-selector select:focus { outline: none; border-color: var(--primary); }
+
+        .demo-description {
+            color: var(--text-dim);
+            font-size: 0.82rem;
+            margin: 10px 0;
+            min-height: 36px;
+            line-height: 1.5;
+        }
+
+        .launch-demo-btn {
+            width: 100%;
+            padding: 10px 16px;
+            background: linear-gradient(135deg, var(--primary), #6366f1);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .launch-demo-btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+        .launch-demo-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        .cancel-demo-btn {
+            width: 100%;
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid var(--error);
+            border-radius: 8px;
+            color: var(--error);
+            font-family: inherit;
+            font-size: 0.85rem;
+            cursor: pointer;
+            margin-top: 8px;
+            display: none;
+            transition: all 0.2s;
+        }
+        .cancel-demo-btn:hover { background: rgba(239,68,68,0.1); }
+
+        .demo-speed-control {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+        .demo-speed-btn {
+            padding: 4px 14px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-dim);
+            font-family: inherit;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .demo-speed-btn.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(59,130,246,0.1);
+        }
+
+        .demo-match-good { color: var(--success); font-weight: 600; }
+        .demo-match-fuzzy { color: var(--warning); font-weight: 600; }
+        .demo-match-bad { color: var(--error); font-weight: 600; }
+
+        .demo-stat-highlight {
+            display: inline-block;
+            background: rgba(59,130,246,0.15);
+            color: var(--primary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            margin: 0 2px;
+        }
+
+        .demo-progress {
+            margin-top: 12px;
+            display: none;
+        }
+        .demo-progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--bg-dark);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .demo-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #6366f1);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        .demo-progress-text {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        .message .type.tool {
+            background: rgba(245,158,11,0.2);
+            color: var(--warning);
+        }
+        .message .type.result {
+            background: rgba(6,182,212,0.2);
+            color: var(--synthesis);
+        }
+
     </style>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 </head>
@@ -891,7 +1076,7 @@
                                     <span class="type system">SYSTEM</span>
                                 </div>
                                 <div class="content">Agent Communication Console initialized.
-Ready to process requests. Type a query below or use Quick Actions.</div>
+Ready to process requests. Type a query below or launch an Autonomous Demo.</div>
                             </div>
                         </div>
 
@@ -936,17 +1121,37 @@ Ready to process requests. Type a query below or use Quick Actions.</div>
                         </div>
 
                         <div class="detail-card">
-                            <h4>Quick Actions</h4>
-                            <div class="quick-actions">
-                                <button class="quick-action-btn" onclick="runDemo('revenue')">
-                                    📊 Query Revenue Data
+                            <h4>Autonomous Demos</h4>
+                            <div class="demo-selector">
+                                <select id="demoSelect" onchange="DemoEngine.onSelectChange()">
+                                    <option value="">-- Select a Demo --</option>
+                                    <option value="reconciliation">Data Reconciliation</option>
+                                    <option value="hierarchy">Financial Hierarchy Builder</option>
+                                    <option value="data_quality">Data Quality Analysis</option>
+                                    <option value="dbt_pipeline">dbt Pipeline Generation</option>
+                                    <option value="oil_gas">Oil &amp; Gas Well Analysis</option>
+                                    <option value="full_workflow">Full End-to-End Workflow</option>
+                                </select>
+                                <div class="demo-description" id="demoDescription">
+                                    Select a demo to see a hands-off walkthrough of DataBridge AI capabilities.
+                                </div>
+                                <button class="launch-demo-btn" id="launchDemoBtn" onclick="DemoEngine.launch()" disabled>
+                                    Launch Demo
                                 </button>
-                                <button class="quick-action-btn" onclick="runDemo('orphans')">
-                                    🔍 Find Orphan Accounts
+                                <button class="cancel-demo-btn" id="cancelDemoBtn" onclick="DemoEngine.cancel()">
+                                    Stop Demo
                                 </button>
-                                <button class="quick-action-btn" onclick="runDemo('validate')">
-                                    ✅ Validate Mappings
-                                </button>
+                                <div class="demo-speed-control">
+                                    <button class="demo-speed-btn active" onclick="DemoEngine.setSpeed(1, this)">1x</button>
+                                    <button class="demo-speed-btn" onclick="DemoEngine.setSpeed(2, this)">2x</button>
+                                    <button class="demo-speed-btn" onclick="DemoEngine.setSpeed(3, this)">3x</button>
+                                </div>
+                                <div class="demo-progress" id="demoProgress">
+                                    <div class="demo-progress-bar">
+                                        <div class="demo-progress-fill" id="demoProgressFill"></div>
+                                    </div>
+                                    <div class="demo-progress-text" id="demoProgressText">Step 0/0</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2608,16 +2813,6 @@ The system has processed your request through:
 Would you like me to provide more details or explore related data?`);
     }
 
-    async function runDemo(type) {
-        const queries = {
-            'revenue': 'Show me all Revenue accounts with negative balances',
-            'orphans': 'Find all GL accounts not mapped to any hierarchy',
-            'validate': 'Validate the P&L hierarchy against Chart of Accounts'
-        };
-        document.getElementById('queryInput').value = queries[type];
-        await sendQuery();
-    }
-
     function delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
@@ -3170,5 +3365,6 @@ Would you like me to provide more details or explore related data?`);
         }
     };
 </script>
+<script src="/ui/demo-engine.js"></script>
 </body>
 </html>
