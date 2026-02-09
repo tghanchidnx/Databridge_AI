@@ -13,7 +13,7 @@ sys.path.insert(0, str(project_root / 'databridge-ce'))
 sys.path.insert(0, str(project_root / 'src'))
 
 # Import and run the Flask app
-from databridge_ce.ui.server import app
+from ui.server import app
 
 if __name__ == '__main__':
     print("""
