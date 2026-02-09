@@ -13,7 +13,7 @@ For advanced features like Cortex AI, Wright Pipeline, GraphRAG, and more,
 upgrade to DataBridge AI Pro: https://databridge.ai/pro
 """
 
-__version__ = "0.39.0"
+__version__ = "0.40.0"
 __edition__ = "Community"
 
 from .server import mcp

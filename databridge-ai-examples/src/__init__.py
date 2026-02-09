@@ -9,7 +9,7 @@ Sub-modules:
     - tests.pro: Test suite for Pro modules (requires databridge-ai-pro)
 """
 
-__version__ = "0.39.0"
+__version__ = "0.40.0"
 
 USE_CASE_CATEGORIES = {
     'beginner': {

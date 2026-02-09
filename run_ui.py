@@ -18,8 +18,8 @@ from ui.server import app
 if __name__ == '__main__':
     print("""
 +================================================================+
-|              DataBridge AI Dashboard v0.39.0                   |
-|                     341 MCP Tools                              |
+|              DataBridge AI Dashboard v0.40.0                   |
+|                     348 MCP Tools                              |
 +================================================================+
 |  Dashboard:  http://127.0.0.1:5050                             |
 |                                                                |

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "databridge-ai-examples"
-version = "0.39.0"
+version = "0.40.0"
 description = "DataBridge AI Examples & Tests - Use-case tutorials and test suites for DataBridge AI"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -32,7 +32,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "databridge-ai>=0.39.0",
+    "databridge-ai>=0.40.0",
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "pytest-asyncio>=0.21.0",
@@ -40,7 +40,7 @@ dependencies = [
 
 [project.optional-dependencies]
 pro = [
-    "databridge-ai-pro>=0.39.0",
+    "databridge-ai-pro>=0.40.0",
 ]
 
 [project.urls]
