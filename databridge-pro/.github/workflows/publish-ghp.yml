@@ -1,0 +1,159 @@
+name: Publish Pro to GitHub Packages
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (leave empty to use pyproject.toml version)'
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build package
+        run: python -m build
+
+      - name: Check package
+        run: twine check dist/*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Install CE from PyPI first
+        run: pip install databridge-ai
+
+      - name: Install Pro package
+        run: pip install dist/*.whl
+
+      - name: Test import
+        run: |
+          python -c "from databridge_ai_pro import get_pro_status; print(get_pro_status())"
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: [build, test]
+    environment: github-packages
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install twine
+        run: pip install twine
+
+      - name: Get package version
+        id: version
+        run: |
+          VERSION=$(python -c "import tomllib; print(tomllib.load(open('dist/*.whl'.replace('*.whl', '') + '../pyproject.toml', 'rb'))['project']['version'])" 2>/dev/null || echo "0.39.0")
+          # Extract version from wheel filename
+          WHEEL_FILE=$(ls dist/*.whl | head -1)
+          VERSION=$(echo $WHEEL_FILE | sed -n 's/.*-\([0-9.]*\)-.*/\1/p')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Package version: $VERSION"
+
+      - name: Create installation instructions
+        run: |
+          cat > dist/INSTALL.md << 'EOF'
+          # DataBridge AI Pro Installation
+
+          ## Prerequisites
+          - Python 3.10+
+          - DataBridge AI Community Edition (`pip install databridge-ai`)
+          - Valid Pro license key
+
+          ## Installation
+
+          ### Option 1: Direct wheel install (Recommended)
+          ```bash
+          # Set your GitHub token (with repo access)
+          export GH_TOKEN="your_github_token"
+
+          # Download and install the wheel
+          pip install "databridge-ai-pro @ https://${GH_TOKEN}@github.com/tghanchidnx/databridge-ai-pro/releases/latest/download/databridge_ai_pro-VERSION-py3-none-any.whl"
+          ```
+
+          ### Option 2: Using pip with git
+          ```bash
+          pip install "databridge-ai-pro @ git+https://${GH_TOKEN}@github.com/tghanchidnx/databridge-ai-pro.git"
+          ```
+
+          ## License Activation
+          ```bash
+          export DATABRIDGE_LICENSE_KEY="DB-PRO-CUSTOMER-EXPIRY-SIGNATURE"
+          ```
+
+          ## Verify Installation
+          ```python
+          from databridge_ai_pro import get_pro_status
+          print(get_pro_status())
+          ```
+          EOF
+          echo "Installation instructions created"
+
+      - name: Upload to Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+            dist/INSTALL.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          echo "## DataBridge AI Pro Published! :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Installation" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo 'pip install "databridge-ai-pro @ git+https://${GH_TOKEN}@github.com/tghanchidnx/databridge-ai-pro.git"' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Files" >> $GITHUB_STEP_SUMMARY
+          ls -la dist/ >> $GITHUB_STEP_SUMMARY
