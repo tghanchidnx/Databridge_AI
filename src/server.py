@@ -1920,6 +1920,24 @@ except ImportError as e:
 
 
 # =============================================================================
+# Phase 32: Data Observability - Metrics, Alerting, Anomaly Detection
+# =============================================================================
+
+# Register Data Observability tools for real-time metrics collection,
+# threshold-based alerting, statistical anomaly detection, and health scoring
+try:
+    try:
+        from src.observability.mcp_tools import register_observability_tools
+    except ImportError:
+        from observability.mcp_tools import register_observability_tools
+
+    register_observability_tools(mcp, settings)
+    log_action("SYSTEM", "observability_init", "Data Observability tools registered (15 tools)")
+except ImportError as e:
+    print(f"Warning: Data Observability module not loaded: {e}")
+
+
+# =============================================================================
 # Entry Point
 # =============================================================================
 
