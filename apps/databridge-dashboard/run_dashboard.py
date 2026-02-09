@@ -45,14 +45,14 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
                 'statusCode': 200,
                 'data': {
                     'status': 'ok',
-                    'version': '0.38.0',
-                    'tools': 326
+                    'version': '0.39.0',
+                    'tools': 341
                 }
             })
         elif self.path == '/api/stats':
             self._send_json({
-                'tool_count': 326,
-                'version': '0.38.0',
+                'tool_count': 341,
+                'version': '0.39.0',
                 'modules': {
                     'wright': 29,
                     'hierarchies': 44,
@@ -61,7 +61,8 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
                     'dbt': 8,
                     'quality': 7,
                     'versioning': 12,
-                    'graphrag': 10
+                    'graphrag': 10,
+                    'observability': 15
                 }
             })
         # MCP API endpoints
@@ -172,7 +173,7 @@ def run_dashboard():
     with socketserver.TCPServer(("", DASHBOARD_PORT), DashboardHandler) as httpd:
         print(f"""
 ============================================================
-  DataBridge AI Dashboard v0.38.0 - 326 MCP Tools
+  DataBridge AI Dashboard v0.39.0 - 341 MCP Tools
 ============================================================
   Dashboard:  http://localhost:{DASHBOARD_PORT}
   API:        http://localhost:{DASHBOARD_PORT}/api/health
