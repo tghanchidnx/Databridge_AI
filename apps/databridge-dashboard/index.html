@@ -270,9 +270,9 @@
 
   <script>
     // Configuration
-    const API_BASE = 'http://localhost:3002/api';
+    const API_BASE = '/api';
     const API_KEY = 'v2-dev-key-1';
-    const MCP_API_BASE = 'http://localhost:8085';  // MCP HTTP API
+    const MCP_API_BASE = '/mcp';  // MCP HTTP API (served by dashboard)
 
     // LLM Provider Models
     const LLM_MODELS = {
@@ -2472,8 +2472,8 @@ Be concise and focus on execution.`;
         <div class="bg-white rounded-xl p-6 shadow-sm border">
           <h3 class="font-semibold mb-4">System Status</h3>
           <div class="space-y-2 text-sm">
-            <div class="flex justify-between"><span>Backend API</span><span class="text-green-600">✓ Online (3002)</span></div>
-            <div class="flex justify-between"><span>MCP API</span><span class="${mcpStatus ? 'text-green-600' : 'text-red-500'}">${mcpStatus ? '✓ Online (8085)' : '○ Offline'}</span></div>
+            <div class="flex justify-between"><span>Backend API</span><span class="${systemStatus ? 'text-green-600' : 'text-red-500'}">${systemStatus ? '✓ Online' : '○ Offline'}</span></div>
+            <div class="flex justify-between"><span>MCP API</span><span class="${mcpStatus ? 'text-green-600' : 'text-red-500'}">${mcpStatus ? '✓ Online' : '○ Offline'}</span></div>
             <div class="flex justify-between"><span>LLM</span><span>${activeLlm ? `✓ ${activeLlm.name}` : '○ Not configured'}</span></div>
             <div class="flex justify-between"><span>Data Source</span><span>${activeData ? `✓ ${activeData.connectionName || activeData.name}` : '○ None'}</span></div>
           </div>
