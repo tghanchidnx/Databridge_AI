@@ -1559,7 +1559,7 @@ print(f"Loaded {len(tools)} tools")
                 </div>
             </div>
         <!-- ==================== HIERARCHY BUILDER PAGE ==================== -->
-        <div id="hierarchy-builder" class="page" style="display:none;">
+        <div id="hierarchy-builder" class="page">
             <h1 class="page-header">⬡ Hierarchy Builder</h1>
 
             <!-- Section A: Project Manager (top bar) -->
@@ -3161,13 +3161,7 @@ Would you like me to provide more details or explore related data?`);
         document.getElementById('hb-detail-editor').style.display = 'none';
     }
 
-    // Auto-load projects when Hierarchy Builder page is shown
-    const origShowPage = window.showPage;
-    if (typeof origShowPage === 'function') {
-        // Will be patched below
-    }
-
-    // Patch showPage to trigger hbLoadProjects
+    // Patch showPage to auto-load projects when Hierarchy Builder page is shown
     const _originalShowPage = showPage;
     showPage = function(event, pageId) {
         _originalShowPage(event, pageId);
@@ -3175,8 +3169,6 @@ Would you like me to provide more details or explore related data?`);
             hbLoadProjects();
         }
     };
-
-    });
 </script>
 </body>
 </html>
