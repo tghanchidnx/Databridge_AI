@@ -483,12 +483,14 @@ generate_dbt_workflow(project_name="my-mart", output_path=".github/workflows/dbt
 ## Tech Stack
 
 ### Service Ports
-| Service | Port |
-|---------|------|
-| Frontend | 8000 |
-| Backend | 8001 |
-| MySQL | 3308 |
-| Redis | 6381 |
+| Service | Port | Notes |
+|---------|------|-------|
+| UI Dashboard (primary) | 5050 | `python run_ui.py` — Flask-based, main UI |
+| Dashboard API Server | 5051 | `python apps/databridge-dashboard/run_dashboard.py` — lightweight HTML + API + MCP |
+| Frontend (Docker) | 8000 | |
+| Backend (Docker) | 8001 | |
+| MySQL | 3308 | |
+| Redis | 6381 | |
 
 ### API Keys
 - `v2-dev-key-1` - Primary
@@ -666,6 +668,6 @@ _Updated: 2026-02-08 23:59:41_
 - Animated status indicators
 - Responsive grid layouts
 
-**Removed:** apps/databridge-dashboard/ (old port 5051)
+**Also available:** apps/databridge-dashboard/ (port 5051) — lightweight HTML dashboard with consolidated API + MCP endpoints (no separate servers needed)
 
 ---

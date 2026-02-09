@@ -69,13 +69,14 @@ python ask_claude_gemini.py --status  # Check session
 
 ## Service Ports
 
-| Service | Port |
-|---------|------|
-| UI Dashboard | 5050 |
-| Frontend (Docker) | 8000 |
-| Backend (Docker) | 8001 |
-| MySQL | 3308 |
-| Redis | 6381 |
+| Service | Port | Notes |
+|---------|------|-------|
+| UI Dashboard (primary) | 5050 | `python run_ui.py` — Flask-based, main UI |
+| Dashboard API Server | 5051 | `python apps/databridge-dashboard/run_dashboard.py` — lightweight, serves API + MCP endpoints |
+| Frontend (Docker) | 8000 | |
+| Backend (Docker) | 8001 | |
+| MySQL | 3308 | |
+| Redis | 6381 | |
 
 ## Safety
 
