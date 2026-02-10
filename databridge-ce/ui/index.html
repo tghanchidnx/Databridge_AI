@@ -1091,6 +1091,11 @@
                         <span class="nav-icon">✈️</span> Wright Builder
                     </a>
                 </li>
+                <li class="nav-item" data-page-id="researcher">
+                    <a href="#" class="nav-link" onclick="showPage(event, 'researcher')" data-tooltip="Source validation, data comparison, and profiling demos">
+                        <span class="nav-icon">🔬</span> Researcher
+                    </a>
+                </li>
                 <li class="nav-item" data-page-id="admin">
                     <a href="#" class="nav-link" onclick="showPage(event, 'admin')" data-tooltip="App configuration and connection settings">
                         <span class="nav-icon">⚙️</span> Administration
@@ -1153,6 +1158,14 @@
                                 <tr><td colspan="3" style="color: var(--text-dim);">Loading...</td></tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Sample Data Files</h3>
+                    <p style="color: var(--text-dim); margin-bottom: 10px;">Available in <code>data/</code> — click a file to load it in the Tool Workbench.</p>
+                    <div id="sampleDataList" style="max-height: 300px; overflow-y: auto;">
+                        <p style="color: var(--text-dim);">Loading...</p>
                     </div>
                 </div>
 
@@ -1643,6 +1656,103 @@ Ready to process requests. Type a query below or launch an Autonomous Demo.</div
                     <button class="btn" onclick="wrightRunViaMCP()" title="Execute pipeline generation via real MCP tools (create_mart_config + generate_mart_pipeline)">Run via MCP</button>
                     <button class="btn" onclick="exportPipelineZip()">Export as ZIP</button>
                     <button class="btn" onclick="saveWrightConfig()">Save Configuration</button>
+                </div>
+            </div>
+
+            <!-- Researcher Page -->
+            <div id="researcher" class="page">
+                <h1 class="page-header">🔬 Researcher</h1>
+                <p style="color: var(--text-dim); margin-bottom: 24px;">Run live demos against sample data using real MCP tools. Explore data quality, reconciliation, and schema analysis.</p>
+
+                <!-- Architecture Overview -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <h3>How the Researcher Works</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 12px;">
+                        <div>
+                            <p style="color: var(--text-dim); margin-bottom: 12px;">The Researcher validates source data, compares datasets, and profiles quality — all from sample CSV files included with DataBridge AI.</p>
+                            <div style="background: var(--bg-dark); border-radius: 8px; padding: 16px; font-size: 0.85rem; line-height: 1.8;">
+                                <div style="color: var(--primary);">CE Tools (Free):</div>
+                                <div style="color: var(--text-dim); padding-left: 12px;">load_csv, profile_data, compare_hashes, fuzzy_match_columns, detect_schema_drift</div>
+                                <div style="color: var(--warning); margin-top: 8px;">Pro Tools (Licensed):</div>
+                                <div style="color: var(--text-dim); padding-left: 12px;">analyze_book_with_researcher, compare_book_to_database, profile_book_sources</div>
+                            </div>
+                        </div>
+                        <div style="background: var(--bg-dark); border-radius: 8px; padding: 20px; font-family: monospace; font-size: 0.8rem; line-height: 2;">
+                            <div style="color: var(--text-dim);">Data Flow:</div>
+                            <div style="padding-left: 8px;">
+                                <span style="color: var(--success);">CSV Files</span> <span style="color: var(--text-dim);">--></span> <span style="color: var(--primary);">load_csv</span><br>
+                                <span style="color: var(--primary);">load_csv</span> <span style="color: var(--text-dim);">--></span> <span style="color: var(--warning);">profile_data</span> <span style="color: var(--text-dim);">(stats)</span><br>
+                                <span style="color: var(--primary);">load_csv</span> <span style="color: var(--text-dim);">--></span> <span style="color: var(--warning);">compare_hashes</span> <span style="color: var(--text-dim);">(diffs)</span><br>
+                                <span style="color: var(--primary);">load_csv</span> <span style="color: var(--text-dim);">--></span> <span style="color: var(--warning);">fuzzy_match</span> <span style="color: var(--text-dim);">(matches)</span><br>
+                                <span style="color: var(--success);">Two CSVs</span> <span style="color: var(--text-dim);">--></span> <span style="color: var(--error);">detect_schema_drift</span> <span style="color: var(--text-dim);">(changes)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Use Case Demo Cards -->
+                <h3 style="margin-bottom: 16px;">Live Demos</h3>
+                <div id="researcher-demos" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                    <div style="color: var(--text-dim); padding: 40px; text-align: center;">Loading demos...</div>
+                </div>
+
+                <!-- Pro Researcher Tools -->
+                <div class="card" style="margin-top: 24px;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                        <h3 style="margin: 0;">Pro Researcher Tools</h3>
+                        <span id="researcher-license-badge" style="background: var(--warning); color: #000; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">Requires Pro License</span>
+                    </div>
+                    <div id="researcher-pro-tools" style="opacity: 0.5; pointer-events: none;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                            <div style="background: var(--bg-dark); border-radius: 8px; padding: 16px;">
+                                <h4 style="font-size: 0.9rem; margin-bottom: 8px;">analyze_book_with_researcher</h4>
+                                <p style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 12px;">Analyze a Book's data sources against a database connection</p>
+                                <div class="form-group" style="margin-bottom: 8px;">
+                                    <label style="font-size: 0.8rem;">Book Name</label>
+                                    <input type="text" id="res-analyze-book" placeholder="e.g. Income Statement" style="width: 100%; padding: 6px 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-family: inherit;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 8px;">
+                                    <label style="font-size: 0.8rem;">Analysis Type</label>
+                                    <select id="res-analyze-type" style="width: 100%; padding: 6px 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-family: inherit;">
+                                        <option value="full">Full Analysis</option>
+                                        <option value="mapping_coverage">Mapping Coverage</option>
+                                        <option value="data_quality">Data Quality</option>
+                                    </select>
+                                </div>
+                                <button class="btn primary" onclick="runResearcherTool('analyze_book_with_researcher', {book_name: document.getElementById('res-analyze-book').value, analysis_type: document.getElementById('res-analyze-type').value})" style="width: 100%; font-size: 0.8rem;">Run Analysis</button>
+                            </div>
+                            <div style="background: var(--bg-dark); border-radius: 8px; padding: 16px;">
+                                <h4 style="font-size: 0.9rem; margin-bottom: 8px;">compare_book_to_database</h4>
+                                <p style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 12px;">Compare Book hierarchy against live database schema</p>
+                                <div class="form-group" style="margin-bottom: 8px;">
+                                    <label style="font-size: 0.8rem;">Book Name</label>
+                                    <input type="text" id="res-compare-book" placeholder="e.g. Income Statement" style="width: 100%; padding: 6px 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-family: inherit;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 8px;">
+                                    <label style="font-size: 0.8rem;">Connection ID</label>
+                                    <input type="text" id="res-compare-conn" placeholder="e.g. snowflake_prod" style="width: 100%; padding: 6px 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-family: inherit;">
+                                </div>
+                                <button class="btn primary" onclick="runResearcherTool('compare_book_to_database', {book_name: document.getElementById('res-compare-book').value, connection_id: document.getElementById('res-compare-conn').value})" style="width: 100%; font-size: 0.8rem;">Compare</button>
+                            </div>
+                            <div style="background: var(--bg-dark); border-radius: 8px; padding: 16px;">
+                                <h4 style="font-size: 0.9rem; margin-bottom: 8px;">profile_book_sources</h4>
+                                <p style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 12px;">Profile all data sources referenced by a Book</p>
+                                <div class="form-group" style="margin-bottom: 8px;">
+                                    <label style="font-size: 0.8rem;">Book Name</label>
+                                    <input type="text" id="res-profile-book" placeholder="e.g. Income Statement" style="width: 100%; padding: 6px 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-family: inherit;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 8px;">
+                                    <label style="font-size: 0.8rem;">Connection ID</label>
+                                    <input type="text" id="res-profile-conn" placeholder="e.g. snowflake_prod" style="width: 100%; padding: 6px 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-family: inherit;">
+                                </div>
+                                <button class="btn primary" onclick="runResearcherTool('profile_book_sources', {book_name: document.getElementById('res-profile-book').value, connection_id: document.getElementById('res-profile-conn').value})" style="width: 100%; font-size: 0.8rem;">Profile Sources</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="researcher-pro-result" style="margin-top: 16px; display: none;">
+                        <h4 style="margin-bottom: 8px;">Result</h4>
+                        <pre style="background: var(--bg-dark); padding: 16px; border-radius: 8px; max-height: 300px; overflow-y: auto; font-size: 0.8rem; white-space: pre-wrap;"></pre>
+                    </div>
                 </div>
             </div>
 
@@ -2204,6 +2314,7 @@ print(f"Loaded {len(tools)} tools")
         else if (pageId === 'workbench') loadTools();
         else if (pageId === 'projects') loadProjects();
         else if (pageId === 'workflow-editor') loadWorkflowTools();
+        else if (pageId === 'researcher') loadResearcherPage();
         else if (pageId === 'admin') loadConfig();
         else if (pageId === 'guide') {
             setTimeout(() => mermaid.run(), 100);
@@ -2217,6 +2328,149 @@ print(f"Loaded {len(tools)} tools")
         document.getElementById(tabId).classList.add('active');
         if (tabId === 'overview-tab') {
             setTimeout(() => mermaid.run(), 100);
+        }
+    }
+
+    // ============ RESEARCHER PAGE ============
+
+    async function loadResearcherPage() {
+        try {
+            const resp = await fetch('/api/demo/use-cases');
+            const data = await resp.json();
+            renderUseCaseCards(data.use_cases || []);
+        } catch (e) {
+            document.getElementById('researcher-demos').innerHTML =
+                '<div style="color: var(--error); padding: 20px;">Failed to load demos: ' + e.message + '</div>';
+        }
+        checkResearcherLicense();
+    }
+
+    function renderUseCaseCards(useCases) {
+        const container = document.getElementById('researcher-demos');
+        if (!useCases.length) {
+            container.innerHTML = '<div style="color: var(--text-dim); padding: 20px;">No demo use cases available.</div>';
+            return;
+        }
+        const categoryColors = {
+            'Data Quality': 'var(--success)',
+            'Reconciliation': 'var(--primary)'
+        };
+        container.innerHTML = useCases.map(uc => `
+            <div class="card" style="position: relative;" id="demo-card-${uc.id}">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <span style="background: ${categoryColors[uc.category] || 'var(--text-dim)'}; color: #000; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 600;">${uc.category}</span>
+                    ${uc.runnable ? '<span style="color: var(--success); font-size: 0.75rem;">Ready</span>' : '<span style="color: var(--warning); font-size: 0.75rem;">Tools unavailable</span>'}
+                </div>
+                <h4 style="margin-bottom: 6px;">${uc.title}</h4>
+                <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 10px;">${uc.description}</p>
+                <div style="margin-bottom: 12px;">
+                    <span style="color: var(--text-dim); font-size: 0.75rem;">Tools: </span>
+                    ${uc.tools.map(t => `<code style="background: var(--bg-dark); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin-right: 4px;">${t}</code>`).join('')}
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <span style="color: var(--text-dim); font-size: 0.75rem;">Data: </span>
+                    ${uc.data_files.map(f => `<span style="color: var(--synthesis); font-size: 0.75rem; margin-right: 6px;">${f}</span>`).join('')}
+                </div>
+                <button class="btn primary" onclick="runUseCase('${uc.id}')" ${uc.runnable ? '' : 'disabled'} style="width: 100%;" id="demo-btn-${uc.id}">
+                    Run Demo
+                </button>
+                <div id="demo-result-${uc.id}" style="display: none; margin-top: 12px;"></div>
+            </div>
+        `).join('');
+    }
+
+    async function runUseCase(useCaseId) {
+        const btn = document.getElementById('demo-btn-' + useCaseId);
+        const resultDiv = document.getElementById('demo-result-' + useCaseId);
+        btn.disabled = true;
+        btn.textContent = 'Running...';
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<div style="color: var(--text-dim); font-size: 0.85rem;">Executing tools against sample data...</div>';
+
+        try {
+            const resp = await fetch('/api/demo/run', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({use_case_id: useCaseId})
+            });
+            const data = await resp.json();
+            if (data.error) {
+                resultDiv.innerHTML = `<div style="color: var(--error);">${data.error}</div>`;
+                return;
+            }
+            resultDiv.innerHTML = formatDemoSteps(data.steps || []);
+            showNotification(`Demo "${data.use_case?.title}" completed with ${(data.steps || []).length} step(s)`, 'success');
+        } catch (e) {
+            resultDiv.innerHTML = `<div style="color: var(--error);">Error: ${e.message}</div>`;
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Run Demo';
+        }
+    }
+
+    function formatDemoSteps(steps) {
+        if (!steps.length) return '<div style="color: var(--text-dim);">No steps returned.</div>';
+        return steps.map((step, i) => {
+            let resultHtml = '';
+            const r = step.result;
+            if (r && typeof r === 'object' && r.error) {
+                resultHtml = `<div style="color: var(--error); font-size: 0.8rem;">${r.error}</div>`;
+            } else if (typeof r === 'string') {
+                resultHtml = `<pre style="background: var(--bg-dark); padding: 10px; border-radius: 6px; font-size: 0.75rem; max-height: 200px; overflow-y: auto; white-space: pre-wrap;">${r}</pre>`;
+            } else {
+                const text = JSON.stringify(r, null, 2);
+                const truncated = text.length > 2000 ? text.slice(0, 2000) + '\n... (truncated)' : text;
+                resultHtml = `<pre style="background: var(--bg-dark); padding: 10px; border-radius: 6px; font-size: 0.75rem; max-height: 200px; overflow-y: auto; white-space: pre-wrap;">${truncated}</pre>`;
+            }
+            return `
+                <div style="border-left: 2px solid var(--primary); padding-left: 12px; margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <span style="color: var(--primary); font-weight: 600; font-size: 0.8rem;">Step ${i + 1}</span>
+                        <code style="background: var(--bg-dark); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${step.tool}</code>
+                    </div>
+                    ${resultHtml}
+                </div>
+            `;
+        }).join('');
+    }
+
+    async function checkResearcherLicense() {
+        try {
+            const resp = await fetch('/api/tools');
+            const data = await resp.json();
+            const toolNames = (data.tools || []).map(t => t.name);
+            const hasProTools = toolNames.includes('analyze_book_with_researcher');
+            const badge = document.getElementById('researcher-license-badge');
+            const panel = document.getElementById('researcher-pro-tools');
+            if (hasProTools) {
+                badge.textContent = 'Pro Licensed';
+                badge.style.background = 'var(--success)';
+                panel.style.opacity = '1';
+                panel.style.pointerEvents = 'auto';
+            }
+        } catch (e) {
+            // Leave as locked
+        }
+    }
+
+    async function runResearcherTool(toolName, params) {
+        const resultDiv = document.getElementById('researcher-pro-result');
+        resultDiv.style.display = 'block';
+        resultDiv.querySelector('pre').textContent = 'Running ' + toolName + '...';
+        try {
+            const resp = await fetch('/api/tools/run', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({tool: toolName, params: params})
+            });
+            const data = await resp.json();
+            if (data.error) {
+                resultDiv.querySelector('pre').textContent = 'Error: ' + data.error;
+            } else {
+                resultDiv.querySelector('pre').textContent = JSON.stringify(data.result, null, 2);
+            }
+        } catch (e) {
+            resultDiv.querySelector('pre').textContent = 'Error: ' + e.message;
         }
     }
 
@@ -2725,6 +2979,72 @@ ${precedenceLevels.map(p => `    SELECT * FROM ${p.toLowerCase()}_${p === 'P1' ?
         } catch (e) {
             console.log('Dashboard stats error:', e);
         }
+    }
+
+    async function loadSampleData() {
+        try {
+            const resp = await fetch('/api/sample-data');
+            const data = await resp.json();
+            const container = document.getElementById('sampleDataList');
+            if (!data.files || data.files.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-dim);">No sample files found in data/</p>';
+                return;
+            }
+            const csvFiles = data.files.filter(f => f.type === 'csv');
+            const jsonFiles = data.files.filter(f => f.type === 'json');
+
+            let html = '<table style="width:100%; border-collapse:collapse; font-size:0.85rem;">';
+            html += '<thead><tr style="border-bottom:1px solid var(--border-color);">';
+            html += '<th style="padding:6px; text-align:left;">File</th>';
+            html += '<th style="padding:6px; text-align:right;">Size</th>';
+            html += '<th style="padding:6px; text-align:right;">Rows</th>';
+            html += '<th style="padding:6px; text-align:center;">Actions</th>';
+            html += '</tr></thead><tbody>';
+
+            if (csvFiles.length > 0) {
+                html += `<tr><td colspan="4" style="padding:8px 6px 4px; font-weight:700; color:var(--accent);">CSV Files (${csvFiles.length})</td></tr>`;
+                csvFiles.forEach(f => {
+                    html += `<tr style="border-bottom:1px solid var(--border-color);">
+                        <td style="padding:5px 6px;">${f.name}</td>
+                        <td style="padding:5px 6px; text-align:right; color:var(--text-dim);">${f.size_human}</td>
+                        <td style="padding:5px 6px; text-align:right; color:var(--text-dim);">${f.rows != null ? f.rows.toLocaleString() : '-'}</td>
+                        <td style="padding:5px 6px; text-align:center;">
+                            <button class="btn" style="font-size:0.75rem; padding:2px 8px;" onclick="sampleDataAction('load_csv','${f.path.replace(/\\/g, '\\\\\\\\')}')">Load</button>
+                            <button class="btn" style="font-size:0.75rem; padding:2px 8px;" onclick="sampleDataAction('profile_data','${f.path.replace(/\\/g, '\\\\\\\\')}')">Profile</button>
+                        </td>
+                    </tr>`;
+                });
+            }
+            if (jsonFiles.length > 0) {
+                html += `<tr><td colspan="4" style="padding:8px 6px 4px; font-weight:700; color:var(--accent);">JSON Files (${jsonFiles.length})</td></tr>`;
+                jsonFiles.forEach(f => {
+                    html += `<tr style="border-bottom:1px solid var(--border-color);">
+                        <td style="padding:5px 6px;">${f.name}</td>
+                        <td style="padding:5px 6px; text-align:right; color:var(--text-dim);">${f.size_human}</td>
+                        <td style="padding:5px 6px; text-align:right; color:var(--text-dim);">-</td>
+                        <td style="padding:5px 6px; text-align:center;">
+                            <button class="btn" style="font-size:0.75rem; padding:2px 8px;" onclick="sampleDataAction('load_json','${f.path.replace(/\\/g, '\\\\\\\\')}')">Load</button>
+                        </td>
+                    </tr>`;
+                });
+            }
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        } catch (e) {
+            console.log('Sample data error:', e);
+            document.getElementById('sampleDataList').innerHTML = '<p style="color: var(--text-dim);">Could not load sample data list</p>';
+        }
+    }
+
+    function sampleDataAction(toolName, filePath) {
+        showPage(null, 'workbench');
+        setTimeout(() => {
+            selectTool(toolName);
+            setTimeout(() => {
+                const input = document.getElementById('param_file_path');
+                if (input) input.value = filePath;
+            }, 100);
+        }, 100);
     }
 
     // ============ SEARCH ============
@@ -3334,6 +3654,7 @@ Would you like me to provide more details or explore related data?`);
     document.addEventListener('DOMContentLoaded', () => {
         loadTools();
         loadDashboardStats();
+        loadSampleData();
 
         // Close search on click outside
         document.addEventListener('click', (e) => {
@@ -3421,7 +3742,7 @@ Would you like me to provide more details or explore related data?`);
     async function hbLoadDemoProject() {
         const btn = document.getElementById('hb-demo-btn');
         btn.disabled = true;
-        btn.textContent = 'Creating...';
+        btn.textContent = 'Running...';
         try {
             const resp = await fetch('/api/demo/seed', {
                 method: 'POST',
@@ -3432,11 +3753,15 @@ Would you like me to provide more details or explore related data?`);
                 showNotification('Demo error: ' + data.error, 'error');
                 return;
             }
-            showNotification(data.message || 'Demo project created!', 'success');
-            await hbLoadProjects();
             if (data.project_id) {
+                // Pro mode: hierarchy project was created
+                showNotification(data.message || 'Demo project created!', 'success');
+                await hbLoadProjects();
                 document.getElementById('hb-project-select').value = data.project_id;
                 hbSelectProject(data.project_id);
+            } else {
+                // CE mode: sample data demos were run
+                showNotification(data.message || 'CE demo completed! Visit the Researcher tab for more demos.', 'success');
             }
         } catch (e) {
             showNotification('Demo seed failed: ' + e.message, 'error');

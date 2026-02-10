@@ -313,6 +313,35 @@ def save_wright_config():
 
     return jsonify({'success': True, 'message': f'Configuration saved: {name}'})
 
+# --- Sample Data Discovery ---
+
+@app.route('/api/sample-data', methods=['GET'])
+def get_sample_data():
+    """List sample data files available in the data/ directory."""
+    data_dir = project_root / 'data'
+    files = []
+    if data_dir.exists():
+        for ext in ['*.csv', '*.json']:
+            for f in sorted(data_dir.glob(ext)):
+                try:
+                    size = f.stat().st_size
+                    # Quick row count for CSVs
+                    row_count = None
+                    if f.suffix == '.csv':
+                        with open(f, 'r', encoding='utf-8', errors='ignore') as fh:
+                            row_count = sum(1 for _ in fh) - 1  # minus header
+                    files.append({
+                        'name': f.name,
+                        'path': str(f),
+                        'type': f.suffix.lstrip('.'),
+                        'size': size,
+                        'size_human': f'{size/1024:.1f} KB' if size < 1048576 else f'{size/1048576:.1f} MB',
+                        'rows': row_count,
+                    })
+                except Exception:
+                    pass
+    return jsonify({'files': files, 'total': len(files), 'data_dir': str(data_dir)})
+
 # --- File Upload Routes ---
 
 @app.route('/api/upload-csv', methods=['POST'])
@@ -404,137 +433,217 @@ def run_tool():
         return jsonify({"error": error_msg}), 500
 
 
-# --- Demo Seed Endpoint ---
+# --- Demo / Use Case Endpoints ---
+
+# Curated use case demos that run real CE tools against sample data
+USE_CASES = [
+    {
+        "id": "financial_profiling",
+        "title": "Financial Statement Profiling",
+        "description": "Profile Apple's income statement — column stats, types, nulls, distributions",
+        "tools": ["load_csv", "profile_data"],
+        "data_files": ["apple_income_statement.csv"],
+        "category": "Data Quality"
+    },
+    {
+        "id": "fuzzy_matching",
+        "title": "Student Roster Fuzzy Matching",
+        "description": "Match morning vs afternoon class rosters — catch spelling variations (Emily Johnson vs Emily Jonson)",
+        "tools": ["load_csv", "fuzzy_match_columns"],
+        "data_files": ["class_roster_morning.csv", "class_roster_afternoon.csv"],
+        "category": "Reconciliation"
+    },
+    {
+        "id": "conflict_detection",
+        "title": "Sports Stats Conflict Detection",
+        "description": "Compare official league stats vs newspaper — find orphans and conflicting records",
+        "tools": ["load_csv", "compare_hashes"],
+        "data_files": ["league_stats_official.csv", "league_stats_newspaper.csv"],
+        "category": "Reconciliation"
+    },
+    {
+        "id": "schema_drift",
+        "title": "Year-over-Year Schema Drift",
+        "description": "Detect schema changes between Apple income 2023 vs 2024 — new/removed/changed columns",
+        "tools": ["detect_schema_drift"],
+        "data_files": ["apple_income_2023.csv", "apple_income_2024.csv"],
+        "category": "Data Quality"
+    }
+]
+
+
+def _run_mcp_tool(tools_dict, name, params):
+    """Run an MCP tool synchronously and return serialized result."""
+    import asyncio
+    tool = tools_dict.get(name)
+    if not tool:
+        return {"error": f"Tool '{name}' not available"}
+    try:
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    raw = pool.submit(lambda: asyncio.run(tool.run(params))).result()
+            else:
+                raw = loop.run_until_complete(tool.run(params))
+        except RuntimeError:
+            raw = asyncio.run(tool.run(params))
+        return _serialize_tool_result(raw)
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def _get_tools_dict():
+    """Get the MCP tools dictionary, or empty dict if unavailable."""
+    try:
+        from src.server import mcp as mcp_server
+        tool_manager = getattr(mcp_server, '_tool_manager', None)
+        if tool_manager:
+            return getattr(tool_manager, '_tools', {})
+    except Exception:
+        pass
+    return {}
+
 
 @app.route('/api/demo/seed', methods=['POST'])
 def seed_demo_project():
-    """Create a demo hierarchy project with sample data for first-time users."""
-    try:
-        from src.server import mcp as mcp_server
+    """Run a CE-compatible demo using sample data files, or create hierarchy project if Pro."""
+    tools = _get_tools_dict()
+    data_dir = str(project_root / 'data')
 
-        tool_manager = getattr(mcp_server, '_tool_manager', None)
-        if not tool_manager:
-            return jsonify({"error": "MCP server not initialized"}), 500
-
-        tools = getattr(tool_manager, '_tools', {})
-
-        # Check that hierarchy tools are available (requires Pro license)
-        if 'create_hierarchy_project' not in tools:
-            return jsonify({
-                "error": "Hierarchy Builder tools not available. This feature requires a Pro license.",
-                "hint": "Run with a Pro license key to enable hierarchy tools and the demo project."
-            }), 400
-
-        import asyncio
-
-        def run_tool(name, params):
-            tool = tools.get(name)
-            if not tool:
-                raise RuntimeError(f"Tool '{name}' not found")
-            try:
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    import concurrent.futures
-                    with concurrent.futures.ThreadPoolExecutor() as pool:
-                        raw = pool.submit(lambda: asyncio.run(tool.run(params))).result()
-                else:
-                    raw = loop.run_until_complete(tool.run(params))
-            except RuntimeError:
-                raw = asyncio.run(tool.run(params))
-            return _serialize_tool_result(raw)
-
-        # 1. Create project
-        project_result = run_tool('create_hierarchy_project', {
-            'name': 'Demo - Financial Reporting 2024',
-            'description': 'Sample income statement hierarchy with source mappings and formulas. Created by DataBridge AI demo seed.'
-        })
-
-        # Parse project result
-        if isinstance(project_result, str):
-            import json as json_mod
-            project_result = json_mod.loads(project_result)
-        project = project_result.get('project', project_result)
-        project_id = project.get('id') or project.get('project_id', '')
-
-        if not project_id:
-            return jsonify({"error": "Failed to create demo project", "details": project_result}), 500
-
-        # 2. Create root: Income Statement
-        root_result = run_tool('create_hierarchy', {
-            'project_id': project_id,
-            'hierarchy_name': 'Income Statement',
-        })
-        if isinstance(root_result, str):
-            root_result = json.loads(root_result)
-        root_id = (root_result.get('hierarchy', root_result) or {}).get('id', '')
-
-        # 3. Create children
-        children = ['Revenue', 'Cost of Goods Sold', 'Gross Profit', 'Operating Expenses', 'Net Income']
-        child_ids = {}
-        for child_name in children:
-            child_result = run_tool('create_hierarchy', {
-                'project_id': project_id,
-                'hierarchy_name': child_name,
-                'parent_id': root_id,
+    # If Pro hierarchy tools available, try to create a full hierarchy demo
+    if 'create_hierarchy_project' in tools:
+        try:
+            result = _run_mcp_tool(tools, 'create_hierarchy_project', {
+                'name': 'Demo - Financial Reporting 2024',
+                'description': 'Sample income statement hierarchy. Created by DataBridge AI demo seed.'
             })
-            if isinstance(child_result, str):
-                child_result = json.loads(child_result)
-            child_obj = child_result.get('hierarchy', child_result) or {}
-            child_ids[child_name] = child_obj.get('id', child_obj.get('hierarchy_id', ''))
-
-        # 4. Add sample source mappings to Revenue and COGS
-        if child_ids.get('Revenue'):
-            try:
-                run_tool('add_source_mapping', {
-                    'project_id': project_id,
-                    'hierarchy_id': child_ids['Revenue'],
-                    'source_database': 'ANALYTICS',
-                    'source_schema': 'GL',
-                    'source_table': 'FACT_JOURNAL_ENTRIES',
-                    'source_column': 'REVENUE_AMOUNT',
+            if isinstance(result, str):
+                result = json.loads(result)
+            project = result.get('project', result) or {}
+            project_id = project.get('id') or project.get('project_id', '')
+            if project_id:
+                return jsonify({
+                    "success": True,
+                    "project_id": project_id,
+                    "message": "Demo project 'Financial Reporting 2024' created."
                 })
-            except Exception:
-                pass  # Non-critical
+        except Exception:
+            pass  # Fall through to CE demo
 
-        if child_ids.get('Cost of Goods Sold'):
-            try:
-                run_tool('add_source_mapping', {
-                    'project_id': project_id,
-                    'hierarchy_id': child_ids['Cost of Goods Sold'],
-                    'source_database': 'ANALYTICS',
-                    'source_schema': 'GL',
-                    'source_table': 'FACT_JOURNAL_ENTRIES',
-                    'source_column': 'COGS_AMOUNT',
-                })
-            except Exception:
-                pass
+    # CE mode: run sample data demos
+    results = []
+    data_path = lambda f: str(project_root / 'data' / f)
 
-        # 5. Add formula: Gross Profit = Revenue - COGS
-        if child_ids.get('Gross Profit') and child_ids.get('Revenue') and child_ids.get('Cost of Goods Sold'):
-            try:
-                run_tool('add_formula_rule', {
-                    'project_id': project_id,
-                    'main_hierarchy_id': child_ids['Gross Profit'],
-                    'operation': 'SUM',
-                    'source_hierarchy_id': child_ids['Revenue'],
-                })
-                run_tool('add_formula_rule', {
-                    'project_id': project_id,
-                    'main_hierarchy_id': child_ids['Gross Profit'],
-                    'operation': 'SUBTRACT',
-                    'source_hierarchy_id': child_ids['Cost of Goods Sold'],
-                })
-            except Exception:
-                pass
+    # Step 1: Profile financial data
+    if 'profile_data' in tools:
+        r = _run_mcp_tool(tools, 'profile_data', {'file_path': data_path('apple_income_statement.csv')})
+        results.append({"step": "Profile Financial Data", "tool": "profile_data", "result": r})
 
-        return jsonify({
-            "success": True,
-            "project_id": project_id,
-            "message": "Demo project 'Financial Reporting 2024' created with 6 hierarchies, 2 mappings, and 1 formula."
+    # Step 2: Load and compare league stats
+    if 'compare_hashes' in tools:
+        r = _run_mcp_tool(tools, 'compare_hashes', {
+            'file_a': data_path('league_stats_official.csv'),
+            'file_b': data_path('league_stats_newspaper.csv'),
+            'key_columns': 'team_name'
+        })
+        results.append({"step": "Compare League Stats", "tool": "compare_hashes", "result": r})
+
+    # Step 3: Fuzzy match class rosters
+    if 'load_csv' in tools:
+        r = _run_mcp_tool(tools, 'load_csv', {'file_path': data_path('class_roster_morning.csv')})
+        results.append({"step": "Load Class Roster", "tool": "load_csv", "result": r})
+
+    if not results:
+        # No MCP tools available at all — return static demo info
+        results.append({
+            "step": "Sample Data Available",
+            "tool": "none",
+            "result": "24 CSV files found in data/ directory. Start the MCP server to run live demos."
         })
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return jsonify({
+        "success": True,
+        "message": f"CE Demo completed — {len(results)} scenario(s) run against sample data.",
+        "results": results
+    })
+
+
+@app.route('/api/demo/use-cases', methods=['GET'])
+def list_demo_use_cases():
+    """List available demo use cases with their tools and data files."""
+    tools = _get_tools_dict()
+    enriched = []
+    for uc in USE_CASES:
+        enriched.append({
+            **uc,
+            "tools_available": [t for t in uc["tools"] if t in tools],
+            "tools_missing": [t for t in uc["tools"] if t not in tools],
+            "runnable": all(t in tools for t in uc["tools"]),
+            "data_exists": all((project_root / 'data' / f).exists() for f in uc["data_files"])
+        })
+    return jsonify({"use_cases": enriched})
+
+
+@app.route('/api/demo/run', methods=['POST'])
+def run_demo_use_case():
+    """Execute a specific demo use case against sample data."""
+    data = request.get_json()
+    use_case_id = data.get('use_case_id', '') if data else ''
+
+    uc = next((u for u in USE_CASES if u['id'] == use_case_id), None)
+    if not uc:
+        return jsonify({"error": f"Use case '{use_case_id}' not found"}), 404
+
+    tools = _get_tools_dict()
+    data_path = lambda f: str(project_root / 'data' / f)
+    steps = []
+
+    if use_case_id == 'financial_profiling':
+        r = _run_mcp_tool(tools, 'load_csv', {'file_path': data_path('apple_income_statement.csv')})
+        steps.append({"tool": "load_csv", "params": {"file_path": "data/apple_income_statement.csv"}, "result": r})
+        r = _run_mcp_tool(tools, 'profile_data', {'file_path': data_path('apple_income_statement.csv')})
+        steps.append({"tool": "profile_data", "params": {"file_path": "data/apple_income_statement.csv"}, "result": r})
+
+    elif use_case_id == 'fuzzy_matching':
+        r = _run_mcp_tool(tools, 'load_csv', {'file_path': data_path('class_roster_morning.csv')})
+        steps.append({"tool": "load_csv", "params": {"file_path": "data/class_roster_morning.csv"}, "result": r})
+        r = _run_mcp_tool(tools, 'load_csv', {'file_path': data_path('class_roster_afternoon.csv')})
+        steps.append({"tool": "load_csv", "params": {"file_path": "data/class_roster_afternoon.csv"}, "result": r})
+        r = _run_mcp_tool(tools, 'fuzzy_match_columns', {
+            'source_columns': 'student_name',
+            'target_columns': 'student_name',
+            'source_file': data_path('class_roster_morning.csv'),
+            'target_file': data_path('class_roster_afternoon.csv')
+        })
+        steps.append({"tool": "fuzzy_match_columns", "params": {"source": "class_roster_morning.csv", "target": "class_roster_afternoon.csv"}, "result": r})
+
+    elif use_case_id == 'conflict_detection':
+        r = _run_mcp_tool(tools, 'load_csv', {'file_path': data_path('league_stats_official.csv')})
+        steps.append({"tool": "load_csv", "params": {"file_path": "data/league_stats_official.csv"}, "result": r})
+        r = _run_mcp_tool(tools, 'load_csv', {'file_path': data_path('league_stats_newspaper.csv')})
+        steps.append({"tool": "load_csv", "params": {"file_path": "data/league_stats_newspaper.csv"}, "result": r})
+        r = _run_mcp_tool(tools, 'compare_hashes', {
+            'file_a': data_path('league_stats_official.csv'),
+            'file_b': data_path('league_stats_newspaper.csv'),
+            'key_columns': 'team_name'
+        })
+        steps.append({"tool": "compare_hashes", "params": {"key_columns": "team_name"}, "result": r})
+
+    elif use_case_id == 'schema_drift':
+        r = _run_mcp_tool(tools, 'detect_schema_drift', {
+            'file_a': data_path('apple_income_2023.csv'),
+            'file_b': data_path('apple_income_2024.csv')
+        })
+        steps.append({"tool": "detect_schema_drift", "params": {"file_a": "2023", "file_b": "2024"}, "result": r})
+
+    return jsonify({
+        "success": True,
+        "use_case": uc,
+        "steps": steps,
+        "message": f"Ran {len(steps)} step(s) for '{uc['title']}'"
+    })
 
 # --- Main Entry Point ---
 
