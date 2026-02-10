@@ -58,6 +58,7 @@ PRO_MODULES = {
     'faux_objects',
     'git_integration',
     'templates_advanced',
+    'datashield',
 }
 
 ENTERPRISE_MODULES = {

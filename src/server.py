@@ -2030,6 +2030,27 @@ else:
 
 
 # =============================================================================
+# Phase 33: DataShield - Confidential Data Scrambling (Pro Feature)
+# =============================================================================
+
+# Register DataShield tools for deterministic data scrambling that preserves
+# patterns, cardinality, and referential integrity while protecting confidential values
+if is_pro_feature_enabled():
+    try:
+        try:
+            from src.datashield.mcp_tools import register_datashield_tools
+        except ImportError:
+            from datashield.mcp_tools import register_datashield_tools
+
+        register_datashield_tools(mcp, settings)
+        log_action("SYSTEM", "datashield_init", "DataShield tools registered (12 tools)")
+    except ImportError as e:
+        print(f"Warning: DataShield module not loaded: {e}")
+else:
+    print("[License] DataShield requires Pro license - skipped")
+
+
+# =============================================================================
 # Entry Point
 # =============================================================================
 
