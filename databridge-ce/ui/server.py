@@ -544,8 +544,8 @@ def seed_demo_project():
     # Step 2: Load and compare league stats
     if 'compare_hashes' in tools:
         r = _run_mcp_tool(tools, 'compare_hashes', {
-            'file_a': data_path('league_stats_official.csv'),
-            'file_b': data_path('league_stats_newspaper.csv'),
+            'source_file': data_path('league_stats_official.csv'),
+            'target_file': data_path('league_stats_newspaper.csv'),
             'key_columns': 'team_name'
         })
         results.append({"step": "Compare League Stats", "tool": "compare_hashes", "result": r})
@@ -612,8 +612,8 @@ def run_demo_use_case():
         r = _run_mcp_tool(tools, 'load_csv', {'file_path': data_path('class_roster_afternoon.csv')})
         steps.append({"tool": "load_csv", "params": {"file_path": "data/class_roster_afternoon.csv"}, "result": r})
         r = _run_mcp_tool(tools, 'fuzzy_match_columns', {
-            'source_columns': 'student_name',
-            'target_columns': 'student_name',
+            'source_column': 'student_name',
+            'target_column': 'student_name',
             'source_file': data_path('class_roster_morning.csv'),
             'target_file': data_path('class_roster_afternoon.csv')
         })
@@ -625,8 +625,8 @@ def run_demo_use_case():
         r = _run_mcp_tool(tools, 'load_csv', {'file_path': data_path('league_stats_newspaper.csv')})
         steps.append({"tool": "load_csv", "params": {"file_path": "data/league_stats_newspaper.csv"}, "result": r})
         r = _run_mcp_tool(tools, 'compare_hashes', {
-            'file_a': data_path('league_stats_official.csv'),
-            'file_b': data_path('league_stats_newspaper.csv'),
+            'source_file': data_path('league_stats_official.csv'),
+            'target_file': data_path('league_stats_newspaper.csv'),
             'key_columns': 'team_name'
         })
         steps.append({"tool": "compare_hashes", "params": {"key_columns": "team_name"}, "result": r})
