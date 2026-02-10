@@ -1,0 +1,12 @@
+{
+  "name": "planner",
+  "version": "0.40.0",
+  "description": "AI-powered workflow planning agent",
+  "tier": "CE",
+  "phase": 14,
+  "tools": 11,
+  "author": "DataBridge AI",
+  "register_function": "register_planner_tools",
+  "arg_pattern": "mcp_only",
+  "module_file": "mcp_tools.py"
+}

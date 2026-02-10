@@ -1,0 +1,12 @@
+{
+  "name": "recommendations",
+  "version": "0.40.0",
+  "description": "Smart recommendation engine for context-aware CSV import suggestions",
+  "tier": "CE",
+  "phase": 15,
+  "tools": 5,
+  "author": "DataBridge AI",
+  "register_function": "register_recommendation_tools",
+  "arg_pattern": "mcp_only",
+  "module_file": "mcp_tools.py"
+}

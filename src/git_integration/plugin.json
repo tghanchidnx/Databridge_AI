@@ -1,0 +1,12 @@
+{
+  "name": "git_integration",
+  "version": "0.40.0",
+  "description": "Git operations, GitHub PRs, and CI/CD workflows",
+  "tier": "CE",
+  "phase": 28,
+  "tools": 12,
+  "author": "DataBridge AI",
+  "register_function": "register_git_integration_tools",
+  "arg_pattern": "mcp_settings",
+  "module_file": "mcp_tools.py"
+}

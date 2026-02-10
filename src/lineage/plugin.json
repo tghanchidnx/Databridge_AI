@@ -1,0 +1,12 @@
+{
+  "name": "lineage",
+  "version": "0.40.0",
+  "description": "Column-level lineage tracking and impact analysis",
+  "tier": "PRO",
+  "phase": 27,
+  "tools": 11,
+  "author": "DataBridge AI",
+  "register_function": "register_lineage_tools",
+  "arg_pattern": "mcp_settings",
+  "module_file": "mcp_tools.py"
+}

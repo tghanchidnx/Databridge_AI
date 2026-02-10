@@ -1611,443 +1611,48 @@ def get_license_status() -> str:
 
 
 # =============================================================================
-# Phase 9: Hierarchy Builder Integration (Pro Feature)
+# Plugin Loading — Dynamic registration of all external modules (Phase 9+)
 # =============================================================================
 
-# Register hierarchy management tools (Pro feature, but basic version available in CE)
-if is_pro_feature_enabled():
-    try:
-        try:
-            from src.hierarchy.mcp_tools import register_hierarchy_tools
-        except ImportError:
-            from hierarchy.mcp_tools import register_hierarchy_tools
-        hierarchy_service = register_hierarchy_tools(mcp, str(settings.data_dir))
-        log_action("SYSTEM", "hierarchy_init", "Hierarchy Builder tools registered")
-    except ImportError as e:
-        print(f"Warning: Hierarchy module not loaded: {e}")
-else:
-    print("[License] Hierarchy Builder requires Pro license - skipped")
-
-
-# =============================================================================
-# Phase 10: Connections Module Integration
-# =============================================================================
-
-# Register connection management tools
 try:
     try:
-        from src.connections.mcp_tools import register_connection_tools
+        from src.plugins.loader import load_all_plugins
     except ImportError:
-        from connections.mcp_tools import register_connection_tools
-    register_connection_tools(mcp, settings.nestjs_backend_url, settings.nestjs_api_key)
-    log_action("SYSTEM", "connections_init", "Connection tools registered")
-except ImportError as e:
-    print(f"Warning: Connections module not loaded: {e}")
+        from plugins.loader import load_all_plugins
 
+    _src_dir = Path(__file__).parent
+    _project_root = _src_dir.parent
 
-# =============================================================================
-# Phase 11: Schema Matcher Module Integration
-# =============================================================================
-
-# Register schema matcher tools
-try:
-    try:
-        from src.schema_matcher.mcp_tools import register_schema_matcher_tools
-    except ImportError:
-        from schema_matcher.mcp_tools import register_schema_matcher_tools
-    register_schema_matcher_tools(mcp, settings.nestjs_backend_url, settings.nestjs_api_key)
-    log_action("SYSTEM", "schema_matcher_init", "Schema Matcher tools registered")
-except ImportError as e:
-    print(f"Warning: Schema Matcher module not loaded: {e}")
-
-
-# =============================================================================
-# Phase 12: Data Matcher Module Integration
-# =============================================================================
-
-# Register data matcher tools
-try:
-    try:
-        from src.data_matcher.mcp_tools import register_data_matcher_tools
-    except ImportError:
-        from data_matcher.mcp_tools import register_data_matcher_tools
-    register_data_matcher_tools(mcp, settings.nestjs_backend_url, settings.nestjs_api_key)
-    log_action("SYSTEM", "data_matcher_init", "Data Matcher tools registered")
-except ImportError as e:
-    print(f"Warning: Data Matcher module not loaded: {e}")
-
-
-# =============================================================================
-# Phase 13: Templates, Skills & Knowledge Base Integration
-# =============================================================================
-
-# Register template, skill, and knowledge base tools
-try:
-    try:
-        from src.templates.mcp_tools import register_template_tools
-    except ImportError:
-        from templates.mcp_tools import register_template_tools
-
-    # Pass hierarchy_service to enable project creation from templates
-    _hierarchy_service = hierarchy_service if 'hierarchy_service' in dir() else None
-    register_template_tools(
+    plugin_results = load_all_plugins(
         mcp,
-        templates_dir="templates",
-        skills_dir="skills",
-        kb_dir="knowledge_base",
-        hierarchy_service=_hierarchy_service
+        settings,
+        plugin_dirs=[
+            _src_dir,                              # src/ (built-in modules)
+            _project_root / "plugins",             # plugins/ (community)
+            _project_root / "private_plugins",     # private_plugins/ (proprietary)
+        ],
+        license_manager=LICENSE_MANAGER,           # None = full mode (no restrictions)
     )
-    log_action("SYSTEM", "templates_init", "Templates & Knowledge Base tools registered")
-except ImportError as e:
-    print(f"Warning: Templates module not loaded: {e}")
 
-
-# =============================================================================
-# Phase 14: AI Orchestrator Integration
-# =============================================================================
-
-# Register orchestrator tools for task management, agent registration, and messaging
-try:
-    try:
-        from src.orchestrator.mcp_tools import register_orchestrator_tools
-    except ImportError:
-        from orchestrator.mcp_tools import register_orchestrator_tools
-
-    orchestrator_client = register_orchestrator_tools(
-        mcp,
-        settings.nestjs_backend_url,
-        settings.nestjs_api_key
-    )
-    log_action("SYSTEM", "orchestrator_init", "AI Orchestrator tools registered")
-except ImportError as e:
-    print(f"Warning: Orchestrator module not loaded: {e}")
-
-# -----------------------------------------------------------------------------
-# Planner Agent Tools (AI-powered workflow planning)
-# -----------------------------------------------------------------------------
-try:
-    try:
-        from src.agents.mcp_tools import register_planner_tools
-    except ImportError:
-        from agents.mcp_tools import register_planner_tools
-
-    register_planner_tools(mcp)
-    log_action("SYSTEM", "planner_init", "PlannerAgent tools registered")
-except ImportError as e:
-    print(f"Warning: PlannerAgent module not loaded: {e}")
-
-
-# =============================================================================
-# Phase 15: Smart Recommendation Engine
-# =============================================================================
-
-# Register recommendation tools for context-aware CSV import suggestions
-try:
-    try:
-        from src.recommendations.mcp_tools import register_recommendation_tools
-    except ImportError:
-        from recommendations.mcp_tools import register_recommendation_tools
-
-    register_recommendation_tools(mcp)
-    log_action("SYSTEM", "recommendations_init", "Smart Recommendation Engine tools registered")
-except ImportError as e:
-    print(f"Warning: Recommendations module not loaded: {e}")
-
-
-# =============================================================================
-# Phase 16: Diff Utilities Integration
-# =============================================================================
-
-# Register diff utility tools for character-level text/data comparison
-try:
-    try:
-        from src.diff.mcp_tools import register_diff_tools
-    except ImportError:
-        from diff.mcp_tools import register_diff_tools
-
-    register_diff_tools(mcp)
-    log_action("SYSTEM", "diff_init", "Diff utilities tools registered")
-except ImportError as e:
-    print(f"Warning: Diff utilities module not loaded: {e}")
-
-
-# =============================================================================
-# Phase 17: Unified AI Agent Integration
-# =============================================================================
-
-# Register Unified Agent tools for cross-system operations
-# (Book ↔ Librarian ↔ Researcher)
-try:
-    try:
-        from src.agents.unified_agent.mcp_tools import register_unified_agent_tools
-    except ImportError:
-        from agents.unified_agent.mcp_tools import register_unified_agent_tools
-
-    register_unified_agent_tools(mcp)
-    log_action("SYSTEM", "unified_agent_init", "Unified Agent tools registered (10 tools)")
-except ImportError as e:
-    print(f"Warning: Unified Agent module not loaded: {e}")
-
-
-# =============================================================================
-# Phase 18: Faux Objects - Semantic View Wrappers for BI Tools
-# =============================================================================
-
-# Register Faux Objects tools for generating standard Snowflake objects
-# (views, stored procedures, dynamic tables, tasks) that wrap Semantic Views
-try:
-    try:
-        from src.faux_objects.mcp_tools import register_faux_objects_tools
-    except ImportError:
-        from faux_objects.mcp_tools import register_faux_objects_tools
-
-    faux_objects_service = register_faux_objects_tools(mcp, str(settings.data_dir))
-    log_action("SYSTEM", "faux_objects_init", "Faux Objects tools registered (18 tools)")
-except ImportError as e:
-    print(f"Warning: Faux Objects module not loaded: {e}")
-
-
-# =============================================================================
-# Phase 19 & 20: Cortex Agent - Snowflake Cortex AI Integration (Pro Feature)
-# =============================================================================
-
-# Register Cortex Agent tools for Snowflake Cortex AI functions
-# with orchestrated reasoning loop (Observe → Plan → Execute → Reflect)
-if is_pro_feature_enabled():
-    try:
-        try:
-            from src.cortex_agent.mcp_tools import register_cortex_agent_tools
-        except ImportError:
-            from cortex_agent.mcp_tools import register_cortex_agent_tools
-
-        cortex_agent = register_cortex_agent_tools(mcp, settings)
-        log_action("SYSTEM", "cortex_agent_init", "Cortex Agent tools registered (12 tools)")
-    except ImportError as e:
-        print(f"Warning: Cortex Agent module not loaded: {e}")
-
-    # Phase 20: Register Cortex Analyst tools for natural language to SQL
-    # via semantic models
-    try:
-        try:
-            from src.cortex_agent.analyst_tools import register_analyst_tools
-        except ImportError:
-            from cortex_agent.analyst_tools import register_analyst_tools
-
-        analyst = register_analyst_tools(mcp, settings)
-        log_action("SYSTEM", "cortex_analyst_init", "Cortex Analyst tools registered (10 tools)")
-    except ImportError as e:
-        print(f"Warning: Cortex Analyst module not loaded: {e}")
-else:
-    print("[License] Cortex AI Agent requires Pro license - skipped")
-
-
-# =============================================================================
-# Phase 23: Console Dashboard - WebSocket Server for Real-time Streaming
-# =============================================================================
-
-# Register Console Dashboard tools for real-time agent activity monitoring
-# via WebSocket streaming (console logs, reasoning steps, agent activity)
-try:
-    try:
-        from src.console_ws.mcp_tools import register_console_tools
-    except ImportError:
-        from console_ws.mcp_tools import register_console_tools
-
-    console = register_console_tools(mcp, settings)
-    log_action("SYSTEM", "console_ws_init", "Console Dashboard tools registered (5 tools)")
-except ImportError as e:
-    print(f"Warning: Console Dashboard module not loaded: {e}")
-
-
-# =============================================================================
-# Phase 24: dbt Integration - Generate dbt Projects from Hierarchies
-# =============================================================================
-
-# Register dbt Integration tools for generating dbt projects, models,
-# sources, metrics, and CI/CD pipelines from DataBridge hierarchies
-try:
-    try:
-        from src.dbt_integration.mcp_tools import register_dbt_tools
-    except ImportError:
-        from dbt_integration.mcp_tools import register_dbt_tools
-
-    dbt = register_dbt_tools(mcp, settings)
-    log_action("SYSTEM", "dbt_integration_init", "dbt Integration tools registered (8 tools)")
-except ImportError as e:
-    print(f"Warning: dbt Integration module not loaded: {e}")
-
-
-# =============================================================================
-# Phase 25: Data Quality - Expectation Suites and Data Contracts
-# =============================================================================
-
-# Register Data Quality tools for expectation suites, data contracts,
-# and validation of data against hierarchy-derived quality rules
-try:
-    try:
-        from src.data_quality.mcp_tools import register_data_quality_tools
-    except ImportError:
-        from data_quality.mcp_tools import register_data_quality_tools
-
-    data_quality = register_data_quality_tools(mcp, settings)
-    log_action("SYSTEM", "data_quality_init", "Data Quality tools registered (7 tools)")
-except ImportError as e:
-    print(f"Warning: Data Quality module not loaded: {e}")
-
-
-# =============================================================================
-# Phase 26: Wright - Hierarchy-Driven Dimension & Fact Builder (Pro Feature)
-# =============================================================================
-
-# Register Wright tools for automated data mart pipeline generation
-# Builds dimensions and facts based on hierarchies using 7 configuration
-# variables and AI-powered discovery (4-object pipeline: VW_1 → DT_2 → DT_3A → DT_3)
-if is_pro_feature_enabled():
-    try:
-        try:
-            from src.wright.mcp_tools import register_mart_factory_tools
-        except ImportError:
-            from wright.mcp_tools import register_mart_factory_tools
-
-        wright = register_mart_factory_tools(mcp, settings)
-        log_action("SYSTEM", "wright_init", "Wright (Dimension & Fact Builder) tools registered (10 tools)")
-    except ImportError as e:
-        print(f"Warning: Wright module not loaded: {e}")
-else:
-    print("[License] Wright Pipeline requires Pro license - skipped")
-
-
-# =============================================================================
-# Phase 27: Lineage & Impact Analysis (Pro Feature)
-# =============================================================================
-
-# Register Lineage tools for column-level lineage tracking, impact analysis,
-# and dependency graph visualization
-if is_pro_feature_enabled():
-    try:
-        try:
-            from src.lineage.mcp_tools import register_lineage_tools
-        except ImportError:
-            from lineage.mcp_tools import register_lineage_tools
-
-        lineage = register_lineage_tools(mcp, settings)
-        log_action("SYSTEM", "lineage_init", "Lineage & Impact Analysis tools registered (11 tools)")
-    except ImportError as e:
-        print(f"Warning: Lineage module not loaded: {e}")
-else:
-    print("[License] Lineage & Impact Analysis requires Pro license - skipped")
-
-
-# =============================================================================
-# Phase 28: Git/CI-CD Integration
-# =============================================================================
-
-# Register Git Integration tools for git operations, GitHub PRs, and CI/CD workflows
-try:
-    try:
-        from src.git_integration.mcp_tools import register_git_integration_tools
-    except ImportError:
-        from git_integration.mcp_tools import register_git_integration_tools
-
-    git_integration = register_git_integration_tools(mcp, settings)
-    log_action("SYSTEM", "git_integration_init", "Git/CI-CD Integration tools registered (12 tools)")
-except ImportError as e:
-    print(f"Warning: Git Integration module not loaded: {e}")
-
-
-# =============================================================================
-# Phase 29: Data Catalog - Centralized Metadata Registry
-# =============================================================================
-
-# Register Data Catalog tools for asset registry, business glossary,
-# data discovery, search, and classification
-try:
-    try:
-        from src.data_catalog.mcp_tools import register_data_catalog_tools
-    except ImportError:
-        from data_catalog.mcp_tools import register_data_catalog_tools
-
-    data_catalog = register_data_catalog_tools(mcp, settings)
-    log_action("SYSTEM", "data_catalog_init", "Data Catalog tools registered (15 tools)")
-except ImportError as e:
-    print(f"Warning: Data Catalog module not loaded: {e}")
-
-
-# =============================================================================
-# Phase 30: Data Versioning - Unified Version Control
-# =============================================================================
-
-# Register Data Versioning tools for object version control with snapshots,
-# change tracking, diff, and rollback support
-try:
-    try:
-        from src.versioning.mcp_tools import register_versioning_tools
-    except ImportError:
-        from versioning.mcp_tools import register_versioning_tools
-
-    register_versioning_tools(mcp)
-    log_action("SYSTEM", "versioning_init", "Data Versioning tools registered (12 tools)")
-except ImportError as e:
-    print(f"Warning: Data Versioning module not loaded: {e}")
-
-# =============================================================================
-# Phase 31: GraphRAG Engine (Pro Feature)
-# =============================================================================
-if is_pro_feature_enabled():
-    try:
-        try:
-            from src.graphrag.mcp_tools import register_graphrag_tools
-        except ImportError:
-            from graphrag.mcp_tools import register_graphrag_tools
-
-        register_graphrag_tools(mcp, settings)
-        log_action("SYSTEM", "graphrag_init", "GraphRAG Engine tools registered (10 tools)")
-    except ImportError as e:
-        print(f"Warning: GraphRAG module not loaded: {e}")
-else:
-    print("[License] GraphRAG Engine requires Pro license - skipped")
-
-
-# =============================================================================
-# Phase 32: Data Observability - Metrics, Alerting, Anomaly Detection (Pro Feature)
-# =============================================================================
-
-# Register Data Observability tools for real-time metrics collection,
-# threshold-based alerting, statistical anomaly detection, and health scoring
-if is_pro_feature_enabled():
-    try:
-        try:
-            from src.observability.mcp_tools import register_observability_tools
-        except ImportError:
-            from observability.mcp_tools import register_observability_tools
-
-        register_observability_tools(mcp, settings)
-        log_action("SYSTEM", "observability_init", "Data Observability tools registered (15 tools)")
-    except ImportError as e:
-        print(f"Warning: Data Observability module not loaded: {e}")
-else:
-    print("[License] Data Observability requires Pro license - skipped")
-
-
-# =============================================================================
-# Phase 33: DataShield - Confidential Data Scrambling (Pro Feature)
-# =============================================================================
-
-# Register DataShield tools for deterministic data scrambling that preserves
-# patterns, cardinality, and referential integrity while protecting confidential values
-if is_pro_feature_enabled():
-    try:
-        try:
-            from src.datashield.mcp_tools import register_datashield_tools
-        except ImportError:
-            from datashield.mcp_tools import register_datashield_tools
-
-        register_datashield_tools(mcp, settings)
-        log_action("SYSTEM", "datashield_init", "DataShield tools registered (12 tools)")
-    except ImportError as e:
-        print(f"Warning: DataShield module not loaded: {e}")
-else:
-    print("[License] DataShield requires Pro license - skipped")
+    _loaded = 0
+    _skipped = 0
+    _failed = 0
+    for _name, _result in plugin_results.items():
+        if _result.get("loaded"):
+            log_action("SYSTEM", f"{_name}_init", f"{_name} registered ({_result.get('tools', '?')} tools)")
+            _loaded += 1
+        elif _result.get("skipped"):
+            print(f"[License] {_name} requires {_result.get('tier', 'PRO')} license - skipped")
+            _skipped += 1
+        else:
+            print(f"Warning: {_name} not loaded: {_result.get('error', 'unknown')}")
+            _failed += 1
+
+    print(f"[Plugins] Loaded {_loaded} plugins, {_skipped} skipped (license), {_failed} failed")
+
+except Exception as _plugin_err:
+    print(f"[Plugins] Plugin loader failed: {_plugin_err}")
+    print("[Plugins] Falling back to core tools only")
 
 
 # =============================================================================

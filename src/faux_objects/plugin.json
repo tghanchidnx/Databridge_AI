@@ -1,0 +1,12 @@
+{
+  "name": "faux_objects",
+  "version": "0.40.0",
+  "description": "Semantic view wrappers for BI tools (views, stored procedures, dynamic tables)",
+  "tier": "CE",
+  "phase": 18,
+  "tools": 18,
+  "author": "DataBridge AI",
+  "register_function": "register_faux_objects_tools",
+  "arg_pattern": "mcp_data_dir",
+  "module_file": "mcp_tools.py"
+}

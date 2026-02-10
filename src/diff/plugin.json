@@ -1,0 +1,12 @@
+{
+  "name": "diff",
+  "version": "0.40.0",
+  "description": "Character-level text and data diff utilities",
+  "tier": "CE",
+  "phase": 16,
+  "tools": 6,
+  "author": "DataBridge AI",
+  "register_function": "register_diff_tools",
+  "arg_pattern": "mcp_only",
+  "module_file": "mcp_tools.py"
+}

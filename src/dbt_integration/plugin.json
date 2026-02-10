@@ -1,0 +1,12 @@
+{
+  "name": "dbt_integration",
+  "version": "0.40.0",
+  "description": "Generate dbt projects, models, sources, and CI/CD pipelines",
+  "tier": "CE",
+  "phase": 24,
+  "tools": 8,
+  "author": "DataBridge AI",
+  "register_function": "register_dbt_tools",
+  "arg_pattern": "mcp_settings",
+  "module_file": "mcp_tools.py"
+}

@@ -1,0 +1,12 @@
+{
+  "name": "unified_agent",
+  "version": "0.40.0",
+  "description": "Unified cross-system agent (Book, Librarian, Researcher)",
+  "tier": "CE",
+  "phase": 17,
+  "tools": 10,
+  "author": "DataBridge AI",
+  "register_function": "register_unified_agent_tools",
+  "arg_pattern": "mcp_only",
+  "module_file": "mcp_tools.py"
+}

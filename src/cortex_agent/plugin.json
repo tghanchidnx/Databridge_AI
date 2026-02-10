@@ -1,0 +1,23 @@
+{
+  "name": "cortex_agent",
+  "version": "0.40.0",
+  "description": "Snowflake Cortex AI integration with orchestrated reasoning loop",
+  "tier": "PRO",
+  "phase": 19,
+  "tools": 12,
+  "author": "DataBridge AI",
+  "register_function": "register_cortex_agent_tools",
+  "arg_pattern": "mcp_settings",
+  "module_file": "mcp_tools.py",
+  "sub_plugins": [
+    {
+      "name": "cortex_analyst",
+      "description": "Natural language to SQL via semantic models",
+      "phase": 20,
+      "tools": 14,
+      "register_function": "register_analyst_tools",
+      "arg_pattern": "mcp_settings",
+      "module_file": "analyst_tools.py"
+    }
+  ]
+}

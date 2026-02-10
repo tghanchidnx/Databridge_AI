@@ -1,0 +1,12 @@
+{
+  "name": "datashield",
+  "version": "0.40.0",
+  "description": "Confidential data scrambling with 6 strategies",
+  "tier": "PRO",
+  "phase": 33,
+  "tools": 12,
+  "author": "DataBridge AI",
+  "register_function": "register_datashield_tools",
+  "arg_pattern": "mcp_settings",
+  "module_file": "mcp_tools.py"
+}

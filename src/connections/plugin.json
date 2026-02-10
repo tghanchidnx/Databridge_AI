@@ -1,0 +1,12 @@
+{
+  "name": "connections",
+  "version": "0.40.0",
+  "description": "Backend connection management for databases and APIs",
+  "tier": "CE",
+  "phase": 10,
+  "tools": 8,
+  "author": "DataBridge AI",
+  "register_function": "register_connection_tools",
+  "arg_pattern": "mcp_backend",
+  "module_file": "mcp_tools.py"
+}

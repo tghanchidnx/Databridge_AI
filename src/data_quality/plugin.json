@@ -1,0 +1,12 @@
+{
+  "name": "data_quality",
+  "version": "0.40.0",
+  "description": "Expectation suites, data contracts, and validation",
+  "tier": "CE",
+  "phase": 25,
+  "tools": 7,
+  "author": "DataBridge AI",
+  "register_function": "register_data_quality_tools",
+  "arg_pattern": "mcp_settings",
+  "module_file": "mcp_tools.py"
+}
