@@ -1,0 +1,12 @@
+{
+  "name": "console_dashboard",
+  "version": "0.40.0",
+  "description": "WebSocket server for real-time agent activity monitoring",
+  "tier": "CE",
+  "phase": 23,
+  "tools": 5,
+  "author": "DataBridge AI",
+  "register_function": "register_console_tools",
+  "arg_pattern": "mcp_settings",
+  "module_file": "mcp_tools.py"
+}

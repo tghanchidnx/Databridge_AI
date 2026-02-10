@@ -11,7 +11,7 @@
 ## Prerequisites
 
 ```bash
-cd C:\Users\telha\Databridge_AI
+cd T:\Users\telha\Databridge_AI_Source
 pip install tinydb networkx
 ```
 
@@ -20,7 +20,7 @@ pip install tinydb networkx
 ### Step 1: Run the Tutorial Script
 
 ```bash
-cd C:\Users\telha\Databridge_AI
+cd T:\Users\telha\Databridge_AI_Source
 set PYTHONPATH=./Book
 python Book/use_cases/tutorial_1_book_fundamentals/run_tutorial.py
 ```

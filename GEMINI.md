@@ -643,8 +643,8 @@ generate_dbt_workflow(project_name="my-mart", output_path=".github/workflows/dbt
 | Redis | 6381 | |
 
 ### API Keys
-- `v2-dev-key-1` - Primary
-- `v2-dev-key-2` - Secondary
+- `dev-key-1` - Primary
+- `dev-key-2` - Secondary
 
 ---
 

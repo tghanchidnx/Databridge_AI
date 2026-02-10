@@ -1,0 +1,12 @@
+{
+  "name": "orchestrator",
+  "version": "0.40.0",
+  "description": "AI orchestrator for task management and agent coordination",
+  "tier": "CE",
+  "phase": 14,
+  "tools": 16,
+  "author": "DataBridge AI",
+  "register_function": "register_orchestrator_tools",
+  "arg_pattern": "mcp_backend",
+  "module_file": "mcp_tools.py"
+}

@@ -121,7 +121,7 @@ SNOWFLAKE_WAREHOUSE=COMPUTE_WH
 
 # Optional: Backend sync (NestJS)
 NESTJS_BACKEND_URL=http://localhost:8001
-NESTJS_API_KEY=v2-dev-key-1
+NESTJS_API_KEY=dev-key-1
 ```
 
 ### Starting the Dashboard

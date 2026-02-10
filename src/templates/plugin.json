@@ -1,0 +1,12 @@
+{
+  "name": "templates",
+  "version": "0.40.0",
+  "description": "Templates, skills, and knowledge base management",
+  "tier": "CE",
+  "phase": 13,
+  "tools": 16,
+  "author": "DataBridge AI",
+  "register_function": "register_template_tools",
+  "arg_pattern": "templates",
+  "module_file": "mcp_tools.py"
+}

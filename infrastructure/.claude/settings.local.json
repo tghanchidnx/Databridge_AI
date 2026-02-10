@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(cmd /c \"taskkill /PID 47076 /F & taskkill /PID 57328 /F & taskkill /PID 57848 /F & taskkill /PID 68256 /F & taskkill /PID 63412 /F\")",
+      "Bash(powershell -Command \"Stop-Process -Id 47076,57328,57848,68256,63412 -Force\")",
+      "Bash(npm run start:dev:*)",
+      "Bash(cmd.exe /c \"cd /d C:\\\\Users\\\\telha\\\\Databridge_AI\\\\v2\\\\backend && npm run start:dev\")",
+      "Bash(powershell -Command \"Set-Location ''C:\\\\Users\\\\telha\\\\Databridge_AI\\\\v2\\\\backend''; Start-Process npm -ArgumentList ''run'',''start:dev'' -NoNewWindow\")",
+      "Bash(netstat:*)",
+      "Bash(curl:*)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "DNX Hierarchy Manager"
+  ],
+  "enableAllProjectMcpServers": true
+}

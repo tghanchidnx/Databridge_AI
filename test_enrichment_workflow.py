@@ -135,7 +135,7 @@ def main():
         print("-" * 60)
 
         # Create enrichment configuration with COA
-        coa_path = r"C:\Users\telha\Databridge_AI\Gemini\Uploads\DIM_ACCOUNT.csv"
+        coa_path = r"T:\Users\telha\Databridge_AI_Source\Gemini\Uploads\DIM_ACCOUNT.csv"
 
         enrichment_config = create_coa_enrichment(
             coa_path=coa_path,

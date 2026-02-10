@@ -1,0 +1,12 @@
+{
+  "name": "wright",
+  "version": "0.40.0",
+  "description": "Hierarchy-driven dimension and fact builder (4-object pipeline)",
+  "tier": "PRO",
+  "phase": 26,
+  "tools": 31,
+  "author": "DataBridge AI",
+  "register_function": "register_mart_factory_tools",
+  "arg_pattern": "mcp_settings",
+  "module_file": "mcp_tools.py"
+}

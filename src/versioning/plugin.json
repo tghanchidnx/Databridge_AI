@@ -1,0 +1,12 @@
+{
+  "name": "versioning",
+  "version": "0.40.0",
+  "description": "Object version control with snapshots, change tracking, diff, and rollback",
+  "tier": "CE",
+  "phase": 30,
+  "tools": 12,
+  "author": "DataBridge AI",
+  "register_function": "register_versioning_tools",
+  "arg_pattern": "mcp_only",
+  "module_file": "mcp_tools.py"
+}

@@ -1,4 +1,4 @@
 @echo off
-cd /d C:\Users\telha\Databridge_AI
-set PYTHONPATH=C:\Users\telha\Databridge_AI
+cd /d T:\Users\telha\Databridge_AI_Source
+set PYTHONPATH=T:\Users\telha\Databridge_AI_Source
 python src/server.py

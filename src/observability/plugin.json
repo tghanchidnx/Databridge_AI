@@ -1,0 +1,12 @@
+{
+  "name": "observability",
+  "version": "0.40.0",
+  "description": "Real-time metrics collection, alerting, and anomaly detection",
+  "tier": "PRO",
+  "phase": 32,
+  "tools": 15,
+  "author": "DataBridge AI",
+  "register_function": "register_observability_tools",
+  "arg_pattern": "mcp_settings",
+  "module_file": "mcp_tools.py"
+}

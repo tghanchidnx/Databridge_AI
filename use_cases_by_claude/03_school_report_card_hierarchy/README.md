@@ -43,7 +43,7 @@ Instead of listing all 15 subjects in a random order, you want a nice **tree str
 
 If you haven't already, open a command prompt and run:
 ```
-cd C:\Users\telha\Databridge_AI
+cd T:\Users\telha\Databridge_AI_Source
 python -m src.server
 ```
 

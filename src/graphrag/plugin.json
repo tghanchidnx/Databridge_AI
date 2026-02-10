@@ -1,0 +1,12 @@
+{
+  "name": "graphrag",
+  "version": "0.40.0",
+  "description": "Graph-based retrieval augmented generation engine",
+  "tier": "PRO",
+  "phase": 31,
+  "tools": 10,
+  "author": "DataBridge AI",
+  "register_function": "register_graphrag_tools",
+  "arg_pattern": "mcp_settings",
+  "module_file": "mcp_tools.py"
+}

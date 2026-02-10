@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataBridge AI V2 - FP&A Platform Interactive Demo</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --accent-blue: #3b82f6;
+            --accent-green: #22c55e;
+            --accent-red: #ef4444;
+            --accent-yellow: #eab308;
+            --accent-purple: #a855f7;
+            --accent-cyan: #06b6d4;
+            --accent-orange: #f97316;
+            --border-color: #475569;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: var(--accent-purple);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 24px;
+            background: var(--bg-secondary);
+            padding: 6px;
+            border-radius: 12px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+            background: var(--bg-card);
+        }
+
+        .tab.active {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .demo-section {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .demo-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .demo-section h2 .icon {
+            font-size: 1.8rem;
+        }
+
+        .demo-section p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .feature-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-blue { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); }
+        .badge-green { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); }
+        .badge-purple { background: rgba(168, 85, 247, 0.2); color: var(--accent-purple); }
+        .badge-orange { background: rgba(249, 115, 22, 0.2); color: var(--accent-orange); }
+        .badge-cyan { background: rgba(6, 182, 212, 0.2); color: var(--accent-cyan); }
+
+        .code-block {
+            background: #0c0c0c;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+
+        .code-block .comment { color: #6a9955; }
+        .code-block .keyword { color: #569cd6; }
+        .code-block .string { color: #ce9178; }
+        .code-block .type { color: #4ec9b0; }
+        .code-block .number { color: #b5cea8; }
+
+        .interactive-demo {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .demo-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .demo-select {
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            min-width: 200px;
+        }
+
+        .demo-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            background: var(--accent-blue);
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .demo-btn:hover {
+            background: #2563eb;
+        }
+
+        .demo-btn.secondary {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .demo-output {
+            background: #0c0c0c;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            min-height: 200px;
+            max-height: 400px;
+            overflow: auto;
+        }
+
+        .table-demo {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .table-demo th, .table-demo td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table-demo th {
+            background: var(--bg-primary);
+            font-weight: 600;
+        }
+
+        .table-demo tr:hover td {
+            background: var(--bg-card);
+        }
+
+        .mapping-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .mapping-column {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .mapping-column h4 {
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mapping-column h4 .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .dot-green { background: var(--accent-green); }
+        .dot-blue { background: var(--accent-blue); }
+        .dot-purple { background: var(--accent-purple); }
+        .dot-orange { background: var(--accent-orange); }
+
+        .mapping-item {
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mapping-item.empty {
+            border: 1px dashed var(--border-color);
+            color: var(--text-secondary);
+            background: transparent;
+        }
+
+        .variance-demo {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .variance-card {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .variance-card h4 {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .variance-card .value {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .variance-card .value.positive { color: var(--accent-green); }
+        .variance-card .value.negative { color: var(--accent-red); }
+
+        .variance-card .percent {
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .api-endpoint {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .api-method {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .api-method.get { background: var(--accent-green); color: white; }
+        .api-method.post { background: var(--accent-blue); color: white; }
+        .api-method.put { background: var(--accent-orange); color: white; }
+        .api-method.delete { background: var(--accent-red); color: white; }
+
+        .api-path {
+            font-family: 'Consolas', monospace;
+            color: var(--text-primary);
+        }
+
+        .api-desc {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-left: auto;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border-color);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 24px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -26px;
+            top: 4px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            border: 3px solid var(--bg-secondary);
+        }
+
+        .timeline-item.completed::before {
+            background: var(--accent-green);
+        }
+
+        .timeline-item h4 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .timeline-item p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .mapping-grid, .variance-demo {
+                grid-template-columns: 1fr;
+            }
+            .tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>DataBridge AI <span class="version-badge">V2</span></h1>
+            <p>FP&A Platform - Interactive Feature Demo</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('overview')">Overview</button>
+            <button class="tab" onclick="showTab('multi-system')">Multi-System Mapping</button>
+            <button class="tab" onclick="showTab('live-preview')">Live Data Preview</button>
+            <button class="tab" onclick="showTab('fact-tables')">Fact Table Generation</button>
+            <button class="tab" onclick="showTab('excel')">Excel Integration</button>
+            <button class="tab" onclick="showTab('ai')">AI Features</button>
+            <button class="tab" onclick="showTab('api')">API Reference</button>
+        </div>
+
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+            <div class="demo-section">
+                <h2><span class="icon">&#128640;</span> What's New in V2</h2>
+                <p>DataBridge AI V2 transforms the Hierarchy Knowledge Base into a complete Financial Planning & Analysis platform.</p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>&#128202; Multi-System Mapping</h3>
+                        <p>Map hierarchies to ACTUALS, BUDGET, FORECAST, and PRIOR_YEAR with proper join types.</p>
+                        <span class="badge badge-green">Phase 11-12</span>
+                    </div>
+                    <div class="feature-card">
+                        <h3>&#9889; Live Data Preview</h3>
+                        <p>Execute queries in real-time as you configure mappings. See data instantly.</p>
+                        <span class="badge badge-blue">Phase 13</span>
+                    </div>
+                    <div class="feature-card">
+                        <h3>&#128451; Fact Table Generation</h3>
+                        <p>Auto-generate DDL and INSERT scripts with variance calculations.</p>
+                        <span class="badge badge-purple">Phase 14</span>
+                    </div>
+                    <div class="feature-card">
+                        <h3>&#128196; Excel Integration</h3>
+                        <p>Import/export with AI-powered column detection and mapping.</p>
+                        <span class="badge badge-orange">Phase 15</span>
+                    </div>
+                    <div class="feature-card">
+                        <h3>&#129302; Natural Language Queries</h3>
+                        <p>Ask questions in plain English. Get SQL back automatically.</p>
+                        <span class="badge badge-cyan">Phase 16</span>
+                    </div>
+                    <div class="feature-card">
+                        <h3>&#127919; AI Auto-Mapping</h3>
+                        <p>Intelligent column-to-field mapping using pattern matching and AI.</p>
+                        <span class="badge badge-cyan">Phase 16</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2><span class="icon">&#128295;</span> V2 Architecture</h2>
+                <div class="code-block">
+<span class="comment">// V2 Port Configuration</span>
+{
+  <span class="string">"MySQL"</span>:     <span class="number">3308</span>,  <span class="comment">// Database</span>
+  <span class="string">"Backend"</span>:   <span class="number">3002</span>,  <span class="comment">// NestJS API</span>
+  <span class="string">"Frontend"</span>:  <span class="number">5174</span>,  <span class="comment">// React UI</span>
+  <span class="string">"Redis"</span>:     <span class="number">6381</span>   <span class="comment">// Caching</span>
+}
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2><span class="icon">&#128197;</span> Implementation Timeline</h2>
+                <div class="timeline">
+                    <div class="timeline-item completed">
+                        <h4>Phase 11: Schema Enhancements</h4>
+                        <p>Extended SourceMapping with join_type, system_type, dimension_role</p>
+                    </div>
+                    <div class="timeline-item completed">
+                        <h4>Phase 12: Multi-System UI</h4>
+                        <p>SystemMappingPanel, VarianceConfigPanel components</p>
+                    </div>
+                    <div class="timeline-item completed">
+                        <h4>Phase 13: Live Preview</h4>
+                        <p>QueryExecutorService, LiveDataPreview component</p>
+                    </div>
+                    <div class="timeline-item completed">
+                        <h4>Phase 14: Fact Tables</h4>
+                        <p>FactTableService with DDL and variance generation</p>
+                    </div>
+                    <div class="timeline-item completed">
+                        <h4>Phase 15: Excel</h4>
+                        <p>ExcelImportService, ExcelExportService, ExcelImportDialog</p>
+                    </div>
+                    <div class="timeline-item completed">
+                        <h4>Phase 16: AI</h4>
+                        <p>NLQueryService, AutoMapperService</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Multi-System Tab -->
+        <div id="multi-system" class="tab-content">
+            <div class="demo-section">
+                <h2><span class="icon">&#128200;</span> Multi-System Mapping</h2>
+                <p>Map your hierarchy nodes to multiple financial systems simultaneously. Define join types and dimension roles for proper data integration.</p>
+
+                <div class="interactive-demo">
+                    <h3>System Mapping Panel Demo</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 16px;">See how hierarchy nodes map to different financial systems:</p>
+
+                    <div class="mapping-grid">
+                        <div class="mapping-column">
+                            <h4><span class="dot dot-green"></span> ACTUALS</h4>
+                            <div class="mapping-item">
+                                Revenue <span class="badge badge-green">INNER</span>
+                            </div>
+                            <div class="mapping-item">
+                                COGS <span class="badge badge-green">INNER</span>
+                            </div>
+                            <div class="mapping-item">
+                                OpEx <span class="badge badge-blue">LEFT</span>
+                            </div>
+                        </div>
+                        <div class="mapping-column">
+                            <h4><span class="dot dot-blue"></span> BUDGET</h4>
+                            <div class="mapping-item">
+                                Revenue <span class="badge badge-green">INNER</span>
+                            </div>
+                            <div class="mapping-item">
+                                COGS <span class="badge badge-green">INNER</span>
+                            </div>
+                            <div class="mapping-item empty">
+                                OpEx (unmapped)
+                            </div>
+                        </div>
+                        <div class="mapping-column">
+                            <h4><span class="dot dot-purple"></span> FORECAST</h4>
+                            <div class="mapping-item">
+                                Revenue <span class="badge badge-green">INNER</span>
+                            </div>
+                            <div class="mapping-item empty">
+                                COGS (unmapped)
+                            </div>
+                            <div class="mapping-item empty">
+                                OpEx (unmapped)
+                            </div>
+                        </div>
+                        <div class="mapping-column">
+                            <h4><span class="dot dot-orange"></span> PRIOR_YEAR</h4>
+                            <div class="mapping-item">
+                                Revenue <span class="badge badge-green">INNER</span>
+                            </div>
+                            <div class="mapping-item">
+                                COGS <span class="badge badge-green">INNER</span>
+                            </div>
+                            <div class="mapping-item">
+                                OpEx <span class="badge badge-blue">LEFT</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="interactive-demo" style="margin-top: 20px;">
+                    <h3>Variance Configuration</h3>
+                    <div class="variance-demo">
+                        <div class="variance-card">
+                            <h4>Actual vs Budget</h4>
+                            <div class="value positive">+$125,000</div>
+                            <div class="percent" style="color: var(--accent-green);">+8.5% Favorable</div>
+                        </div>
+                        <div class="variance-card">
+                            <h4>Actual vs Forecast</h4>
+                            <div class="value negative">-$42,000</div>
+                            <div class="percent" style="color: var(--accent-red);">-2.8% Unfavorable</div>
+                        </div>
+                        <div class="variance-card">
+                            <h4>YoY Variance</h4>
+                            <div class="value positive">+$89,000</div>
+                            <div class="percent" style="color: var(--accent-green);">+6.2% Growth</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2><span class="icon">&#128295;</span> Data Types</h2>
+                <div class="code-block">
+<span class="keyword">type</span> <span class="type">SystemType</span> = <span class="string">'ACTUALS'</span> | <span class="string">'BUDGET'</span> | <span class="string">'FORECAST'</span> | <span class="string">'PRIOR_YEAR'</span> | <span class="string">'CUSTOM'</span>;
+
+<span class="keyword">type</span> <span class="type">JoinType</span> = <span class="string">'INNER'</span> | <span class="string">'LEFT'</span> | <span class="string">'RIGHT'</span> | <span class="string">'FULL'</span>;
+
+<span class="keyword">type</span> <span class="type">DimensionRole</span> = <span class="string">'PRIMARY'</span> | <span class="string">'SECONDARY'</span> | <span class="string">'OPTIONAL'</span>;
+
+<span class="keyword">interface</span> <span class="type">SourceMapping</span> {
+  mapping_index: <span class="type">number</span>;
+  source_database: <span class="type">string</span>;
+  source_table: <span class="type">string</span>;
+  source_column: <span class="type">string</span>;
+
+  <span class="comment">// NEW FP&A Fields</span>
+  join_type?: <span class="type">JoinType</span>;         <span class="comment">// Default: 'LEFT'</span>
+  system_type?: <span class="type">SystemType</span>;     <span class="comment">// Default: 'ACTUALS'</span>
+  dimension_role?: <span class="type">DimensionRole</span>; <span class="comment">// Default: 'SECONDARY'</span>
+}
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Preview Tab -->
+        <div id="live-preview" class="tab-content">
+            <div class="demo-section">
+                <h2><span class="icon">&#9889;</span> Live Data Preview</h2>
+                <p>Execute queries in real-time as mappings change. See your data instantly with column statistics and export options.</p>
+
+                <div class="interactive-demo">
+                    <h3>Query Preview Demo</h3>
+                    <div class="demo-controls">
+                        <select class="demo-select" id="previewHierarchy">
+                            <option>Revenue - Total</option>
+                            <option>Revenue - Product</option>
+                            <option>Revenue - Services</option>
+                            <option>COGS - Materials</option>
+                        </select>
+                        <select class="demo-select" id="previewSystem">
+                            <option>ACTUALS</option>
+                            <option>BUDGET</option>
+                            <option>FORECAST</option>
+                        </select>
+                        <button class="demo-btn" onclick="runPreviewDemo()">&#9654; Execute Query</button>
+                        <button class="demo-btn secondary" onclick="exportPreviewDemo()">&#128196; Export CSV</button>
+                    </div>
+
+                    <div class="code-block" id="generatedSQL">
+<span class="keyword">SELECT</span>
+  h.hierarchy_name,
+  SUM(f.amount) <span class="keyword">AS</span> total_amount,
+  COUNT(*) <span class="keyword">AS</span> row_count
+<span class="keyword">FROM</span> fact_gl_data f
+<span class="keyword">INNER JOIN</span> dim_hierarchy h <span class="keyword">ON</span> f.hierarchy_key = h.hierarchy_key
+<span class="keyword">WHERE</span> h.hierarchy_id = <span class="string">'REVENUE_001'</span>
+  <span class="keyword">AND</span> f.system_type = <span class="string">'ACTUALS'</span>
+<span class="keyword">GROUP BY</span> h.hierarchy_name
+<span class="keyword">ORDER BY</span> total_amount <span class="keyword">DESC</span>
+<span class="keyword">LIMIT</span> <span class="number">100</span>;
+                    </div>
+
+                    <div style="margin-top: 16px;">
+                        <h4 style="margin-bottom: 12px;">Preview Results (Sample)</h4>
+                        <table class="table-demo">
+                            <thead>
+                                <tr>
+                                    <th>Hierarchy Name</th>
+                                    <th>Period</th>
+                                    <th>Amount</th>
+                                    <th>System</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Revenue - Product Sales</td>
+                                    <td>2024-Q4</td>
+                                    <td style="color: var(--accent-green);">$1,245,000</td>
+                                    <td><span class="badge badge-green">ACTUALS</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Revenue - Services</td>
+                                    <td>2024-Q4</td>
+                                    <td style="color: var(--accent-green);">$856,000</td>
+                                    <td><span class="badge badge-green">ACTUALS</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Revenue - Subscriptions</td>
+                                    <td>2024-Q4</td>
+                                    <td style="color: var(--accent-green);">$432,000</td>
+                                    <td><span class="badge badge-green">ACTUALS</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 12px;">
+                            &#9201; Query executed in 124ms | 3 rows returned | Cached for 5 minutes
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fact Tables Tab -->
+        <div id="fact-tables" class="tab-content">
+            <div class="demo-section">
+                <h2><span class="icon">&#128451;</span> Fact Table Generation</h2>
+                <p>Automatically generate DDL and INSERT scripts with proper joins, variance calculations, and multi-database support.</p>
+
+                <div class="interactive-demo">
+                    <h3>Generate Fact Table Script</h3>
+                    <div class="demo-controls">
+                        <select class="demo-select">
+                            <option>Snowflake</option>
+                            <option>PostgreSQL</option>
+                            <option>MySQL</option>
+                            <option>SQL Server</option>
+                        </select>
+                        <button class="demo-btn" onclick="generateFactTable()">&#128295; Generate DDL</button>
+                    </div>
+
+                    <div class="code-block">
+<span class="comment">-- Generated Fact Table DDL</span>
+<span class="keyword">CREATE TABLE</span> fact_financial_hierarchy (
+  hierarchy_key <span class="type">VARCHAR(36)</span> <span class="keyword">NOT NULL</span>,
+  period_key <span class="type">INTEGER</span> <span class="keyword">NOT NULL</span>,
+
+  <span class="comment">-- System Amounts</span>
+  actuals_amount <span class="type">DECIMAL(18,2)</span>,
+  budget_amount <span class="type">DECIMAL(18,2)</span>,
+  forecast_amount <span class="type">DECIMAL(18,2)</span>,
+  prior_year_amount <span class="type">DECIMAL(18,2)</span>,
+
+  <span class="comment">-- Variance Calculations</span>
+  variance_avb_amount <span class="type">DECIMAL(18,2)</span> <span class="keyword">AS</span> (actuals_amount - budget_amount),
+  variance_avb_percent <span class="type">DECIMAL(8,4)</span> <span class="keyword">AS</span> (
+    <span class="keyword">CASE WHEN</span> budget_amount != <span class="number">0</span>
+         <span class="keyword">THEN</span> ((actuals_amount - budget_amount) / budget_amount * <span class="number">100</span>)
+         <span class="keyword">ELSE NULL END</span>
+  ),
+  variance_yoy_amount <span class="type">DECIMAL(18,2)</span> <span class="keyword">AS</span> (actuals_amount - prior_year_amount),
+
+  <span class="comment">-- Audit</span>
+  created_at <span class="type">TIMESTAMP</span> <span class="keyword">DEFAULT CURRENT_TIMESTAMP</span>,
+
+  <span class="keyword">PRIMARY KEY</span> (hierarchy_key, period_key)
+);
+
+<span class="comment">-- Create indexes for query performance</span>
+<span class="keyword">CREATE INDEX</span> idx_fact_period <span class="keyword">ON</span> fact_financial_hierarchy(period_key);
+<span class="keyword">CREATE INDEX</span> idx_fact_variance <span class="keyword">ON</span> fact_financial_hierarchy(variance_avb_percent);
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Excel Tab -->
+        <div id="excel" class="tab-content">
+            <div class="demo-section">
+                <h2><span class="icon">&#128196;</span> Excel Integration</h2>
+                <p>Import hierarchies from Excel with AI-powered column detection. Export complete projects with all mappings and formulas.</p>
+
+                <div class="interactive-demo">
+                    <h3>Excel Import Workflow</h3>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 16px;">
+                        <div class="feature-card" style="text-align: center;">
+                            <div style="font-size: 2rem; margin-bottom: 8px;">&#128194;</div>
+                            <h4>1. Upload</h4>
+                            <p>Drag & drop .xlsx file</p>
+                        </div>
+                        <div class="feature-card" style="text-align: center;">
+                            <div style="font-size: 2rem; margin-bottom: 8px;">&#129302;</div>
+                            <h4>2. AI Detection</h4>
+                            <p>Auto-map columns</p>
+                        </div>
+                        <div class="feature-card" style="text-align: center;">
+                            <div style="font-size: 2rem; margin-bottom: 8px;">&#128269;</div>
+                            <h4>3. Preview</h4>
+                            <p>Review & adjust</p>
+                        </div>
+                        <div class="feature-card" style="text-align: center;">
+                            <div style="font-size: 2rem; margin-bottom: 8px;">&#9989;</div>
+                            <h4>4. Import</h4>
+                            <p>Create hierarchies</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="interactive-demo" style="margin-top: 20px;">
+                    <h3>Column Mapping Demo</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 16px;">AI automatically maps Excel columns to hierarchy fields:</p>
+
+                    <table class="table-demo">
+                        <thead>
+                            <tr>
+                                <th>Excel Column</th>
+                                <th>Mapped To</th>
+                                <th>Confidence</th>
+                                <th>Reasoning</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>HIER_ID</code></td>
+                                <td>HIERARCHY_ID</td>
+                                <td><span class="badge badge-green">95%</span></td>
+                                <td>Exact pattern match</td>
+                            </tr>
+                            <tr>
+                                <td><code>Account Name</code></td>
+                                <td>HIERARCHY_NAME</td>
+                                <td><span class="badge badge-blue">82%</span></td>
+                                <td>AI suggestion</td>
+                            </tr>
+                            <tr>
+                                <td><code>Parent Code</code></td>
+                                <td>PARENT_ID</td>
+                                <td><span class="badge badge-blue">78%</span></td>
+                                <td>Fuzzy name match</td>
+                            </tr>
+                            <tr>
+                                <td><code>ACTUAL_AMT</code></td>
+                                <td>System: ACTUALS</td>
+                                <td><span class="badge badge-purple">90%</span></td>
+                                <td>System type detection</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Tab -->
+        <div id="ai" class="tab-content">
+            <div class="demo-section">
+                <h2><span class="icon">&#129302;</span> AI-Powered Features</h2>
+                <p>Leverage Claude and OpenAI for natural language queries, intelligent mapping suggestions, and anomaly detection.</p>
+
+                <div class="interactive-demo">
+                    <h3>Natural Language Query Demo</h3>
+                    <div class="demo-controls">
+                        <input type="text" class="demo-select" style="flex: 1;" placeholder="Ask a question..." value="Show Q3 actuals vs budget by department">
+                        <button class="demo-btn" onclick="runNLQuery()">&#129302; Translate to SQL</button>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                        <div>
+                            <h4 style="margin-bottom: 12px;">Your Question:</h4>
+                            <div style="padding: 16px; background: var(--bg-primary); border-radius: 8px;">
+                                "Show Q3 actuals vs budget by department"
+                            </div>
+                        </div>
+                        <div>
+                            <h4 style="margin-bottom: 12px;">Explanation:</h4>
+                            <div style="padding: 16px; background: var(--bg-primary); border-radius: 8px; color: var(--text-secondary);">
+                                This query will compare ACTUALS vs BUDGET for Q3 2024 (Jul-Sep), grouped by department.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-block" style="margin-top: 16px;">
+<span class="comment">-- Generated SQL (Confidence: 85%)</span>
+<span class="keyword">SELECT</span>
+  department,
+  SUM(actuals_amount) <span class="keyword">AS</span> actuals,
+  SUM(budget_amount) <span class="keyword">AS</span> budget,
+  SUM(actuals_amount) - SUM(budget_amount) <span class="keyword">AS</span> variance_amount,
+  <span class="keyword">CASE WHEN</span> SUM(budget_amount) != <span class="number">0</span>
+       <span class="keyword">THEN</span> ((SUM(actuals_amount) - SUM(budget_amount)) / SUM(budget_amount) * <span class="number">100</span>)
+       <span class="keyword">ELSE NULL END</span> <span class="keyword">AS</span> variance_percent
+<span class="keyword">FROM</span> fact_hierarchy_data
+<span class="keyword">WHERE</span> period_date <span class="keyword">BETWEEN</span> <span class="string">'2024-07-01'</span> <span class="keyword">AND</span> <span class="string">'2024-09-30'</span>
+<span class="keyword">GROUP BY</span> department
+<span class="keyword">ORDER BY</span> variance_amount <span class="keyword">DESC</span>;
+                    </div>
+                </div>
+
+                <div class="feature-grid" style="margin-top: 24px;">
+                    <div class="feature-card">
+                        <h3>&#128172; Query Types Supported</h3>
+                        <ul style="color: var(--text-secondary); margin-top: 12px; padding-left: 20px;">
+                            <li>Comparison queries (vs, versus)</li>
+                            <li>Trend analysis (over time, monthly)</li>
+                            <li>Top/Bottom N filtering</li>
+                            <li>Time periods (YTD, QTD, YoY)</li>
+                            <li>Aggregations by dimension</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h3>&#127919; Auto-Mapping Features</h3>
+                        <ul style="color: var(--text-secondary); margin-top: 12px; padding-left: 20px;">
+                            <li>Pattern-based matching</li>
+                            <li>Fuzzy name matching</li>
+                            <li>AI-powered suggestions</li>
+                            <li>Format detection (legacy/standard)</li>
+                            <li>System type inference</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Tab -->
+        <div id="api" class="tab-content">
+            <div class="demo-section">
+                <h2><span class="icon">&#128268;</span> API Reference</h2>
+                <p>Complete REST API for all V2 FP&A features. Base URL: <code>http://localhost:3002/api</code></p>
+
+                <h3 style="margin-top: 24px; margin-bottom: 16px;">Smart Hierarchy</h3>
+                <div class="api-endpoint">
+                    <span class="api-method get">GET</span>
+                    <span class="api-path">/smart-hierarchy/projects</span>
+                    <span class="api-desc">List all projects</span>
+                </div>
+                <div class="api-endpoint">
+                    <span class="api-method post">POST</span>
+                    <span class="api-path">/smart-hierarchy/preview-query</span>
+                    <span class="api-desc">Execute preview query</span>
+                </div>
+                <div class="api-endpoint">
+                    <span class="api-method post">POST</span>
+                    <span class="api-path">/smart-hierarchy/generate-fact-table</span>
+                    <span class="api-desc">Generate DDL script</span>
+                </div>
+
+                <h3 style="margin-top: 24px; margin-bottom: 16px;">Excel</h3>
+                <div class="api-endpoint">
+                    <span class="api-method post">POST</span>
+                    <span class="api-path">/excel/preview</span>
+                    <span class="api-desc">Upload and preview Excel</span>
+                </div>
+                <div class="api-endpoint">
+                    <span class="api-method post">POST</span>
+                    <span class="api-path">/excel/import</span>
+                    <span class="api-desc">Import Excel to project</span>
+                </div>
+                <div class="api-endpoint">
+                    <span class="api-method get">GET</span>
+                    <span class="api-path">/excel/export/:projectId</span>
+                    <span class="api-desc">Export project to Excel</span>
+                </div>
+                <div class="api-endpoint">
+                    <span class="api-method get">GET</span>
+                    <span class="api-path">/excel/template</span>
+                    <span class="api-desc">Download import template</span>
+                </div>
+
+                <h3 style="margin-top: 24px; margin-bottom: 16px;">AI</h3>
+                <div class="api-endpoint">
+                    <span class="api-method post">POST</span>
+                    <span class="api-path">/ai/natural-language-query</span>
+                    <span class="api-desc">Translate NL to SQL</span>
+                </div>
+                <div class="api-endpoint">
+                    <span class="api-method post">POST</span>
+                    <span class="api-path">/ai/auto-map-excel</span>
+                    <span class="api-desc">Auto-map Excel columns</span>
+                </div>
+                <div class="api-endpoint">
+                    <span class="api-method post">POST</span>
+                    <span class="api-path">/ai/suggest-mappings</span>
+                    <span class="api-desc">Get mapping suggestions</span>
+                </div>
+                <div class="api-endpoint">
+                    <span class="api-method post">POST</span>
+                    <span class="api-path">/ai/detect-anomalies</span>
+                    <span class="api-desc">Find hierarchy anomalies</span>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>DataBridge AI V2 - FP&A Platform | Interactive Demo</p>
+            <p style="margin-top: 8px; font-size: 0.85rem;">
+                <a href="http://localhost:5174" style="color: var(--accent-blue);">Open V2 App</a> |
+                <a href="http://localhost:3002/api/docs" style="color: var(--accent-blue);">Swagger Docs</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function runPreviewDemo() {
+            alert('In the real app, this executes the query against your connected database and displays results with column statistics.');
+        }
+
+        function exportPreviewDemo() {
+            alert('This exports the preview data to CSV format for download.');
+        }
+
+        function generateFactTable() {
+            alert('Generates complete DDL and INSERT scripts for the selected database platform.');
+        }
+
+        function runNLQuery() {
+            alert('Translates your natural language question to SQL using AI (Claude or OpenAI).');
+        }
+    </script>
+</body>
+</html>

@@ -49,7 +49,7 @@ config = AIAgentConfig(skills_to_use=["financial-analyst", "pricing-analyst"])
 
 # Initialize the agent
 agent = AIAgent(
-    databridge_project_path="C:/Users/telha/Databridge_AI",
+    databridge_project_path="T:/Users/telha/Databridge_AI_Source",
     config=config
 )
 
@@ -329,7 +329,7 @@ pandas (main DataBridge)
 
 ```bash
 # Book library tests (14 tests)
-cd C:\Users\telha\Databridge_AI
+cd T:\Users\telha\Databridge_AI_Source
 python -m pytest Book/tests/test_book.py -v
 
 # Main DataBridge tests (169 tests)

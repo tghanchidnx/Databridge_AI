@@ -10,7 +10,7 @@ Apple fiscal years (end in late September):
 """
 import json
 
-with open(r"C:\Users\telha\Databridge_AI\data\apple_sec_facts.json", "r") as f:
+with open(r"T:\Users\telha\Databridge_AI_Source\data\apple_sec_facts.json", "r") as f:
     data = json.load(f)
 
 us_gaap = data.get("facts", {}).get("us-gaap", {})

@@ -1,0 +1,12 @@
+{
+  "name": "data_catalog",
+  "version": "0.40.0",
+  "description": "Centralized metadata registry with asset discovery and classification",
+  "tier": "CE",
+  "phase": 29,
+  "tools": 19,
+  "author": "DataBridge AI",
+  "register_function": "register_data_catalog_tools",
+  "arg_pattern": "mcp_settings",
+  "module_file": "mcp_tools.py"
+}

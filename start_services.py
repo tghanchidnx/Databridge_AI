@@ -5,7 +5,7 @@ DataBridge AI - Service Manager
 Start, stop, and monitor all DataBridge AI services.
 
 Services:
-  - Docker: MySQL, Redis, NestJS Backend (v2 containers)
+  - Docker: MySQL, Redis, NestJS Backend (Docker containers)
   - MCP Server: Python FastMCP server (348 tools)
   - Dashboard: DataBridge Dashboard UI (Multi AI, MCP CLI)
   - Excel Plugin: Development server for Office Add-in
@@ -34,7 +34,7 @@ from typing import Optional, List
 
 # Configuration
 PROJECT_ROOT = Path(__file__).parent.resolve()
-V2_DIR = PROJECT_ROOT / "v2"
+INFRA_DIR = PROJECT_ROOT / "infrastructure"
 APPS_DIR = PROJECT_ROOT / "apps"
 DASHBOARD_DIR = PROJECT_ROOT / "databridge-ce"
 EXCEL_PLUGIN_DIR = APPS_DIR / "excel-plugin"
@@ -42,9 +42,9 @@ DOCKER_DESKTOP_PATH = Path("C:/Program Files/Docker/Docker/Docker Desktop.exe")
 
 # Service definitions
 DOCKER_SERVICES = {
-    "MySQL": {"port": 3308, "container": "databridge-mysql-v2", "required": True},
-    "Redis": {"port": 6381, "container": "databridge-redis-v2", "required": True},
-    "Backend API": {"port": 3002, "container": "databridge-backend-v2", "required": True},
+    "MySQL": {"port": 3308, "container": "databridge-mysql", "required": True},
+    "Redis": {"port": 6381, "container": "databridge-redis", "required": True},
+    "Backend API": {"port": 3002, "container": "databridge-backend", "required": True},
 }
 
 OTHER_SERVICES = {
@@ -174,12 +174,12 @@ def start_docker_services():
     """Start all Docker services using docker-compose."""
     print(f"\n{Colors.BLUE}Starting Docker services...{Colors.END}")
 
-    if not V2_DIR.exists():
-        print(f"{Colors.RED}v2 directory not found at {V2_DIR}{Colors.END}")
+    if not INFRA_DIR.exists():
+        print(f"{Colors.RED}Infrastructure directory not found at {INFRA_DIR}{Colors.END}")
         return False
 
     original_dir = os.getcwd()
-    os.chdir(V2_DIR)
+    os.chdir(INFRA_DIR)
 
     process = subprocess.Popen(
         ["docker-compose", "up", "-d"],
@@ -210,12 +210,12 @@ def stop_docker_services():
     """Stop all Docker services."""
     print(f"\n{Colors.YELLOW}Stopping Docker services...{Colors.END}")
 
-    if not V2_DIR.exists():
-        print(f"{Colors.YELLOW}v2 directory not found, skipping.{Colors.END}")
+    if not INFRA_DIR.exists():
+        print(f"{Colors.YELLOW}Infrastructure directory not found, skipping.{Colors.END}")
         return True
 
     original_dir = os.getcwd()
-    os.chdir(V2_DIR)
+    os.chdir(INFRA_DIR)
     code, stdout, stderr = run_command(["docker-compose", "down"], timeout=120)
     os.chdir(original_dir)
 
@@ -473,12 +473,12 @@ def start_excel_plugin_server(background: bool = False):
 
 def view_logs(service: Optional[str] = None, follow: bool = False, tail: int = 50):
     """View Docker service logs."""
-    if not V2_DIR.exists():
-        print(f"{Colors.RED}v2 directory not found{Colors.END}")
+    if not INFRA_DIR.exists():
+        print(f"{Colors.RED}Infrastructure directory not found{Colors.END}")
         return
 
     original_dir = os.getcwd()
-    os.chdir(V2_DIR)
+    os.chdir(INFRA_DIR)
 
     cmd = ["docker-compose", "logs"]
     if tail:
@@ -522,7 +522,7 @@ def print_access_info():
   {Colors.BOLD}Backend API:{Colors.END}
     URL:        http://localhost:3002/api
     Health:     http://localhost:3002/api/health
-    API Keys:   v2-dev-key-1, v2-dev-key-2
+    API Keys:   dev-key-1, dev-key-2
 
   {Colors.BOLD}Dashboard:{Colors.END}
     URL:        http://localhost:5050

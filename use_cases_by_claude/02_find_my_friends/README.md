@@ -47,7 +47,7 @@ You only need to do this once.
 
 If you haven't already, open a command prompt and run:
 ```
-cd C:\Users\telha\Databridge_AI
+cd T:\Users\telha\Databridge_AI_Source
 python -m src.server
 ```
 

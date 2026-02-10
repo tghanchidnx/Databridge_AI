@@ -1,0 +1,50 @@
+{
+  "connections": [
+    {
+      "id": "conn-001",
+      "workspace_id": "workspace-001",
+      "name": "Production Snowflake",
+      "type": "snowflake",
+      "created_by": "user-001",
+      "created_at": "2024-01-05T00:00:00Z",
+      "is_active": true,
+      "credentials": {
+        "auth_type": "username_password",
+        "account": "myaccount.us-east-1",
+        "warehouse": "COMPUTE_WH",
+        "database": "PROD_DB",
+        "schema": "PUBLIC",
+        "role": "SYSADMIN",
+        "username": "admin",
+        "password": "********"
+      },
+      "metadata": {
+        "tags": ["production", "snowflake"],
+        "description": "Main production Snowflake instance",
+        "team": "data-engineering"
+      }
+    },
+    {
+      "id": "conn-002",
+      "workspace_id": "workspace-001",
+      "name": "Staging PostgreSQL",
+      "type": "postgresql",
+      "created_by": "user-001",
+      "created_at": "2024-01-10T00:00:00Z",
+      "is_active": true,
+      "credentials": {
+        "host": "localhost",
+        "port": 5432,
+        "database": "staging_db",
+        "username": "postgres",
+        "password": "********",
+        "ssl": true
+      },
+      "metadata": {
+        "tags": ["staging", "postgresql"],
+        "description": "Staging PostgreSQL database",
+        "team": "development"
+      }
+    }
+  ]
+}

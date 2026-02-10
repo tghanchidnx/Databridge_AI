@@ -1,0 +1,12 @@
+{
+  "name": "schema_matcher",
+  "version": "0.40.0",
+  "description": "Schema comparison and matching between data sources",
+  "tier": "CE",
+  "phase": 11,
+  "tools": 5,
+  "author": "DataBridge AI",
+  "register_function": "register_schema_matcher_tools",
+  "arg_pattern": "mcp_backend",
+  "module_file": "mcp_tools.py"
+}

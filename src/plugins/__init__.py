@@ -58,6 +58,7 @@ PRO_MODULES = {
     'faux_objects',
     'git_integration',
     'templates_advanced',
+    'datashield',
 }
 
 ENTERPRISE_MODULES = {
@@ -326,12 +327,24 @@ def reset_license_manager() -> LicenseManager:
     return _license_manager
 
 
+# Plugin loader - lazy import to avoid circular dependencies
+def load_all_plugins(mcp, settings, plugin_dirs=None, context=None, license_manager="AUTO"):
+    """Load all plugins via the universal plugin loader.
+
+    See src/plugins/loader.py for full documentation.
+    """
+    from .loader import load_all_plugins as _load
+    return _load(mcp, settings, plugin_dirs=plugin_dirs, context=context,
+                 license_manager=license_manager)
+
+
 # Export public API
 __all__ = [
     'LicenseManager',
     'get_license_manager',
     'reset_license_manager',
     'require_tier',
+    'load_all_plugins',
     'TIERS',
     'CE_MODULES',
     'PRO_MODULES',

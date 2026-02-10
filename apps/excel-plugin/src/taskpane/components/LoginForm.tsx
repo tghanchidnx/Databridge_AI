@@ -114,7 +114,7 @@ export function LoginForm(): JSX.Element {
                 disabled={isLoading}
               />
               <span className="form-hint">
-                Use v2-dev-key-1 for development
+                Use dev-key-1 for development
               </span>
             </Field>
           ) : (

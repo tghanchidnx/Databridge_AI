@@ -1,0 +1,70 @@
+{
+  "users": [
+    {
+      "id": "user-001",
+      "email": "admin@dataamplifier.com",
+      "password": "admin123",
+      "full_name": "Admin User",
+      "avatar_url": "https://api.dicebear.com/7.x/avataaars/svg?seed=Admin",
+      "role": "super_admin",
+      "is_active": true,
+      "email_verified": true,
+      "created_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "user-002",
+      "email": "demo@dataamplifier.com",
+      "password": "demo123",
+      "full_name": "Demo User",
+      "avatar_url": "https://api.dicebear.com/7.x/avataaars/svg?seed=Demo",
+      "role": "developer",
+      "is_active": true,
+      "email_verified": true,
+      "created_at": "2024-01-15T00:00:00Z"
+    }
+  ],
+  "workspaces": [
+    {
+      "id": "workspace-001",
+      "name": "Default Workspace",
+      "subdomain": "default",
+      "subscription_tier": "enterprise",
+      "created_by": "user-001",
+      "created_at": "2024-01-01T00:00:00Z",
+      "settings": {
+        "timezone": "UTC",
+        "default_theme": "dark",
+        "allowed_domains": ["dataamplifier.com"],
+        "sso_required": false,
+        "data_retention_days": 90,
+        "max_connections": 50,
+        "max_users": 100
+      },
+      "features": {
+        "schema_matcher": true,
+        "report_matcher": true,
+        "ai_assistant": true,
+        "version_control": true,
+        "github_integration": true,
+        "api_access": true,
+        "custom_branding": false
+      }
+    }
+  ],
+  "workspace_members": [
+    {
+      "id": "member-001",
+      "workspace_id": "workspace-001",
+      "user_id": "user-001",
+      "role": "owner",
+      "joined_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "member-002",
+      "workspace_id": "workspace-001",
+      "user_id": "user-002",
+      "role": "developer",
+      "joined_at": "2024-01-15T00:00:00Z"
+    }
+  ]
+}

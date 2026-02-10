@@ -1,0 +1,63 @@
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build
+dist/
+build/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Tests
+coverage/
+.nyc_output/
+
+# Prisma
+node_modules/.prisma/
+
+# Uploads
+uploads/
+temp/
+
+# Cache
+.cache/
+.parcel-cache/
+
+# PM2
+.pm2/
+
+# Docker
+.dockerignore
+
+# Misc
+*.orig
+.DS_Store
