@@ -15,9 +15,16 @@ ui_dir = Path(__file__).parent
 databridge_ce_dir = ui_dir.parent
 project_root = databridge_ce_dir.parent
 
-# Add paths for imports
-sys.path.insert(0, str(project_root))
+# Add paths for imports — project root FIRST so src/ resolves to the full server, not databridge-ce/src/
 sys.path.insert(0, str(databridge_ce_dir))
+sys.path.insert(0, str(project_root))
+
+# Load .env early (before any src imports) so license key is available
+try:
+    from dotenv import load_dotenv
+    load_dotenv(project_root / '.env')
+except ImportError:
+    pass
 
 # --- Flask Application Setup ---
 app = Flask(__name__, template_folder=str(ui_dir), static_folder=str(ui_dir))
