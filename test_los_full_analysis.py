@@ -210,7 +210,7 @@ def main():
 
     # Configure COA enrichment
     coa_config = create_coa_enrichment(
-        r"C:\Users\telha\Databridge_AI\Gemini\Uploads\DIM_ACCOUNT.csv",
+        r"T:\Users\telha\Databridge_AI_Source\Gemini\Uploads\DIM_ACCOUNT.csv",
         detail_columns=["ACCOUNT_ID", "ACCOUNT_NAME", "ACCOUNT_BILLING_CATEGORY_CODE", "ACCOUNT_CLASS"]
     )
 

@@ -54,7 +54,7 @@ EXTERNAL CLIENTS (Excel, Power BI, Claude, Custom Agents)
 ### Phase 1: AI Orchestrator Foundation (Weeks 1-2)
 **Status:** COMPLETED
 
-**Location:** `v2/backend/src/modules/orchestrator/`
+**Location:** `infrastructure/backend/src/modules/orchestrator/`
 
 **Files Created:**
 - [x] `orchestrator.module.ts` - Module definition with Bull queue
@@ -227,9 +227,9 @@ Events:
 |------|---------|
 | `src/server.py` | Main MCP entry point (98+ tools) |
 | `src/hierarchy/api_sync.py` | AutoSyncManager with callbacks - extend for Event Bus |
-| `v2/backend/src/modules/excel/excel.controller.ts` | Existing Excel import/export - extend for plugin |
-| `v2/backend/src/app.module.ts` | Add OrchestratorModule import |
-| `v2/backend/prisma/schema.prisma` | Add orchestrator tables |
+| `infrastructure/backend/src/modules/excel/excel.controller.ts` | Existing Excel import/export - extend for plugin |
+| `infrastructure/backend/src/app.module.ts` | Add OrchestratorModule import |
+| `infrastructure/backend/prisma/schema.prisma` | Add orchestrator tables |
 
 ### Reference Documents
 | Document | Purpose |
@@ -251,7 +251,7 @@ Events:
 
 ### Recent Changes
 - **2026-02-02:** Completed Phase 1 - AI Orchestrator Foundation
-  - Created `v2/backend/src/modules/orchestrator/` with all services
+  - Created `infrastructure/backend/src/modules/orchestrator/` with all services
   - Added Prisma schema for 6 orchestrator tables
   - Implemented 15+ REST API endpoints
   - Added OrchestratorModule to app.module.ts
@@ -284,31 +284,31 @@ The Excel plugin is built and loads in Excel Desktop, but there's a CORS issue p
 
 1. **Recreate the backend container to pick up new CORS settings:**
    ```powershell
-   cd C:\Users\telha\databridge_ai\v2
-   docker-compose stop backend-v2
-   docker-compose rm -f backend-v2
-   docker-compose up -d backend-v2
+   cd T:\Users\telha\Databridge_AI_Source\infrastructure
+   docker-compose stop backend
+   docker-compose rm -f backend
+   docker-compose up -d backend
    ```
 
 2. **Verify CORS is fixed:**
    ```powershell
-   docker exec databridge-backend-v2 printenv CORS_ORIGINS
+   docker exec databridge-backend printenv CORS_ORIGINS
    ```
    Should include: `https://localhost:3000,http://localhost:3000`
 
 3. **Start the Excel plugin dev server:**
    ```powershell
-   cd C:\Users\telha\databridge_ai\apps\excel-plugin
+   cd T:\Users\telha\Databridge_AI_Source\apps\excel-plugin
    npx webpack serve --mode development --port 3000
    ```
 
 4. **Launch Excel with add-in (Admin PowerShell):**
    ```powershell
-   cd C:\Users\telha\databridge_ai\apps\excel-plugin
+   cd T:\Users\telha\Databridge_AI_Source\apps\excel-plugin
    npx office-addin-debugging start manifest.xml --dev-server false
    ```
 
-5. **Test login with API key:** `v2-dev-key-1`
+5. **Test login with API key:** `dev-key-1`
 
 ### Key Configuration
 
@@ -316,12 +316,12 @@ The Excel plugin is built and loads in Excel Desktop, but there's a CORS issue p
 |---------|-------|
 | Backend URL | `http://localhost:3002/api` |
 | Excel Plugin Dev Server | `https://localhost:3000` |
-| API Key | `v2-dev-key-1` |
+| API Key | `dev-key-1` |
 
 ### Files Modified for CORS Fix
-- `v2/.env` - Added `https://localhost:3000,http://localhost:3000` to CORS_ORIGINS
-- `v2/docker-compose.yml` - Updated default CORS_ORIGINS
-- `v2/backend/src/main.ts` - Added `X-API-Key` to allowedHeaders
+- `infrastructure/.env` - Added `https://localhost:3000,http://localhost:3000` to CORS_ORIGINS
+- `infrastructure/docker-compose.yml` - Updated default CORS_ORIGINS
+- `infrastructure/backend/src/main.ts` - Added `X-API-Key` to allowedHeaders
 
 ---
 

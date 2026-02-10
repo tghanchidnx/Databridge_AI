@@ -39,7 +39,7 @@ You should see something like `Python 3.10.x` or higher.
 Open your command prompt (search "cmd" in Windows Start menu) and run:
 
 ```
-cd C:\Users\telha\Databridge_AI
+cd T:\Users\telha\Databridge_AI_Source
 python use_cases_by_claude/setup.py
 ```
 
@@ -50,7 +50,7 @@ This copies all the sample CSV files into the `data/` folder where DataBridge ca
 In your command prompt, type:
 
 ```
-cd C:\Users\telha\Databridge_AI
+cd T:\Users\telha\Databridge_AI_Source
 python -m src.server
 ```
 
@@ -114,7 +114,7 @@ pip install rapidfuzz
 ### Server crashes or won't start
 Try installing the required packages:
 ```
-cd C:\Users\telha\Databridge_AI
+cd T:\Users\telha\Databridge_AI_Source
 pip install -r requirements.txt
 ```
 

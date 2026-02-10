@@ -1,0 +1,17 @@
+{
+  "openai_api_key": "",
+  "smtp_config": {
+    "host": "smtp.gmail.com",
+    "port": 587,
+    "secure": false,
+    "auth": {
+      "user": "",
+      "pass": ""
+    }
+  },
+  "github_config": {
+    "client_id": "",
+    "client_secret": "",
+    "redirect_uri": "http://localhost:5173/auth/github/callback"
+  }
+}

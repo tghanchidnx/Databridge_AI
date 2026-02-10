@@ -56,8 +56,8 @@
 | Librarian (Hierarchy) | 1 core | 1 GB | 256 MB |
 | Researcher (Analytics) | 2 cores | 2 GB | 512 MB |
 | Nginx (Reverse Proxy) | 0.5 core | 256 MB | — |
-| NestJS Backend (V2) | 1 core | 1 GB | 256 MB |
-| React Frontend (V2) | 0.5 core | 512 MB | — |
+| NestJS Backend | 1 core | 1 GB | 256 MB |
+| React Frontend | 0.5 core | 512 MB | — |
 | MySQL | 1 core | 2 GB | 512 MB |
 
 ---
@@ -143,7 +143,7 @@ pip3 --version
 
 ### 3.3 Node.js 20 LTS
 
-Required for the NestJS backend and React frontend (V2 web UI).
+Required for the NestJS backend and React frontend (web UI).
 
 ```bash
 # Install via NodeSource
@@ -249,7 +249,7 @@ pip install "databridge-ai-pro[all]"
 
 ## 5. Database Installation
 
-### 5.1 MySQL 8.0 (V2 Backend — Primary)
+### 5.1 MySQL 8.0 (Backend — Primary)
 
 Used by the NestJS backend for hierarchy data, users, and connections.
 
@@ -267,17 +267,17 @@ sudo mysql_secure_installation
 
 # Create database and user
 sudo mysql -u root -p <<'SQL'
-CREATE DATABASE hierarchybuilder_v2
+CREATE DATABASE databridge_ai_database
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 CREATE USER 'databridge'@'%' IDENTIFIED BY '<YOUR_SECURE_PASSWORD>';
-GRANT ALL PRIVILEGES ON hierarchybuilder_v2.* TO 'databridge'@'%';
+GRANT ALL PRIVILEGES ON databridge_ai_database.* TO 'databridge'@'%';
 SET GLOBAL max_connections = 500;
 FLUSH PRIVILEGES;
 SQL
 ```
 
-**Connection:** `mysql://databridge:<password>@localhost:3306/hierarchybuilder_v2`
+**Connection:** `mysql://databridge:<password>@localhost:3306/databridge_ai_database`
 
 ### 5.2 PostgreSQL 16 (Analytics Engine)
 
@@ -330,16 +330,16 @@ docker run -d --name chromadb \
 
 ## 6. Docker Deployment (Recommended)
 
-### 6.1 V2 Full-Stack (MySQL + NestJS + React + Redis)
+### 6.1 Full-Stack (MySQL + NestJS + React + Redis)
 
 ```bash
-cd Databridge_AI/v2
+cd Databridge_AI/infrastructure
 
 # Create .env file (see Section 8 for all variables)
 cp .env.example .env
 nano .env  # Edit all secrets!
 
-# Start all V2 services
+# Start all services
 docker compose up -d
 
 # Verify health
@@ -351,10 +351,10 @@ docker compose ps
 
 | Container | Port | Purpose |
 |-----------|------|---------|
-| databridge-mysql-v2 | 3308 | MySQL 8.0 database |
-| databridge-redis-v2 | 6381 | Redis 7 cache |
-| databridge-backend-v2 | 3002 | NestJS API |
-| databridge-frontend-v2 | 8080 (HTTP), 8443 (HTTPS) | React frontend |
+| databridge-mysql | 3308 | MySQL 8.0 database |
+| databridge-redis | 6381 | Redis 7 cache |
+| databridge-backend | 3002 | NestJS API |
+| databridge-frontend | 8080 (HTTP), 8443 (HTTPS) | React frontend |
 
 ### 6.2 Production Stack (Librarian + Researcher + Infra)
 
@@ -429,10 +429,10 @@ fastmcp dev src/server.py  # Accessible on port 6274
 python run_ui.py
 ```
 
-### 7.3 NestJS Backend (V2)
+### 7.3 NestJS Backend
 
 ```bash
-cd v2/backend
+cd infrastructure/backend
 npm install
 npx prisma generate
 npx prisma migrate deploy
@@ -440,10 +440,10 @@ npm run build
 npm run start:prod
 ```
 
-### 7.4 React Frontend (V2)
+### 7.4 React Frontend
 
 ```bash
-cd v2/frontend
+cd infrastructure/frontend
 npm install
 npm run build
 # Serve the dist/ folder with nginx or any static file server
@@ -521,16 +521,16 @@ DATABRIDGE_LICENSE_KEY=DB-PRO-YOURCOMPANY-20270209-a1b2c3d4e5f6
 DATABRIDGE_LICENSE_SECRET=<your-license-secret>
 ```
 
-### 8.2 V2 Backend (v2/.env)
+### 8.2 Backend (infrastructure/.env)
 
 ```bash
 # ============================================================
-# DataBridge AI V2 Backend - Docker Environment
+# DataBridge AI Backend - Docker Environment
 # ============================================================
 
 # --- MySQL ---
 MYSQL_ROOT_PASSWORD=<STRONG_PASSWORD_HERE>
-MYSQL_DATABASE=hierarchybuilder_v2
+MYSQL_DATABASE=databridge_ai_database
 MYSQL_USER=databridge
 MYSQL_PASSWORD=<STRONG_PASSWORD_HERE>
 
@@ -631,16 +631,16 @@ openssl rand -base64 24 | tr -dc 'a-zA-Z0-9' | head -c 24
 |------|---------|----------|-----------|----------|
 | 80 | Nginx HTTP | TCP | Inbound | Optional (redirect to 443) |
 | 443 | Nginx HTTPS | TCP | Inbound | Recommended |
-| 3002 | NestJS Backend API | TCP | Internal | Yes (V2) |
-| 3306/3308 | MySQL | TCP | Internal | Yes (V2) |
+| 3002 | NestJS Backend API | TCP | Internal | Yes |
+| 3306/3308 | MySQL | TCP | Internal | Yes |
 | 5050 | Flask UI Dashboard | TCP | Inbound | Optional |
 | 5432 | PostgreSQL | TCP | Internal | Yes (Prod) |
 | 6274 | FastMCP Inspector | TCP | Internal | Dev only |
 | 6379/6381 | Redis | TCP | Internal | Yes |
 | 8000 | Librarian MCP Server | TCP | Inbound | Yes (Prod) |
 | 8001 | Researcher / ChromaDB | TCP | Inbound | Yes (Prod/Pro) |
-| 8080 | Frontend HTTP | TCP | Inbound | Yes (V2) |
-| 8443 | Frontend HTTPS | TCP | Inbound | Yes (V2) |
+| 8080 | Frontend HTTP | TCP | Inbound | Yes |
+| 8443 | Frontend HTTPS | TCP | Inbound | Yes |
 
 ### Firewall Rules (UFW Example)
 
@@ -648,8 +648,8 @@ openssl rand -base64 24 | tr -dc 'a-zA-Z0-9' | head -c 24
 # Allow only external-facing ports
 sudo ufw allow 443/tcp    comment "HTTPS"
 sudo ufw allow 80/tcp     comment "HTTP redirect"
-sudo ufw allow 8443/tcp   comment "V2 Frontend HTTPS"
-sudo ufw allow 8080/tcp   comment "V2 Frontend HTTP"
+sudo ufw allow 8443/tcp   comment "Frontend HTTPS"
+sudo ufw allow 8080/tcp   comment "Frontend HTTP"
 
 # Block direct database access from outside
 sudo ufw deny 3306/tcp
@@ -665,8 +665,8 @@ sudo ufw enable
 
 | Network | Subnet | Purpose |
 |---------|--------|---------|
-| v2-backend-network | 172.22.0.0/16 | V2 backend communication |
-| v2-frontend-network | 172.23.0.0/16 | V2 frontend public access |
+| databridge-backend-network | 172.22.0.0/16 | Backend communication |
+| databridge-frontend-network | 172.23.0.0/16 | Frontend public access |
 | databridge-internal-prod | Bridge (internal) | Production infra (no external) |
 | databridge-external-prod | Bridge | Production external-facing |
 
@@ -750,11 +750,11 @@ pip install "prometheus-client>=0.17.0"
 ### Self-Signed (Development/Testing)
 
 ```bash
-mkdir -p v2/frontend/ssl
+mkdir -p infrastructure/frontend/ssl
 openssl req -x509 -nodes -days 365 \
     -newkey rsa:2048 \
-    -keyout v2/frontend/ssl/key.pem \
-    -out v2/frontend/ssl/cert.pem \
+    -keyout infrastructure/frontend/ssl/key.pem \
+    -out infrastructure/frontend/ssl/cert.pem \
     -subj "/CN=localhost"
 ```
 
@@ -786,14 +786,14 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
     ssl_protocols       TLSv1.2 TLSv1.3;
 
-    # V2 Frontend
+    # Frontend
     location / {
         proxy_pass http://localhost:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
 
-    # V2 Backend API
+    # Backend API
     location /api/ {
         proxy_pass http://localhost:3002/api/;
         proxy_set_header Host $host;
@@ -829,13 +829,13 @@ server {
 docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
 # MySQL
-docker exec databridge-mysql-v2 mysqladmin ping -h localhost
+docker exec databridge-mysql mysqladmin ping -h localhost
 
 # PostgreSQL
 docker exec databridge-postgres-prod pg_isready -U databridge
 
 # Redis
-docker exec databridge-redis-v2 redis-cli ping
+docker exec databridge-redis redis-cli ping
 
 # ChromaDB
 curl -s http://localhost:8001/api/v1/heartbeat
@@ -918,7 +918,7 @@ Dedicated support SLA
 
 ## Quick Reference: Minimum Viable Production
 
-For a production deployment running the **full V2 stack**, you need at minimum:
+For a production deployment running the **full stack**, you need at minimum:
 
 | Component | Version | Install Method |
 |-----------|---------|----------------|

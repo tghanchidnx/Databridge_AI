@@ -107,7 +107,7 @@ def get_app_config():
         'data_dir': str(project_root / 'data'),
         'workflow_file': str(project_root / 'data' / 'workflow.json'),
         'nestjs_backend_url': 'http://localhost:3002/api',
-        'nestjs_api_key': 'v2-dev-key-1',
+        'nestjs_api_key': 'dev-key-1',
         'nestjs_sync_enabled': True,
         'cortex_default_model': 'mistral-large',
         'cortex_max_reasoning_steps': 10,

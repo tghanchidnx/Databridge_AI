@@ -307,8 +307,8 @@ Tools are organized by domain:
 ### API Keys (Development)
 
 ```
-v2-dev-key-1  # Primary development key
-v2-dev-key-2  # Secondary development key
+dev-key-1  # Primary development key
+dev-key-2  # Secondary development key
 ```
 
 ## Auto-Sync Feature
@@ -379,8 +379,8 @@ CREATE TABLE source_mappings (
 |---------|------|----------------|
 | Frontend | 8000 | databridge-librarian |
 | Backend | 8001 | databridge-researcher |
-| MySQL | 3308 | databridge-mysql-v2 |
-| Redis | 6381 | databridge-redis-v2 |
+| MySQL | 3308 | databridge-mysql |
+| Redis | 6381 | databridge-redis |
 
 ## Development Guidelines
 

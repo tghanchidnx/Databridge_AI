@@ -34,7 +34,7 @@ that DataBridge can analyze.
 Open your command prompt and run:
 
 ```
-cd C:\Users\telha\Databridge_AI
+cd T:\Users\telha\Databridge_AI_Source
 python use_cases_by_claude/sec_edgar/download_sec_data.py
 ```
 
@@ -51,7 +51,7 @@ python use_cases_by_claude/sec_edgar/setup.py
 ### Step 3: Make sure the MCP server is running
 
 ```
-cd C:\Users\telha\Databridge_AI
+cd T:\Users\telha\Databridge_AI_Source
 python -m src.server
 ```
 

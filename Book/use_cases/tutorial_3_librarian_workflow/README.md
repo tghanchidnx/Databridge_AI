@@ -13,7 +13,7 @@
 ## Prerequisites
 
 ```bash
-cd C:\Users\telha\Databridge_AI
+cd T:\Users\telha\Databridge_AI_Source
 pip install tinydb
 ```
 
@@ -22,7 +22,7 @@ pip install tinydb
 ### Run the Tutorial
 
 ```bash
-cd C:\Users\telha\Databridge_AI
+cd T:\Users\telha\Databridge_AI_Source
 set PYTHONPATH=./Book
 python Book/use_cases/tutorial_3_librarian_workflow/run_tutorial.py
 ```

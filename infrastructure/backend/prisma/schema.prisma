@@ -1,0 +1,708 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "darwin-arm64", "linux-musl", "windows"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id                  String    @id @default(uuid())
+  name                String    @map("user_name") @db.VarChar(255)
+  email               String    @unique @map("user_email") @db.VarChar(255)
+  password            String?   @db.VarChar(255)
+  avatarUrl           String?   @map("avatar_url") @db.VarChar(500)
+  bio                 String?   @db.Text
+  teamSize            String?   @map("team_size") @db.VarChar(50)
+  primaryUseCase      String?   @map("primary_use_case") @db.VarChar(255)
+  authType            String    @default("Microsoft SSO") @map("auth_type") @db.VarChar(50)
+  accessToken         String?   @map("access_token") @db.Text
+  refreshToken        String?   @map("refresh_token") @db.Text
+  accessExpiryTime    DateTime? @map("access_expiry_time")
+  refreshExpiryTime   DateTime? @map("refresh_expiry_time")
+  isActive            Boolean   @default(true) @map("is_active")
+  organizationId      String?   @map("organization_id")
+  onboardingCompleted Boolean   @default(false) @map("onboarding_completed")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  connections             Connection[]
+  serverIntegrations      ServerIntegration[]
+  auditLogs               AuditLog[]
+  schemaComparisonJobs    SchemaComparisonJob[]
+  aliases                 Alias[]
+  ownedOrganizations      Organization[]           @relation("OrganizationOwner")
+  organizationMemberships OrganizationMember[]
+  organization            Organization?            @relation("UserOrganization", fields: [organizationId], references: [id], onDelete: SetNull)
+  hierarchyProjects       HierarchyProject[]
+  projectMemberships      HierarchyProjectMember[] @relation("ProjectMemberUser")
+  projectInvites          HierarchyProjectMember[] @relation("ProjectMemberInviter")
+
+  @@index([email])
+  @@index([isActive])
+  @@index([organizationId])
+  @@map("users")
+}
+
+// Database Connection Management
+model Connection {
+  id             String @id @default(uuid())
+  userId         String @map("user_id")
+  connectionName String @map("connection_name") @db.VarChar(255)
+  serverType     String @default("Snowflake") @map("server_type") @db.VarChar(50)
+  connectionType String @map("connection_type") @db.VarChar(50) // 'oauth' or 'password'
+
+  // Generic Database Fields (for MySQL, PostgreSQL, etc.)
+  host         String? @db.VarChar(255)
+  port         Int?
+  databaseName String? @map("database_name") @db.VarChar(255)
+  schemaName   String? @map("schema_name") @db.VarChar(255)
+  authType     String? @map("auth_type") @db.VarChar(50) // 'password', 'keypair', 'oauth', 'sso'
+
+  // Snowflake Specific Fields
+  snowflakeAccount   String? @map("snowflake_account") @db.VarChar(255)
+  snowflakeWarehouse String? @map("snowflake_warehouse") @db.VarChar(255)
+  snowflakeDatabase  String? @map("snowflake_database") @db.VarChar(255)
+  snowflakeSchema    String? @map("snowflake_schema") @db.VarChar(255)
+  snowflakeUser      String? @map("snowflake_user") @db.VarChar(255)
+  snowflakeRole      String? @map("snowflake_role") @db.VarChar(255)
+
+  // OAuth Tokens (encrypted)
+  accessToken       String?   @map("access_token") @db.Text
+  refreshToken      String?   @map("refresh_token") @db.Text
+  accessExpiryTime  DateTime? @map("access_expiry_time")
+  refreshExpiryTime DateTime? @map("refresh_expiry_time")
+
+  // OAuth Client Credentials (encrypted)
+  snowflakeClientId     String? @map("snowflake_client_id") @db.Text
+  snowflakeClientSecret String? @map("snowflake_client_secret") @db.Text
+
+  // Password Auth (encrypted)
+  credentials String? @map("credentials") @db.Text
+
+  description  String?   @map("description") @db.Text
+  status       String    @default("active") @map("status") @db.VarChar(50)
+  lastTestedAt DateTime? @map("last_tested_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serverIntegrations ServerIntegration[]
+
+  @@unique([userId, connectionName])
+  @@index([userId])
+  @@index([status])
+  @@index([snowflakeAccount])
+  @@map("connections")
+}
+
+// Server Integration Configuration
+model ServerIntegration {
+  id                    String   @id @default(uuid())
+  userId                String   @map("user_id")
+  connectionId          String?  @map("connection_id")
+  serverType            String   @map("server_type") @db.VarChar(50)
+  snowflakeAccount      String   @map("snowflake_account") @db.VarChar(255)
+  snowflakeClientId     String   @map("snowflake_client_id") @db.Text
+  snowflakeClientSecret String   @map("snowflake_client_secret") @db.Text
+  isDefault             Boolean  @default(false) @map("is_default")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  connection Connection? @relation(fields: [connectionId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, snowflakeAccount])
+  @@index([userId])
+  @@index([snowflakeAccount])
+  @@map("server_integrations")
+}
+
+// Audit Logging
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  action    String   @db.VarChar(255)
+  entity    String   @db.VarChar(255)
+  entityId  String?  @map("entity_id") @db.VarChar(255)
+  changes   Json?
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+  userAgent String?  @map("user_agent") @db.Text
+  status    String   @db.VarChar(50)
+  errorMsg  String?  @map("error_msg") @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// Schema Comparison Jobs (stored in MySQL for metadata)
+model SchemaComparisonJob {
+  id                 String    @id @default(uuid())
+  userId             String    @map("user_id")
+  sourceConnectionId String    @map("source_connection_id") @db.VarChar(255)
+  sourceDatabase     String    @map("source_database") @db.VarChar(255)
+  sourceSchema       String    @map("source_schema") @db.VarChar(255)
+  targetConnectionId String    @map("target_connection_id") @db.VarChar(255)
+  targetDatabase     String    @map("target_database") @db.VarChar(255)
+  targetSchema       String    @map("target_schema") @db.VarChar(255)
+  status             String    @default("PENDING") @db.VarChar(50)
+  result             Json?
+  startedAt          DateTime? @map("started_at")
+  completedAt        DateTime? @map("completed_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resources    ComparisonResource[]
+  dependencies ComparisonDependency[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("schema_comparison_jobs")
+}
+
+// Alias Management
+model Alias {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  aliasType   String   @map("alias_type") @db.VarChar(50)
+  actualName  String   @map("actual_name") @db.VarChar(255)
+  aliasName   String   @map("alias_name") @db.VarChar(255)
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([aliasType, actualName])
+  @@index([userId])
+  @@index([aliasType])
+  @@index([aliasName])
+  @@map("aliases")
+}
+
+// Organization Management
+model Organization {
+  id             String    @id @default(uuid())
+  name           String    @db.VarChar(255)
+  description    String?   @db.Text
+  plan           String    @default("free") @db.VarChar(20)
+  status         String    @default("active") @db.VarChar(20)
+  teamSize       String?   @map("team_size") @db.VarChar(50)
+  primaryUseCase String?   @map("primary_use_case") @db.VarChar(255)
+  ownerId        String    @map("owner_id")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  owner             User                 @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members           OrganizationMember[]
+  billingPlans      BillingPlan[]
+  billingHistory    BillingHistory[]
+  users             User[]               @relation("UserOrganization")
+  hierarchyProjects HierarchyProject[]
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("organizations")
+}
+
+// Organization Members
+model OrganizationMember {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  userId         String   @map("user_id")
+  role           String   @default("member") @db.VarChar(20)
+  joinedAt       DateTime @default(now()) @map("joined_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@index([organizationId])
+  @@map("organization_members")
+}
+
+// Billing Plans
+model BillingPlan {
+  id             String    @id @default(uuid())
+  organizationId String    @map("organization_id")
+  planType       String    @map("plan_type") @db.VarChar(20)
+  status         String    @default("active") @db.VarChar(20)
+  billingCycle   String    @default("monthly") @map("billing_cycle") @db.VarChar(20)
+  amount         Decimal   @default(0) @db.Decimal(10, 2)
+  currency       String    @default("USD") @db.VarChar(3)
+  startedAt      DateTime  @default(now()) @map("started_at")
+  expiresAt      DateTime? @map("expires_at")
+  cancelledAt    DateTime? @map("cancelled_at")
+
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  billingHistory BillingHistory[]
+
+  @@index([organizationId])
+  @@index([status])
+  @@map("billing_plans")
+}
+
+// Billing History
+model BillingHistory {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  planId         String?  @map("plan_id")
+  amount         Decimal  @db.Decimal(10, 2)
+  currency       String   @default("USD") @db.VarChar(3)
+  status         String   @default("pending") @db.VarChar(20)
+  paymentMethod  String?  @map("payment_method") @db.VarChar(50)
+  transactionId  String?  @map("transaction_id") @db.VarChar(255)
+  invoiceUrl     String?  @map("invoice_url") @db.VarChar(500)
+  description    String?  @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         BillingPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("billing_history")
+}
+
+// Schema Comparison Resource Details
+model ComparisonResource {
+  id           String   @id @default(uuid())
+  jobId        String   @map("job_id")
+  resourceName String   @map("resource_name") @db.VarChar(255)
+  resourceType String   @map("resource_type") @db.VarChar(50) // TABLE, VIEW, PROCEDURE, etc.
+  database     String   @db.VarChar(255)
+  schema       String   @db.VarChar(255)
+  status       String   @db.VarChar(50) // MATCHED, MODIFIED, EXISTS_IN_SOURCE_ONLY, etc.
+  sourceDdl    String?  @map("source_ddl") @db.LongText
+  targetDdl    String?  @map("target_ddl") @db.LongText
+  differences  Json?    @db.Json // Detailed differences
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  job          SchemaComparisonJob    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  columns      ComparisonColumn[]
+  dependencies ComparisonDependency[] @relation("SourceResource")
+  dependedBy   ComparisonDependency[] @relation("TargetResource")
+
+  @@index([jobId])
+  @@index([resourceName])
+  @@index([resourceType])
+  @@index([status])
+  @@map("comparison_resources")
+}
+
+// Schema Comparison Column Details
+model ComparisonColumn {
+  id             String   @id @default(uuid())
+  resourceId     String   @map("resource_id")
+  columnName     String   @map("column_name") @db.VarChar(255)
+  status         String   @db.VarChar(50) // MATCHED, MODIFIED, SOURCE_ONLY, TARGET_ONLY
+  sourceType     String?  @map("source_type") @db.VarChar(100)
+  targetType     String?  @map("target_type") @db.VarChar(100)
+  sourceNullable Boolean? @map("source_nullable")
+  targetNullable Boolean? @map("target_nullable")
+  sourceDefault  String?  @map("source_default") @db.Text
+  targetDefault  String?  @map("target_default") @db.Text
+  differences    Json?    @db.Json
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  resource ComparisonResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@index([resourceId])
+  @@index([columnName])
+  @@index([status])
+  @@map("comparison_columns")
+}
+
+// Schema Comparison Dependency Graph
+model ComparisonDependency {
+  id               String   @id @default(uuid())
+  jobId            String   @map("job_id")
+  sourceResourceId String   @map("source_resource_id")
+  targetResourceId String   @map("target_resource_id")
+  dependencyType   String   @map("dependency_type") @db.VarChar(50) // FOREIGN_KEY, VIEW_DEPENDENCY, etc.
+  constraintName   String?  @map("constraint_name") @db.VarChar(255)
+  metadata         Json?    @db.Json // Additional dependency metadata
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  job            SchemaComparisonJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  sourceResource ComparisonResource  @relation("SourceResource", fields: [sourceResourceId], references: [id], onDelete: Cascade)
+  targetResource ComparisonResource  @relation("TargetResource", fields: [targetResourceId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@index([sourceResourceId])
+  @@index([targetResourceId])
+  @@index([dependencyType])
+  @@map("comparison_dependencies")
+}
+
+// ===== HIERARCHY BUILDER MODELS =====
+
+// Hierarchy Projects
+model HierarchyProject {
+  id               String   @id @default(uuid())
+  name             String   @db.VarChar(255)
+  description      String?  @db.Text
+  userId           String   @map("user_id")
+  organizationId   String?  @map("organization_id")
+  isActive         Boolean  @default(true) @map("is_active")
+  metadata         Json?    @db.Json
+  deploymentConfig Json?    @map("deployment_config") @db.Json // {connectionId, database, schema, masterTableName, masterViewName, createTables, createViews, createDynamicTables}
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user              User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization      Organization?            @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  smartHierarchies  SmartHierarchyMaster[]
+  members           HierarchyProjectMember[]
+  deploymentHistory DeploymentHistory[]
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([isActive])
+  @@map("hierarchy_projects")
+}
+
+// Project Member with Permissions
+model HierarchyProjectMember {
+  id               String    @id @default(uuid())
+  projectId        String    @map("project_id")
+  userId           String?   @map("user_id")
+  userEmail        String?   @map("user_email") @db.VarChar(255)
+  role             String    @default("viewer") @db.VarChar(50) // owner, editor, viewer
+  accessType       String    @default("direct") @map("access_type") @db.VarChar(50) // direct, organization
+  invitationStatus String    @default("pending") @map("invitation_status") @db.VarChar(50) // pending, accepted, declined
+  invitedBy        String?   @map("invited_by")
+  invitedAt        DateTime  @default(now()) @map("invited_at")
+  acceptedAt       DateTime? @map("accepted_at")
+  isActive         Boolean   @default(true) @map("is_active")
+  metadata         Json?     @db.Json
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  project HierarchyProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User?            @relation("ProjectMemberUser", fields: [userId], references: [id], onDelete: Cascade)
+  inviter User?            @relation("ProjectMemberInviter", fields: [invitedBy], references: [id], onDelete: SetNull)
+
+  @@unique([projectId, userId])
+  @@unique([projectId, userEmail])
+  @@index([projectId])
+  @@index([userId])
+  @@index([userEmail])
+  @@index([role])
+  @@index([invitationStatus])
+  @@map("hierarchy_project_members")
+}
+
+// Hierarchy Nodes
+// Legacy models removed - now using SmartHierarchyMaster single table approach
+
+// Custom Objects (for filters)
+model CustomObject {
+  id         String   @id @default(uuid())
+  name       String   @db.VarChar(255)
+  dataType   String   @map("data_type") @db.VarChar(50)
+  validation Json?    @db.Json
+  metadata   Json?    @db.Json
+  createdBy  String   @map("created_by")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([createdBy])
+  @@map("custom_objects")
+}
+
+// AI Recommendations
+model AIRecommendation {
+  id            String   @id @default(uuid())
+  type          String   @db.VarChar(100) // error_fix, optimization, etc.
+  title         String   @db.VarChar(500)
+  description   String   @db.Text
+  evidence      Json?    @db.Json
+  status        String   @default("pending") @db.VarChar(50) // pending, approved, rejected, implemented
+  priority      Int      @default(1)
+  affectedNodes Json?    @db.Json
+  brdGenerated  Boolean  @default(false) @map("brd_generated")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([priority])
+  @@map("ai_recommendations")
+}
+
+// HierarchySetting model removed - not used in current implementation
+
+// HierarchyConfiguration model removed - UI state managed in frontend
+
+// ============================================================================
+// SMART HIERARCHY SYSTEM - Single Table JSON-Based Approach
+// ============================================================================
+
+// Main Smart Hierarchy Master Table (mirrors Snowflake TBL_HIERARCHY_MASTER)
+model SmartHierarchyMaster {
+  id            String  @id @default(uuid())
+  projectId     String  @map("project_id")
+  hierarchyId   String  @map("hierarchy_id") @db.VarChar(100)
+  hierarchyName String  @map("hierarchy_name") @db.VarChar(255)
+  description   String? @db.Text
+
+  // Tree structure fields
+  parentId  String? @map("parent_id")
+  sortOrder Int     @default(0) @map("sort_order")
+  isRoot    Boolean @default(true) @map("is_root")
+
+  // JSON columns matching Snowflake structure
+  hierarchyLevel Json  @map("hierarchy_level") @db.Json // {level_1: "...", level_2: "...", ..., level_15: "..."}
+  flags          Json  @map("flags") @db.Json // {include_flag, exclude_flag, transform_flag, active_flag, is_leaf_node}
+  mapping        Json  @map("mapping") @db.Json // Array: [{mapping_index, source_database, source_schema, source_table, source_column, source_uid, flags: {...}}]
+  formulaConfig  Json? @map("formula_config") @db.Json // {formula_type, formula_text, variables}
+  filterConfig   Json? @map("filter_config") @db.Json // {filter_conditions: [...], custom_sql}
+  pivotConfig    Json? @map("pivot_config") @db.Json // {pivot_columns, aggregate_functions}
+  metadata       Json? @db.Json // Additional metadata
+
+  createdBy String?  @map("created_by") @db.VarChar(255)
+  updatedBy String?  @map("updated_by") @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  project  HierarchyProject       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent   SmartHierarchyMaster?  @relation("HierarchyTree", fields: [parentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  children SmartHierarchyMaster[] @relation("HierarchyTree")
+
+  @@unique([projectId, hierarchyId])
+  @@index([projectId])
+  @@index([hierarchyId])
+  @@index([parentId])
+  @@index([sortOrder])
+  @@index([isRoot])
+  @@map("smart_hierarchy_master")
+}
+
+// Project Export - JSON backup storage for entire projects
+// SmartHierarchyExport model removed - exports now handled through DeploymentHistory and JSON files
+
+// Reference Tables - Virtual tables loaded from CSV files for dimension lookups
+model ReferenceTable {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  name        String   @db.VarChar(100) // Table name (e.g., "dim_account")
+  displayName String   @map("display_name") @db.VarChar(255)
+  description String?  @db.Text
+  sourceFile  String?  @map("source_file") @db.VarChar(500) // Original CSV filename
+  columns     Json     @db.Json // Array of column definitions: [{name, type, isPrimaryKey}]
+  rowCount    Int      @default(0) @map("row_count")
+  data        String   @db.LongText // JSON string of row objects array
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@index([name])
+  @@index([isActive])
+  @@map("reference_tables")
+}
+
+// Hierarchy Viewer Selections - Saves user's selected filter values per hierarchy
+model HierarchyViewerSelection {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  projectId      String   @map("project_id")
+  hierarchyId    String   @map("hierarchy_id") @db.VarChar(100) // The hierarchy this selection applies to
+  tableName      String   @map("table_name") @db.VarChar(100) // Reference table name
+  columnName     String   @map("column_name") @db.VarChar(100) // Column being filtered
+  selectedValues Json     @map("selected_values") @db.Json // Array of selected values
+  displayColumns Json?    @map("display_columns") @db.Json // Array of additional columns to display as children
+  applyToAll     Boolean  @default(false) @map("apply_to_all") // Apply to all hierarchies with same table
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, projectId, hierarchyId, tableName, columnName])
+  @@index([userId])
+  @@index([projectId])
+  @@index([hierarchyId])
+  @@index([tableName])
+  @@map("hierarchy_viewer_selections")
+}
+
+// Deployment History - Tracks all deployments with scripts saved only on actual deployment
+model DeploymentHistory {
+  id        String @id @default(uuid())
+  projectId String @map("project_id")
+
+  // Deployment configuration
+  connectionId    String @map("connection_id")
+  database        String @db.VarChar(255)
+  schema          String @db.VarChar(255)
+  masterTableName String @map("master_table_name") @db.VarChar(255)
+  masterViewName  String @map("master_view_name") @db.VarChar(255)
+  databaseType    String @map("database_type") @db.VarChar(50) // snowflake, postgres, mysql, sqlserver
+
+  // Script content - saved only on deployment
+  insertScript       String? @map("insert_script") @db.LongText
+  viewScript         String? @map("view_script") @db.LongText
+  mappingScript      String? @map("mapping_script") @db.LongText
+  dynamicTableScript String? @map("dynamic_table_script") @db.LongText
+
+  // Deployment details
+  hierarchyIds   Json     @map("hierarchy_ids") @db.Json // Array of hierarchy IDs deployed
+  hierarchyNames Json?    @map("hierarchy_names") @db.Json // Array of hierarchy names for display
+  deployedBy     String   @map("deployed_by") @db.VarChar(255) // User email
+  deployedAt     DateTime @default(now()) @map("deployed_at")
+
+  // Execution results
+  status        String  @default("pending") @map("status") @db.VarChar(50) // pending, success, partial, failed
+  successCount  Int     @default(0) @map("success_count")
+  failedCount   Int     @default(0) @map("failed_count")
+  errorMessage  String? @map("error_message") @db.Text
+  executionTime Int?    @map("execution_time") // milliseconds
+
+  project HierarchyProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([deployedBy])
+  @@index([deployedAt])
+  @@index([status])
+  @@index([databaseType])
+  @@map("deployment_history")
+}
+
+// ============================================================================
+// AI ORCHESTRATOR SYSTEM
+// ============================================================================
+
+// Orchestrator Tasks - Job queue with priorities and dependencies
+model OrchestratorTask {
+  id            String    @id @default(uuid())
+  type          String    @db.VarChar(50) // hierarchy_build, reconciliation, sql_analysis, etc.
+  status        String    @default("pending") @db.VarChar(50) // pending, queued, in_progress, completed, failed, cancelled
+  priority      String    @default("normal") @db.VarChar(20) // low, normal, high, critical
+  priorityValue Int       @default(50) @map("priority_value") // numeric for sorting
+  payload       Json      @db.Json // Task-specific parameters
+  result        Json?     @db.Json // Task result on completion
+  assignedAgent String?   @map("assigned_agent") @db.VarChar(255)
+  dependencies  Json      @default("[]") @db.Json // Array of task IDs that must complete first
+  checkpoints   Json      @default("[]") @db.Json // Array of checkpoint objects for resumability
+  callbackUrl   String?   @map("callback_url") @db.VarChar(500) // Webhook for completion notification
+  metadata      Json?     @db.Json // Additional metadata
+  createdAt     DateTime  @default(now()) @map("created_at")
+  startedAt     DateTime? @map("started_at")
+  completedAt   DateTime? @map("completed_at")
+
+  @@index([status])
+  @@index([type])
+  @@index([priority])
+  @@index([assignedAgent])
+  @@index([createdAt])
+  @@map("orchestrator_tasks")
+}
+
+// Registered Agents - AI agents registered with the orchestrator
+model RegisteredAgent {
+  id                 String   @id @db.VarChar(255)
+  name               String   @db.VarChar(255)
+  type               String   @db.VarChar(50) // mcp_native, llm_agent, specialized, excel_plugin, power_bi, external
+  capabilities       Json     @db.Json // Array of capability objects [{tool, proficiency, constraints}]
+  maxConcurrentTasks Int      @default(5) @map("max_concurrent_tasks")
+  currentLoad        Int      @default(0) @map("current_load")
+  healthStatus       String   @default("healthy") @map("health_status") @db.VarChar(20) // healthy, degraded, unhealthy, offline
+  callbackUrl        String?  @map("callback_url") @db.VarChar(500) // Webhook for receiving messages
+  metadata           Json?    @db.Json // Additional metadata
+  lastHeartbeat      DateTime @default(now()) @map("last_heartbeat")
+  registeredAt       DateTime @default(now()) @map("registered_at")
+
+  @@index([type])
+  @@index([healthStatus])
+  @@index([lastHeartbeat])
+  @@map("registered_agents")
+}
+
+// Agent Messages - Agent-to-agent communication
+model AgentMessage {
+  id               String    @id @default(uuid())
+  conversationId   String    @map("conversation_id") @db.VarChar(255)
+  fromAgent        String    @map("from_agent") @db.VarChar(255)
+  toAgent          String    @map("to_agent") @db.VarChar(255) // '*' for broadcast
+  messageType      String    @map("message_type") @db.VarChar(50) // task_handoff, query, response, status_update, error, approval_request, data_share
+  payload          Json      @db.Json // Message content
+  context          Json?     @db.Json // Conversation context
+  requiresResponse Boolean   @default(false) @map("requires_response")
+  responseTimeout  Int?      @map("response_timeout") // milliseconds
+  responseId       String?   @map("response_id") @db.VarChar(255) // ID of message this responds to
+  createdAt        DateTime  @default(now()) @map("created_at")
+  deliveredAt      DateTime? @map("delivered_at")
+  readAt           DateTime? @map("read_at")
+
+  @@index([conversationId])
+  @@index([fromAgent])
+  @@index([toAgent])
+  @@index([messageType])
+  @@index([createdAt])
+  @@map("agent_messages")
+}
+
+// Conversations - Agent conversation threading
+model AgentConversation {
+  id           String   @id @default(uuid())
+  participants Json     @db.Json // Array of agent IDs
+  context      Json     @db.Json // Conversation context {projectId, hierarchyId, taskId, sessionState, sharedData, permissions}
+  messageCount Int      @default(0) @map("message_count")
+  isActive     Boolean  @default(true) @map("is_active")
+  lastMessageAt DateTime @default(now()) @map("last_message_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([isActive])
+  @@index([lastMessageAt])
+  @@map("agent_conversations")
+}
+
+// Workflows - Multi-step workflow definitions
+model OrchestratorWorkflow {
+  id          String   @id @default(uuid())
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  steps       Json     @db.Json // Array of workflow step definitions
+  triggers    Json?    @db.Json // Array of trigger conditions (event, schedule, manual)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  executions WorkflowExecution[]
+
+  @@index([name])
+  @@index([isActive])
+  @@map("orchestrator_workflows")
+}
+
+// Workflow Executions - Running workflow instances
+model WorkflowExecution {
+  id             String    @id @default(uuid())
+  workflowId     String    @map("workflow_id")
+  status         String    @default("running") @db.VarChar(50) // running, paused, completed, failed, cancelled
+  currentStepId  String    @map("current_step_id") @db.VarChar(255)
+  completedSteps Json      @default("[]") @map("completed_steps") @db.Json // Array of completed step IDs
+  stepResults    Json      @default("{}") @map("step_results") @db.Json // Map of stepId -> result
+  error          String?   @db.Text
+  startedAt      DateTime  @default(now()) @map("started_at")
+  completedAt    DateTime? @map("completed_at")
+
+  workflow OrchestratorWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+  @@index([status])
+  @@index([startedAt])
+  @@map("workflow_executions")
+}

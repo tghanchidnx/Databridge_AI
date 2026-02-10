@@ -12,9 +12,9 @@
 **Issue**: Changes made locally don't affect Docker containers.
 
 **Solution**:
-- Frontend runs in Docker container `databridge-frontend-v2`
-- After local code changes, must rebuild: `docker-compose build frontend-v2 --no-cache`
-- Then restart: `docker-compose up -d frontend-v2`
+- Frontend runs in Docker container `databridge-frontend`
+- After local code changes, must rebuild: `docker-compose build frontend --no-cache`
+- Then restart: `docker-compose up -d frontend`
 - The Vite dev server runs INSIDE the container, not on host
 
 ### 2. Parent ID References
@@ -103,7 +103,7 @@ if (data.changes && Array.isArray(data.changes) && data.changes.length > 0) {
 | MySQL | 3306 | 3308 |
 | Redis | 6379 | 6381 |
 
-**V2 API Keys**: `v2-dev-key-1`, `v2-dev-key-2`
+**API Keys**: `dev-key-1`, `dev-key-2`
 
 ---
 
@@ -126,7 +126,7 @@ if (data.changes && Array.isArray(data.changes) && data.changes.length > 0) {
 - `animate-hierarchy-create` - Green fade-in
 - `animate-hierarchy-delete` - Red fade-out
 
-**Location**: `v2/frontend/src/index.css`
+**Location**: `infrastructure/frontend/src/index.css`
 
 ### 9. AI Hierarchy Lookup Table Limit
 
@@ -134,7 +134,7 @@ if (data.changes && Array.isArray(data.changes) && data.changes.length > 0) {
 
 **Root Cause**: The AI system prompt only includes the first N hierarchies in its lookup table. If the project has many hierarchies, some may not be visible to the AI.
 
-**Location**: `v2/backend/src/modules/ai/chat.service.ts` - `buildSystemPrompt()` function
+**Location**: `infrastructure/backend/src/modules/ai/chat.service.ts` - `buildSystemPrompt()` function
 
 **Previous limit**: 100 hierarchies
 **Updated limit**: 300 hierarchies (sorted alphabetically for easier lookup)
@@ -177,7 +177,7 @@ Before making changes, verify:
 5. [ ] Did you hard refresh browser? (Ctrl+Shift+R)
 6. [ ] Check browser DevTools Console for errors
 7. [ ] Check Network tab for failed API calls
-8. [ ] Check Docker logs: `docker logs databridge-frontend-v2`
+8. [ ] Check Docker logs: `docker logs databridge-frontend`
 
 ---
 
@@ -186,8 +186,8 @@ Before making changes, verify:
 **Main config**: `src/config.py`
 
 ```python
-nestjs_backend_url = "http://localhost:3002/api"  # V2
-nestjs_api_key = "v2-dev-key-1"  # V2
+nestjs_backend_url = "http://localhost:3002/api"
+nestjs_api_key = "dev-key-1"
 ```
 
 **For V1 (legacy)**:
@@ -202,10 +202,10 @@ nestjs_api_key = "dev-key-1"
 
 ```bash
 # Rebuild and restart frontend
-cd v2 && docker-compose build frontend-v2 --no-cache && docker-compose up -d frontend-v2
+cd infrastructure && docker-compose build frontend --no-cache && docker-compose up -d frontend
 
 # Check container logs
-docker logs databridge-frontend-v2 --tail 50
+docker logs databridge-frontend --tail 50
 
 # Check backend health
 curl -s http://localhost:3002/api/health
@@ -213,6 +213,6 @@ curl -s http://localhost:3002/api/health
 # Test AI chat API
 curl -s -k https://localhost:8443/api/ai/hierarchy-chat -X POST \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: v2-dev-key-1" \
+  -H "X-API-Key: dev-key-1" \
   -d '{"sessionId":"test","message":"list hierarchies","context":{}}'
 ```

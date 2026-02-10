@@ -1,0 +1,155 @@
+{
+  "apiEndpoints": {
+    "baseUrl": "",
+    "auth": {
+      "login": "/auth/login",
+      "logout": "/auth/logout",
+      "register": "/auth/register",
+      "refreshToken": "/auth/refresh",
+      "verifyEmail": "/auth/verify-email",
+      "resetPassword": "/auth/reset-password"
+    },
+    "users": {
+      "profile": "/users/me",
+      "update": "/users/me",
+      "avatar": "/users/me/avatar",
+      "sessions": "/users/me/sessions"
+    },
+    "workspaces": {
+      "list": "/workspaces",
+      "create": "/workspaces",
+      "get": "/workspaces/:id",
+      "update": "/workspaces/:id",
+      "delete": "/workspaces/:id",
+      "members": "/workspaces/:id/members",
+      "invite": "/workspaces/:id/invite"
+    },
+    "connections": {
+      "list": "/connections",
+      "create": "/connections",
+      "get": "/connections/:id",
+      "update": "/connections/:id",
+      "delete": "/connections/:id",
+      "test": "/connections/:id/test",
+      "schemas": "/connections/:id/schemas"
+    },
+    "schema": {
+      "compare": "/schema/compare",
+      "diff": "/schema/diff/:id",
+      "generateScript": "/schema/generate-script/:id"
+    },
+    "reports": {
+      "compare": "/reports/compare",
+      "results": "/reports/:id",
+      "export": "/reports/:id/export"
+    },
+    "queries": {
+      "execute": "/queries/execute",
+      "history": "/queries/history",
+      "save": "/queries/save",
+      "favorites": "/queries/favorites"
+    },
+    "ai": {
+      "chat": "/ai/chat",
+      "generateQuery": "/ai/generate-query",
+      "explainQuery": "/ai/explain-query",
+      "optimize": "/ai/optimize"
+    },
+    "github": {
+      "authorize": "/github/authorize",
+      "repos": "/github/repos",
+      "connect": "/github/connect",
+      "disconnect": "/github/disconnect",
+      "commits": "/github/commits",
+      "createCommit": "/github/commit",
+      "createPR": "/github/pull-request"
+    },
+    "notifications": {
+      "list": "/notifications",
+      "markAsRead": "/notifications/:id/read",
+      "markAllAsRead": "/notifications/read-all",
+      "delete": "/notifications/:id"
+    },
+    "billing": {
+      "subscription": "/billing/subscription",
+      "updatePlan": "/billing/subscription/plan",
+      "paymentMethods": "/billing/payment-methods",
+      "addPaymentMethod": "/billing/payment-methods",
+      "invoices": "/billing/invoices",
+      "downloadInvoice": "/billing/invoices/:id/download"
+    },
+    "search": {
+      "global": "/search",
+      "connections": "/search/connections",
+      "projects": "/search/projects"
+    }
+  },
+  "requestHeaders": {
+    "default": {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    "authenticated": {
+      "Authorization": "Bearer {token}"
+    }
+  },
+  "responseFormats": {
+    "success": {
+      "status": "success",
+      "data": {}
+    },
+    "error": {
+      "status": "error",
+      "message": "Error description",
+      "code": "ERROR_CODE"
+    },
+    "pagination": {
+      "data": [],
+      "pagination": {
+        "page": 1,
+        "limit": 20,
+        "total": 100,
+        "totalPages": 5
+      }
+    }
+  },
+  "errorCodes": {
+    "AUTH_001": "Invalid credentials",
+    "AUTH_002": "Session expired",
+    "AUTH_003": "Unauthorized access",
+    "CONN_001": "Connection failed",
+    "CONN_002": "Invalid connection parameters",
+    "CONN_003": "Connection timeout",
+    "SCHEMA_001": "Schema not found",
+    "SCHEMA_002": "Comparison failed",
+    "QUERY_001": "Query execution failed",
+    "QUERY_002": "Invalid SQL syntax",
+    "GITHUB_001": "GitHub authentication failed",
+    "GITHUB_002": "Repository not found",
+    "BILLING_001": "Payment failed",
+    "BILLING_002": "Invalid subscription"
+  },
+  "webSocketEndpoints": {
+    "baseUrl": "wss://api.dataamplifier.com/ws",
+    "channels": {
+      "notifications": "/notifications",
+      "schemaComparison": "/schema/compare/:id",
+      "queryExecution": "/queries/execute/:id",
+      "workspaceActivity": "/workspaces/:id/activity"
+    }
+  },
+  "rateLimits": {
+    "default": {
+      "requestsPerMinute": 60,
+      "burstSize": 100
+    },
+    "ai": {
+      "requestsPerMinute": 20,
+      "burstSize": 30
+    },
+    "queries": {
+      "requestsPerMinute": 30,
+      "burstSize": 50
+    }
+  }
+}

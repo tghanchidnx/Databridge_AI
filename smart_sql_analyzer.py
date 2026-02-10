@@ -765,7 +765,7 @@ WHERE
 
     # Run analysis
     analyzer = SmartSQLAnalyzer(
-        coa_path=r"C:\Users\telha\Databridge_AI\Gemini\Uploads\DIM_ACCOUNT.csv"
+        coa_path=r"T:\Users\telha\Databridge_AI_Source\Gemini\Uploads\DIM_ACCOUNT.csv"
     )
 
     stats = analyzer.analyze_and_export(

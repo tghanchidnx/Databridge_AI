@@ -314,7 +314,7 @@ class TestRealFPAFile:
         """Get path to actual FP&A file."""
         # Try multiple possible locations
         paths = [
-            Path("C:/Users/telha/Databridge_AI/docs/FP&A Queries.sql"),
+            Path("T:/Users/telha/Databridge_AI_Source/docs/FP&A Queries.sql"),
             Path("docs/FP&A Queries.sql"),
             Path("../docs/FP&A Queries.sql"),
         ]

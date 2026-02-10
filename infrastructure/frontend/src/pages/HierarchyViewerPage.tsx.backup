@@ -1,0 +1,2535 @@
+/**
+ * Hierarchy Viewer Page
+ * Tree view of hierarchies with mapping dropdowns from reference tables
+ * Now with AI Chat panel for making edits with undo/redo support
+ */
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import {
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  Folder,
+  FolderOpen,
+  FileText,
+  Database,
+  Layers,
+  Hash,
+  RefreshCw,
+  Search,
+  Filter,
+  Pencil,
+  Check,
+  X,
+  Settings,
+  Table2,
+  Eye,
+  Columns,
+  Sparkles,
+  GripVertical,
+  Trash2,
+  Plus,
+  MoreHorizontal,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import { projectService } from "@/services/api/hierarchy/project.service";
+import { smartHierarchyService } from "@/services/api/hierarchy/hierarchy.service";
+import {
+  referenceTableService,
+  ReferenceTableSummary,
+} from "@/services/api/hierarchy/reference-table.service";
+import { ReferenceTablesDialog } from "@/components/hierarchy-knowledge-base/dialogs/ReferenceTablesDialog";
+import { AIChat, HierarchyChange, AIChatRef } from "@/components/hierarchy-knowledge-base/components/AIChat";
+import { useHierarchyHistory } from "@/hooks/useHierarchyHistory";
+import { useToast } from "@/hooks/use-toast";
+import { addLog } from "@/components/dev-console";
+
+interface HierarchyNode {
+  id: string;
+  hierarchyId: string;
+  hierarchyName: string;
+  parentId: string | null;
+  sortOrder: number;
+  isRoot: boolean;
+  hierarchyLevel?: Record<string, any>;
+  mapping?: any[];
+  flags?: Record<string, any>;
+  children: HierarchyNode[];
+}
+
+interface ProjectSummary {
+  id: string;
+  name: string;
+  hierarchyCount: number;
+  mappingCount: number;
+  rootCount: number;
+  maxDepth: number;
+}
+
+interface ViewerSelection {
+  selectedValues: string[];
+  applyToAll: boolean;
+}
+
+interface ViewerSelectionData {
+  selectedValues: string[];
+  displayColumns?: string[];
+}
+
+interface TreeNodeProps {
+  node: HierarchyNode;
+  level: number;
+  expandedNodes: Set<string>;
+  onToggle: (id: string) => void;
+  searchQuery: string;
+  referenceTables: ReferenceTableSummary[];
+  viewerSelections: Record<string, Record<string, ViewerSelectionData>>;
+  onSelectionChange: (
+    hierarchyId: string,
+    tableName: string,
+    columnName: string,
+    selectedValues: string[],
+    applyToAll: boolean,
+    displayColumns?: string[]
+  ) => void;
+  onRefreshHierarchy: () => void;
+  projectId: string;
+  animatedItems?: Record<string, { type: string; timestamp: number }>;
+  // Edit handlers - all edits go through AI chat
+  onAICommand: (command: string) => void;
+  allHierarchies: HierarchyNode[];
+}
+
+// Column mapping configuration stored in localStorage
+interface ColumnMapping {
+  sourceTable: string;
+  sourceColumn: string;
+  targetTable: string;
+  targetColumn: string;
+}
+
+function getStoredColumnMappings(): ColumnMapping[] {
+  try {
+    const stored = localStorage.getItem("hierarchy-column-mappings");
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveColumnMapping(mapping: ColumnMapping) {
+  const mappings = getStoredColumnMappings();
+  // Remove existing mapping for same source
+  const filtered = mappings.filter(
+    (m) => !(m.sourceTable === mapping.sourceTable && m.sourceColumn === mapping.sourceColumn)
+  );
+  filtered.push(mapping);
+  localStorage.setItem("hierarchy-column-mappings", JSON.stringify(filtered));
+}
+
+function findColumnMapping(sourceTable: string, sourceColumn: string): ColumnMapping | undefined {
+  const mappings = getStoredColumnMappings();
+  return mappings.find(
+    (m) => m.sourceTable.toLowerCase() === sourceTable.toLowerCase() &&
+           m.sourceColumn.toLowerCase() === sourceColumn.toLowerCase()
+  );
+}
+
+// Display columns configuration stored in localStorage
+interface DisplayColumnsConfig {
+  tableName: string;
+  columnName: string;
+  displayColumns: string[];
+}
+
+function getStoredDisplayColumns(): DisplayColumnsConfig[] {
+  try {
+    const stored = localStorage.getItem("hierarchy-display-columns");
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveDisplayColumnsConfig(config: DisplayColumnsConfig) {
+  const configs = getStoredDisplayColumns();
+  const filtered = configs.filter(
+    (c) => !(c.tableName === config.tableName && c.columnName === config.columnName)
+  );
+  if (config.displayColumns.length > 0) {
+    filtered.push(config);
+  }
+  localStorage.setItem("hierarchy-display-columns", JSON.stringify(filtered));
+}
+
+function findDisplayColumnsConfig(tableName: string, columnName: string): string[] {
+  const configs = getStoredDisplayColumns();
+  const config = configs.find(
+    (c) => c.tableName.toLowerCase() === tableName.toLowerCase() &&
+           c.columnName.toLowerCase() === columnName.toLowerCase()
+  );
+  return config?.displayColumns || [];
+}
+
+// Component to display additional column values for a selected value (legacy - kept for compatibility)
+function DisplayColumnValues({
+  tableName,
+  filterColumn,
+  filterValue,
+  displayColumns,
+  level,
+}: {
+  tableName: string;
+  filterColumn: string;
+  filterValue: string;
+  displayColumns: string[];
+  level: number;
+}) {
+  const [columnValues, setColumnValues] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (displayColumns.length === 0) {
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchValues = async () => {
+      try {
+        // Query the reference table to get the values for this filter value
+        const result = await referenceTableService.queryTable({
+          tableName,
+          columns: displayColumns,
+          filterColumn,
+          filterValues: [filterValue],
+          limit: 1,
+        });
+
+        if (result.rows.length > 0) {
+          setColumnValues(result.rows[0]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch display column values:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchValues();
+  }, [tableName, filterColumn, filterValue, displayColumns]);
+
+  if (displayColumns.length === 0 || isLoading) {
+    return null;
+  }
+
+  return (
+    <>
+      {displayColumns.map((colName) => {
+        const value = columnValues[colName];
+        if (value === undefined || value === null || value === "") return null;
+        return (
+          <div
+            key={colName}
+            className="flex items-center gap-2 py-0.5 px-2 text-xs"
+            style={{ paddingLeft: `${(level + 3) * 16 + 8}px` }}
+          >
+            <span className="text-muted-foreground">{colName}:</span>
+            <span className="text-foreground">{String(value)}</span>
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
+// Component to display additional columns as proper tree child nodes
+function DisplayColumnChildren({
+  tableName,
+  filterColumn,
+  filterValue,
+  displayColumns,
+  level,
+}: {
+  tableName: string;
+  filterColumn: string;
+  filterValue: string;
+  displayColumns: string[];
+  level: number;
+}) {
+  const [columnValues, setColumnValues] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (displayColumns.length === 0) {
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchValues = async () => {
+      try {
+        const result = await referenceTableService.queryTable({
+          tableName,
+          columns: displayColumns,
+          filterColumn,
+          filterValues: [filterValue],
+          limit: 1,
+        });
+
+        if (result.rows.length > 0) {
+          setColumnValues(result.rows[0]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch display column values:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchValues();
+  }, [tableName, filterColumn, filterValue, displayColumns]);
+
+  if (displayColumns.length === 0) {
+    return null;
+  }
+
+  if (isLoading) {
+    return (
+      <div
+        className="flex items-center gap-2 py-1 px-2 text-xs text-muted-foreground"
+        style={{ paddingLeft: `${(level + 1) * 16 + 8}px` }}
+      >
+        <RefreshCw className="h-3 w-3 animate-spin" />
+        <span>Loading...</span>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {displayColumns.map((colName) => {
+        const value = columnValues[colName];
+        if (value === undefined || value === null || value === "") return null;
+        return (
+          <div
+            key={colName}
+            className="flex items-center gap-1 py-1 px-2 rounded-md hover:bg-muted/50 group"
+            style={{ paddingLeft: `${(level + 1) * 16 + 8}px` }}
+          >
+            <div className="w-4 h-4 flex items-center justify-center">
+              <span className="w-3.5" />
+            </div>
+            <FileText className="h-4 w-4 text-cyan-500" />
+            <span className="text-sm text-muted-foreground">{colName}:</span>
+            <span className="flex-1 truncate text-sm font-medium">{String(value)}</span>
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
+// Multi-select dropdown component for mapping values
+function MappingValueSelector({
+  mapping,
+  hierarchyId,
+  referenceTables,
+  currentSelections,
+  currentDisplayColumns,
+  onSelectionChange,
+  onRefreshHierarchy,
+}: {
+  mapping: any;
+  hierarchyId: string;
+  referenceTables: ReferenceTableSummary[];
+  currentSelections: string[];
+  currentDisplayColumns: string[];
+  onSelectionChange: (
+    tableName: string,
+    columnName: string,
+    values: string[],
+    applyToAll: boolean,
+    displayColumns?: string[]
+  ) => void;
+  onRefreshHierarchy: () => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [step, setStep] = useState<"select-table" | "select-column" | "select-values" | "value-matched" | "value-not-found">("select-values");
+  const [selectedTable, setSelectedTable] = useState<ReferenceTableSummary | null>(null);
+  const [selectedColumn, setSelectedColumn] = useState<string>("");
+  const [options, setOptions] = useState<string[]>([]);
+  const [selectedValues, setSelectedValues] = useState<string[]>(currentSelections || []);
+  const [displayColumns, setDisplayColumns] = useState<string[]>(currentDisplayColumns || []);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [applyToAll, setApplyToAll] = useState(false);
+  const [applyMappingToAll, setApplyMappingToAll] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [valueExistsInTable, setValueExistsInTable] = useState<boolean | null>(null);
+
+  const sourceTableName = (mapping.source_table || mapping.id_table || "").toLowerCase();
+  const sourceColumnName = mapping.source_column || mapping.id_source || "";
+  // The actual value in the mapping (source_uid is the filter value)
+  const sourceUidValue = mapping.source_uid || mapping.id_name || "";
+
+  // Find matching reference table
+  const matchingTable = referenceTables.find(
+    (t) => t.name.toLowerCase() === sourceTableName
+  );
+
+  // Check if column exists in the reference table
+  const columnExists = matchingTable?.columns?.some(
+    (c) => c.name.toLowerCase() === sourceColumnName.toLowerCase()
+  );
+
+  // Check for stored column mapping
+  const storedMapping = findColumnMapping(sourceTableName, sourceColumnName);
+
+  // Effective table and column (from stored mapping or direct match)
+  const effectiveTable = storedMapping
+    ? referenceTables.find((t) => t.name.toLowerCase() === storedMapping.targetTable.toLowerCase())
+    : matchingTable;
+  const effectiveColumn = storedMapping?.targetColumn || (columnExists ? sourceColumnName : "");
+
+  // Load stored display columns configuration
+  const storedDisplayCols = effectiveTable && effectiveColumn
+    ? findDisplayColumnsConfig(effectiveTable.name, effectiveColumn)
+    : [];
+
+  // Update local state when props change
+  useEffect(() => {
+    setSelectedValues(currentSelections || []);
+  }, [currentSelections]);
+
+  // Initialize display columns from currentDisplayColumns prop or stored config
+  useEffect(() => {
+    if (currentDisplayColumns && currentDisplayColumns.length > 0) {
+      setDisplayColumns(currentDisplayColumns);
+    } else if (storedDisplayCols.length > 0 && displayColumns.length === 0) {
+      setDisplayColumns(storedDisplayCols);
+    }
+  }, [currentDisplayColumns, storedDisplayCols]);
+
+  // Determine initial step when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      if (effectiveTable && effectiveColumn) {
+        setSelectedTable(effectiveTable);
+        setSelectedColumn(effectiveColumn);
+        // Load options and check if source_uid exists
+        loadOptionsAndCheckValue(effectiveTable.name, effectiveColumn);
+      } else if (referenceTables.length === 0) {
+        setStep("select-table");
+      } else if (!matchingTable && !storedMapping) {
+        setStep("select-table");
+      } else if (matchingTable && !columnExists && !storedMapping) {
+        setSelectedTable(matchingTable);
+        setStep("select-column");
+      } else {
+        setStep("select-values");
+      }
+    }
+  }, [isOpen]);
+
+  const loadOptionsAndCheckValue = async (tableName: string, colName: string) => {
+    if (!tableName || !colName) return;
+    setIsLoading(true);
+    setLoadError(null);
+    try {
+      const values = await referenceTableService.getDistinctValues(tableName, colName);
+      setOptions(values);
+
+      // Check if source_uid value exists in the reference table
+      if (sourceUidValue && values.length > 0) {
+        const valueExists = values.some(
+          (v) => v.toLowerCase() === sourceUidValue.toLowerCase()
+        );
+        setValueExistsInTable(valueExists);
+
+        if (valueExists) {
+          // Value exists - show matched state
+          setStep("value-matched");
+          // Auto-select the value if not already selected
+          if (!selectedValues.includes(sourceUidValue)) {
+            const matchedValue = values.find(
+              (v) => v.toLowerCase() === sourceUidValue.toLowerCase()
+            );
+            if (matchedValue) {
+              setSelectedValues([matchedValue]);
+            }
+          }
+        } else {
+          // Value doesn't exist - show not found state
+          setStep("value-not-found");
+        }
+      } else {
+        // No source_uid, just show value selection
+        setStep("select-values");
+      }
+    } catch (error: any) {
+      console.error("Failed to load options:", error);
+      setLoadError(error.message || "Failed to load options");
+      setOptions([]);
+      setStep("select-values");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadOptions = async (tableName: string, colName: string) => {
+    if (!tableName || !colName) return;
+    setIsLoading(true);
+    setLoadError(null);
+    try {
+      const values = await referenceTableService.getDistinctValues(tableName, colName);
+      setOptions(values);
+    } catch (error: any) {
+      console.error("Failed to load options:", error);
+      setLoadError(error.message || "Failed to load options");
+      setOptions([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOpenDialog = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsOpen(true);
+  };
+
+  const handleSelectTable = (table: ReferenceTableSummary) => {
+    setSelectedTable(table);
+    setSelectedColumn("");
+    setStep("select-column");
+  };
+
+  const handleSelectColumn = (colName: string) => {
+    setSelectedColumn(colName);
+    // Save the mapping
+    if (applyMappingToAll && selectedTable) {
+      saveColumnMapping({
+        sourceTable: sourceTableName,
+        sourceColumn: sourceColumnName,
+        targetTable: selectedTable.name,
+        targetColumn: colName,
+      });
+    }
+    setStep("select-values");
+    if (selectedTable) {
+      loadOptions(selectedTable.name, colName);
+    }
+  };
+
+  const handleSave = () => {
+    if (selectedTable && selectedColumn) {
+      // Save display columns config to localStorage
+      saveDisplayColumnsConfig({
+        tableName: selectedTable.name,
+        columnName: selectedColumn,
+        displayColumns,
+      });
+
+      onSelectionChange(
+        selectedTable.name,
+        selectedColumn,
+        selectedValues,
+        applyToAll,
+        displayColumns
+      );
+
+      // Refresh hierarchy to show new children nodes throughout
+      setTimeout(() => {
+        onRefreshHierarchy();
+      }, 100);
+    }
+    setIsOpen(false);
+  };
+
+  const handleCancel = () => {
+    setSelectedValues(currentSelections || []);
+    setIsOpen(false);
+    setStep("select-values");
+  };
+
+  const toggleValue = (value: string) => {
+    setSelectedValues((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    );
+  };
+
+  const toggleDisplayColumn = (colName: string) => {
+    setDisplayColumns((prev) =>
+      prev.includes(colName) ? prev.filter((c) => c !== colName) : [...prev, colName]
+    );
+  };
+
+  const filteredOptions = options.filter((opt) =>
+    opt.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Always show pencil icon (even if no matching table - user can map it)
+  return (
+    <>
+      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        {selectedValues.length > 0 && (
+          <div className="flex flex-wrap gap-1 max-w-[200px]">
+            {selectedValues.slice(0, 2).map((val) => (
+              <Badge
+                key={val}
+                variant="outline"
+                className="text-[10px] px-1 py-0 bg-emerald-500/10 text-emerald-600 border-emerald-300"
+              >
+                {val}
+              </Badge>
+            ))}
+            {selectedValues.length > 2 && (
+              <Badge
+                variant="outline"
+                className="text-[10px] px-1 py-0 bg-emerald-500/10 text-emerald-600 border-emerald-300"
+              >
+                +{selectedValues.length - 2}
+              </Badge>
+            )}
+          </div>
+        )}
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn(
+            "h-5 w-5",
+            !effectiveTable || !effectiveColumn
+              ? "text-amber-500 hover:text-amber-600"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+          onClick={handleOpenDialog}
+          title={!effectiveTable || !effectiveColumn ? "Column not mapped - click to configure" : "Edit filter values"}
+        >
+          <Pencil className="h-3 w-3" />
+        </Button>
+      </div>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {step === "select-table" && "Step 1: Select Reference Table"}
+              {step === "select-column" && "Step 2: Select Column to Map"}
+              {step === "select-values" && "Select Filter Values"}
+              {step === "value-matched" && "Value Matched"}
+              {step === "value-not-found" && "Value Not Found"}
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              Source: {sourceTableName}.{sourceColumnName}
+              {sourceUidValue && <span className="font-medium"> = "{sourceUidValue}"</span>}
+              {effectiveTable && effectiveColumn && (step === "select-values" || step === "value-matched" || step === "value-not-found") && (
+                <span className="text-emerald-600"> → {effectiveTable.displayName}.{effectiveColumn}</span>
+              )}
+            </p>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Step 1: Select Table */}
+            {step === "select-table" && (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  No matching reference table found. Select a table to map this column to:
+                </p>
+                {referenceTables.length === 0 ? (
+                  <div className="py-8 text-center border rounded-md">
+                    <Database className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">No reference tables available</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Upload CSV files via "Reference Tables" button
+                    </p>
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[300px] border rounded-md">
+                    <div className="p-2 space-y-1">
+                      {referenceTables.map((table) => (
+                        <div
+                          key={table.id}
+                          className="flex items-center gap-3 px-3 py-2 rounded hover:bg-muted cursor-pointer"
+                          onClick={() => handleSelectTable(table)}
+                        >
+                          <Table2 className="h-4 w-4 text-purple-500" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">{table.displayName}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {table.rowCount} rows · {table.columns.length} columns
+                            </p>
+                          </div>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+              </>
+            )}
+
+            {/* Step 2: Select Column */}
+            {step === "select-column" && selectedTable && (
+              <>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => setStep("select-table")}>
+                    ← Back
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    Table: <strong>{selectedTable.displayName}</strong>
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 py-2 border-b">
+                  <Checkbox
+                    id="apply-mapping-all"
+                    checked={applyMappingToAll}
+                    onCheckedChange={(checked) => setApplyMappingToAll(!!checked)}
+                  />
+                  <label htmlFor="apply-mapping-all" className="text-sm text-muted-foreground cursor-pointer">
+                    Apply this mapping to all "{sourceColumnName}" columns
+                  </label>
+                </div>
+
+                <p className="text-sm text-muted-foreground">
+                  Select a column to map "{sourceColumnName}" to:
+                </p>
+
+                <ScrollArea className="h-[250px] border rounded-md">
+                  <div className="p-2 space-y-1">
+                    {selectedTable.columns.map((col) => (
+                      <div
+                        key={col.name}
+                        className="flex items-center gap-3 px-3 py-2 rounded hover:bg-muted cursor-pointer"
+                        onClick={() => handleSelectColumn(col.name)}
+                      >
+                        <Columns className="h-4 w-4 text-blue-500" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{col.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Type: {col.type}
+                            {col.sampleValues && col.sampleValues.length > 0 && (
+                              <span> · e.g., {col.sampleValues.slice(0, 2).join(", ")}</span>
+                            )}
+                          </p>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </>
+            )}
+
+            {/* Value Matched State */}
+            {step === "value-matched" && (
+              <>
+                <div className="py-6 text-center">
+                  <Check className="h-12 w-12 mx-auto mb-3 text-emerald-500" />
+                  <p className="text-lg font-medium text-emerald-700 dark:text-emerald-400">
+                    Value Matched
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    "{sourceUidValue}" exists in {effectiveTable?.displayName}.{effectiveColumn}
+                  </p>
+                </div>
+
+                {/* Display columns selection */}
+                {effectiveTable && effectiveTable.columns.length > 1 && (
+                  <div className="pt-3 border-t">
+                    <p className="text-sm font-medium mb-2">Show additional columns as children:</p>
+                    <ScrollArea className="h-[120px] border rounded-md">
+                      <div className="p-2 space-y-1">
+                        {effectiveTable.columns
+                          .filter((col) => col.name.toLowerCase() !== effectiveColumn.toLowerCase())
+                          .map((col) => (
+                            <div
+                              key={col.name}
+                              className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer"
+                              onClick={() => toggleDisplayColumn(col.name)}
+                            >
+                              <Checkbox
+                                checked={displayColumns.includes(col.name)}
+                                onCheckedChange={() => toggleDisplayColumn(col.name)}
+                              />
+                              <span className="text-sm">{col.name}</span>
+                              <span className="text-xs text-muted-foreground">({col.type})</span>
+                            </div>
+                          ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                )}
+
+                {/* Footer */}
+                <div className="flex items-center justify-between pt-2 border-t">
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="h-auto p-0 text-xs"
+                    onClick={() => setStep("select-values")}
+                  >
+                    Select different values
+                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleCancel}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSave}>
+                      Save
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Value Not Found State */}
+            {step === "value-not-found" && (
+              <>
+                <div className="py-6 text-center">
+                  <X className="h-12 w-12 mx-auto mb-3 text-red-500" />
+                  <p className="text-lg font-medium text-red-700 dark:text-red-400">
+                    Value Not Found
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    "{sourceUidValue}" does not exist in {effectiveTable?.displayName}.{effectiveColumn}
+                  </p>
+                  <p className="text-sm text-amber-600 mt-3">
+                    Please select a value below or add "{sourceUidValue}" to your source table.
+                  </p>
+                </div>
+
+                {/* Search */}
+                <Input
+                  placeholder="Search available values..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="h-9"
+                />
+
+                {/* Available values */}
+                <ScrollArea className="h-[200px] border rounded-md">
+                  <div className="p-2 space-y-1">
+                    {filteredOptions.length === 0 ? (
+                      <div className="py-8 text-center text-sm text-muted-foreground">
+                        {searchTerm ? "No matching values" : "No values available"}
+                      </div>
+                    ) : (
+                      filteredOptions.map((option) => (
+                        <div
+                          key={option}
+                          className="flex items-center gap-2 px-2 py-2 rounded hover:bg-muted cursor-pointer"
+                          onClick={() => toggleValue(option)}
+                        >
+                          <Checkbox
+                            checked={selectedValues.includes(option)}
+                            onCheckedChange={() => toggleValue(option)}
+                          />
+                          <span className="text-sm truncate flex-1">{option}</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </ScrollArea>
+
+                {/* Footer */}
+                <div className="flex items-center justify-between pt-2 border-t">
+                  <span className="text-sm text-muted-foreground">
+                    {selectedValues.length} selected
+                  </span>
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleCancel}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSave}>
+                      Save Selection
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Step 3: Select Values */}
+            {step === "select-values" && (
+              <>
+                {/* Change mapping link */}
+                {(storedMapping || (!columnExists && matchingTable)) && (
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="h-auto p-0 text-xs"
+                    onClick={() => setStep("select-table")}
+                  >
+                    Change column mapping
+                  </Button>
+                )}
+
+                {/* Search */}
+                <Input
+                  placeholder="Search values..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="h-9"
+                />
+
+                {/* Apply to all checkbox */}
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id={`apply-all-${hierarchyId}-${sourceColumnName}`}
+                    checked={applyToAll}
+                    onCheckedChange={(checked) => setApplyToAll(!!checked)}
+                  />
+                  <label
+                    htmlFor={`apply-all-${hierarchyId}-${sourceColumnName}`}
+                    className="text-sm text-muted-foreground cursor-pointer"
+                  >
+                    Apply to all hierarchies using this table
+                  </label>
+                </div>
+
+                {/* Content */}
+                {isLoading ? (
+                  <div className="py-8 text-center">
+                    <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Loading values...</p>
+                  </div>
+                ) : loadError ? (
+                  <div className="py-8 text-center">
+                    <p className="text-sm text-destructive">{loadError}</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      onClick={() => {
+                        if (effectiveTable && effectiveColumn) {
+                          loadOptions(effectiveTable.name, effectiveColumn);
+                        }
+                      }}
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    {/* Values selection */}
+                    <ScrollArea className="h-[200px] border rounded-md">
+                      <div className="p-2 space-y-1">
+                        {filteredOptions.length === 0 ? (
+                          <div className="py-8 text-center text-sm text-muted-foreground">
+                            {searchTerm ? "No matching values" : "No values available"}
+                          </div>
+                        ) : (
+                          filteredOptions.map((option) => (
+                            <div
+                              key={option}
+                              className="flex items-center gap-2 px-2 py-2 rounded hover:bg-muted cursor-pointer"
+                              onClick={() => toggleValue(option)}
+                            >
+                              <Checkbox
+                                checked={selectedValues.includes(option)}
+                                onCheckedChange={() => toggleValue(option)}
+                              />
+                              <span className="text-sm truncate flex-1">{option}</span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </ScrollArea>
+
+                    {/* Display columns selection */}
+                    {effectiveTable && effectiveTable.columns.length > 1 && (
+                      <div className="pt-3 border-t">
+                        <p className="text-sm font-medium mb-2">Show additional columns as children:</p>
+                        <ScrollArea className="h-[100px] border rounded-md">
+                          <div className="p-2 space-y-1">
+                            {effectiveTable.columns
+                              .filter((col) => col.name.toLowerCase() !== effectiveColumn.toLowerCase())
+                              .map((col) => (
+                                <div
+                                  key={col.name}
+                                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer"
+                                  onClick={() => toggleDisplayColumn(col.name)}
+                                >
+                                  <Checkbox
+                                    checked={displayColumns.includes(col.name)}
+                                    onCheckedChange={() => toggleDisplayColumn(col.name)}
+                                  />
+                                  <span className="text-sm">{col.name}</span>
+                                  <span className="text-xs text-muted-foreground">({col.type})</span>
+                                </div>
+                              ))}
+                          </div>
+                        </ScrollArea>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Footer */}
+                <div className="flex items-center justify-between pt-2 border-t">
+                  <span className="text-sm text-muted-foreground">
+                    {selectedValues.length} selected
+                  </span>
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleCancel}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSave}>
+                      Save Selection
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+function TreeNode({
+  node,
+  level,
+  expandedNodes,
+  onToggle,
+  searchQuery,
+  referenceTables,
+  viewerSelections,
+  onSelectionChange,
+  onRefreshHierarchy,
+  projectId,
+  animatedItems = {},
+  onAICommand,
+  allHierarchies,
+}: TreeNodeProps) {
+  const isExpanded = expandedNodes.has(node.id);
+  const hasChildren = node.children.length > 0;
+  const mappingCount = node.mapping?.length || 0;
+  const hasExpandableContent = hasChildren || mappingCount > 0;
+
+  // Check if this node has an active animation
+  const animation = animatedItems[node.id];
+  const animationClass = animation ? getAnimationClass(animation.type) : "";
+
+  // Inline editing state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(node.hierarchyName);
+  const editInputRef = useRef<HTMLInputElement>(null);
+
+  // Drag and drop state
+  const [isDragging, setIsDragging] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [dragOverPosition, setDragOverPosition] = useState<'above' | 'below' | 'inside' | null>(null);
+
+  // Focus input when editing starts
+  useEffect(() => {
+    if (isEditing && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.select();
+    }
+  }, [isEditing]);
+
+  // Handle double-click to edit
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditValue(node.hierarchyName);
+    setIsEditing(true);
+  };
+
+  // Handle rename submit
+  const handleRenameSubmit = () => {
+    if (editValue.trim() && editValue.trim() !== node.hierarchyName) {
+      onAICommand(`rename "${node.hierarchyName}" to "${editValue.trim()}"`);
+    }
+    setIsEditing(false);
+  };
+
+  // Handle rename cancel
+  const handleRenameCancel = () => {
+    setEditValue(node.hierarchyName);
+    setIsEditing(false);
+  };
+
+  // Handle key events in edit mode
+  const handleEditKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleRenameSubmit();
+    } else if (e.key === 'Escape') {
+      handleRenameCancel();
+    }
+  };
+
+  // Drag handlers
+  const handleDragStart = (e: React.DragEvent) => {
+    e.stopPropagation();
+    setIsDragging(true);
+    e.dataTransfer.setData('text/plain', JSON.stringify({
+      id: node.id,
+      hierarchyId: node.hierarchyId,
+      hierarchyName: node.hierarchyName,
+      parentId: node.parentId,
+      sortOrder: node.sortOrder,
+    }));
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const height = rect.height;
+
+    // Determine drop position based on mouse position
+    if (y < height * 0.25) {
+      setDragOverPosition('above');
+    } else if (y > height * 0.75) {
+      setDragOverPosition('below');
+    } else {
+      setDragOverPosition('inside'); // Drop as child
+    }
+
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+    setDragOverPosition(null);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    setDragOverPosition(null);
+
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+
+      // Don't drop on self
+      if (data.id === node.id) return;
+
+      // Don't drop on own children (would create circular reference)
+      const isOwnChild = (parentId: string | null): boolean => {
+        if (!parentId) return false;
+        if (parentId === data.id) return true;
+        const parent = allHierarchies.find(h => h.id === parentId);
+        return parent ? isOwnChild(parent.parentId) : false;
+      };
+      if (isOwnChild(node.id)) return;
+
+      if (dragOverPosition === 'inside') {
+        // Move as child of this node
+        onAICommand(`move "${data.hierarchyName}" under "${node.hierarchyName}"`);
+      } else if (dragOverPosition === 'above') {
+        // Move above this node (adjust sort order)
+        const newSortOrder = (node.sortOrder || 0) - 1;
+        onAICommand(`move "${data.hierarchyName}" to sort order ${newSortOrder < 0 ? 0 : newSortOrder}`);
+      } else if (dragOverPosition === 'below') {
+        // Move below this node
+        const newSortOrder = (node.sortOrder || 0) + 1;
+        onAICommand(`move "${data.hierarchyName}" to sort order ${newSortOrder}`);
+      }
+    } catch (err) {
+      console.error('Drop error:', err);
+    }
+  };
+
+  // Handle move up/down via keyboard or buttons
+  const handleMoveUp = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onAICommand(`move "${node.hierarchyName}" one sort up`);
+  };
+
+  const handleMoveDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onAICommand(`move "${node.hierarchyName}" one sort down`);
+  };
+
+  // Handle delete
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm(`Delete "${node.hierarchyName}"?`)) {
+      onAICommand(`delete "${node.hierarchyName}"`);
+    }
+  };
+
+  // Handle add child
+  const handleAddChild = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const childName = prompt('Enter name for new child hierarchy:');
+    if (childName?.trim()) {
+      onAICommand(`create a new hierarchy called "${childName.trim()}" under "${node.hierarchyName}"`);
+    }
+  };
+
+  // Get selections for this hierarchy
+  const hierarchySelections = viewerSelections[node.hierarchyId] || {};
+
+  // Check if this node or any children match the search
+  const matchesSearch = searchQuery
+    ? node.hierarchyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      node.hierarchyId.toLowerCase().includes(searchQuery.toLowerCase())
+    : true;
+
+  const hasMatchingChild = useMemo(() => {
+    if (!searchQuery) return true;
+    const checkChildren = (n: HierarchyNode): boolean => {
+      if (n.hierarchyName.toLowerCase().includes(searchQuery.toLowerCase())) return true;
+      return n.children.some(checkChildren);
+    };
+    return checkChildren(node);
+  }, [node, searchQuery]);
+
+  if (searchQuery && !matchesSearch && !hasMatchingChild) {
+    return null;
+  }
+
+  const handleMappingSelectionChange = (
+    tableName: string,
+    columnName: string,
+    values: string[],
+    applyToAll: boolean,
+    displayColumns?: string[]
+  ) => {
+    onSelectionChange(node.hierarchyId, tableName, columnName, values, applyToAll, displayColumns);
+  };
+
+  return (
+    <div className="select-none">
+      <div
+        className={cn(
+          "flex items-center gap-1 py-1 px-2 rounded-md hover:bg-muted/50 cursor-pointer group transition-all duration-300",
+          matchesSearch && searchQuery && "bg-yellow-500/10",
+          animationClass,
+          isDragging && "opacity-50",
+          isDragOver && dragOverPosition === 'above' && "border-t-2 border-t-blue-500",
+          isDragOver && dragOverPosition === 'below' && "border-b-2 border-b-blue-500",
+          isDragOver && dragOverPosition === 'inside' && "bg-blue-100 dark:bg-blue-900/30 ring-2 ring-blue-500"
+        )}
+        style={{ paddingLeft: `${level * 16 + 8}px` }}
+        onClick={() => !isEditing && hasExpandableContent && onToggle(node.id)}
+        onDoubleClick={handleDoubleClick}
+        draggable={!isEditing}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        {/* Drag Handle */}
+        <div className="w-4 h-4 flex items-center justify-center cursor-grab opacity-0 group-hover:opacity-50 hover:!opacity-100">
+          <GripVertical className="h-3 w-3 text-muted-foreground" />
+        </div>
+
+        {/* Expand/Collapse Toggle */}
+        <div className="w-4 h-4 flex items-center justify-center">
+          {hasExpandableContent ? (
+            isExpanded ? (
+              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+            )
+          ) : (
+            <span className="w-3.5" />
+          )}
+        </div>
+
+        {/* Icon */}
+        {hasChildren ? (
+          isExpanded ? (
+            <FolderOpen className="h-4 w-4 text-amber-500" />
+          ) : (
+            <Folder className="h-4 w-4 text-amber-500" />
+          )
+        ) : (
+          <FileText className="h-4 w-4 text-blue-500" />
+        )}
+
+        {/* Name - Editable */}
+        {isEditing ? (
+          <Input
+            ref={editInputRef}
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onKeyDown={handleEditKeyDown}
+            onBlur={handleRenameSubmit}
+            className="h-6 text-sm px-1 py-0 flex-1"
+            onClick={(e) => e.stopPropagation()}
+          />
+        ) : (
+          <span className="flex-1 truncate text-sm" title="Double-click to rename">
+            {node.hierarchyName}
+          </span>
+        )}
+
+        {/* Action Buttons - shown on hover */}
+        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          {/* Move Up */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 p-0"
+                  onClick={handleMoveUp}
+                >
+                  <ChevronUp className="h-3 w-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Move up</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Move Down */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 p-0"
+                  onClick={handleMoveDown}
+                >
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Move down</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Add Child */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 p-0 text-green-600"
+                  onClick={handleAddChild}
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Add child</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Delete */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 p-0 text-red-600"
+                  onClick={handleDelete}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Delete</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
+        {/* Badges */}
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {mappingCount > 0 && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                    <Database className="h-3 w-3 mr-1" />
+                    {mappingCount}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{mappingCount} mapping(s)</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          {hasChildren && (
+            <Badge variant="outline" className="text-xs px-1.5 py-0">
+              {node.children.length}
+            </Badge>
+          )}
+        </div>
+      </div>
+
+      {/* Children */}
+      {isExpanded && hasChildren && (
+        <div>
+          {node.children
+            .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+            .map((child) => (
+              <TreeNode
+                key={child.id}
+                node={child}
+                level={level + 1}
+                expandedNodes={expandedNodes}
+                onToggle={onToggle}
+                searchQuery={searchQuery}
+                referenceTables={referenceTables}
+                viewerSelections={viewerSelections}
+                onSelectionChange={onSelectionChange}
+                onRefreshHierarchy={onRefreshHierarchy}
+                projectId={projectId}
+                animatedItems={animatedItems}
+                onAICommand={onAICommand}
+                allHierarchies={allHierarchies}
+              />
+            ))}
+        </div>
+      )}
+
+      {/* Mappings as children (shown after hierarchy children) */}
+      {isExpanded && mappingCount > 0 && (
+        <div>
+          {node.mapping?.map((mapping, idx) => {
+            const tableName = (mapping.source_table || mapping.id_table || "").toLowerCase();
+            const columnName = mapping.source_column || mapping.id_source || "";
+            const sourceUid = mapping.source_uid || mapping.id_name || "";
+            const selectionKey = `${tableName}.${columnName}`;
+            const selectionData = hierarchySelections[selectionKey] || { selectedValues: [], displayColumns: [] };
+            const currentSelections = selectionData.selectedValues || [];
+            const currentDisplayColumns = selectionData.displayColumns || [];
+
+            // Get stored column mapping and display columns config
+            const storedMapping = findColumnMapping(tableName, columnName);
+            const effectiveTableName = storedMapping?.targetTable || tableName;
+            const effectiveColumn = storedMapping?.targetColumn || columnName;
+            // Use displayColumns from selection data first, then fallback to localStorage
+            const displayCols = currentDisplayColumns.length > 0
+              ? currentDisplayColumns
+              : findDisplayColumnsConfig(effectiveTableName, effectiveColumn);
+
+            return (
+              <div key={`${node.id}-mapping-${idx}`}>
+                {/* Mapping Row */}
+                <div
+                  className="flex items-center gap-2 py-1 px-2 text-xs text-muted-foreground hover:bg-muted/30 rounded-md"
+                  style={{ paddingLeft: `${(level + 1) * 16 + 8}px` }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Mapping icon */}
+                  <Database className="h-3 w-3 text-emerald-500 shrink-0" />
+
+                  {/* Mapping ID/UID */}
+                  <span className="font-mono text-foreground">
+                    {sourceUid || `M${idx + 1}`}
+                  </span>
+
+                  {/* Column tag */}
+                  {columnName && (
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] px-1.5 py-0 bg-blue-500/10 text-blue-600 border-blue-300"
+                    >
+                      {columnName}
+                    </Badge>
+                  )}
+
+                  {/* Table tag */}
+                  {tableName && (
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] px-1.5 py-0 bg-purple-500/10 text-purple-600 border-purple-300"
+                    >
+                      {tableName}
+                    </Badge>
+                  )}
+
+                  {/* Value selector dropdown */}
+                  <MappingValueSelector
+                    mapping={mapping}
+                    hierarchyId={node.hierarchyId}
+                    referenceTables={referenceTables}
+                    currentSelections={currentSelections}
+                    currentDisplayColumns={currentDisplayColumns}
+                    onSelectionChange={handleMappingSelectionChange}
+                    onRefreshHierarchy={onRefreshHierarchy}
+                  />
+                </div>
+
+                {/* Selected Values as Children Nodes */}
+                {currentSelections.length > 0 && (
+                  <div>
+                    {currentSelections.map((value, vIdx) => (
+                      <div key={`${node.id}-mapping-${idx}-value-${vIdx}`}>
+                        {/* Selected value as a node */}
+                        <div
+                          className="flex items-center gap-1 py-1 px-2 rounded-md hover:bg-muted/50 group"
+                          style={{ paddingLeft: `${(level + 2) * 16 + 8}px` }}
+                        >
+                          <div className="w-4 h-4 flex items-center justify-center">
+                            {displayCols.length > 0 ? (
+                              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                            ) : (
+                              <span className="w-3.5" />
+                            )}
+                          </div>
+                          <Check className="h-4 w-4 text-emerald-500" />
+                          <span className="flex-1 truncate text-sm text-emerald-700 dark:text-emerald-400 font-medium">
+                            {value}
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] px-1 py-0 bg-emerald-500/10 text-emerald-600 border-emerald-300 opacity-0 group-hover:opacity-100"
+                          >
+                            {effectiveColumn}
+                          </Badge>
+                        </div>
+                        {/* Display column values as child nodes */}
+                        {displayCols.length > 0 && (
+                          <DisplayColumnChildren
+                            tableName={effectiveTableName}
+                            filterColumn={effectiveColumn}
+                            filterValue={value}
+                            displayColumns={displayCols}
+                            level={level + 2}
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function buildTree(hierarchies: any[]): HierarchyNode[] {
+  const nodeMapById = new Map<string, HierarchyNode>();
+  const nodeMapByHierarchyId = new Map<string, HierarchyNode>();
+  const roots: HierarchyNode[] = [];
+
+  // First pass: create all nodes and build lookup maps
+  hierarchies.forEach((h) => {
+    const node: HierarchyNode = {
+      id: h.id,
+      hierarchyId: h.hierarchyId,
+      hierarchyName: h.hierarchyName,
+      parentId: h.parentId,
+      sortOrder: h.sortOrder || 0,
+      isRoot: h.isRoot,
+      hierarchyLevel: h.hierarchyLevel,
+      mapping: h.mapping,
+      flags: h.flags,
+      children: [],
+    };
+    nodeMapById.set(h.id, node);
+    if (h.hierarchyId) {
+      nodeMapByHierarchyId.set(h.hierarchyId, node);
+    }
+  });
+
+  // Second pass: link children to parents
+  // Try to find parent by database id first, then by hierarchyId
+  nodeMapById.forEach((node) => {
+    if (node.parentId) {
+      // Try to find parent by database id
+      let parent = nodeMapById.get(node.parentId);
+      // If not found, try by hierarchyId
+      if (!parent) {
+        parent = nodeMapByHierarchyId.get(node.parentId);
+      }
+
+      if (parent) {
+        parent.children.push(node);
+      } else {
+        // No parent found, treat as root
+        roots.push(node);
+      }
+    } else if (node.isRoot || !node.parentId) {
+      roots.push(node);
+    }
+  });
+
+  // Sort roots and all children recursively
+  const sortChildren = (nodes: HierarchyNode[]) => {
+    nodes.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    nodes.forEach((n) => sortChildren(n.children));
+  };
+  sortChildren(roots);
+
+  return roots;
+}
+
+function countMappings(nodes: HierarchyNode[]): number {
+  let count = 0;
+  const countNode = (node: HierarchyNode) => {
+    count += node.mapping?.length || 0;
+    node.children.forEach(countNode);
+  };
+  nodes.forEach(countNode);
+  return count;
+}
+
+function getMaxDepth(nodes: HierarchyNode[], currentDepth = 1): number {
+  if (nodes.length === 0) return currentDepth - 1;
+  return Math.max(
+    currentDepth,
+    ...nodes.map((n) => getMaxDepth(n.children, currentDepth + 1))
+  );
+}
+
+const STORAGE_KEY = "hierarchy-viewer-selected-project";
+
+// Animation class helper for AI changes
+function getAnimationClass(changeType: string): string {
+  switch (changeType) {
+    case "rename":
+      return "animate-hierarchy-rename";
+    case "update":
+      return "animate-hierarchy-update";
+    case "move":
+      return "animate-hierarchy-move";
+    case "create":
+      return "animate-hierarchy-create";
+    case "delete":
+      return "animate-hierarchy-delete";
+    default:
+      return "animate-hierarchy-flash";
+  }
+}
+
+export function HierarchyViewerPage() {
+  const [projects, setProjects] = useState<any[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [hierarchies, setHierarchies] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingHierarchies, setIsLoadingHierarchies] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  const [expandAll, setExpandAll] = useState(false);
+  const [referenceTables, setReferenceTables] = useState<ReferenceTableSummary[]>([]);
+  const [viewerSelections, setViewerSelections] = useState<Record<string, Record<string, ViewerSelectionData>>>({});
+  const [refTablesDialogOpen, setRefTablesDialogOpen] = useState(false);
+  const [showAIChat, setShowAIChat] = useState(true);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [focusedHierarchy, setFocusedHierarchy] = useState<any>(null);
+  const pendingChangesRef = useRef<HierarchyChange[]>([]);
+  const aiChatRef = useRef<AIChatRef>(null);
+  // Track animated items for visual feedback
+  const [animatedItems, setAnimatedItems] = useState<Record<string, { type: string; timestamp: number }>>({});
+  const { toast } = useToast();
+
+  // History management for undo/redo
+  const {
+    current: currentHierarchies,
+    setCurrent: setCurrentHierarchies,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    getUndoDescription,
+    getRedoDescription,
+    clearHistory,
+  } = useHierarchyHistory<any[]>(hierarchies);
+
+  // Load projects on mount
+  useEffect(() => {
+    loadProjects();
+    loadReferenceTables();
+  }, []);
+
+  // Load hierarchies and selections when project changes
+  useEffect(() => {
+    if (selectedProjectId) {
+      loadHierarchies(selectedProjectId);
+      loadViewerSelections(selectedProjectId);
+      // Save selection to localStorage
+      localStorage.setItem(STORAGE_KEY, selectedProjectId);
+    } else {
+      // Clear hierarchies when no project selected
+      setHierarchies([]);
+      setViewerSelections({});
+      setExpandedNodes(new Set());
+    }
+  }, [selectedProjectId]);
+
+  const loadProjects = async () => {
+    setIsLoading(true);
+    try {
+      const result = await projectService.getProjects();
+      setProjects(result || []);
+
+      // Check localStorage for previously selected project
+      const savedProjectId = localStorage.getItem(STORAGE_KEY);
+      if (savedProjectId && result?.some((p: any) => p.id === savedProjectId)) {
+        // Saved project still exists, select it
+        setSelectedProjectId(savedProjectId);
+      } else {
+        // No saved project or it doesn't exist anymore - leave unselected
+        setSelectedProjectId("");
+        // Clean up invalid saved value
+        if (savedProjectId) {
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load projects:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadHierarchies = async (projectId: string) => {
+    setIsLoadingHierarchies(true);
+    try {
+      const result = await smartHierarchyService.findAll(projectId);
+      setHierarchies(result || []);
+      // Auto-expand first level
+      const tree = buildTree(result || []);
+      setExpandedNodes(new Set(tree.map((n) => n.id)));
+    } catch (error) {
+      console.error("Failed to load hierarchies:", error);
+      setHierarchies([]);
+    } finally {
+      setIsLoadingHierarchies(false);
+    }
+  };
+
+  const loadReferenceTables = async () => {
+    try {
+      const result = await referenceTableService.listTables();
+      setReferenceTables(result || []);
+    } catch (error) {
+      console.error("Failed to load reference tables:", error);
+    }
+  };
+
+  const loadViewerSelections = async (projectId: string) => {
+    try {
+      const result = await referenceTableService.getViewerSelections(projectId);
+      setViewerSelections(result || {});
+    } catch (error) {
+      console.error("Failed to load viewer selections:", error);
+    }
+  };
+
+  const handleSelectionChange = useCallback(
+    async (
+      hierarchyId: string,
+      tableName: string,
+      columnName: string,
+      selectedValues: string[],
+      applyToAll: boolean,
+      displayColumns?: string[]
+    ) => {
+      try {
+        await referenceTableService.saveViewerSelection({
+          projectId: selectedProjectId,
+          hierarchyId,
+          tableName,
+          columnName,
+          selectedValues,
+          applyToAll,
+          displayColumns,
+        });
+
+        // Reload selections to get updated state (including apply-to-all changes)
+        await loadViewerSelections(selectedProjectId);
+
+        toast({
+          title: "Selection saved",
+          description: applyToAll
+            ? "Applied to all hierarchies with the same table"
+            : "Selection saved for this hierarchy",
+        });
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to save selection",
+          variant: "destructive",
+        });
+      }
+    },
+    [selectedProjectId, toast]
+  );
+
+  // Handler for refreshing hierarchy after dialog closes
+  const handleRefreshHierarchy = useCallback(() => {
+    if (selectedProjectId) {
+      loadViewerSelections(selectedProjectId);
+    }
+  }, [selectedProjectId]);
+
+  // Sync hierarchies with history system
+  useEffect(() => {
+    if (hierarchies.length > 0 && currentHierarchies !== hierarchies) {
+      // Only set if different to avoid loops
+      if (JSON.stringify(currentHierarchies) !== JSON.stringify(hierarchies)) {
+        setCurrentHierarchies(hierarchies, "Initial load");
+      }
+    }
+  }, [hierarchies]);
+
+  // Apply AI changes to hierarchies
+  // Helper function to find hierarchy by ID or name (fuzzy match)
+  const findHierarchyIndex = (
+    hierarchyList: any[],
+    hierarchyId: string,
+    hierarchyName?: string
+  ): number => {
+    // Normalize strings for comparison
+    const normalizeString = (s: string | undefined | null): string => {
+      if (!s) return '';
+      return s.toLowerCase().trim().replace(/\s+/g, ' ');
+    };
+
+    // First, try exact ID match
+    let index = hierarchyList.findIndex(
+      (h) => h.id === hierarchyId || h.hierarchyId === hierarchyId
+    );
+
+    if (index !== -1) {
+      return index;
+    }
+
+    // If ID looks like a placeholder, skip to name matching
+    const isPlaceholderId = !hierarchyId ||
+      hierarchyId.includes('id-of-') ||
+      hierarchyId.includes('-id') ||
+      hierarchyId.includes('placeholder') ||
+      hierarchyId.includes('real-id') ||
+      hierarchyId.includes('abc123') ||
+      hierarchyId.length < 10;
+
+    // If not found by ID (or it was a placeholder), try matching by name
+    if (hierarchyName) {
+      const nameLower = normalizeString(hierarchyName);
+
+      // Try exact name match (case-insensitive)
+      index = hierarchyList.findIndex(
+        (h) => normalizeString(h.hierarchyName) === nameLower
+      );
+
+      if (index !== -1) {
+        addLog({
+          type: 'info',
+          category: 'Fuzzy Match',
+          message: `Found by exact name match: "${hierarchyList[index].hierarchyName}"`,
+        });
+        return index;
+      }
+
+      // Try partial match - hierarchy name contains the search term
+      index = hierarchyList.findIndex(
+        (h) => normalizeString(h.hierarchyName).includes(nameLower)
+      );
+
+      if (index !== -1) {
+        addLog({
+          type: 'info',
+          category: 'Fuzzy Match',
+          message: `Found by partial match (contains): "${hierarchyList[index].hierarchyName}"`,
+        });
+        return index;
+      }
+
+      // Try partial match - search term contains the hierarchy name
+      index = hierarchyList.findIndex(
+        (h) => {
+          const hName = normalizeString(h.hierarchyName);
+          return hName && nameLower.includes(hName);
+        }
+      );
+
+      if (index !== -1) {
+        addLog({
+          type: 'info',
+          category: 'Fuzzy Match',
+          message: `Found by reverse partial match: "${hierarchyList[index].hierarchyName}"`,
+        });
+        return index;
+      }
+
+      // Try word-based matching - any word matches
+      const searchWords = nameLower.split(' ').filter(w => w.length > 2);
+      if (searchWords.length > 0) {
+        index = hierarchyList.findIndex((h) => {
+          const hName = normalizeString(h.hierarchyName);
+          return searchWords.some(word => hName.includes(word));
+        });
+
+        if (index !== -1) {
+          addLog({
+            type: 'info',
+            category: 'Fuzzy Match',
+            message: `Found by word match: "${hierarchyList[index].hierarchyName}"`,
+          });
+          return index;
+        }
+      }
+    }
+
+    return index;
+  };
+
+  const handleApplyChanges = useCallback(async (changes: HierarchyChange[]) => {
+    addLog({
+      type: 'change',
+      category: 'Hierarchy Update',
+      message: `Processing ${changes.length} change(s)`,
+      details: changes,
+    });
+
+    const updatedHierarchies = [...hierarchies];
+    const descriptions: string[] = [];
+    const failures: string[] = [];
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const change of changes) {
+      // Use the helper to find by ID first, then by name
+      const index = findHierarchyIndex(
+        updatedHierarchies,
+        change.hierarchyId,
+        change.hierarchyName
+      );
+
+      const foundHierarchy = index !== -1 ? updatedHierarchies[index] : null;
+
+      addLog({
+        type: index !== -1 ? 'info' : 'warning',
+        category: 'Change Lookup',
+        message: index !== -1
+          ? `Found hierarchy: "${foundHierarchy?.hierarchyName}" (ID: ${foundHierarchy?.id})`
+          : `Could not find hierarchy: ID="${change.hierarchyId}", Name="${change.hierarchyName}"`,
+        details: {
+          change,
+          searchedId: change.hierarchyId,
+          searchedName: change.hierarchyName,
+          foundIndex: index,
+          foundHierarchy: foundHierarchy?.hierarchyName || 'NOT FOUND',
+          availableHierarchies: updatedHierarchies.slice(0, 10).map(h => h.hierarchyName),
+        },
+      });
+
+      switch (change.type) {
+        case "rename":
+          if (index !== -1) {
+            updatedHierarchies[index] = {
+              ...updatedHierarchies[index],
+              hierarchyName: change.newValue,
+            };
+            descriptions.push(`Renamed "${foundHierarchy?.hierarchyName}" to "${change.newValue}"`);
+            successCount++;
+          } else {
+            failures.push(`Rename failed: "${change.hierarchyName}" not found`);
+            failCount++;
+          }
+          break;
+
+        case "update":
+          if (index !== -1 && change.field) {
+            const parts = change.field.split(".");
+            if (parts.length === 1) {
+              updatedHierarchies[index] = {
+                ...updatedHierarchies[index],
+                [change.field]: change.newValue,
+              };
+            } else if (parts.length === 2) {
+              // Nested field like "flags.include_flag"
+              updatedHierarchies[index] = {
+                ...updatedHierarchies[index],
+                [parts[0]]: {
+                  ...updatedHierarchies[index][parts[0]],
+                  [parts[1]]: change.newValue,
+                },
+              };
+            }
+            descriptions.push(`Updated ${change.field} on "${foundHierarchy?.hierarchyName}"`);
+            successCount++;
+          } else {
+            failures.push(`Update failed: "${change.hierarchyName}" not found`);
+            failCount++;
+          }
+          break;
+
+        case "create":
+          const newHierarchy = {
+            id: `temp-${Date.now()}`,
+            hierarchyId: `NEW-${Date.now()}`,
+            hierarchyName: change.hierarchyName || "New Hierarchy",
+            parentId: change.newValue || null,
+            isRoot: !change.newValue,
+            sortOrder: updatedHierarchies.length,
+            hierarchyLevel: {},
+            flags: {
+              include_flag: true,
+              exclude_flag: false,
+              active_flag: true,
+              is_leaf_node: true,
+            },
+            mapping: [],
+          };
+          updatedHierarchies.push(newHierarchy);
+          descriptions.push(`Created "${change.hierarchyName}"`);
+          successCount++;
+          break;
+
+        case "delete":
+          if (index !== -1) {
+            const deletedName = updatedHierarchies[index].hierarchyName;
+            updatedHierarchies.splice(index, 1);
+            descriptions.push(`Deleted "${deletedName}"`);
+            successCount++;
+          } else {
+            failures.push(`Delete failed: "${change.hierarchyName}" not found`);
+            failCount++;
+          }
+          break;
+
+        case "move":
+          if (index !== -1) {
+            // For move operations, we also need to find the target parent
+            let targetParentId = change.newValue;
+
+            // If newValue looks like a name (not a UUID), try to find the parent by name
+            if (targetParentId && !targetParentId.includes('-') && targetParentId.length < 36) {
+              const parentIndex = findHierarchyIndex(updatedHierarchies, targetParentId, targetParentId);
+              if (parentIndex !== -1) {
+                targetParentId = updatedHierarchies[parentIndex].id || updatedHierarchies[parentIndex].hierarchyId;
+                addLog({
+                  type: 'info',
+                  category: 'Move Target',
+                  message: `Found parent by name: "${targetParentId}"`,
+                });
+              }
+            }
+
+            updatedHierarchies[index] = {
+              ...updatedHierarchies[index],
+              parentId: targetParentId,
+              isRoot: !targetParentId,
+            };
+            descriptions.push(`Moved "${foundHierarchy?.hierarchyName}" to new parent`);
+            successCount++;
+          } else {
+            failures.push(`Move failed: "${change.hierarchyName}" not found`);
+            failCount++;
+          }
+          break;
+      }
+    }
+
+    // Log final results
+    addLog({
+      type: failCount > 0 ? 'warning' : 'change',
+      category: 'Changes Complete',
+      message: `Applied ${successCount}/${changes.length} changes${failCount > 0 ? ` (${failCount} failed)` : ''}`,
+      details: { descriptions, failures },
+    });
+
+    // Update state with history
+    if (successCount > 0) {
+      setCurrentHierarchies(updatedHierarchies, descriptions.join(", ") || "AI changes");
+      setHierarchies(updatedHierarchies);
+      setHasUnsavedChanges(true);
+      pendingChangesRef.current = [...pendingChangesRef.current, ...changes];
+
+      // Set animation states for changed items
+      const newAnimatedItems: Record<string, { type: string; timestamp: number }> = {};
+      const timestamp = Date.now();
+      for (const change of changes) {
+        // Find the hierarchy that was changed
+        const foundHierarchy = updatedHierarchies.find(
+          h => h.hierarchyName?.toLowerCase() === change.hierarchyName?.toLowerCase() ||
+               h.id === change.hierarchyId ||
+               h.hierarchyId === change.hierarchyId
+        );
+        if (foundHierarchy) {
+          newAnimatedItems[foundHierarchy.id] = { type: change.type, timestamp };
+        }
+      }
+      setAnimatedItems(prev => ({ ...prev, ...newAnimatedItems }));
+
+      // Clear animations after 2 seconds
+      setTimeout(() => {
+        setAnimatedItems(prev => {
+          const updated = { ...prev };
+          for (const id of Object.keys(newAnimatedItems)) {
+            if (updated[id]?.timestamp === timestamp) {
+              delete updated[id];
+            }
+          }
+          return updated;
+        });
+      }, 2000);
+    }
+
+    // Show appropriate toast
+    if (failCount > 0 && successCount === 0) {
+      toast({
+        title: "Changes failed",
+        description: failures.join(". "),
+        variant: "destructive",
+      });
+    } else if (failCount > 0) {
+      toast({
+        title: "Partial success",
+        description: `${successCount} applied, ${failCount} failed. ${failures[0]}`,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Changes applied",
+        description: `${successCount} change(s) applied. Click "Save & Commit" to persist.`,
+      });
+    }
+  }, [hierarchies, setCurrentHierarchies, toast]);
+
+  // Undo handler
+  const handleUndo = useCallback(() => {
+    const result = undo();
+    if (result) {
+      setHierarchies(result.data);
+      toast({
+        title: "Undid change",
+        description: result.description,
+      });
+    }
+  }, [undo, toast]);
+
+  // Redo handler
+  const handleRedo = useCallback(() => {
+    const result = redo();
+    if (result) {
+      setHierarchies(result.data);
+      toast({
+        title: "Redid change",
+        description: result.description,
+      });
+    }
+  }, [redo, toast]);
+
+  // Save and commit changes to backend
+  const handleSaveAndCommit = useCallback(async () => {
+    if (!selectedProjectId) return;
+
+    try {
+      // Save each modified hierarchy to the backend
+      const updates = pendingChangesRef.current;
+      const processedIds = new Set<string>();
+
+      for (const change of updates) {
+        if (processedIds.has(change.hierarchyId)) continue;
+        processedIds.add(change.hierarchyId);
+
+        const hierarchy = hierarchies.find(
+          (h) => h.id === change.hierarchyId || h.hierarchyId === change.hierarchyId
+        );
+
+        if (hierarchy) {
+          if (change.type === "delete") {
+            await smartHierarchyService.delete(selectedProjectId, hierarchy.hierarchyId);
+          } else if (change.type === "create" && hierarchy.id.startsWith("temp-")) {
+            // Create new hierarchy
+            await smartHierarchyService.create({
+              projectId: selectedProjectId,
+              hierarchyId: hierarchy.hierarchyId,
+              hierarchyName: hierarchy.hierarchyName,
+              parentId: hierarchy.parentId,
+              isRoot: hierarchy.isRoot,
+              sortOrder: hierarchy.sortOrder,
+              hierarchyLevel: hierarchy.hierarchyLevel || {},
+              flags: hierarchy.flags || { include_flag: true, exclude_flag: false, active_flag: true, is_leaf_node: true },
+              mapping: hierarchy.mapping || [],
+            });
+          } else {
+            // Update existing
+            await smartHierarchyService.update(selectedProjectId, hierarchy.hierarchyId, {
+              hierarchyName: hierarchy.hierarchyName,
+              parentId: hierarchy.parentId,
+              isRoot: hierarchy.isRoot,
+              sortOrder: hierarchy.sortOrder,
+              hierarchyLevel: hierarchy.hierarchyLevel,
+              flags: hierarchy.flags,
+              mapping: hierarchy.mapping,
+            });
+          }
+        }
+      }
+
+      // Reload from backend to get fresh state
+      await loadHierarchies(selectedProjectId);
+      setHasUnsavedChanges(false);
+      pendingChangesRef.current = [];
+      clearHistory();
+
+      toast({
+        title: "Changes saved",
+        description: "All changes have been committed to the database.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error saving changes",
+        description: error.message || "Failed to save some changes",
+        variant: "destructive",
+      });
+    }
+  }, [selectedProjectId, hierarchies, clearHistory, toast]);
+
+  const tree = useMemo(() => buildTree(hierarchies), [hierarchies]);
+
+  const stats = useMemo(() => {
+    const totalHierarchies = hierarchies.length;
+    const totalMappings = countMappings(tree);
+    const rootCount = tree.length;
+    const maxDepth = getMaxDepth(tree);
+    const withMappings = hierarchies.filter((h) => h.mapping?.length > 0).length;
+
+    return {
+      totalHierarchies,
+      totalMappings,
+      rootCount,
+      maxDepth,
+      withMappings,
+      withoutMappings: totalHierarchies - withMappings,
+    };
+  }, [hierarchies, tree]);
+
+  const handleToggleNode = (id: string) => {
+    setExpandedNodes((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleExpandAll = () => {
+    if (expandAll) {
+      // Collapse to first level only
+      setExpandedNodes(new Set(tree.map((n) => n.id)));
+    } else {
+      // Expand all nodes
+      const allIds = new Set<string>();
+      const collectIds = (nodes: HierarchyNode[]) => {
+        nodes.forEach((n) => {
+          allIds.add(n.id);
+          collectIds(n.children);
+        });
+      };
+      collectIds(tree);
+      setExpandedNodes(allIds);
+    }
+    setExpandAll(!expandAll);
+  };
+
+  const selectedProject = projects.find((p) => p.id === selectedProjectId);
+
+  // Handler for AI commands from tree edits
+  const handleAICommand = useCallback((command: string) => {
+    if (aiChatRef.current) {
+      aiChatRef.current.sendMessage(command);
+    } else {
+      toast({
+        title: "AI Assistant not available",
+        description: "Please enable the AI Assistant to make edits.",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
+
+  // Flat list of all hierarchies for drag-drop reference
+  const allHierarchiesFlat = useMemo(() => {
+    const flatten = (nodes: HierarchyNode[]): HierarchyNode[] => {
+      return nodes.flatMap(n => [n, ...flatten(n.children)]);
+    };
+    return flatten(tree);
+  }, [tree]);
+
+  return (
+    <div className="h-full flex flex-col p-4 gap-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Eye className="h-6 w-6 text-primary" />
+          <div>
+            <h1 className="text-2xl font-bold">Hierarchy Viewer</h1>
+            <p className="text-sm text-muted-foreground">
+              View hierarchies and filter by reference table values
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant={showAIChat ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowAIChat(!showAIChat)}
+            className={showAIChat ? "bg-gradient-to-r from-purple-600 to-blue-600" : ""}
+          >
+            <Sparkles className="h-4 w-4 mr-1" />
+            AI Assistant
+            {hasUnsavedChanges && (
+              <Badge variant="destructive" className="ml-1 h-5 px-1">!</Badge>
+            )}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setRefTablesDialogOpen(true)}
+          >
+            <Table2 className="h-4 w-4 mr-1" />
+            Reference Tables ({referenceTables.length})
+          </Button>
+
+          <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+            <SelectTrigger className="w-[250px]">
+              <SelectValue placeholder="Select a project" />
+            </SelectTrigger>
+            <SelectContent>
+              {projects.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => {
+              if (selectedProjectId) {
+                loadHierarchies(selectedProjectId);
+                loadReferenceTables();
+              }
+            }}
+          >
+            <RefreshCw className={cn("h-4 w-4", isLoadingHierarchies && "animate-spin")} />
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        <Card>
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <Layers className="h-4 w-4 text-blue-500" />
+              <div>
+                <p className="text-xs text-muted-foreground">Total Hierarchies</p>
+                <p className="text-xl font-bold">{stats.totalHierarchies}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <Database className="h-4 w-4 text-green-500" />
+              <div>
+                <p className="text-xs text-muted-foreground">Total Mappings</p>
+                <p className="text-xl font-bold">{stats.totalMappings}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <Folder className="h-4 w-4 text-amber-500" />
+              <div>
+                <p className="text-xs text-muted-foreground">Root Nodes</p>
+                <p className="text-xl font-bold">{stats.rootCount}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <Hash className="h-4 w-4 text-purple-500" />
+              <div>
+                <p className="text-xs text-muted-foreground">Max Depth</p>
+                <p className="text-xl font-bold">{stats.maxDepth}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <Database className="h-4 w-4 text-emerald-500" />
+              <div>
+                <p className="text-xs text-muted-foreground">With Mappings</p>
+                <p className="text-xl font-bold">{stats.withMappings}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <Table2 className="h-4 w-4 text-cyan-500" />
+              <div>
+                <p className="text-xs text-muted-foreground">Ref Tables</p>
+                <p className="text-xl font-bold">{referenceTables.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content Area with Tree View and AI Chat */}
+      <div className="flex-1 flex gap-4 overflow-hidden">
+        {/* Tree View */}
+        <Card className={cn(
+          "flex flex-col overflow-hidden transition-all duration-300",
+          showAIChat ? "flex-1" : "w-full"
+        )}>
+          <CardHeader className="py-3 border-b">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">
+                {selectedProject?.name || "Select a Project"}
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search hierarchies..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8 h-9 w-[200px]"
+                  />
+                </div>
+                <Button variant="outline" size="sm" onClick={handleExpandAll}>
+                  {expandAll ? "Collapse" : "Expand All"}
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="flex-1 p-0 overflow-hidden">
+            {isLoading || isLoadingHierarchies ? (
+              <div className="p-4 space-y-2">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Skeleton key={i} className="h-8 w-full" />
+                ))}
+              </div>
+            ) : tree.length === 0 ? (
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                <div className="text-center">
+                  <Layers className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>No hierarchies found</p>
+                  <p className="text-sm">Select a project or import hierarchies</p>
+                </div>
+              </div>
+            ) : (
+              <ScrollArea className="h-full">
+                <div className="p-2">
+                  {tree.map((node) => (
+                    <TreeNode
+                      key={node.id}
+                      node={node}
+                      level={0}
+                      expandedNodes={expandedNodes}
+                      onToggle={handleToggleNode}
+                      searchQuery={searchQuery}
+                      referenceTables={referenceTables}
+                      viewerSelections={viewerSelections}
+                      onSelectionChange={handleSelectionChange}
+                      onRefreshHierarchy={handleRefreshHierarchy}
+                      projectId={selectedProjectId}
+                      animatedItems={animatedItems}
+                      onAICommand={handleAICommand}
+                      allHierarchies={allHierarchiesFlat}
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* AI Chat Panel */}
+        {showAIChat && selectedProjectId && (
+          <div className="w-[400px] flex-shrink-0">
+            <AIChat
+              ref={aiChatRef}
+              hierarchies={hierarchies}
+              projectId={selectedProjectId}
+              projectName={selectedProject?.name}
+              selectedHierarchy={focusedHierarchy}
+              onApplyChanges={handleApplyChanges}
+              onUndo={handleUndo}
+              onRedo={handleRedo}
+              canUndo={canUndo}
+              canRedo={canRedo}
+              undoDescription={getUndoDescription()}
+              redoDescription={getRedoDescription()}
+              onSaveAndCommit={handleSaveAndCommit}
+              hasUnsavedChanges={hasUnsavedChanges}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Reference Tables Dialog */}
+      <ReferenceTablesDialog
+        open={refTablesDialogOpen}
+        onOpenChange={(open) => {
+          setRefTablesDialogOpen(open);
+          if (!open) {
+            // Reload reference tables when dialog closes
+            loadReferenceTables();
+          }
+        }}
+      />
+    </div>
+  );
+}
+
+export default HierarchyViewerPage;

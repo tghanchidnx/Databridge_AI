@@ -3,9 +3,9 @@
     "DataBridge AI": {
       "command": "python",
       "args": ["run_server.py"],
-      "cwd": "C:/Users/telha/Databridge_AI",
+      "cwd": "T:/Users/telha/Databridge_AI_Source",
       "env": {
-        "PYTHONPATH": "C:/Users/telha/Databridge_AI;C:/Users/telha/Databridge_AI/src"
+        "PYTHONPATH": "T:/Users/telha/Databridge_AI_Source;T:/Users/telha/Databridge_AI_Source/src"
       }
     }
   }

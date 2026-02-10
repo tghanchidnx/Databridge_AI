@@ -224,7 +224,7 @@
                 <div class="command-title">Start All Services (Docker)</div>
                 <div class="command-block">
                     <span class="comment"># Navigate to the application folder</span><br>
-                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP</span><br><br>
                     <span class="comment"># Start all services: MySQL, Backend, Frontend, Redis</span><br>
                     <span class="cmd">docker-compose</span> <span class="flag">up -d</span><br><br>
                     <span class="comment"># View logs for all services</span><br>
@@ -249,13 +249,13 @@
 
                 <h3>1. Start MySQL Database</h3>
                 <div class="command-block">
-                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP</span><br>
+                    <span class="cmd">cd</span> <span class="path">T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP</span><br>
                     <span class="cmd">docker-compose</span> <span class="flag">up -d</span> mysql
                 </div>
 
                 <h3>2. Start Backend (NestJS)</h3>
                 <div class="command-block">
-                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs</span><br><br>
                     <span class="comment"># Install dependencies (first time only)</span><br>
                     <span class="cmd">npm</span> <span class="flag">install</span><br><br>
                     <span class="comment"># Run database migrations</span><br>
@@ -266,7 +266,7 @@
 
                 <h3>3. Start Frontend (React/Vite)</h3>
                 <div class="command-block">
-                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai</span><br><br>
                     <span class="comment"># Install dependencies (first time only)</span><br>
                     <span class="cmd">npm</span> <span class="flag">install</span><br><br>
                     <span class="comment"># Start development server</span><br>
@@ -275,7 +275,7 @@
 
                 <h3>4. Start MCP Server (Python)</h3>
                 <div class="command-block">
-                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">T:\Users\telha\Databridge_AI_Source</span><br><br>
                     <span class="comment"># Start MCP server</span><br>
                     <span class="cmd">python</span> run_server.py
                 </div>
@@ -297,7 +297,7 @@
 
                 <div class="command-title">Terminal 1: Start MySQL Database</div>
                 <div class="command-block">
-                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP"</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">"T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP"</span><br><br>
                     <span class="comment"># Start MySQL container</span><br>
                     <span class="cmd">docker compose</span> <span class="flag">up -d</span> mysql<br><br>
                     <span class="comment"># Verify MySQL is running (wait 10 seconds first)</span><br>
@@ -306,7 +306,7 @@
 
                 <div class="command-title">Terminal 2: Start Backend (NestJS)</div>
                 <div class="command-block">
-                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">"T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
                     <span class="comment"># Install dependencies (first time only)</span><br>
                     <span class="cmd">npm</span> <span class="flag">install</span><br><br>
                     <span class="comment"># Apply database migrations</span><br>
@@ -322,7 +322,7 @@
 
                 <div class="command-title">Terminal 3: Start Frontend (React/Vite)</div>
                 <div class="command-block">
-                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai"</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">"T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai"</span><br><br>
                     <span class="comment"># Install dependencies (first time only)</span><br>
                     <span class="cmd">npm</span> <span class="flag">install</span><br><br>
                     <span class="comment"># Start the frontend</span><br>
@@ -405,7 +405,7 @@
                 <h2>Environment Variables - Authentication</h2>
 
                 <h3>Backend .env (Required for Auth)</h3>
-                <p><strong>File:</strong> <code>C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs\.env</code></p>
+                <p><strong>File:</strong> <code>T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs\.env</code></p>
 
                 <div class="command-block">
                     <span class="comment"># JWT Configuration (REQUIRED)</span><br>
@@ -425,7 +425,7 @@
                 </div>
 
                 <h3>Frontend .env (Required for Auth)</h3>
-                <p><strong>File:</strong> <code>C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai\.env</code></p>
+                <p><strong>File:</strong> <code>T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai\.env</code></p>
 
                 <div class="command-block">
                     <span class="comment"># API URL (must match running backend)</span><br>
@@ -449,7 +449,7 @@
                 </div>
                 <div class="command-block">
                     <span class="comment"># Solution: Start the backend</span><br>
-                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br>
+                    <span class="cmd">cd</span> <span class="path">"T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br>
                     <span class="cmd">npm</span> <span class="flag">run start:dev</span>
                 </div>
 
@@ -488,7 +488,7 @@
                 </div>
                 <div class="command-block">
                     <span class="comment"># Start MySQL</span><br>
-                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP"</span><br>
+                    <span class="cmd">cd</span> <span class="path">"T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP"</span><br>
                     <span class="cmd">docker compose</span> <span class="flag">up -d</span> mysql<br><br>
                     <span class="comment"># Verify DATABASE_URL matches your MySQL setup</span><br>
                     <span class="comment"># Docker MySQL: mysql://root:password@localhost:3307/hierarchy_builder</span><br>
@@ -639,7 +639,7 @@
                 <ol>
                     <li><strong>Is MySQL running?</strong>
                         <div class="command-block">
-                            <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP"</span><br>
+                            <span class="cmd">cd</span> <span class="path">"T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP"</span><br>
                             <span class="cmd">docker compose</span> <span class="flag">ps</span>
                         </div>
                     </li>
@@ -657,7 +657,7 @@
                     <li><strong>Does your user exist?</strong>
                         <div class="command-block">
                             <span class="comment"># Check via Prisma Studio</span><br>
-                            <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br>
+                            <span class="cmd">cd</span> <span class="path">"T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br>
                             <span class="cmd">npx</span> prisma studio<br>
                             <span class="comment"># Opens http://localhost:5555 - check User table</span>
                         </div>
@@ -670,11 +670,11 @@
         <section id="backend" class="section">
             <div class="card">
                 <h2>Backend (NestJS) Commands</h2>
-                <p><strong>Location:</strong> <code>C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs</code></p>
+                <p><strong>Location:</strong> <code>T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs</code></p>
 
                 <h3>Development</h3>
                 <div class="command-block">
-                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs</span><br><br>
                     <span class="comment"># Start development server with hot reload</span><br>
                     <span class="cmd">npm</span> <span class="flag">run start:dev</span><br><br>
                     <span class="comment"># Start in debug mode</span><br>
@@ -687,7 +687,7 @@
 
                 <h3>Prisma Database Commands</h3>
                 <div class="command-block">
-                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs</span><br><br>
                     <span class="comment"># Generate Prisma client after schema changes</span><br>
                     <span class="cmd">npx</span> prisma generate<br><br>
                     <span class="comment"># Create a new migration</span><br>
@@ -712,11 +712,11 @@
         <section id="frontend" class="section">
             <div class="card">
                 <h2>Frontend (React/Vite) Commands</h2>
-                <p><strong>Location:</strong> <code>C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai</code></p>
+                <p><strong>Location:</strong> <code>T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai</code></p>
 
                 <h3>Development</h3>
                 <div class="command-block">
-                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai</span><br><br>
                     <span class="comment"># Start development server</span><br>
                     <span class="cmd">npm</span> <span class="flag">run dev</span><br><br>
                     <span class="comment"># Build for production</span><br>
@@ -730,7 +730,7 @@
                 <h3>Environment Variables</h3>
                 <div class="command-block">
                     <span class="comment"># Check/edit frontend .env</span><br>
-                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai</span><br>
+                    <span class="cmd">cd</span> <span class="path">T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\dataamp-ai</span><br>
                     <span class="cmd">type</span> .env<br><br>
                     <span class="comment"># Required variables:</span><br>
                     VITE_API_URL=http://localhost:3001/api<br>
@@ -747,8 +747,8 @@
 
                 <div class="alert alert-info">
                     <strong>Important Paths:</strong><br>
-                    <strong>Prisma commands run from:</strong> <code>C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs</code><br>
-                    <strong>Docker commands run from:</strong> <code>C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP</code><br>
+                    <strong>Prisma commands run from:</strong> <code>T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs</code><br>
+                    <strong>Docker commands run from:</strong> <code>T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP</code><br>
                     <strong>Prisma Schema file:</strong> <code>...\hierarchybuilder-nestjs\prisma\schema.prisma</code>
                 </div>
             </div>
@@ -760,7 +760,7 @@
                 <div class="command-title">Open Terminal and Run:</div>
                 <div class="command-block">
                     <span class="comment"># STEP 1: Navigate to the docker-compose folder</span><br>
-                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP"</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">"T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP"</span><br><br>
                     <span class="comment"># STEP 2: Start MySQL container</span><br>
                     <span class="cmd">docker-compose</span> <span class="flag">up -d</span> mysql<br><br>
                     <span class="comment"># STEP 3: Wait 10 seconds for MySQL to initialize, then verify it's running</span><br>
@@ -779,7 +779,7 @@
                 <div class="command-title">Generate Prisma Client (after schema changes)</div>
                 <div class="command-block">
                     <span class="comment"># STEP 1: Navigate to the backend folder</span><br>
-                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">"T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
                     <span class="comment"># STEP 2: Generate Prisma client from schema</span><br>
                     <span class="cmd">npx</span> prisma generate
                 </div>
@@ -787,7 +787,7 @@
                 <div class="command-title">Run Database Migrations (create/update tables)</div>
                 <div class="command-block">
                     <span class="comment"># STEP 1: Navigate to the backend folder</span><br>
-                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">"T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
                     <span class="comment"># STEP 2: Apply all pending migrations to the database</span><br>
                     <span class="cmd">npx</span> prisma migrate deploy
                 </div>
@@ -795,7 +795,7 @@
                 <div class="command-title">Create a New Migration (when you change schema.prisma)</div>
                 <div class="command-block">
                     <span class="comment"># STEP 1: Navigate to the backend folder</span><br>
-                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">"T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
                     <span class="comment"># STEP 2: Create a new migration with a descriptive name</span><br>
                     <span class="cmd">npx</span> prisma migrate dev --name add_new_feature
                 </div>
@@ -803,7 +803,7 @@
                 <div class="command-title">Open Prisma Studio (Visual Database Browser)</div>
                 <div class="command-block">
                     <span class="comment"># STEP 1: Navigate to the backend folder</span><br>
-                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">"T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
                     <span class="comment"># STEP 2: Open Prisma Studio in browser (opens http://localhost:5555)</span><br>
                     <span class="cmd">npx</span> prisma studio
                 </div>
@@ -819,7 +819,7 @@
 
                 <div class="command-block">
                     <span class="comment"># STEP 1: Navigate to the backend folder</span><br>
-                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">"T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
                     <span class="comment"># STEP 2: Reset database (DELETES ALL DATA and re-runs all migrations)</span><br>
                     <span class="cmd">npx</span> prisma migrate reset
                 </div>
@@ -840,7 +840,7 @@
 
                 <div class="command-title">View MySQL Logs</div>
                 <div class="command-block">
-                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP"</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">"T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP"</span><br><br>
                     <span class="cmd">docker-compose</span> <span class="flag">logs -f</span> mysql
                 </div>
 
@@ -893,10 +893,10 @@
                 <h3>First Time Setup (Fresh Install)</h3>
                 <div class="command-block">
                     <span class="comment"># Terminal 1: Start MySQL</span><br>
-                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP"</span><br>
+                    <span class="cmd">cd</span> <span class="path">"T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP"</span><br>
                     <span class="cmd">docker-compose</span> <span class="flag">up -d</span> mysql<br><br>
                     <span class="comment"># Terminal 2: Setup Backend</span><br>
-                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br>
+                    <span class="cmd">cd</span> <span class="path">"T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br>
                     <span class="cmd">npm</span> <span class="flag">install</span><br>
                     <span class="cmd">npx</span> prisma generate<br>
                     <span class="cmd">npx</span> prisma migrate deploy<br>
@@ -905,14 +905,14 @@
 
                 <h3>After Pulling New Code (schema might have changed)</h3>
                 <div class="command-block">
-                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">"T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
                     <span class="cmd">npx</span> prisma generate<br>
                     <span class="cmd">npx</span> prisma migrate deploy
                 </div>
 
                 <h3>After Editing schema.prisma</h3>
                 <div class="command-block">
-                    <span class="cmd">cd</span> <span class="path">"C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">"T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs"</span><br><br>
                     <span class="cmd">npx</span> prisma migrate dev --name describe_your_changes<br>
                     <span class="cmd">npx</span> prisma generate
                 </div>
@@ -923,11 +923,11 @@
         <section id="mcp" class="section">
             <div class="card">
                 <h2>MCP Server (Python) Commands</h2>
-                <p><strong>Location:</strong> <code>C:\Users\telha\Databridge_AI</code></p>
+                <p><strong>Location:</strong> <code>T:\Users\telha\Databridge_AI_Source</code></p>
 
                 <h3>Start MCP Server</h3>
                 <div class="command-block">
-                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">T:\Users\telha\Databridge_AI_Source</span><br><br>
                     <span class="comment"># Start the MCP server (for Claude Desktop)</span><br>
                     <span class="cmd">python</span> run_server.py<br><br>
                     <span class="comment"># Alternative: Using fastmcp</span><br>
@@ -936,7 +936,7 @@
 
                 <h3>Install Dependencies</h3>
                 <div class="command-block">
-                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">T:\Users\telha\Databridge_AI_Source</span><br><br>
                     <span class="comment"># Install Python dependencies</span><br>
                     <span class="cmd">pip</span> <span class="flag">install -r</span> requirements.txt
                 </div>
@@ -987,7 +987,7 @@
 
                 <h3>Backend Tests (NestJS/Jest)</h3>
                 <div class="command-block">
-                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">T:\Users\telha\Databridge_AI_Source\current application\extracted_app\HIERARCHY_BUILDER_APP\hierarchybuilder-nestjs</span><br><br>
                     <span class="comment"># Run all unit tests</span><br>
                     <span class="cmd">npm</span> <span class="flag">run test</span><br><br>
                     <span class="comment"># Run tests in watch mode</span><br>
@@ -1024,7 +1024,7 @@
 
                 <h3>Python Tests (Pytest)</h3>
                 <div class="command-block">
-                    <span class="cmd">cd</span> <span class="path">C:\Users\telha\Databridge_AI</span><br><br>
+                    <span class="cmd">cd</span> <span class="path">T:\Users\telha\Databridge_AI_Source</span><br><br>
                     <span class="comment"># Run all Python tests</span><br>
                     <span class="cmd">pytest</span><br><br>
                     <span class="comment"># Run with verbose output</span><br>

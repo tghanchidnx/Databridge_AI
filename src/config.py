@@ -27,14 +27,14 @@ class Settings(BaseSettings):
     # Context sensitivity
     max_rows_display: int = Field(default=10, description="Maximum rows to return to LLM")
 
-    # NestJS Backend Sync Configuration (V2)
+    # NestJS Backend Sync Configuration
     nestjs_backend_url: str = Field(
         default="http://localhost:3002/api",
-        description="NestJS backend API URL for sync (V2)"
+        description="NestJS backend API URL for sync"
     )
     nestjs_api_key: str = Field(
-        default="v2-dev-key-1",
-        description="API key for authenticating with NestJS backend (V2)"
+        default="dev-key-1",
+        description="API key for authenticating with NestJS backend"
     )
     nestjs_sync_enabled: bool = Field(
         default=True,

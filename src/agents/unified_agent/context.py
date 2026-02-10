@@ -87,9 +87,9 @@ class UnifiedAgentContext:
 
         # Configuration
         self._librarian_base_url: str = "http://localhost:8001/api"
-        self._librarian_api_key: str = "v2-dev-key-1"
+        self._librarian_api_key: str = "dev-key-1"
         self._researcher_base_url: str = "http://localhost:8001/api"
-        self._researcher_api_key: str = "v2-dev-key-1"
+        self._researcher_api_key: str = "dev-key-1"
 
         # Hierarchy service (set externally)
         self._hierarchy_service: Any = None
