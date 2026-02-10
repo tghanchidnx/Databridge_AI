@@ -1,12 +1,12 @@
 # DataBridge AI - Continuous Integration Pipeline
-# Runs on every push and PR to master branch
+# Runs on pushes and PRs to dev, test, and master branches
 # Tests shared libraries, main MCP server, and discovery module
 
 name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [dev, test, master]
     paths:
       - 'src/**'
       - 'libs/**'
@@ -15,7 +15,7 @@ on:
       - '.github/workflows/ci.yml'
       - 'pyproject.toml'
   pull_request:
-    branches: [master]
+    branches: [dev, test, master]
     paths:
       - 'src/**'
       - 'libs/**'
